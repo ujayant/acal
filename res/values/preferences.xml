@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="prefDefaultCalendar">prefDefaultCalendar</string>
+    <string name="defaultCalendar">Default Calendar</string>
+    <string name="theCalendarForNewEvents">The calendar to be used by default for new events.</string>
+</resources>

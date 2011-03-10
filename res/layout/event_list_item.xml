@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:id="@+id/EventListItem"
+  android:orientation="horizontal" 
+  android:layout_width="fill_parent" android:layout_height="wrap_content">
+
+	<LinearLayout 
+		android:id="@+id/EventListItemColorBar" 
+		android:layout_width="fill_parent" 
+		android:layout_height="fill_parent" 
+		android:layout_weight="20" 
+		android:background="#0000FF">
+	</LinearLayout>
+
+	<LinearLayout 
+		android:id="@+id/EventListItemText" 
+		android:layout_height="fill_parent" 
+		android:layout_weight="1" 
+		android:layout_width="fill_parent" 
+		android:background="#FFFFFFFF"
+		android:orientation="vertical">
+	
+		<TextView 
+			android:id="@+id/EventListItemTitle" 
+			android:layout_height="wrap_content" 
+			android:layout_width="fill_parent" 
+			android:text="Flu vaccination" 
+			android:textColor="#0000FF" 
+			android:textSize="24sp" 
+			android:paddingLeft="10sp"/>
+
+
+		<TextView 
+			android:id="@+id/EventListItemTime" 
+			android:layout_height="wrap_content" 
+			android:layout_width="fill_parent" 
+			android:paddingLeft="10sp" 
+			android:text="10:00 am - 10:30 am" 
+			android:textColor="#000000" 
+			android:textSize="18sp"/>
+	
+		<TextView 
+			android:id="@+id/EventListItemLocation" 
+			android:layout_height="wrap_content" 
+			android:layout_width="fill_parent" android:paddingLeft="10sp" android:textSize="16sp" android:text="Puddleby on the Marsh" android:textColor="#000000"/>
+	
+	</LinearLayout>
+</LinearLayout>

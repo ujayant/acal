@@ -1,0 +1,79 @@
+/*
+ * Copyright (C) 2011 Morphoss Ltd
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
+package com.morphoss.acal.davacal;
+
+import android.content.ContentValues;
+import android.graphics.Color;
+import android.util.Log;
+
+import com.morphoss.acal.StaticHelpers;
+import com.morphoss.acal.providers.DavCollections;
+
+public class AcalCollection {
+	final private static String TAG = "AcalCollection";
+	private ContentValues cv;
+	private int collectionColour;
+	public final int collectionId;
+
+	public AcalCollection( ContentValues collectionRow ) {
+		cv = collectionRow;
+		setColour(cv.getAsString(DavCollections.COLOUR));
+		collectionId = cv.getAsInteger(DavCollections._ID);
+	}
+
+
+	public void updateCollectionRow( ContentValues collectionRow ) {
+		if ( cv.getAsInteger(DavCollections._ID) != collectionId ) {
+			Log.w(TAG,"Attempt to re-use AcalCollection with different Collection ID");
+			try {
+				throw new Exception("");
+			}
+			catch ( Exception e ) {
+				Log.w(TAG,Log.getStackTraceString(e));
+			}
+			return;
+		}
+		cv.putAll(collectionRow);
+		if (cv.containsKey(DavCollections.COLOUR)){
+			setColour(cv.getAsString(DavCollections.COLOUR));
+		}
+	}
+
+	public int getColour() {
+		return collectionColour;
+	}
+
+	public int setColour( String colourString ) {
+		if ( colourString == null ) colourString = StaticHelpers.randomColorString();
+		try {
+			collectionColour = Color.parseColor(colourString);
+		} catch (IllegalArgumentException iae) {
+			collectionColour = Color.parseColor("#00f");	//Default blue
+		}
+		return collectionColour;
+	}
+
+	public ContentValues getCollectionRow() {
+		return cv;
+	}
+
+	public int getCollectionId() {
+		return collectionId;
+	}
+}

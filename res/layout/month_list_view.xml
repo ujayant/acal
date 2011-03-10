@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout  xmlns:android="http://schemas.android.com/apk/res/android"
+ 	android:layout_height="fill_parent" 
+	android:layout_width="fill_parent" 
+	android:background="#00000000">
+
+	<TextView android:id="@+id/month_list_title" 
+		android:text="BLAH" 
+		android:layout_height="wrap_content" 
+		android:layout_width="fill_parent" 
+		android:gravity="center"
+		android:textColor="#F0F0F0" 
+		android:background="@drawable/titlebg"
+		android:tileMode="repeat"/>
+	
+	<GridView 
+		android:id="@+id/month_default_list"
+   		android:layout_width="fill_parent" 
+   		android:layout_height="fill_parent"
+   		android:numColumns="1"
+   		android:verticalSpacing="2dp"
+   		android:horizontalSpacing="2dp"
+   		android:stretchMode="columnWidth" 
+   		android:layout_below="@id/month_list_title">
+   	</GridView>
+
+
+</RelativeLayout>

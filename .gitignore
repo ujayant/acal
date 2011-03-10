@@ -1,0 +1,10 @@
+.classpath
+.project
+bin/*
+gen/*
+doc/*
+.settings
+design/.*#
+design/*.png
+design/*.gif
+acal.db

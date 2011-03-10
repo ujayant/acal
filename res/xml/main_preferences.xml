@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+  xmlns:android="http://schemas.android.com/apk/res/android">
+
+	<ListPreference 
+		android:key="@string/firstDayOfWeek" 
+		android:title="@string/firstDayOfWeek" 
+		android:summary="@string/theDayEachWeekStartsWith" 
+		android:selectable="true" 
+		android:entries="@array/DaysOfWeek" 
+		android:entryValues="@array/DaysOfWeek"
+		android:enabled="true" 
+		android:defaultValue="@string/Monday">
+	</ListPreference>
+
+	<ListPreference
+		android:key="@string/YearViewSize_PrefKey"
+		android:title="@string/YearViewSize_PrefTitle"
+		android:summary="@string/YearViewSize_PrefSummary"
+		android:selectable="true"
+		android:entries="@array/YearViewSize_PrefEntries"
+		android:entryValues="@array/YearViewSize_PrefEntries"
+		android:enabled="true"
+		android:defaultValue="6"
+	/>
+	
+	<EditTextPreference
+	android:key="@string/Snooze_PrefKey"
+		android:title="@string/Snooze_PrefTitle"
+		android:summary="@string/Snooze_PrefSummary"
+		android:selectable="true"
+		android:enabled="true"
+		android:defaultValue="5"/>
+	
+	<!-- This Preference is dynamically populated in AcalPreferences.java-->
+	<ListPreference
+		android:key="@string/DefaultCollection_PrefKey"
+		android:title="@string/DefaultCollection_PrefTitle"
+		android:summary="@string/DefaultCollection_PrefSummary"
+		android:selectable="false"
+		android:enabled="false"
+	/>
+	
+	<ListPreference
+		android:key="@string/DefaultAlarmTone_PrefKey"
+		android:title="@string/DefaultAlarmTone_PrefTitle"
+		android:summary="@string/DefaultAlarmTone_PrefSummary"
+		android:selectable="false"
+		android:enabled="false"/>
+	
+</PreferenceScreen>

@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="theDayEachWeekStartsWith">The day each week starts with</string>
+    <string name="firstDayOfWeek">First Day Of Week</string>
+    
+<string name="ok">OK</string>
+<string name="cancel">Cancel</string>
+<string name="applyButton">applyButton</string>
+<string name="cancelButton">cancelButton</string>
+
+<string name="appName">aCal</string>
+<string name="appDescription">A Calendar for Android which will store your events, tasks, notes and contacts on a remote CalDAV / CardDAV server, such as DAViCal (See: www.davical.org)</string>
+
+
+<string name="Active">Active</string>
+<string name="Add_Server">Add Server</string>
+<string name="Add_Other">Other</string>
+<string name="A_name_for_this_server_configuration">A name to use for this server configuration</string>
+<string name="Authentication_Type">Authentication Type</string>
+<string name="Simple_Path">Simple Path</string>
+<string name="Simple_Domain">Simple Domain</string>
+<string name="Enter_a_brief_summary_of_the_event">Enter a brief summary of the event</string>
+<string name="Name">Name</string>
+<string name="Force_full_resync">Force resynchronisation</string>
+<string name="Password">Password</string>
+<string name="Save">Save</string>
+<string name="Settings">Settings</string>
+<string name="Server_Name">Server Name</string>
+<string name="Server_Options">Server Options</string>
+<string name="Collection_Options">Collection Options</string>
+<string name="Colour">Colour</string>
+<string name="Default_timezone">Default Timezone</string>
+<string name="Server_Path">Server Path</string>
+<string name="Server_Port">Server Port</string>
+<string name="Summary">Summary</string>
+<string name="Sync_collection_now">Synchronise Now</string>
+<string name="Disable_collection">Disable Collection</string>
+<string name="The_authentication_type_used">The authentication type used by the server</string>
+<string name="The_password_to_use">The password to use for authentication with the server</string>
+<string name="The_path_on_the_server">The path on the server, such as &quot;/caldav.php/user/&quot;</string>
+<string name="The_domain_for_your_organisation">The domain name of your organisation, such as &quot;morphoss.com&quot;</string>
+<string name="The_servers_hostname">The server\'s full hostname such as &quot;calendar.davical.com&quot;</string>
+<string name="The_username_to_use">The username to use for authentication with the server</string>
+<string name="Username">Username</string>
+<string name="Use_SSL">Use SSL</string>
+<string name="Whether_this_server_is_active">Whether this server should be actively used</string>
+<string name="Whether_to_use_encryption">Whether to use encryption for the connection to the server</string>
+<string name="appActivityEventCreate">New Event</string>
+<string name="appActivityServerConfigList">Servers</string>
+<string name="appActivityAddServerList">Server Templates</string>
+<string name="appActivityCollectionConfigList">Calendars and Addressbooks</string>
+<string name="appActivityDebugSettings">Debug Settings</string>
+<string name="appActivitySettings">Settings</string>
+<string name="appActivityYearView">aCal - Year View</string>
+<string name="appActivityPreference">Preferences</string>
+<string name="The_port_to_connect_to">The port to connect to on the server</string>
+
+<string name="A_name_for_this_collection">A name for this collection</string>
+<string name="pActive_addressbook">Active Addressbook</string>
+<string name="pActive_for_events">Active for Events</string>
+<string name="pActive_for_journal">Active for Notes</string>
+<string name="pActive_for_tasks">Actve for Tasks</string>
+<string name="pUse_Alarms">Use alarms in this collection?</string>
+<string name="Use_Alarms">Alarms Enabled</string>
+<string name="Active_addressbook">Is this collection used to store contacts?</string>
+<string name="Active_for_events">Is this collection used to store events?</string>
+<string name="Active_for_journal">Is this collection used to store notes?</string>
+<string name="Active_for_tasks">Is this collection used to store tasks?</string>
+<string name="The_colour_associated_with_this_collection">The colour associated with data from this collection</string>
+<string name="The_timezone_new_events_default_to">The timezone used for new events in this collection</string>
+<string name="pMax_age_on_3g">Sync minutes on 3g</string>
+<string name="The_maximum_age_for_data_while_on_3g">The maximum time (in minutes) before updating, when on 3g</string>
+<string name="pMax_age_on_wifi">Sync minutes on wifi</string>
+<string name="The_maximum_age_for_data_while_on_wifi">The maximum time (in minutes) before updating, when on wifi</string>
+<string name="Use_alarms_from_this_calendar">Should alarms in this calendar be displayed?</string>
+
+<string name="Monday">Monday</string>
+<string name="Tuesday">Tuesday</string>
+<string name="Wednesday">Wednesday</string>
+<string name="Thursday">Thursday</string>
+<string name="Friday">Friday</string>
+<string name="Saturday">Saturday</string>
+<string name="Sunday">Sunday</string>
+
+<string name="Mon">Mon</string>
+<string name="Tue">Tue</string>
+<string name="Wed">Wed</string>
+<string name="Thu">Thu</string>
+<string name="Fri">Fri</string>
+<string name="Sat">Sat</string>
+<string name="Sun">Sun</string>
+
+<string name="chMon">M</string>
+<string name="chTue">T</string>
+<string name="chWed">W</string>
+<string name="chThu">T</string>
+<string name="chFri">F</string>
+<string name="chSat">S</string>
+<string name="chSun">S</string>
+
+<string name="January">January</string>
+<string name="February">February</string>
+<string name="March">March</string>
+<string name="April">April</string>
+<string name="May">May</string>
+<string name="June">June</string>
+<string name="July">July</string>
+<string name="August">August</string>
+<string name="September">September</string>
+<string name="October">October</string>
+<string name="November">November</string>
+<string name="December">December</string>
+
+<string name="Jan">Jan</string>
+<string name="Feb">Feb</string>
+<string name="Mar">Mar</string>
+<string name="Apr">Apr</string>
+<!-- <string name="May">May</string> --> <!-- Already defined  -->
+<string name="Jun">Jun</string>
+<string name="Jul">Jul</string>
+<string name="Aug">Aug</string>
+<string name="Sep">Sep</string>
+<string name="Oct">Oct</string>
+<string name="Nov">Nov</string>
+<string name="Dec">Dec</string>
+
+
+<string name="YearViewSize_PrefKey">YearViewNumMonths</string>
+<string name="YearViewSize_PrefTitle">Number of Months in Year View</string>
+<string name="YearViewSize_PrefSummary">The number of months that are visible in the year view</string>
+
+<string name="Snooze_PrefKey">SnoozeTime</string>
+<string name="Snooze_PrefTitle">Snooze Time</string>
+<string name="Snooze_PrefSummary">How many minutes to snooze alarms when the snooze button is pressed</string>
+
+<string name="DefaultCollection_PrefKey">DefaultCollection</string>
+<string name="DefaultCollection_PrefTitle">Default Collection</string>
+<string name="DefaultCollection_PrefSummary">The default collection to use for new events</string>
+
+<string name="DefaultAlarmTone_PrefKey">DefaultAlarmTone</string>
+<string name="DefaultAlarmTone_PrefTitle">Default Alarm Tone</string>
+<string name="DefaultAlarmTone_PrefSummary">The default sound to use for alarms.</string>
+
+
+<dimen name="MonthDayTextSize">14sp</dimen>
+<color name="MonthDayFG">#001060</color>
+<color name="MonthDayInMonthBG">#A0DDDDDD</color>
+
+<color name="MonthDayOutMonthBG">#80AAAAAA</color>
+
+<color name="MonthDayHighlightFG">#C00000</color>
+<color name="MonthDayHighlightBG">#00FFFFFF</color>
+<dimen name="MonthDayHighlightTextSize">18sp</dimen>
+
+<color name="DayEventFG">#103090</color>
+<color name="DayEventBG">#50FFFFFF</color>
+<dimen name="DayEventTextSize">14sp</dimen>
+</resources>
