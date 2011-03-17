@@ -31,7 +31,9 @@ import android.util.Log;
 
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.HashCodeUtil;
+import com.morphoss.acal.R;
 import com.morphoss.acal.davacal.AcalProperty;
+import com.morphoss.acal.service.aCalService;
 
 /**
  * <h1>AcalDateTime</h1>
@@ -1502,18 +1504,18 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 
 	public static String getMonthName(int month) {
 		switch( month ) {
-			case JANUARY: return "January";
-			case FEBRUARY: return "February";
-			case MARCH: return "March";
-			case APRIL: return "April";
-			case MAY: return "May";
-			case JUNE: return "June";
-			case JULY: return "July";
-			case AUGUST: return "August";
-			case SEPTEMBER: return "September";
-			case OCTOBER: return "October";
-			case NOVEMBER: return "November";
-			case DECEMBER: return "December";
+			case JANUARY: return aCalService.getContextString(R.string.January);
+			case FEBRUARY: return aCalService.getContextString(R.string.February);
+			case MARCH: return aCalService.getContextString(R.string.March);
+			case APRIL: return aCalService.getContextString(R.string.April);
+			case MAY: return aCalService.getContextString(R.string.May);
+			case JUNE: return aCalService.getContextString(R.string.June);
+			case JULY: return aCalService.getContextString(R.string.July);
+			case AUGUST: return aCalService.getContextString(R.string.August);
+			case SEPTEMBER: return aCalService.getContextString(R.string.September);
+			case OCTOBER: return aCalService.getContextString(R.string.October);
+			case NOVEMBER: return aCalService.getContextString(R.string.November);
+			case DECEMBER: return aCalService.getContextString(R.string.December);
 		}
 		throw new IllegalArgumentException();
 	}
