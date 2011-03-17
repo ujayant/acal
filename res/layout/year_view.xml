@@ -36,7 +36,7 @@
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
 				style="@style/bottom_button"
-				android:text="Today"
+				android:text="@string/Today"
 				android:width="70sp"
 				android:layout_gravity="center" android:includeFontPadding="true" android:padding="0sp"/>
 		</LinearLayout>
@@ -50,7 +50,7 @@
 				android:layout_height="wrap_content"
 				android:layout_gravity="center"
 				style="@style/bottom_button"
-				android:text="Month"
+				android:text="@string/Month"
 				android:width="70sp" 
 				android:includeFontPadding="true" 
 				android:padding="0sp"/>

@@ -5,16 +5,11 @@
     
 <string name="ok">OK</string>
 <string name="cancel">Cancel</string>
-<string name="applyButton">applyButton</string>
-<string name="cancelButton">cancelButton</string>
-
-<string name="appName">aCal</string>
 <string name="appDescription">A Calendar for Android which will store your events, tasks, notes and contacts on a remote CalDAV / CardDAV server, such as DAViCal (See: www.davical.org)</string>
 
 
 <string name="Active">Active</string>
 <string name="Add_Server">Add Server</string>
-<string name="Add_Other">Other</string>
 <string name="A_name_for_this_server_configuration">A name to use for this server configuration</string>
 <string name="Authentication_Type">Authentication Type</string>
 <string name="Simple_Path">Simple Path</string>
@@ -125,23 +120,37 @@
 <string name="Dec">Dec</string>
 
 
-<string name="YearViewSize_PrefKey">YearViewNumMonths</string>
 <string name="YearViewSize_PrefTitle">Number of Months in Year View</string>
 <string name="YearViewSize_PrefSummary">The number of months that are visible in the year view</string>
 
-<string name="Snooze_PrefKey">SnoozeTime</string>
 <string name="Snooze_PrefTitle">Snooze Time</string>
 <string name="Snooze_PrefSummary">How many minutes to snooze alarms when the snooze button is pressed</string>
 
-<string name="DefaultCollection_PrefKey">DefaultCollection</string>
 <string name="DefaultCollection_PrefTitle">Default Collection</string>
 <string name="DefaultCollection_PrefSummary">The default collection to use for new events</string>
 
-<string name="DefaultAlarmTone_PrefKey">DefaultAlarmTone</string>
 <string name="DefaultAlarmTone_PrefTitle">Default Alarm Tone</string>
 <string name="DefaultAlarmTone_PrefSummary">The default sound to use for alarms.</string>
 
+<string name="Today">Today</string>
+<string name="Year">Year</string>
+<string name="Month">Month</string>
+<string name="Edit">Edit</string>
+<string name="Apply">Apply</string>
+<string name="Advanced">Advanced</string>
+<string name="Add">Add</string>
 
+
+<!-- Below here the strings are not things that should be localised and should probably move to another file -->
+<string name="applyButton">applyButton</string>
+<string name="cancelButton">cancelButton</string>
+
+<string name="appName">aCal</string>
+
+<string name="YearViewSize_PrefKey">YearViewNumMonths</string>
+<string name="Snooze_PrefKey">SnoozeTime</string>
+<string name="DefaultCollection_PrefKey">DefaultCollection</string>
+<string name="DefaultAlarmTone_PrefKey">DefaultAlarmTone</string>
 <dimen name="MonthDayTextSize">14sp</dimen>
 <color name="MonthDayFG">#001060</color>
 <color name="MonthDayInMonthBG">#A0DDDDDD</color>

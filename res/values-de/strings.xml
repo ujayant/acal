@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="theDayEachWeekStartsWith">Die Woche fängt an mit</string>
+    <string name="firstDayOfWeek">Erster Wochentag</string>
+    
+<string name="ok">OK</string>
+<string name="cancel">Abbrechen</string>
+<string name="applyButton">applyButton</string>
+<string name="cancelButton">cancelButton</string>
+
+<string name="appName">aCal</string>
+<string name="appDescription">Ein Kalender für Android, der Ereignisse, Aufgaben, Notizen und Kontakte auf einem CalDAV- bzw. CardDAV-Server -- bspw. DAViCal (siehe www.davical.org) speichert.</string>
+
+
+<string name="Active">aktiv</string>
+<string name="Add_Server">Server hinzufügen</string>
+<string name="Add_Other">Andere</string>
+<string name="A_name_for_this_server_configuration">Name, der für diese Server-Konfiguration verwendet werden soll</string>
+<string name="Authentication_Type">Authentifizierungsmethode</string>
+<string name="Simple_Path">Einfacher Pfad</string>
+<string name="Simple_Domain">Einfache Domain</string>
+<string name="Enter_a_brief_summary_of_the_event">Geben Sie eine kurze Zusammenfassung des Ereignisses ein</string>
+<string name="Name">Name</string>
+<string name="Force_full_resync">Resynchronisation erzingen</string>
+<string name="Password">Passwort</string>
+<string name="Save">Speichern</string>
+<string name="Settings">Einstellungen</string>
+<string name="Server_Name">Servername</string>
+<string name="Server_Options">Servereinstellungen</string>
+<string name="Collection_Options">Collection Options</string>
+<string name="Colour">Farbe</string>
+<string name="Default_timezone">Standard Zeitzone</string>
+<string name="Server_Path">Serverpfad</string>
+<string name="Server_Port">Serverport</string>
+<string name="Summary">Zusammenfassung</string>
+<string name="Sync_collection_now">Jetzt synchronisieren</string>
+<string name="Disable_collection">Sammlung deaktivieren</string>
+<string name="The_authentication_type_used">Die vom Server benutzte Authentifizierungsmethode</string>
+<string name="The_password_to_use">Das Passwort, das zur Authentifizierung am Server verwendet wird</string>
+<string name="The_path_on_the_server">Der Pfad auf dem Server, bspw. &quot;/caldav.php/user/&quot;</string>
+<string name="The_domain_for_your_organisation">Die Domain der Organisation, bspw. &quot;morphoss.com&quot;</string>
+<string name="The_servers_hostname">Der vollständige Rechnername des Servers, bspw. &quot;calendar.davical.com&quot;</string>
+<string name="The_username_to_use">Der Benutzername, der zur Authentifizierung am Server verwendet wird</string>
+<string name="Username">Benutzername</string>
+<string name="Use_SSL">SSL verwenden</string>
+<string name="Whether_this_server_is_active">Einstellung, ob der Server benutzt werden soll</string>
+<string name="Whether_to_use_encryption">Einstellung, ob Verschlüsselung verwendet werden soll</string>
+<string name="appActivityEventCreate">Neues Ereignis</string>
+<string name="appActivityServerConfigList">Server</string>
+<string name="appActivityAddServerList">Servervorlagen</string>
+<string name="appActivityCollectionConfigList">Kalendar und Adressbuch</string>
+<string name="appActivityDebugSettings">Debug-Einstellungen</string>
+<string name="appActivitySettings">Einstellungen</string>
+<string name="appActivityYearView">aCal - Jahresansicht</string>
+<string name="appActivityPreference">Einstellungen</string>
+<string name="The_port_to_connect_to">Port, der auf dem Server verwendet wird</string>
+
+<string name="A_name_for_this_collection">Name für diese Sammlung</string>
+<string name="pActive_addressbook">Active Addressbook</string>
+<string name="pActive_for_events">Aktiv für Ereignisse</string>
+<string name="pActive_for_journal">Aktiv für Notizen</string>
+<string name="pActive_for_tasks">Aktiv für Aufgaben</string>
+<string name="pUse_Alarms">Benachrichtigungen für diese Sammlung verwenden?</string>
+<string name="Use_Alarms">Benachrichtigungen eingeschaltet</string>
+<string name="Active_addressbook">Wird diese Sammlung verwendet um Kontakte zu speichern?</string>
+<string name="Active_for_events">Wird diese Sammlung verwendet um Ereignisse zu speichern?</string>
+<string name="Active_for_journal">Wird diese Sammlung verwendet um Notizen zu speichern?</string>
+<string name="Active_for_tasks">Wird diese Sammlung verwendet um Aufgaben zu speichern?</string>
+<string name="The_colour_associated_with_this_collection">Farbe, die dieser Sammlung zugeordnet ist</string>
+<string name="The_timezone_new_events_default_to">Zeitzone, die für diese Sammlung verwendet wird</string>
+<string name="pMax_age_on_3g">Minuten bis zur Synchronisation bei 3G</string>
+<string name="The_maximum_age_for_data_while_on_3g">Die maximale Zeit (in Minuten) bis zur Aktualisierung im 3G-Netz</string>
+<string name="pMax_age_on_wifi">Minuten bis zur Synchronisation bei WLAN</string>
+<string name="The_maximum_age_for_data_while_on_wifi">Die maximale Zeit (in Minuten) bis zur Aktualisierung im WLAN</string>
+<string name="Use_alarms_from_this_calendar">Sollten Benachrichtigungen in diesem Kalender angezeigt werden?</string>
+
+<string name="Monday">Montag</string>
+<string name="Tuesday">Dienstag</string>
+<string name="Wednesday">Mittwoch</string>
+<string name="Thursday">Donnerstag</string>
+<string name="Friday">Freitag</string>
+<string name="Saturday">Samstag</string>
+<string name="Sunday">Sonntag</string>
+
+<string name="Mon">Mo</string>
+<string name="Tue">Di</string>
+<string name="Wed">Mi</string>
+<string name="Thu">Do</string>
+<string name="Fri">Fr</string>
+<string name="Sat">Sa</string>
+<string name="Sun">So</string>
+
+<string name="chMon">M</string>
+<string name="chTue">D</string>
+<string name="chWed">M</string>
+<string name="chThu">D</string>
+<string name="chFri">F</string>
+<string name="chSat">S</string>
+<string name="chSun">S</string>
+
+<string name="January">Januar</string>
+<string name="February">Februar</string>
+<string name="March">März</string>
+<string name="April">April</string>
+<string name="May">Mai</string>
+<string name="June">Juni</string>
+<string name="July">Juli</string>
+<string name="August">August</string>
+<string name="September">September</string>
+<string name="October">Oktober</string>
+<string name="November">November</string>
+<string name="December">Dezember</string>
+
+<string name="Jan">Jan</string>
+<string name="Feb">Feb</string>
+<string name="Mar">Mrz</string>
+<string name="Apr">Apr</string>
+<!-- < string name="May">May</string> --> <!-- Already defined  -->
+<string name="Jun">Jun</string>
+<string name="Jul">Jul</string>
+<string name="Aug">Aug</string>
+<string name="Sep">Sep</string>
+<string name="Oct">Okt</string>
+<string name="Nov">Nov</string>
+<string name="Dec">Dez</string>
+
+
+<string name="YearViewSize_PrefKey">YearViewNumMonths</string>
+<string name="YearViewSize_PrefTitle">Anzahl der Monate in der Jahresansicht</string>
+<string name="YearViewSize_PrefSummary">Anzahl der Monate die in der Jahresansicht sichtbar sind</string>
+
+<string name="Snooze_PrefKey">SnoozeTime</string>
+<string name="Snooze_PrefTitle">Snooze Zeit</string>
+<string name="Snooze_PrefSummary">How many minutes to snooze alarms when the snooze button is pressed</string>
+
+<string name="DefaultCollection_PrefKey">DefaultCollection</string>
+<string name="DefaultCollection_PrefTitle">Standardsammlung</string>
+<string name="DefaultCollection_PrefSummary">Die Standardsammlung für neue Elemente</string>
+
+<string name="DefaultAlarmTone_PrefKey">DefaultAlarmTone</string>
+<string name="DefaultAlarmTone_PrefTitle">Standard Erinnerungsmelodie</string>
+<string name="DefaultAlarmTone_PrefSummary">Standard Erinnerungsmelodie für Erinnerungen</string>
+
+<string name="Today">Heute</string>
+<string name="Year">Jahr</string>
+<string name="Month">Monat</string>
+<string name="Edit">Bearbeiten</string>
+<string name="Apply">Apply</string>
+<string name="Advanced">Advanced</string>
+<string name="Add">Hinzufügen</string>
+
+
+<dimen name="MonthDayTextSize">14sp</dimen>
+<color name="MonthDayFG">#001060</color>
+<color name="MonthDayInMonthBG">#A0DDDDDD</color>
+
+<color name="MonthDayOutMonthBG">#80AAAAAA</color>
+
+<color name="MonthDayHighlightFG">#C00000</color>
+<color name="MonthDayHighlightBG">#00FFFFFF</color>
+<dimen name="MonthDayHighlightTextSize">18sp</dimen>
+
+<color name="DayEventFG">#103090</color>
+<color name="DayEventBG">#50FFFFFF</color>
+<dimen name="DayEventTextSize">14sp</dimen>
+</resources>
