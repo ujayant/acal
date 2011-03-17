@@ -417,7 +417,7 @@ public class ServerConfiguration extends PreferenceActivity implements OnPrefere
         password.setEnabled(authEnabled);
         preferenceHelper(password, getString(R.string.Password), Servers.PASSWORD, defaultSummaries.get(Servers.PASSWORD));
 
-        if (this.iface == INTERFACE_SIMPLE) {
+//        if (this.iface != INTERFACE_SIMPLE) {
         	// TODO These two fields (supplied_domain, supplied_path) will eventually be in the simple configuration screen, not here.
         	//supplied_domain
         	suppliedDomain = new EditTextPreference(this);
@@ -432,7 +432,7 @@ public class ServerConfiguration extends PreferenceActivity implements OnPrefere
         	suppliedPath.setDialogTitle(getString(R.string.Simple_Path));
         	suppliedPath.setDefaultValue(serverData.getAsString(Servers.SUPPLIED_PATH));
         	preferenceHelper(suppliedPath, getString(R.string.Simple_Path), Servers.SUPPLIED_PATH, defaultSummaries.get(Servers.SUPPLIED_PATH));
-        }
+ //       }
         
         if (this.iface == INTERFACE_ADVANCED) {
         	//hostname
