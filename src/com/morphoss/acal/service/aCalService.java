@@ -41,12 +41,14 @@ public class aCalService extends Service {
 	private ServiceRequest.Stub serviceRequest = new ServiceRequestHandler();
 	private WorkerClass worker;
 	private static final int NOTIFICATION_ID = 0;
+	private static Context serviceContext = null;
 	public static final String TAG = "aCalService";
 	public static String aCalVersion;
 	public static final DatabaseEventDispatcher databaseDispatcher = new DatabaseEventDispatcher();
 	
 	public void onCreate() {
 		super.onCreate();
+		serviceContext = this;
 		startService();
 	}
 
@@ -117,7 +119,14 @@ public class aCalService extends Service {
 	public void addWorkerJob(ServiceJob s) {
 		this.worker.addJobAndWake(s);
 	}
-	
+
+	public static String getContextString(int resourceId) {
+		if ( serviceContext == null ) {
+			return "Context Error";
+		}
+		return serviceContext.getString(resourceId);
+	}
+
 	private class ServiceRequestHandler extends ServiceRequest.Stub {
 
 		@Override
