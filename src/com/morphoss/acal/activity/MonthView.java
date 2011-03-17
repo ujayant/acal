@@ -201,9 +201,9 @@ public class MonthView extends Activity implements OnGestureListener,
 		createListView(true);
 
 		// Set up buttons
-		this.setupButton(R.id.month_today_button, TODAY);
-		this.setupButton(R.id.month_year_button, YEAR);
-		this.setupButton(R.id.month_add_button, ADD);
+		this.setupButton(R.id.month_today_button, TODAY, getString(R.string.Today));
+		this.setupButton(R.id.month_year_button, YEAR, getString(R.string.Year));
+		this.setupButton(R.id.month_add_button, ADD, "+");
 
 		AcalDateTime currentDate = new AcalDateTime();
 		selectedDate = currentDate;
@@ -334,16 +334,18 @@ public class MonthView extends Activity implements OnGestureListener,
 	 * <p>
 	 * Helper method for setting up buttons
 	 * </p>
+	 * @param buttonLabel 
 	 */
-	private void setupButton(int id, int val) {
-		Button today = (Button) this.findViewById(id);
-		if (today == null) {
+	private void setupButton(int id, int val, String buttonLabel) {
+		Button myButton = (Button) this.findViewById(id);
+		if (myButton == null) {
 			Log.e(TAG, "Cannot find button '" + id + "' by ID, to set value '"
 					+ val + "'");
 			Log.i(TAG, Log.getStackTraceString(new Exception()));
 		} else {
-			today.setOnClickListener(this);
-			today.setTag(val);
+			myButton.setText(buttonLabel);
+			myButton.setOnClickListener(this);
+			myButton.setTag(val);
 		}
 	}
 
