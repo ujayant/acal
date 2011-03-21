@@ -138,7 +138,9 @@
 <string name="Edit">Edit</string>
 <string name="Apply">Apply</string>
 <string name="Advanced">Advanced</string>
+<string name="Simple">Simple</string>
 <string name="Add">Add</string>
+<string name="UnNamedServer">Unnamed Server</string>
 
 
 <!-- Below here the strings are not things that should be localised and should probably move to another file -->
