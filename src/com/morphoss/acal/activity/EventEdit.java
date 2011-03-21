@@ -489,13 +489,23 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		if (!oldLoc.equals(newLoc)) eventAction.setField(EVENT_FIELD.location, newLoc);
 		if (!oldDesc.equals(newDesc)) eventAction.setField(EVENT_FIELD.description, newDesc);
 		
+		AcalDateTime start = (AcalDateTime)eventAction.getField(EVENT_FIELD.startDate);
 		//check if all day
 		if (allDayEvent.isChecked()) {
-			AcalDateTime start = (AcalDateTime)eventAction.getField(EVENT_FIELD.startDate);
 			start.setHour(0); start.setMinute(0); start.setMinute(0);
 			start.setAsDate(true);
 			eventAction.setField(EVENT_FIELD.startDate,start);
 			eventAction.setField(EVENT_FIELD.duration,  new AcalDuration("PT24H"));
+		}
+
+		AcalDuration duration = (AcalDuration) eventAction.getField(EVENT_FIELD.duration);
+		// Ensure end is not before start
+		if ( duration.getDays() < 0 || duration.getTimeMillis() < 0 ) {
+			start = (AcalDateTime) eventAction.getField(EVENT_FIELD.startDate);
+			AcalDateTime end = AcalDateTime.addDuration(start, duration);
+			while( end.before(start) ) end.addDays(1);
+			duration = start.getDurationTo(end);
+			eventAction.setField(EVENT_FIELD.duration, duration);
 		}
 		
 		if (eventAction.getAction() == AcalEventAction.ACTION_CREATE ||
@@ -730,10 +740,12 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 			AcalDateTime start = ((AcalDateTime)eventAction.getField(EVENT_FIELD.startDate)).clone();
 			AcalDateTime end = AcalDateTime.addDuration(start, (AcalDuration)eventAction.getField(EVENT_FIELD.duration));
 			AcalDuration duration = start.getDurationTo(new AcalDateTime(year,monthOfYear+1,dayOfMonth,end.getHour(),end.getMinute(),end.getSecond(), start.getTimeZoneName()));
+
 			eventAction.setField(EVENT_FIELD.duration, duration);
 			updateLayout();
 		}
 	};
+
 	// the callback received when the user "sets" the start time in the dialog
 	private TimePickerDialog.OnTimeSetListener fromTimeListener =
 		new TimePickerDialog.OnTimeSetListener() {
