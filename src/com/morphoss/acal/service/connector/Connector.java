@@ -24,6 +24,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateExpiredException;
 
 import javax.net.ssl.SSLException;
 
@@ -111,7 +113,7 @@ public class Connector {
 		this.auth = auth;
 	}
 
-	public InputStream sendRequest(String method, String path, Header[] headers, Object data) throws SendRequestFailedException {
+	public InputStream sendRequest(String method, String path, Header[] headers, Object data) throws SendRequestFailedException, SSLException {
 		long down = 0;
 		long up = 0;
 		long start = System.currentTimeMillis();
@@ -173,42 +175,30 @@ public class Connector {
 			}
 			
 			int requestPort = -1;
-			String requestProtocol = null;
+			String requestProtocol = this.protocol;
 			if ( (this.protocol.equals("http") && this.port != 80 )
 						|| ( this.protocol.equals("https") && this.port != 443 )
 				) {
-				requestProtocol = this.protocol;
 				requestPort = this.port;
 			}
 			HttpHost host = new HttpHost(this.server, requestPort, requestProtocol);
 			
 			HttpResponse response = null;
-			try {
-				response = httpclient.execute(host,request);
-			}
-			catch ( SSLException  se ) {
-				if ( Constants.LOG_DEBUG ) Log.d(TAG,"SSLException: " +se.getMessage());
-				throw new SendRequestFailedException();
-			}
-			
+			response = httpclient.execute(host,request);
 			HttpEntity entity = response.getEntity();
 			
 			down = (entity == null ? 0 : entity.getContentLength());
 			
 			this.responseHeaders = response.getAllHeaders();
-
-			if ( Constants.LOG_DEBUG && Constants.debugDavCommunication ) {
-				for (Header h : responseHeaders) {
-					Log.d(TAG,"H<  "+h.getName()+": "+h.getValue() );
-				}
-			}
-
 			this.statusCode = response.getStatusLine().getStatusCode();
 			long finish = System.currentTimeMillis();
 			double timeTaken = ((double)(finish-start))/1000.0;
+
 			if ( Constants.LOG_DEBUG && Constants.debugDavCommunication ) {
-				Log.d(TAG, method+" "+URL+path);
 				Log.d(TAG, "Response: "+statusCode+", Sent: "+up+", Received: "+down+", Took: "+timeTaken+" seconds");
+				for (Header h : responseHeaders) {
+					Log.d(TAG,"H<  "+h.getName()+": "+h.getValue() );
+				}
 				if (entity != null) {
 					if ( Constants.LOG_DEBUG && Constants.debugDavCommunication ) {
 						Log.d(TAG, "----------------------- vvv Response Body vvv -----------------------" );
@@ -240,6 +230,11 @@ public class Connector {
 				return entity.getContent();
 
 			return null;
+		}
+		catch (SSLException e) {
+			if ( Constants.LOG_DEBUG && Constants.debugDavCommunication )
+				Log.d(TAG,Log.getStackTraceString(e));
+			throw e;
 		}
 		catch (Exception e) {
 			Log.d(TAG,Log.getStackTraceString(e));
