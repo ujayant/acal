@@ -28,6 +28,9 @@ import java.security.cert.X509Certificate;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
+import java.security.cert.CertificateExpiredException;
+
+import android.util.Log;
 
 /**
  * @author olamy
@@ -36,6 +39,7 @@ import javax.net.ssl.X509TrustManager;
  */
 public class EasyX509TrustManager implements X509TrustManager {
 
+	final static String TAG = "aCal EasyX509TrustManager";
 	private X509TrustManager standardTrustManager = null;
 
 	/**
@@ -64,8 +68,23 @@ public class EasyX509TrustManager implements X509TrustManager {
 	 */
 	public void checkServerTrusted(X509Certificate[] certificates, String authType) throws CertificateException {
 		if ((certificates != null) && (certificates.length == 1)) {
-			certificates[0].checkValidity();
-		} else {
+			Log.i(TAG,"Looks like a self-signed certificate. Checking validity..." );
+			try {
+				certificates[0].checkValidity();
+			}
+			catch( CertificateException ce ) {
+				if ( ce instanceof CertificateExpiredException ) {
+					Log.w(TAG,"CertificateExpiredException: " + ce.getMessage() );
+					Log.w(TAG,"Certificate for: " + certificates[0].getSubjectDN() );
+					Log.w(TAG,"      issued by: " + certificates[0].getIssuerDN() );
+					Log.w(TAG,"     expired on: " + certificates[0].getNotAfter() );
+				}
+				else {
+					throw ce;
+				}
+			}
+		}
+		else {
 			standardTrustManager.checkServerTrusted(certificates, authType);
 		}
 	}
