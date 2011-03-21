@@ -35,10 +35,10 @@
 	<LinearLayout
 		android:id="@+id/button_layout" 
 		android:layout_width="fill_parent" 
-		android:gravity="bottom"
 		android:layout_height="fill_parent"
 		android:background="#50500000"
-		android:layout_gravity="bottom" android:layout_weight="87.3">
+		android:gravity="bottom"
+		android:layout_weight="87.3">
 	
 		<LinearLayout
 			android:layout_width="fill_parent" 
@@ -48,34 +48,35 @@
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
 				style="@style/bottom_button"
-				android:layout_gravity="center"
-				android:text="Today"
+				android:gravity="center"
+				android:text="@string/Today"
 				android:width="70sp"/>
 		</LinearLayout>
 		<LinearLayout
 			android:layout_width="fill_parent" 
 			android:layout_height="fill_parent"
 			android:layout_weight="1"
-			android:gravity="center" android:padding="0sp">
+			android:gravity="center"
+			android:padding="0sp">
 			<Button android:id="@+id/month_year_button"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
-				android:layout_gravity="center"
+				android:gravity="center"
 				style="@style/bottom_button"
-				android:text="Year"
+				android:text="@string/Year"
 				android:width="70sp" android:includeFontPadding="true" android:padding="0sp"/>
 		</LinearLayout>
 		<LinearLayout
 			android:layout_width="fill_parent" 
-			android:layout_height="fill_parent" android:layout_weight="1"
+			android:layout_height="fill_parent"
+			android:layout_weight="1"
 			android:gravity="center">
 			<Button android:id="@+id/month_add_button"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
-				android:layout_gravity="center"
 				android:text="+"
 				android:width="70sp"
-				style="@style/bottom_add_button"/>
+				style="@style/bottom_add_button" android:gravity="center"/>
 		</LinearLayout>
 	</LinearLayout>
 
