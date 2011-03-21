@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.net.ssl.SSLException;
+
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
 
@@ -42,7 +44,6 @@ import android.util.Log;
 
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.DatabaseChangedEvent;
-import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.database.AcalDBHelper;
 import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.providers.DavResources;
@@ -91,16 +92,22 @@ public class SyncChangesToServer extends ServiceJob {
 			
 			collectionsToSync = new HashSet<Integer>();
 	
-			ContentValues pendingChange;
-			while( (pendingChange = getChangeToSync()) != null ) {
-				syncOneChange(pendingChange);
-			}
+			try {
+				ContentValues pendingChange;
+				while( (pendingChange = getChangeToSync()) != null ) {
+					syncOneChange(pendingChange);
+				}
 
-			if ( collectionsToSync.size() > 0 ) {
-				for( Integer collectionId : collectionsToSync ) {
-					context.addWorkerJob(new SyncCollectionContents(collectionId, true) );
+				if ( collectionsToSync.size() > 0 ) {
+					for( Integer collectionId : collectionsToSync ) {
+						context.addWorkerJob(new SyncCollectionContents(collectionId, true) );
+					}
 				}
 			}
+			catch( Exception e ) {
+				Log.e(TAG,Log.getStackTraceString(e));
+			}
+
 		}
 
 		if ( updateSyncStatus() ) {
@@ -149,7 +156,7 @@ public class SyncChangesToServer extends ServiceJob {
 	}
 
 	
-	private void syncOneChange(ContentValues pending) {
+	private void syncOneChange(ContentValues pending) throws SSLException {
 
 		int collectionId = pending.getAsInteger(PendingChanges.COLLECTION_ID);
 		ContentValues collectionData = DavCollections.getRow(collectionId, cr);
@@ -231,6 +238,9 @@ public class SyncChangesToServer extends ServiceJob {
 				in = con.sendRequest( "DELETE", path, headers, "");
 			else
 				in = con.sendRequest( "PUT", path, headers, newData);
+		}
+		catch (SSLException e) {
+			throw e;
 		}
 		catch (SendRequestFailedException e) {
 			Log.w(TAG,"HTTP Request failed: "+e.getMessage());
