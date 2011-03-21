@@ -252,14 +252,14 @@ public class ServerConfiguration extends PreferenceActivity implements OnPrefere
 	private void ifaceButton() {
 		if (iface == INTERFACE_SIMPLE) {
 			this.iface = INTERFACE_ADVANCED;
-			ifaceButton.setText("Simple");
+			ifaceButton.setText(getString(R.string.Simple));
 			//createPreferenceHierarchy();
 			//setPreferenceScreen(this.preferenceRoot);
 			//this.preferenceRoot.setOnPreferenceChangeListener(this);
 			updateSummaries();
 		} else {
 			this.iface = INTERFACE_SIMPLE;
-			ifaceButton.setText("Advanced");
+			ifaceButton.setText(getString(R.string.Advanced));
 			//createPreferenceHierarchy();
 			//setPreferenceScreen(this.preferenceRoot);
 			//this.preferenceRoot.setOnPreferenceChangeListener(this);
@@ -283,7 +283,7 @@ public class ServerConfiguration extends PreferenceActivity implements OnPrefere
 				break;
 			case MODE_CREATE:
 				if (this.serverData.get(Servers.FRIENDLY_NAME).equals(""))
-					this.serverData.put(Servers.FRIENDLY_NAME, "Unnamed Server");
+					this.serverData.put(Servers.FRIENDLY_NAME, getString(R.string.UnNamedServer));
 				createRecord();
 				break;
 		}
@@ -352,10 +352,9 @@ public class ServerConfiguration extends PreferenceActivity implements OnPrefere
 		createPreferenceHierarchy();
 		checkTextSummary(friendlyName);
 		checkTextSummary(username);
-		if (iface == INTERFACE_SIMPLE) {
-			checkTextSummary(suppliedDomain);
-			checkTextSummary(suppliedPath);
-		} else {
+		checkTextSummary(suppliedDomain);
+		checkTextSummary(suppliedPath);
+		if ( iface != INTERFACE_SIMPLE) {
 			checkTextSummary(hostname);
 			checkTextSummary(principalPath);
 			checkTextSummary(port);
