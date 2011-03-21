@@ -24,14 +24,10 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
+import javax.net.ssl.SSLException;
 
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -43,14 +39,12 @@ import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.os.RemoteException;
 import android.util.Log;
 
 import com.morphoss.acal.CheckServerFailedError;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.ServiceManager;
 import com.morphoss.acal.providers.Servers;
-import com.morphoss.acal.service.ServiceRequest;
 import com.morphoss.acal.service.connector.BasicAuth;
 import com.morphoss.acal.service.connector.Connector;
 import com.morphoss.acal.service.connector.HttpAuthProvider;
@@ -82,14 +76,6 @@ public class CheckServerDialog implements Runnable {
 
 	private List<String> successMessages = new ArrayList<String>();
 	private boolean has_calendar_access = false;
-	private String principalPath = null; 	
-
-	private String optionsHost		= null; 	
-	private String optionsPath 		= null; 	
-	private String optionsProtocol 	= "https"; 	
-	private int optionsPort = 0; 	
-	
-	private ServiceManager serviceManager;
 
 	private static final String pPathRequestData = "<?xml version=\"1.0\" encoding=\"utf-8\"?>"+
 													"<propfind xmlns=\"DAV:\">"+
@@ -138,8 +124,6 @@ public class CheckServerDialog implements Runnable {
 		//we must remove any values that may have leaked through from XML that are not part of the DB table
 		ServerConfigData.removeNonDBFields(serverData);
 		this.serverData = serverData;
-		
-		this.serviceManager = sm;
 	}
 	
 	public void start() {
@@ -178,63 +162,77 @@ public class CheckServerDialog implements Runnable {
 			}
 
 			// Step 2, do OPTIONS with given credentials.
-			boolean foundIt = false;
-			optionsHost = hostName;
-			Integer portNum = serverData.getAsInteger(Servers.PORT); 
-			optionsPort = (portNum == null ? 0 : portNum);
-			optionsProtocol = (serverData.getAsInteger(Servers.USE_SSL) == 0 ? "http" : "https");
-			if ( optionsPort == 0 || optionsPort == 80 || optionsPort == 443 )
-				optionsPort = (optionsProtocol.equals("http") ? 80 : 443);
+			boolean discovered = false;
+			SearchUri searchUri = new SearchUri( hostName, serverData.getAsInteger(Servers.USE_SSL), serverData.getAsInteger(Servers.PORT) );
+			SearchUri searchResult = null;
+			try {
+				if ( serverData.getAsString(Servers.PRINCIPAL_PATH) != null ) {
+					searchUri.setPath(serverData.getAsString(Servers.PRINCIPAL_PATH));
+					searchResult = doOptions(2, searchUri);
+				}
+				if ( searchResult == null ) {
+					searchUri.setPath("/.well-known/caldav");
+					searchResult = propfindPrincipalRequest(3, searchUri);
+					if ( searchResult != null ) {
+						searchResult.applySettings(serverData);
+						discovered = true;
+					}
+				}
+				if ( searchResult == null && serverData.getAsString(Servers.SUPPLIED_PATH) != null ) {
+					searchUri.setPath(serverData.getAsString(Servers.SUPPLIED_PATH));
+					searchResult = doOptions(2, searchUri);
+				}
+				if ( searchResult == null  ) {
+					String[] optionsPaths = {
+								"/",
+//								"/principals/users/" + URLEncoder.encode(serverData.getAsString(Servers.USERNAME),Constants.URLEncoding),
+								"/.well-known/caldav",
+							};
+					for (int i = 0; searchResult == null && i < optionsPaths.length; i++) {
+						searchUri.setPath(optionsPaths[i]);
+						searchResult = doOptions(2, searchUri);
+					}
+				}
+			}
+			catch( Exception e ) {
+				Log.d(TAG,"Options request failed everywhere and exception thrown.");
+				Log.d(TAG,Log.getStackTraceString(e));
+			}
 
-			if ( serverData.getAsString(Servers.PRINCIPAL_PATH) != null ) {
-				optionsPath = serverData.getAsString(Servers.PRINCIPAL_PATH);
-				foundIt = doOptions(10);
-			}
-			if ( !foundIt && serverData.getAsString(Servers.SUPPLIED_PATH) != null ) {
-				optionsPath = serverData.getAsString(Servers.SUPPLIED_PATH);
-				foundIt = doOptions(10);
-			}
-			if ( !foundIt ) {
-				String[] optionsPaths = {
-							"/",
-//							"/principals/users/" + URLEncoder.encode(serverData.getAsString(Servers.USERNAME),Constants.URLEncoding),
-							"/.well-known/caldav",
-						};
-				for (int i = 0; !foundIt && i < optionsPaths.length; i++) {
-					optionsPath = optionsPaths[i];
-					foundIt = doOptions(10);
+			if ( !discovered ) {
+				// Try a PROPFIND from the supplied PRINCIPAL PATH
+				if ( serverData.getAsString(Servers.PRINCIPAL_PATH) != null ) {
+					searchUri.setPath(serverData.getAsString(Servers.PRINCIPAL_PATH));
+					searchResult = propfindPrincipalRequest(3,searchUri);
+					if ( searchResult != null ) {
+						searchResult.applySettings(serverData);
+						discovered = true;
+					}
 				}
 			}
 
-			// Step 4, Do a PROPFIND to find principal paths
-			principalPath = findPrincipalPath();
-
-			if (principalPath == null) {
-				successMessages.add("Server did not provide a principal path.");
-				if ( has_calendar_access ) {
-					principalPath = serverData.getAsString(Servers.PRINCIPAL_PATH);
-					if ( principalPath == null || principalPath.equals("") )
-						principalPath = serverData.getAsString(Servers.SUPPLIED_PATH);
-					if ( principalPath == null || principalPath.equals("") )
-						principalPath = optionsPath;
-					serverData.put(Servers.PRINCIPAL_PATH, principalPath);
+			if ( !discovered ) {
+				// Try a PROPFIND from the supplied SIMPLE PATH
+				if ( serverData.getAsString(Servers.SUPPLIED_PATH) != null ) {
+					searchUri.setPath(serverData.getAsString(Servers.SUPPLIED_PATH));
+					searchResult = propfindPrincipalRequest(3,searchUri);
+					if ( searchResult != null ) {
+						searchResult.applySettings(serverData);
+						discovered = true;
+					}
 				}
+			}
+
+			if ( !discovered ) {
+				successMessages.add("Could not discover principal path - using supplied values.");
 			}
 			else {
-				serverData.put(Servers.PRINCIPAL_PATH, principalPath);
-				successMessages.add("Server provided principal path: " + principalPath);
+				successMessages.add("Server provided principal path: " + searchResult);
 			}
 
-			if ( !has_calendar_access  && principalPath != null ) {
+			if ( !has_calendar_access  && discovered ) {
 				// Try one last options request to see if we can get calendar-access
-				optionsHost = serverData.getAsString(Servers.HOSTNAME);
-				optionsPort = serverData.getAsInteger(Servers.PORT);
-				optionsProtocol = (serverData.getAsInteger(Servers.USE_SSL) == 0 ? "http" : "https");
-				optionsPath = principalPath;
-				doOptions(3);
-
-				// And one last PROPFIND...
-				findPrincipalPath();
+				doOptions(3,searchResult);
 			}
 
 			// Step 5, Update serverData
@@ -331,53 +329,6 @@ public class CheckServerDialog implements Runnable {
 		}
 	};
 
-	private void interpretUriString( String uriString ) {
-		// Match a URL, including an ipv6 address like http://[DEAD:BEEF:CAFE:F00D::]:8008/
-		final Pattern uriMatcher = Pattern.compile(
-					"^(?:(https?)://)?" + // Protocol
-					"(" + // host spec
-					"(?:(?:[a-z0-9-]+[.]){2,7}(?:[a-z0-9-]+))" +  // Hostname or IPv4 address
-					"|(?:\\[(?:[0-9a-f]{0,4}:)+(?:[0-9a-f]{0,4})?\\])" + // IPv6 address
-					")" +
-					"(?:[:]([0-9]{2,5}))?" + // Port number
-					"(/.*)?$" // Path bit.
-					,Pattern.CASE_INSENSITIVE | Pattern.DOTALL );  
-
-		Matcher m = uriMatcher.matcher(uriString);
-		if ( Constants.LOG_VERBOSE ) Log.v(TAG,"Interpreting '"+uriString+"'");
-		if ( m.matches() ) {
-			if ( m.group(1) != null && m.group(1) != "" ) {
-				if ( Constants.LOG_VERBOSE ) Log.v(TAG,"Found protocol '"+m.group(1)+"'");
-				optionsProtocol = m.group(1);
-			}
-			if ( m.group(2) != null ) {
-				if ( Constants.LOG_VERBOSE ) Log.v(TAG,"Found hostname '"+m.group(2)+"'");
-				optionsHost = m.group(2);
-			}
-			if ( m.group(3) != null && m.group(3) != "" ) {
-				if ( Constants.LOG_VERBOSE ) Log.v(TAG,"Found port '"+m.group(3)+"'");
-				int port = Integer.parseInt(m.group(3));
-				if ( m.group(1) != null && (port == 0 || port == 80 || port == 443) ) {
-					port = (m.group(1).equals("http") ? 80 : 443);
-				}
-				optionsPort = port;
-			}
-			if ( m.group(4) != null && m.group(4) != "" ) {
-				if ( Constants.LOG_VERBOSE ) Log.v(TAG,"Found redirect path '"+m.group(4)+"'");
-				optionsPath = m.group(4);
-			}
-		}
-
-		final Pattern pathMatcher = Pattern.compile("^(/.*)$");
-
-		m = pathMatcher.matcher(uriString);
-		if (m.find()) {
-			Log.i(TAG, "Redirect to " + m.group(1));
-			optionsPath = m.group(1);
-		}
-	}
-
-	
 	/** Check server methods: Each of these methods represents a different step in the check server process */
 	
 	/**
@@ -411,6 +362,7 @@ public class CheckServerDialog implements Runnable {
 	 * @param protocol
 	 * @param timeOutMillis
 	 * @return
+	 * @throws SSLException 
 	 */
 	private boolean tryPort( int port, String protocol, int timeOutMillis ) {
 		try {
@@ -440,7 +392,7 @@ public class CheckServerDialog implements Runnable {
 		}
 		catch ( Exception e) {
 			if ( Constants.LOG_DEBUG ) Log.d(TAG, "Probe "+protocol+" on port "+port+" threw exception: " + e.getMessage());
-			if ( Constants.LOG_DEBUG ) Log.d(TAG, Log.getStackTraceString(e));
+//			if ( Constants.LOG_DEBUG ) Log.d(TAG, Log.getStackTraceString(e));
 			// ... and ignore.
 		}
 		return false;
@@ -460,26 +412,30 @@ public class CheckServerDialog implements Runnable {
 	private boolean probeServerPort() throws CheckServerFailedError {
 		// TODO Be nice to do an SRV lookup in here, like:
 		//                 http://stackoverflow.com/questions/2695085
-		// We could do this through a web request to a page that does an SRV lookup.
+		// As a hack, we *could* do this through a web request to a page that
+		// does an SRV lookup.
 		//
 
 		// First attempt the port / SSL state we have been given, if possible
-		Integer p = serverData.getAsInteger(Servers.USE_SSL);
-		if ( p != null ) {
-			String protocol = ( p == 1 ? "https" : "http");
-			p = serverData.getAsInteger(Servers.PORT);
-			if ( p == null || p < 80 || p > 65535 ) p = (protocol.equals("http") ? 80 : 443);
-			if ( tryPort(p, protocol, 10000 ) ) return true;
-			p = null;
-		}
-		
+		Integer p = serverData.getAsInteger(Servers.PORT);
+		String protocol = serverData.getAsString(Servers.USE_SSL); 
+		protocol = (protocol != null && protocol.equals("1") ? "https" : "http");
+
+		// If the port wasn't given use standard ports as first probe
+		if ( p == null || p < 1 || p > 65535 ) p = (protocol.equals("http") ? 80 : 443);
+		if ( tryPort(p, protocol, 10000 ) ) return true;
+
+		// Fall back to probing various other commonly used ports.  It would be
+		// *really* nice to do these in parallel and collect a matrix of which
+		// ones are open since CalDAV might not be the *first* open one of these :-(
+		p = null;
 		int[] portsToTrySSL = { 8443, 8843, 4443, 8043, 443 };
 		int[] portsToTryHttp = { 8008, 8800, 8888, 7777, 80 }; 
 		
 		// Try initially with a very short timeout
 		if ( p == null || p == 1 ) {
 			for( int port : portsToTrySSL )
-				if ( tryPort(port, "https", 1500 ) ) return true;
+				if ( tryPort(port, "https", 2500 ) ) return true;
 		}
 
 		if ( p == null || p == 0 ) {
@@ -500,40 +456,82 @@ public class CheckServerDialog implements Runnable {
 
 		return false;
 	}
-	
-	private Connector optionsRequest() {
 
-		if ( Constants.LOG_VERBOSE ) Log.v(TAG, "Starting OPTIONS with "+optionsProtocol+" on "
-					+optionsHost+" port "+optionsPort);
-		
-		Connector con = new Connector(optionsProtocol, optionsPort, optionsHost, authProvider());
+	
+	private SearchUri propfindPrincipalRequest( int redirects, SearchUri uri ) {
+
+		if ( Constants.LOG_DEBUG && Constants.debugDavCommunication )
+			Log.d(TAG, "Doing PROPFIND for current-user-principal on " + uri.toString() );
+
+		Connector con = new Connector(uri.protocol, uri.port, uri.hostName, authProvider());
+		con.setTimeOut(10000);
 		try {
-			con.sendRequest("OPTIONS", optionsPath, new Header[] {}, "");
+			InputStream in = con.sendRequest("PROPFIND", uri.path, pPathHeaders, pPathRequestData);
+			int status = con.getStatusCode();
+			switch (status) {
+				case 207: // Status O.K.
+					checkCalendarAccess(con.getResponseHeaders());
+					String newPath = processPropFindResponse(in);
+					uri.interpretUriString(newPath);
+					return uri;
+
+				case 300: // Multiple choices, but we take the one in the Location header anyway
+				case 301: // Moved permanently
+				case 302: // Found (was 'temporary redirect' once in prehistory)
+				case 303: // See other
+				case 307: // Temporary redirect. Meh.
+					// Other than 301/302 these are all pretty unlikely
+					if (Constants.LOG_DEBUG)
+						Log.d(TAG, "PROPFIND "+uri+" is being redirected.");
+					uri.interpretUriString(getLocationHeader(con.getResponseHeaders()));
+					if ( redirects > 0 ) {
+						// Follow redirect
+						return propfindPrincipalRequest( redirects - 1, uri );
+					}
+					return null;
+
+				default: // Unknown code
+					Log.w(TAG, "Status of "+status+" for PROPFIND "+uri+" - giving up.");
+					return null;
+			}
 		}
 		catch (SendRequestFailedException e) {
-			Log.e(TAG,"Error connecting to server: " + e.getMessage());
-			Log.e(TAG,Log.getStackTraceString(e));
+			return null;
+		}
+		catch (Exception e) {
+			if (Constants.LOG_DEBUG)
+				Log.d(TAG,"Error connecting to server: " + e.getMessage());
+//			Log.e(TAG,Log.getStackTraceString(e));
 		}
 
-		return con;
+		return null;
 	}
 
 	
-	private boolean doOptions( int redirects ) throws CheckServerFailedError {
+	SearchUri doOptions( int redirects, SearchUri uri ) throws CheckServerFailedError {
 		try {
-			Connector con = optionsRequest();
+			if ( Constants.LOG_DEBUG && Constants.debugDavCommunication )
+				Log.d(TAG, "Starting OPTIONS on "+uri.toString());
+			
+			Connector con = new Connector(uri.protocol, uri.port, uri.hostName, authProvider());
+			try {
+				con.sendRequest("OPTIONS", uri.path, new Header[] {}, "");
+			}
+			catch (SendRequestFailedException e) {
+				Log.e(TAG,"Error connecting to server: " + e.getMessage());
+				Log.e(TAG,Log.getStackTraceString(e));
+				return null;
+			}
+			
 			int status = con.getStatusCode();
 			switch (status) {
 				case 200: // Status O.K.
-					if (Constants.LOG_VERBOSE)	Log.v(TAG, "OPTIONS request 200 OK on " + optionsPath);
+					if (Constants.LOG_VERBOSE)	Log.v(TAG, "OPTIONS request 200 OK on " + uri.path);
 					if ( checkCalendarAccess(con.getResponseHeaders()) ) {
 						successMessages.add("Server Connection Successful.");
-						serverData.put(Servers.USE_SSL, (optionsProtocol.equals("https")?1:0));
-						serverData.put(Servers.PORT, optionsPort);
-						serverData.put(Servers.HOSTNAME, optionsHost);
-						return true; // The OPTIONS request was successful
+						return uri;
 					}
-					return false;
+					return null;
 
 				case 300: // Multiple choices, but we take the one in the Location header anyway
 				case 301: // Moved permanently
@@ -543,21 +541,21 @@ public class CheckServerDialog implements Runnable {
 					// Other than 301/302 these are all pretty unlikely
 					if (Constants.LOG_DEBUG)
 						Log.d(TAG, "OPTIONS "+(serverData.getAsInteger(Servers.USE_SSL)==1?"https":"http")
-									+" request " + status + " being redirected from " + optionsPath);
-					interpretUriString(getLocationHeader(con.getResponseHeaders()));
+									+" request " + status + " being redirected from " + uri.path);
+					uri.interpretUriString(getLocationHeader(con.getResponseHeaders()));
 					if ( redirects > 0 ) {
 						// Follow redirect
-						return doOptions( redirects - 1 );
+						return doOptions( redirects - 1, uri );
 					}
-					return false;
+					return null;
 
 				case 403: // Forbidden
 				case 404: // Not Found
 				case 405: // Method not allowed
-					if (Constants.LOG_VERBOSE)	Log.v(TAG, "OPTIONS request " + status + " on " + optionsPath);
+					if (Constants.LOG_VERBOSE)	Log.v(TAG, "OPTIONS request " + status + " on " + uri.path);
 					// We check for calendar-access anyway, though we still try other URLs
 					checkCalendarAccess(con.getResponseHeaders());
-					return false;
+					return null;
 
 				case 401: // Unauthorised
 					throw new CheckServerFailedError("Authentication Failed");
@@ -568,14 +566,15 @@ public class CheckServerDialog implements Runnable {
 			}
 			
 		}
-		catch (CheckServerFailedError e) {
-			throw e;
+		catch ( CheckServerFailedError e ) {
+			return null;
 		}
 		catch (Exception e) {
-			Log.e(TAG,"Error connecting to server: " + e.getMessage());
-			Log.e(TAG,Log.getStackTraceString(e));
-			throw new CheckServerFailedError("Error connecting to server. Please check that you have entered the right server name.");
+			if (Constants.LOG_DEBUG)
+				Log.d(TAG,"Error connecting to server: " + e.getMessage());
+//			Log.e(TAG,Log.getStackTraceString(e));
 		}
+		return null;
 	}
 	
 
@@ -602,44 +601,6 @@ public class CheckServerDialog implements Runnable {
 	}
 
 	
-	public String findPrincipalPath() {
-		try {
-
-			String protocol = "http";
-			if (serverData.getAsInteger(Servers.USE_SSL) == 1) protocol = "https";
-
-			String hostName = serverData.getAsString(Servers.HOSTNAME);
-			if ( hostName == null || hostName.equals("") )
-				hostName = serverData.getAsString(Servers.SUPPLIED_DOMAIN);
-			if ( hostName == null || hostName.equals("") )
-				hostName = optionsHost;
-			serverData.put(Servers.HOSTNAME, hostName);
-
-			Connector con = new Connector(protocol, serverData.getAsInteger(Servers.PORT), hostName, authProvider());
-
-			String requestPath = serverData.getAsString(Servers.PRINCIPAL_PATH);
-			if ( requestPath == null || requestPath.equals("") )
-				requestPath = serverData.getAsString(Servers.SUPPLIED_PATH);
-			if ( requestPath == null || requestPath.equals("") )
-				requestPath = optionsPath;
-
-			
-			InputStream in = con.sendRequest("PROPFIND", requestPath, pPathHeaders, pPathRequestData);
-			int status = con.getStatusCode();
-			switch (status) {
-				case 207: // Status O.K.
-					checkCalendarAccess(con.getResponseHeaders());
-					return processPropFindResponse(in);
-				default: // Unknown code
-					Log.w(TAG, "Unexpected status of "+status+" returned from server for PROPFIND request on "+Servers.SUPPLIED_PATH);
-					return null;
-			}
-		}
-		catch (Exception e) {
-			return null;
-		}
-	}
-
 	private String processPropFindResponse(InputStream in) {
 		DavNode root = DavXmlTreeBuilder.buildTreeFromXml(in);
 		for ( DavNode href : root.getNodesFromPath("multistatus/response/propstat/prop/current-user-principal/href") )
@@ -664,7 +625,7 @@ public class CheckServerDialog implements Runnable {
 	}
 
 	
-	public String findCalendarHome() {
+	private String findCalendarHome() {
 		try {
 			String protocol = "http";
 			if (serverData.getAsInteger(Servers.USE_SSL) == 1) protocol = "https";
@@ -689,6 +650,99 @@ public class CheckServerDialog implements Runnable {
 		}
 		catch (Exception e) {
 			return null;
+		}
+	}
+
+	
+	private class SearchUri {
+		public String hostName = null;
+		public String path = "/";
+		public String protocol = "http";
+		public int port = 0;
+		
+		public SearchUri( String hostIn, Integer proto, Integer portIn) {
+			hostName = hostIn;
+			protocol = (proto == null || proto != 1 ? "http" : "https");
+			if ( portIn == null || portIn < 1 || portIn > 65535 || portIn == 80 || portIn == 443 )
+				port = (protocol.equals("http") ? 80 : 443);
+			else
+				port = portIn;
+		}
+
+		public void applySettings(ContentValues cvServerData) {
+			cvServerData.put(Servers.PRINCIPAL_PATH, path);
+			cvServerData.put(Servers.HOSTNAME, hostName);
+			cvServerData.put(Servers.PORT, port);
+			cvServerData.put(Servers.USE_SSL, (protocol.equals("https")?1:0));
+		}
+
+		public void interpretUriString(String uriString) {
+			// Match a URL, including an ipv6 address like http://[DEAD:BEEF:CAFE:F00D::]:8008/
+			final Pattern uriMatcher = Pattern.compile(
+						"^(?:(https?)://)?" + // Protocol
+						"(" + // host spec
+						"(?:(?:[a-z0-9-]+[.]){2,7}(?:[a-z0-9-]+))" +  // Hostname or IPv4 address
+						"|(?:\\[(?:[0-9a-f]{0,4}:)+(?:[0-9a-f]{0,4})?\\])" + // IPv6 address
+						")" +
+						"(?:[:]([0-9]{2,5}))?" + // Port number
+						"(/.*)?$" // Path bit.
+						,Pattern.CASE_INSENSITIVE | Pattern.DOTALL );  
+
+			final Pattern pathMatcher = Pattern.compile("^(/.*)$");
+			
+			Matcher m = uriMatcher.matcher(uriString);
+			if ( Constants.LOG_VERBOSE ) Log.v(TAG,"Interpreting '"+uriString+"'");
+			if ( m.matches() ) {
+				if ( m.group(1) != null && !m.group(1).equals("") ) {
+					if ( Constants.LOG_VERBOSE ) Log.v(TAG,"Found protocol '"+m.group(1)+"'");
+					protocol = m.group(1);
+					if ( m.group(3) == null || m.group(3).equals("") ) {
+						port = (protocol.equals("http") ? 80 : 443);
+					}
+				}
+				if ( m.group(2) != null ) {
+					if ( Constants.LOG_VERBOSE ) Log.v(TAG,"Found hostname '"+m.group(2)+"'");
+					hostName = m.group(2);
+				}
+				if ( m.group(3) != null && !m.group(3).equals("") ) {
+					if ( Constants.LOG_VERBOSE ) Log.v(TAG,"Found port '"+m.group(3)+"'");
+					port = Integer.parseInt(m.group(3));
+					if ( m.group(1) != null && (port == 0 || port == 80 || port == 443) ) {
+						port = (protocol.equals("http") ? 80 : 443);
+					}
+				}
+				if ( m.group(4) != null && !m.group(4).equals("") ) {
+					if ( Constants.LOG_VERBOSE ) Log.v(TAG,"Found redirect path '"+m.group(4)+"'");
+					setPath(m.group(4));
+				}
+			}
+			else {
+				m = pathMatcher.matcher(uriString);
+				if (m.find()) {
+					if ( Constants.LOG_VERBOSE ) Log.v(TAG,"Found simple redirect path '"+m.group(1)+"'");
+					setPath( m.group(1) );
+				}
+			}
+		}
+
+		public void setPath(String newPath) {
+			if ( newPath == null || newPath.equals("") ) {
+				path = "/";
+				return;
+			}
+			if ( !newPath.substring(0, 1).equals("/") ) {
+				path = "/" + newPath;
+			}
+			else
+				path = newPath;
+		}
+
+		public String toString() {
+			return protocol
+					+ "://"
+					+ hostName
+					+ ((protocol.equals("http") && port == 80) || (protocol.equals("https") && port == 443) ? "" : ":"+Integer.toString(port))
+					+ path;
 		}
 	}
 
