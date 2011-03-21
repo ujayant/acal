@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import android.content.ContentResolver;
-import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
@@ -44,14 +43,12 @@ import android.widget.Toast;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 
 import com.morphoss.acal.Constants;
-import com.morphoss.acal.DatabaseChangedEvent;
 import com.morphoss.acal.R;
 import com.morphoss.acal.ServiceManager;
 import com.morphoss.acal.ServiceManagerCallBack;
 import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.providers.Servers;
 import com.morphoss.acal.service.ServiceRequest;
-import com.morphoss.acal.service.aCalService;
 
 /**
  * <h3>Collection Configuration List - A list of collections that can be configured</h3>
@@ -360,7 +357,7 @@ public class CollectionConfigList extends PreferenceActivity
 							serviceRequest.fullCollectionResync(updateId);
 						} catch (RemoteException e) {
 							// TODO Auto-generated catch block
-							e.printStackTrace();
+							Log.w(TAG,Log.getStackTraceString(e));
 						}
 					}
 					
