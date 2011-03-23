@@ -1,33 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Strings that should not be localised belong in unlocalisable_strings.xml -->
 <resources>
-    <string name="theDayEachWeekStartsWith">Die Woche fängt an mit</string>
-    <string name="firstDayOfWeek">Erster Wochentag</string>
+<string name="theDayEachWeekStartsWith">Die Woche fängt an mit</string>
+<string name="firstDayOfWeek">Erster Wochentag</string>
     
-<string name="ok">OK</string>
 <string name="cancel">Abbrechen</string>
-<string name="applyButton">applyButton</string>
-<string name="cancelButton">cancelButton</string>
-
-<string name="appName">aCal</string>
 <string name="appDescription">Ein Kalender für Android, der Ereignisse, Aufgaben, Notizen und Kontakte auf einem CalDAV- bzw. CardDAV-Server -- bspw. DAViCal (siehe www.davical.org) speichert.</string>
 
 
 <string name="Active">aktiv</string>
 <string name="Add_Server">Server hinzufügen</string>
-<string name="Add_Other">Andere</string>
 <string name="A_name_for_this_server_configuration">Name, der für diese Server-Konfiguration verwendet werden soll</string>
 <string name="Authentication_Type">Authentifizierungsmethode</string>
 <string name="Simple_Path">Einfacher Pfad</string>
 <string name="Simple_Domain">Einfache Domain</string>
 <string name="Enter_a_brief_summary_of_the_event">Geben Sie eine kurze Zusammenfassung des Ereignisses ein</string>
-<string name="Name">Name</string>
 <string name="Force_full_resync">Resynchronisation erzingen</string>
 <string name="Password">Passwort</string>
 <string name="Save">Speichern</string>
 <string name="Settings">Einstellungen</string>
 <string name="Server_Name">Servername</string>
 <string name="Server_Options">Servereinstellungen</string>
-<string name="Collection_Options">Collection Options</string>
 <string name="Colour">Farbe</string>
 <string name="Default_timezone">Standard Zeitzone</string>
 <string name="Server_Path">Serverpfad</string>
@@ -56,7 +49,6 @@
 <string name="The_port_to_connect_to">Port, der auf dem Server verwendet wird</string>
 
 <string name="A_name_for_this_collection">Name für diese Sammlung</string>
-<string name="pActive_addressbook">Active Addressbook</string>
 <string name="pActive_for_events">Aktiv für Ereignisse</string>
 <string name="pActive_for_journal">Aktiv für Notizen</string>
 <string name="pActive_for_tasks">Aktiv für Aufgaben</string>
@@ -90,54 +82,33 @@
 <string name="Sat">Sa</string>
 <string name="Sun">So</string>
 
-<string name="chMon">M</string>
 <string name="chTue">D</string>
 <string name="chWed">M</string>
 <string name="chThu">D</string>
-<string name="chFri">F</string>
-<string name="chSat">S</string>
-<string name="chSun">S</string>
 
 <string name="January">Januar</string>
 <string name="February">Februar</string>
 <string name="March">März</string>
-<string name="April">April</string>
 <string name="May">Mai</string>
 <string name="June">Juni</string>
 <string name="July">Juli</string>
-<string name="August">August</string>
-<string name="September">September</string>
 <string name="October">Oktober</string>
-<string name="November">November</string>
 <string name="December">Dezember</string>
 
-<string name="Jan">Jan</string>
-<string name="Feb">Feb</string>
 <string name="Mar">Mrz</string>
-<string name="Apr">Apr</string>
-<!-- < string name="May">May</string> --> <!-- Already defined  -->
-<string name="Jun">Jun</string>
-<string name="Jul">Jul</string>
-<string name="Aug">Aug</string>
-<string name="Sep">Sep</string>
+<!-- <string name="May">May</string> --> <!-- Already defined  -->
 <string name="Oct">Okt</string>
-<string name="Nov">Nov</string>
 <string name="Dec">Dez</string>
 
 
-<string name="YearViewSize_PrefKey">YearViewNumMonths</string>
 <string name="YearViewSize_PrefTitle">Anzahl der Monate in der Jahresansicht</string>
 <string name="YearViewSize_PrefSummary">Anzahl der Monate die in der Jahresansicht sichtbar sind</string>
 
-<string name="Snooze_PrefKey">SnoozeTime</string>
 <string name="Snooze_PrefTitle">Snooze Zeit</string>
-<string name="Snooze_PrefSummary">How many minutes to snooze alarms when the snooze button is pressed</string>
 
-<string name="DefaultCollection_PrefKey">DefaultCollection</string>
 <string name="DefaultCollection_PrefTitle">Standardsammlung</string>
 <string name="DefaultCollection_PrefSummary">Die Standardsammlung für neue Elemente</string>
 
-<string name="DefaultAlarmTone_PrefKey">DefaultAlarmTone</string>
 <string name="DefaultAlarmTone_PrefTitle">Standard Erinnerungsmelodie</string>
 <string name="DefaultAlarmTone_PrefSummary">Standard Erinnerungsmelodie für Erinnerungen</string>
 
@@ -145,22 +116,7 @@
 <string name="Year">Jahr</string>
 <string name="Month">Monat</string>
 <string name="Edit">Bearbeiten</string>
-<string name="Apply">Apply</string>
-<string name="Advanced">Advanced</string>
 <string name="Add">Hinzufügen</string>
 
 
-<dimen name="MonthDayTextSize">14sp</dimen>
-<color name="MonthDayFG">#001060</color>
-<color name="MonthDayInMonthBG">#A0DDDDDD</color>
-
-<color name="MonthDayOutMonthBG">#80AAAAAA</color>
-
-<color name="MonthDayHighlightFG">#C00000</color>
-<color name="MonthDayHighlightBG">#00FFFFFF</color>
-<dimen name="MonthDayHighlightTextSize">18sp</dimen>
-
-<color name="DayEventFG">#103090</color>
-<color name="DayEventBG">#50FFFFFF</color>
-<dimen name="DayEventTextSize">14sp</dimen>
 </resources>

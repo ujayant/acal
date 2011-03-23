@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-03-21 21:47+1300\n"
+"POT-Creation-Date: 2011-03-23 22:51+1300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,6 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+# Strings that should not be localised belong in unlocalisable_strings.xml 
 msgid "theDayEachWeekStartsWith"
 msgstr "The day each week starts with"
 
@@ -396,24 +397,23 @@ msgstr "Add"
 msgid "UnNamedServer"
 msgstr "Unnamed Server"
 
-# Below here the strings are not things that should be localised and should probably move to another file 
-msgid "applyButton"
-msgstr "applyButton"
+msgid "LocationPrompt"
+msgstr "Location:"
 
-msgid "cancelButton"
-msgstr "cancelButton"
+msgid "NotesPrompt"
+msgstr "Notes:"
 
-msgid "appName"
-msgstr "aCal"
+msgid "AlarmsPrompt"
+msgstr "Alarms:"
 
-msgid "YearViewSize_PrefKey"
-msgstr "YearViewNumMonths"
+msgid "RepeatsPrompt"
+msgstr "Repeats:"
 
-msgid "Snooze_PrefKey"
-msgstr "SnoozeTime"
+msgid "AllDayPrompt"
+msgstr "All Day event:"
 
-msgid "DefaultCollection_PrefKey"
-msgstr "DefaultCollection"
+msgid "FromPrompt"
+msgstr "From:"
 
-msgid "DefaultAlarmTone_PrefKey"
-msgstr "DefaultAlarmTone"
+msgid "UntilPrompt"
+msgstr "Until:"
