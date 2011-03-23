@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Strings that should not be localised belong in unlocalisable_strings.xml -->
 <resources>
     <string name="theDayEachWeekStartsWith">The day each week starts with</string>
     <string name="firstDayOfWeek">First Day Of Week</string>
@@ -142,28 +143,12 @@
 <string name="Add">Add</string>
 <string name="UnNamedServer">Unnamed Server</string>
 
+<string name="LocationPrompt">Location:</string>
+<string name="NotesPrompt">Notes:</string>
+<string name="AlarmsPrompt">Alarms:</string>
+<string name="RepeatsPrompt">Repeats:</string>
+<string name="AllDayPrompt">All Day event:</string>
+<string name="FromPrompt">From:</string>
+<string name="UntilPrompt">Until:</string>
 
-<!-- Below here the strings are not things that should be localised and should probably move to another file -->
-<string name="applyButton">applyButton</string>
-<string name="cancelButton">cancelButton</string>
-
-<string name="appName">aCal</string>
-
-<string name="YearViewSize_PrefKey">YearViewNumMonths</string>
-<string name="Snooze_PrefKey">SnoozeTime</string>
-<string name="DefaultCollection_PrefKey">DefaultCollection</string>
-<string name="DefaultAlarmTone_PrefKey">DefaultAlarmTone</string>
-<dimen name="MonthDayTextSize">14sp</dimen>
-<color name="MonthDayFG">#001060</color>
-<color name="MonthDayInMonthBG">#A0DDDDDD</color>
-
-<color name="MonthDayOutMonthBG">#80AAAAAA</color>
-
-<color name="MonthDayHighlightFG">#C00000</color>
-<color name="MonthDayHighlightBG">#00FFFFFF</color>
-<dimen name="MonthDayHighlightTextSize">18sp</dimen>
-
-<color name="DayEventFG">#103090</color>
-<color name="DayEventBG">#50FFFFFF</color>
-<dimen name="DayEventTextSize">14sp</dimen>
 </resources>
