@@ -82,7 +82,7 @@
 			
 						<!-- Location Label -->
 						<TextView 
-							android:text="Location:" 
+							android:text="@string/LocationPrompt" 
 							android:id="@+id/EventLocationLabel" 
 							android:layout_height="wrap_content"
 							android:layout_width="fill_parent"
@@ -121,7 +121,7 @@
 					
 						<!-- Notes label and content --> 
 						<TextView 
-							android:text="Notes:" 
+							android:text="@string/NotesPrompt" 
 							android:id="@+id/EventNotesLabel" 
 							android:layout_below="@+id/EventLocationLayout"
 							android:layout_height="wrap_content"
@@ -145,7 +145,7 @@
 					
 						<!-- Notes label and content --> 
 						<TextView 
-							android:text="Alarms:" 
+							android:text="@string/AlarmsPrompt" 
 							android:id="@+id/EventAlarmsLabel" 
 							android:layout_below="@+id/EventNotesLayout"
 							android:layout_height="wrap_content"
@@ -168,7 +168,7 @@
 					
 						<!-- Notes label and content --> 
 						<TextView 
-							android:text="Event Repeats:" 
+							android:text="@string/RepeatsPrompt" 
 							android:id="@+id/EventRepeatsLabel" 
 							android:layout_below="@+id/EventAlarmsLayout"
 							android:layout_height="wrap_content"
@@ -204,7 +204,7 @@
 				android:layout_height="wrap_content"
 				style="@style/bottom_button"
 				android:text="@string/Today"
-				android:width="70sp"
+				android:width="50sp"
 				android:layout_gravity="center" 
 				android:includeFontPadding="true" 
 				android:padding="0sp"/>
@@ -221,7 +221,7 @@
 				android:layout_gravity="center"
 				style="@style/bottom_button"
 				android:text="@string/Edit"
-				android:width="70sp" 
+				android:width="90sp" 
 				android:includeFontPadding="true" 
 				android:padding="0sp"/>
 		</LinearLayout>
@@ -236,7 +236,7 @@
 				android:layout_height="wrap_content"
 				android:layout_gravity="center"
 				android:text="+"
-				android:width="70sp"
+				android:width="50sp"
 				style="@style/bottom_add_button" 
 				android:includeFontPadding="true" 
 				android:padding="0sp" 

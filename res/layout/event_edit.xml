@@ -76,7 +76,7 @@
 							android:layout_width="fill_parent"
 							android:gravity="center_vertical">
 							<TextView 
-								android:text="All Day event: " 
+								android:text="@string/AllDayPrompt" 
 								android:id="@+id/EventFromAllDayLabel" 
 								android:layout_height="wrap_content"
 								android:layout_width="wrap_content"
@@ -97,7 +97,7 @@
 							android:layout_below="@+id/EventAllDayLayout">
 						
 							<TextView 
-								android:text="From:" 
+								android:text="@string/FromPrompt" 
 								android:id="@+id/EventFromLabel" 
 								android:layout_height="wrap_content"
 								android:layout_width="42sp"
@@ -123,7 +123,7 @@
 							
 							<!-- Until Label --> 
 							<TextView 
-								android:text="Until:" 
+								android:text="@string/UntilPrompt" 
 								android:id="@+id/EventUntilLabel" 
 								android:layout_height="wrap_content"
 								android:layout_width="42sp"
@@ -153,7 +153,7 @@
 		
 						<!-- Location Label -->
 						<TextView 
-							android:text="Location:" 
+							android:text="@string/LocationPrompt" 
 							android:id="@+id/EventLocationLabel" 
 							android:layout_height="wrap_content"
 							android:layout_width="fill_parent"
@@ -180,7 +180,7 @@
 					
 						<!-- Notes label and content --> 
 						<TextView 
-							android:text="Notes:" 
+							android:text="@string/NotesPrompt" 
 							android:id="@+id/EventNotesLabel" 
 							android:layout_below="@+id/EventLocationLayout"
 							android:layout_height="wrap_content"
@@ -207,7 +207,7 @@
 							android:layout_width="fill_parent" 
 							android:layout_height="wrap_content">
 							<TextView 
-								android:text="Alarms:" 
+								android:text="@string/AlarmsPrompt" 
 								android:id="@+id/EventAlarmsLabel" 
 								android:layout_height="wrap_content"
 								android:layout_width="100sp"
@@ -241,7 +241,7 @@
 				
 						<!-- Repeats label and content --> 
 						<TextView 
-							android:text="Repeats:" 
+							android:text="@string/RepeatsPrompt" 
 							android:id="@+id/EventRepeatsLabel" 
 							android:layout_height="wrap_content"
 							android:layout_width="100sp"
