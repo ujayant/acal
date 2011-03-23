@@ -19,18 +19,9 @@
 package com.morphoss.acal.views;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.ColorFilter;
 import android.graphics.Paint;
-import android.preference.PreferenceManager;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.View.MeasureSpec;
-import android.widget.TextView;
 
 import com.morphoss.acal.acaltime.AcalDateTime;
 
@@ -48,7 +39,7 @@ public class MonthImage extends YearViewNode {
 	public MonthImage(Context context, int year, int month, int selectedDay, int x, MonthImageGenerator ig) {
 		super();
 		this.x=x;
-		this.myDate=new AcalDateTime(year,month,1,0,0,0,null);
+		this.myDate = new AcalDateTime(year,month,1,0,0,0,null);
 		this.context = context;
 		this.headerBMP = ig.getMonthHeader(myDate);
 		this.dayHeadsBMP = ig.getDayHeaders();

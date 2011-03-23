@@ -155,6 +155,7 @@ public class YearViewLinkedList {
 		root = start;
 		return ret+root.getHeight();
 	}
+
 	public void addRowToEnd(int cols, Context c, int x, MonthImageGenerator ig, int compWidth) {
 		//Some invariants to note:
 		//It is assumed that DECEMBER can only ever be the last value in a row
@@ -167,6 +168,15 @@ public class YearViewLinkedList {
 		MonthImage curMonth = (MonthImage)cur;
 		int curYear = curMonth.getYear();
 		int month = curMonth.getMonth();
+
+		while ( month > AcalDateTime.DECEMBER ) {
+			curYear++;
+			month-=12;
+		}
+		while ( month < AcalDateTime.JANUARY ) {
+			curYear--;
+			month+=12;
+		}
 		
 		//if the last node was December, add the year header and make month january next year
 		if (month == AcalDateTime.DECEMBER) {
