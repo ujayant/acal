@@ -102,9 +102,9 @@ sub get_translated_strings {
 
   close(TRANSLATED);
 
-  foreach my $s ( keys %{$strings} ) {
-    printf( STDOUT "<string name=\"%s\">%s</string>\n", $s, $strings->{$s} );
-  }
+#  foreach my $s ( keys %{$strings} ) {
+#    printf( STDOUT "<string name=\"%s\">%s</string>\n", $s, $strings->{$s} );
+#  }
 
   return $strings;
 }
@@ -116,8 +116,12 @@ sub merge_into_xml {
   my $lang = shift;
   my $strings = shift;
 
+  $lang =~ s{_([A-Z]{2})}{-r$1};
   my $in_filename = sprintf( '%s/values/%s.xml', $resources_dir, $strings_filename);
-  my $out_filename = sprintf( '%s/values-%s/%s.xml', $resources_dir, $lang, $strings_filename);
+
+  my $outdir = sprintf('%s/values-%s', $resources_dir, $lang);
+  mkdir $outdir unless( -d $outdir );
+  my $out_filename = sprintf( '%s/%s.xml', $outdir, $strings_filename);
   open( XMLIN, "<", $in_filename );
   open( XMLOUT, ">", $out_filename );
 
