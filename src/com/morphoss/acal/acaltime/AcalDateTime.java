@@ -1249,7 +1249,7 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 		if ( second < 10 ) ret.append("0");
 		ret.append(second);
 
-		if ( tz != null && tzName.equals("UTC") ) ret.append('Z');
+		if ( tz != null && tzName != null && tzName.equals("UTC") ) ret.append('Z');
 
 		return ret.toString();
 	}
