@@ -116,7 +116,16 @@
 <string name="Year">Jahr</string>
 <string name="Month">Monat</string>
 <string name="Edit">Bearbeiten</string>
+<string name="Simple">Einfach</string>
 <string name="Add">Hinzufügen</string>
+<string name="UnNamedServer">Unbekannter Server</string>
 
+<string name="LocationPrompt">Ort:</string>
+<string name="NotesPrompt">Notizen:</string>
+<string name="AlarmsPrompt">Erinnerungen:</string>
+<string name="RepeatsPrompt">Wiederholung:</string>
+<string name="AllDayPrompt">Ganztägiges Ereignis:</string>
+<string name="FromPrompt">Von:</string>
+<string name="UntilPrompt">Bis:</string>
 
 </resources>

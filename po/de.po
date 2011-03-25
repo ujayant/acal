@@ -2,21 +2,22 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
-#, fuzzy
+# 
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: aCal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-03-17 20:38+1300\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"POT-Creation-Date: 2011-03-23 22:51+1300\n"
+"PO-Revision-Date: 2011-03-25 13:46+0000\n"
+"Last-Translator: fmms <mail@felixmoeller.de>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: de\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
 
+# Strings that should not be localised belong in unlocalisable_strings.xml
 msgid "theDayEachWeekStartsWith"
 msgstr "Die Woche fängt an mit"
 
@@ -29,19 +30,10 @@ msgstr "OK"
 msgid "cancel"
 msgstr "Abbrechen"
 
-msgid "applyButton"
-msgstr "applyButton"
-
-msgid "cancelButton"
-msgstr "cancelButton"
-
-msgid "appName"
-msgstr "aCal"
-
 msgid "appDescription"
 msgstr ""
-"Ein Kalender für Android, der Ereignisse, Aufgaben, Notizen und Kontakte auf "
-"einem CalDAV- bzw. CardDAV-Server -- bspw. DAViCal (siehe www.davical.org) "
+"Ein Kalender für Android, der Ereignisse, Aufgaben, Notizen und Kontakte auf"
+" einem CalDAV- bzw. CardDAV-Server -- bspw. DAViCal (siehe www.davical.org) "
 "speichert."
 
 msgid "Active"
@@ -49,9 +41,6 @@ msgstr "aktiv"
 
 msgid "Add_Server"
 msgstr "Server hinzufügen"
-
-msgid "Add_Other"
-msgstr "Andere"
 
 msgid "A_name_for_this_server_configuration"
 msgstr "Name, der für diese Server-Konfiguration verwendet werden soll"
@@ -127,8 +116,8 @@ msgstr "Die Domain der Organisation, bspw. &quot;morphoss.com&quot;"
 
 msgid "The_servers_hostname"
 msgstr ""
-"Der vollständige Rechnername des Servers, bspw. &quot;calendar.davical."
-"com&quot;"
+"Der vollständige Rechnername des Servers, bspw. "
+"&quot;calendar.davical.com&quot;"
 
 msgid "The_username_to_use"
 msgstr "Der Benutzername, der zur Authentifizierung am Server verwendet wird"
@@ -337,6 +326,7 @@ msgstr "Mrz"
 msgid "Apr"
 msgstr "Apr"
 
+# <string name="May">May</string>
 msgid "Jun"
 msgstr "Jun"
 
@@ -358,17 +348,11 @@ msgstr "Nov"
 msgid "Dec"
 msgstr "Dez"
 
-msgid "YearViewSize_PrefKey"
-msgstr "YearViewNumMonths"
-
 msgid "YearViewSize_PrefTitle"
 msgstr "Anzahl der Monate in der Jahresansicht"
 
 msgid "YearViewSize_PrefSummary"
 msgstr "Anzahl der Monate die in der Jahresansicht sichtbar sind"
-
-msgid "Snooze_PrefKey"
-msgstr "SnoozeTime"
 
 msgid "Snooze_PrefTitle"
 msgstr "Snooze Zeit"
@@ -376,17 +360,11 @@ msgstr "Snooze Zeit"
 msgid "Snooze_PrefSummary"
 msgstr "How many minutes to snooze alarms when the snooze button is pressed"
 
-msgid "DefaultCollection_PrefKey"
-msgstr "DefaultCollection"
-
 msgid "DefaultCollection_PrefTitle"
 msgstr "Standardsammlung"
 
 msgid "DefaultCollection_PrefSummary"
 msgstr "Die Standardsammlung für neue Elemente"
-
-msgid "DefaultAlarmTone_PrefKey"
-msgstr "DefaultAlarmTone"
 
 msgid "DefaultAlarmTone_PrefTitle"
 msgstr "Standard Erinnerungsmelodie"
@@ -412,5 +390,32 @@ msgstr "Apply"
 msgid "Advanced"
 msgstr "Advanced"
 
+msgid "Simple"
+msgstr "Einfach"
+
 msgid "Add"
 msgstr "Hinzufügen"
+
+msgid "UnNamedServer"
+msgstr "Unbekannter Server"
+
+msgid "LocationPrompt"
+msgstr "Ort:"
+
+msgid "NotesPrompt"
+msgstr "Notizen:"
+
+msgid "AlarmsPrompt"
+msgstr "Erinnerungen:"
+
+msgid "RepeatsPrompt"
+msgstr "Wiederholung:"
+
+msgid "AllDayPrompt"
+msgstr "Ganztägiges Ereignis:"
+
+msgid "FromPrompt"
+msgstr "Von:"
+
+msgid "UntilPrompt"
+msgstr "Bis:"
