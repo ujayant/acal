@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Strings that should not be localised belong in unlocalisable_strings.xml -->
+<resources>
+<string name="theDayEachWeekStartsWith">El dia amb el què comença la setmana</string>
+<string name="firstDayOfWeek">Primer dia de la setmana</string>
+    
+<string name="ok">D\'acord</string>
+<string name="cancel">Cancel·lar</string>
+<string name="appDescription">Aplicació de calendari per a Android que guarda les teves cites, tasques, notes i contactes a un servidor CalDAV/CardDAV remot, com DAViCal (veure: www.davical.org)</string>
+
+
+<string name="Active">Actiu</string>
+<string name="Add_Server">Afegir servidor</string>
+<string name="A_name_for_this_server_configuration">Un nom per aquesta configuració</string>
+<string name="Authentication_Type">Tipus d\'autenticació</string>
+<string name="Simple_Path">Camí simple</string>
+<string name="Simple_Domain">Domini simple</string>
+<string name="Enter_a_brief_summary_of_the_event">Introdueix una breu descripció de la cita</string>
+<string name="Name">Nom</string>
+<string name="Force_full_resync">Forçar sincronització</string>
+<string name="Password">Contrasenya</string>
+<string name="Save">Guardar</string>
+<string name="Settings">Paràmetres</string>
+<string name="Server_Name">Nom del servidor</string>
+<string name="Server_Options">Opcions del servidor</string>
+<string name="Collection_Options">Opcions de la col·lecció</string>
+<string name="Colour">Color</string>
+<string name="Default_timezone">Zona horària predeterminada</string>
+<string name="Server_Path">Camí al servidor</string>
+<string name="Server_Port">Port del servidor</string>
+<string name="Summary">Resum</string>
+<string name="Sync_collection_now">Sincronitzar la col·leció ara</string>
+<string name="Disable_collection">Desactivar la col·lecció</string>
+<string name="The_authentication_type_used">El tipus d\'autenticació utilitzat</string>
+<string name="The_password_to_use">La contrasenya a utilitzar</string>
+<string name="The_path_on_the_server">El camí al servidor</string>
+<string name="The_domain_for_your_organisation">El nom de dominit de la teva organització</string>
+<string name="The_servers_hostname">El nom del servidor</string>
+<string name="The_username_to_use">L\'usuari a utilitzar</string>
+<string name="Username">Nom d\'usuari</string>
+<string name="Use_SSL">Utilizar SSL</string>
+<string name="Whether_this_server_is_active">Si aquest servidor és actiu o no</string>
+<string name="Whether_to_use_encryption">Si cal utilitzar xifrat</string>
+<string name="appActivityEventCreate">Nova cita</string>
+<string name="appActivityServerConfigList">Servidors</string>
+<string name="appActivityAddServerList">Plantilles de servidor</string>
+<string name="appActivityCollectionConfigList">Calendaris i llibretes d\'adreces</string>
+<string name="appActivityDebugSettings">Paràmetres de depuració</string>
+<string name="appActivitySettings">Paràmetres</string>
+<string name="appActivityYearView">aCal - Vista anual</string>
+<string name="appActivityPreference">Paràmetres</string>
+<string name="The_port_to_connect_to">El port a connectar-se</string>
+
+<string name="A_name_for_this_collection">Un nom per aquesta col·lecció</string>
+<string name="pActive_addressbook">Llibreta d\'adreces activa</string>
+<string name="pActive_for_events">Actiu per cites</string>
+<string name="pActive_for_journal">Actiu per notes</string>
+<string name="pActive_for_tasks">Actiu per tasques</string>
+<string name="pUse_Alarms">Utilitzar alarmes a aquesta col·lecció?</string>
+<string name="Use_Alarms">Utilitzar alarmes</string>
+<string name="Active_addressbook">S\'utilitza aquesta col·lecció per guardar-hi adreces?</string>
+<string name="Active_for_events">S\'utilitza aquesta col·lecció per guardar-hi cites?</string>
+<string name="Active_for_journal">S\'utilitza aquesta col·lecció per guardar-hi notes?</string>
+<string name="Active_for_tasks">S\'utilitza aquesta col·lecció per guardar-hi tasques?</string>
+<string name="The_colour_associated_with_this_collection">El color associat a aquesta col·lecció</string>
+<string name="The_timezone_new_events_default_to">La zona horària predeterminada per nous esdeveniments</string>
+<string name="pMax_age_on_3g">Minuts de sincronització en 3G</string>
+<string name="The_maximum_age_for_data_while_on_3g">El temps màxim (en minuts) per esperar a actualitzar les dades, en 3G</string>
+<string name="pMax_age_on_wifi">Minuts de sincronització en wifi</string>
+<string name="The_maximum_age_for_data_while_on_wifi">El temps màxim (en minuts) per esperar a actualitzar les dades, en wifi</string>
+<string name="Use_alarms_from_this_calendar">S\'ha de mostrar les alarmes d\'aquest calendari?</string>
+
+<string name="Monday">Dilluns</string>
+<string name="Tuesday">Dimarts</string>
+<string name="Wednesday">Dimecres</string>
+<string name="Thursday">Dijous</string>
+<string name="Friday">Divendres</string>
+<string name="Saturday">Dissabte</string>
+<string name="Sunday">Diumenge</string>
+
+<string name="Mon">Dl</string>
+<string name="Tue">Dm</string>
+<string name="Wed">Dc</string>
+<string name="Thu">Dj</string>
+<string name="Fri">Dv</string>
+<string name="Sat">Ds</string>
+<string name="Sun">Dg</string>
+
+<string name="chMon">Dl</string>
+<string name="chTue">Dm</string>
+<string name="chWed">Dc</string>
+<string name="chThu">Dj</string>
+<string name="chFri">Dv</string>
+<string name="chSat">Ds</string>
+<string name="chSun">Dg</string>
+
+<string name="January">Gener</string>
+<string name="February">Febrer</string>
+<string name="March">Març</string>
+<string name="April">Abril</string>
+<string name="May">Maig</string>
+<string name="June">Juny</string>
+<string name="July">Juliol</string>
+<string name="August">Agost</string>
+<string name="September">Setembre</string>
+<string name="October">Octubre</string>
+<string name="November">Novembre</string>
+<string name="December">Desembre</string>
+
+<string name="Jan">Gen</string>
+<string name="Apr">Abr</string>
+<!-- <string name="May">May</string> --> <!-- Already defined  -->
+<string name="Aug">Ago</string>
+<string name="Sep">Set</string>
+<string name="Dec">Des</string>
+
+
+<string name="YearViewSize_PrefTitle">Nombre de mesos a la vista anual</string>
+<string name="YearViewSize_PrefSummary">El nombre de mesos que són visibles a la vista mensual</string>
+
+<string name="Snooze_PrefTitle">Temps a postposar</string>
+<string name="Snooze_PrefSummary">Quants minuts es postposarà l\'alarma quan s\'apreti el botó de postposar</string>
+
+<string name="DefaultCollection_PrefTitle">Col·lecció predeterminada</string>
+<string name="DefaultCollection_PrefSummary">La col·lecció a utilitzar pels nous esdeveniments de forma predeterminada</string>
+
+<string name="DefaultAlarmTone_PrefTitle">So d\'alarma predeterminat</string>
+<string name="DefaultAlarmTone_PrefSummary">El so a utilitzar per les alarmes de forma predeterminada</string>
+
+<string name="Today">Avui</string>
+<string name="Year">Any</string>
+<string name="Month">Mes</string>
+<string name="Edit">Editar</string>
+<string name="Apply">Aplicar</string>
+<string name="Advanced">Avançat</string>
+<string name="Add">Afegir</string>
+<string name="UnNamedServer">Servidor sense nom</string>
+
+<string name="LocationPrompt"></string>
+<string name="NotesPrompt"></string>
+<string name="AlarmsPrompt"></string>
+<string name="RepeatsPrompt"></string>
+<string name="AllDayPrompt"></string>
+<string name="FromPrompt"></string>
+<string name="UntilPrompt"></string>
+
+</resources>

@@ -1,0 +1,422 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+msgid ""
+msgstr ""
+"Project-Id-Version: aCal\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2011-03-23 22:51+1300\n"
+"PO-Revision-Date: 2011-03-25 18:36+0000\n"
+"Last-Translator: marc0s <marc0s@fsfe.org>\n"
+"Language-Team: Catalan <None>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ca\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+
+# Strings that should not be localised belong in unlocalisable_strings.xml
+msgid "theDayEachWeekStartsWith"
+msgstr "El dia amb el què comença la setmana"
+
+msgid "firstDayOfWeek"
+msgstr "Primer dia de la setmana"
+
+msgid "ok"
+msgstr "D'acord"
+
+msgid "cancel"
+msgstr "Cancel·lar"
+
+msgid "appDescription"
+msgstr ""
+"Aplicació de calendari per a Android que guarda les teves cites, tasques, "
+"notes i contactes a un servidor CalDAV/CardDAV remot, com DAViCal (veure: "
+"www.davical.org)"
+
+msgid "Active"
+msgstr "Actiu"
+
+msgid "Add_Server"
+msgstr "Afegir servidor"
+
+msgid "A_name_for_this_server_configuration"
+msgstr "Un nom per aquesta configuració"
+
+msgid "Authentication_Type"
+msgstr "Tipus d'autenticació"
+
+msgid "Simple_Path"
+msgstr "Camí simple"
+
+msgid "Simple_Domain"
+msgstr "Domini simple"
+
+msgid "Enter_a_brief_summary_of_the_event"
+msgstr "Introdueix una breu descripció de la cita"
+
+msgid "Name"
+msgstr "Nom"
+
+msgid "Force_full_resync"
+msgstr "Forçar sincronització"
+
+msgid "Password"
+msgstr "Contrasenya"
+
+msgid "Save"
+msgstr "Guardar"
+
+msgid "Settings"
+msgstr "Paràmetres"
+
+msgid "Server_Name"
+msgstr "Nom del servidor"
+
+msgid "Server_Options"
+msgstr "Opcions del servidor"
+
+msgid "Collection_Options"
+msgstr "Opcions de la col·lecció"
+
+msgid "Colour"
+msgstr "Color"
+
+msgid "Default_timezone"
+msgstr "Zona horària predeterminada"
+
+msgid "Server_Path"
+msgstr "Camí al servidor"
+
+msgid "Server_Port"
+msgstr "Port del servidor"
+
+msgid "Summary"
+msgstr "Resum"
+
+msgid "Sync_collection_now"
+msgstr "Sincronitzar la col·leció ara"
+
+msgid "Disable_collection"
+msgstr "Desactivar la col·lecció"
+
+msgid "The_authentication_type_used"
+msgstr "El tipus d'autenticació utilitzat"
+
+msgid "The_password_to_use"
+msgstr "La contrasenya a utilitzar"
+
+msgid "The_path_on_the_server"
+msgstr "El camí al servidor"
+
+msgid "The_domain_for_your_organisation"
+msgstr "El nom de dominit de la teva organització"
+
+msgid "The_servers_hostname"
+msgstr "El nom del servidor"
+
+msgid "The_username_to_use"
+msgstr "L'usuari a utilitzar"
+
+msgid "Username"
+msgstr "Nom d'usuari"
+
+msgid "Use_SSL"
+msgstr "Utilizar SSL"
+
+msgid "Whether_this_server_is_active"
+msgstr "Si aquest servidor és actiu o no"
+
+msgid "Whether_to_use_encryption"
+msgstr "Si cal utilitzar xifrat"
+
+msgid "appActivityEventCreate"
+msgstr "Nova cita"
+
+msgid "appActivityServerConfigList"
+msgstr "Servidors"
+
+msgid "appActivityAddServerList"
+msgstr "Plantilles de servidor"
+
+msgid "appActivityCollectionConfigList"
+msgstr "Calendaris i llibretes d'adreces"
+
+msgid "appActivityDebugSettings"
+msgstr "Paràmetres de depuració"
+
+msgid "appActivitySettings"
+msgstr "Paràmetres"
+
+msgid "appActivityYearView"
+msgstr "aCal - Vista anual"
+
+msgid "appActivityPreference"
+msgstr "Paràmetres"
+
+msgid "The_port_to_connect_to"
+msgstr "El port a connectar-se"
+
+msgid "A_name_for_this_collection"
+msgstr "Un nom per aquesta col·lecció"
+
+msgid "pActive_addressbook"
+msgstr "Llibreta d'adreces activa"
+
+msgid "pActive_for_events"
+msgstr "Actiu per cites"
+
+msgid "pActive_for_journal"
+msgstr "Actiu per notes"
+
+msgid "pActive_for_tasks"
+msgstr "Actiu per tasques"
+
+msgid "pUse_Alarms"
+msgstr "Utilitzar alarmes a aquesta col·lecció?"
+
+msgid "Use_Alarms"
+msgstr "Utilitzar alarmes"
+
+msgid "Active_addressbook"
+msgstr "S'utilitza aquesta col·lecció per guardar-hi adreces?"
+
+msgid "Active_for_events"
+msgstr "S'utilitza aquesta col·lecció per guardar-hi cites?"
+
+msgid "Active_for_journal"
+msgstr "S'utilitza aquesta col·lecció per guardar-hi notes?"
+
+msgid "Active_for_tasks"
+msgstr "S'utilitza aquesta col·lecció per guardar-hi tasques?"
+
+msgid "The_colour_associated_with_this_collection"
+msgstr "El color associat a aquesta col·lecció"
+
+msgid "The_timezone_new_events_default_to"
+msgstr "La zona horària predeterminada per nous esdeveniments"
+
+msgid "pMax_age_on_3g"
+msgstr "Minuts de sincronització en 3G"
+
+msgid "The_maximum_age_for_data_while_on_3g"
+msgstr "El temps màxim (en minuts) per esperar a actualitzar les dades, en 3G"
+
+msgid "pMax_age_on_wifi"
+msgstr "Minuts de sincronització en wifi"
+
+msgid "The_maximum_age_for_data_while_on_wifi"
+msgstr ""
+"El temps màxim (en minuts) per esperar a actualitzar les dades, en wifi"
+
+msgid "Use_alarms_from_this_calendar"
+msgstr "S'ha de mostrar les alarmes d'aquest calendari?"
+
+msgid "Monday"
+msgstr "Dilluns"
+
+msgid "Tuesday"
+msgstr "Dimarts"
+
+msgid "Wednesday"
+msgstr "Dimecres"
+
+msgid "Thursday"
+msgstr "Dijous"
+
+msgid "Friday"
+msgstr "Divendres"
+
+msgid "Saturday"
+msgstr "Dissabte"
+
+msgid "Sunday"
+msgstr "Diumenge"
+
+msgid "Mon"
+msgstr "Dl"
+
+msgid "Tue"
+msgstr "Dm"
+
+msgid "Wed"
+msgstr "Dc"
+
+msgid "Thu"
+msgstr "Dj"
+
+msgid "Fri"
+msgstr "Dv"
+
+msgid "Sat"
+msgstr "Ds"
+
+msgid "Sun"
+msgstr "Dg"
+
+msgid "chMon"
+msgstr "Dl"
+
+msgid "chTue"
+msgstr "Dm"
+
+msgid "chWed"
+msgstr "Dc"
+
+msgid "chThu"
+msgstr "Dj"
+
+msgid "chFri"
+msgstr "Dv"
+
+msgid "chSat"
+msgstr "Ds"
+
+msgid "chSun"
+msgstr "Dg"
+
+msgid "January"
+msgstr "Gener"
+
+msgid "February"
+msgstr "Febrer"
+
+msgid "March"
+msgstr "Març"
+
+msgid "April"
+msgstr "Abril"
+
+msgid "May"
+msgstr "Maig"
+
+msgid "June"
+msgstr "Juny"
+
+msgid "July"
+msgstr "Juliol"
+
+msgid "August"
+msgstr "Agost"
+
+msgid "September"
+msgstr "Setembre"
+
+msgid "October"
+msgstr "Octubre"
+
+msgid "November"
+msgstr "Novembre"
+
+msgid "December"
+msgstr "Desembre"
+
+msgid "Jan"
+msgstr "Gen"
+
+msgid "Feb"
+msgstr "Feb"
+
+msgid "Mar"
+msgstr "Mar"
+
+msgid "Apr"
+msgstr "Abr"
+
+# <string name="May">May</string>
+msgid "Jun"
+msgstr "Jun"
+
+msgid "Jul"
+msgstr "Jul"
+
+msgid "Aug"
+msgstr "Ago"
+
+msgid "Sep"
+msgstr "Set"
+
+msgid "Oct"
+msgstr "Oct"
+
+msgid "Nov"
+msgstr "Nov"
+
+msgid "Dec"
+msgstr "Des"
+
+msgid "YearViewSize_PrefTitle"
+msgstr "Nombre de mesos a la vista anual"
+
+msgid "YearViewSize_PrefSummary"
+msgstr "El nombre de mesos que són visibles a la vista mensual"
+
+msgid "Snooze_PrefTitle"
+msgstr "Temps a postposar"
+
+msgid "Snooze_PrefSummary"
+msgstr ""
+"Quants minuts es postposarà l'alarma quan s'apreti el botó de postposar"
+
+msgid "DefaultCollection_PrefTitle"
+msgstr "Col·lecció predeterminada"
+
+msgid "DefaultCollection_PrefSummary"
+msgstr ""
+"La col·lecció a utilitzar pels nous esdeveniments de forma predeterminada"
+
+msgid "DefaultAlarmTone_PrefTitle"
+msgstr "So d'alarma predeterminat"
+
+msgid "DefaultAlarmTone_PrefSummary"
+msgstr "El so a utilitzar per les alarmes de forma predeterminada"
+
+msgid "Today"
+msgstr "Avui"
+
+msgid "Year"
+msgstr "Any"
+
+msgid "Month"
+msgstr "Mes"
+
+msgid "Edit"
+msgstr "Editar"
+
+msgid "Apply"
+msgstr "Aplicar"
+
+msgid "Advanced"
+msgstr "Avançat"
+
+msgid "Simple"
+msgstr "Simple"
+
+msgid "Add"
+msgstr "Afegir"
+
+msgid "UnNamedServer"
+msgstr "Servidor sense nom"
+
+msgid "LocationPrompt"
+msgstr ""
+
+msgid "NotesPrompt"
+msgstr ""
+
+msgid "AlarmsPrompt"
+msgstr ""
+
+msgid "RepeatsPrompt"
+msgstr ""
+
+msgid "AllDayPrompt"
+msgstr ""
+
+msgid "FromPrompt"
+msgstr ""
+
+msgid "UntilPrompt"
+msgstr ""
