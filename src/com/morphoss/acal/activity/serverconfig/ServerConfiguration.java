@@ -451,7 +451,11 @@ public class ServerConfiguration extends PreferenceActivity implements OnPrefere
         	//auth
         	ListPreference listPref = new ListPreference(this);
         	listPref.setEntries(new String[] { "None", "Basic", "Digest"});
-        	listPref.setEntryValues(new String[] {"0","1","2"});
+        	listPref.setEntryValues(new String[] {
+        				Integer.toString(Servers.AUTH_NONE),
+        				Integer.toString(Servers.AUTH_BASIC), 
+        				Integer.toString(Servers.AUTH_DIGEST)
+        			});
         	listPref.setDialogTitle(getString(R.string.Authentication_Type));
         	listPref.setDefaultValue(serverData.getAsString(Servers.AUTH_TYPE));
         	preferenceHelper(listPref, getString(R.string.Authentication_Type), Servers.AUTH_TYPE, defaultSummaries.get(Servers.AUTH_TYPE));

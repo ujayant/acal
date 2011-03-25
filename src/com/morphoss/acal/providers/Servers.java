@@ -64,25 +64,30 @@ public class Servers extends ContentProvider {
     }
 
 	//Table Fields - All other classes should use these constants to access fields.
-	public static final String _ID = "_id";
-	public static final String FRIENDLY_NAME="friendly_name";
-	public static final String LAST_CHECKED="last_checked";
-	public static final String SUPPLIED_DOMAIN="supplied_domain";
-	public static final String SUPPLIED_PATH="supplied_path";
-	public static final String HOSTNAME="hostname";
-	public static final String PRINCIPAL_PATH="principal_path";
-	public static final String USERNAME="username";
-	public static final String PASSWORD="password";
-	public static final String PORT="port";
-	public static final String AUTH_TYPE="auth_type";
-	public static final String HAS_SRV="has_srv"; 
-	public static final String HAS_WELLKNOWN="has_wellknown";
-	public static final String HAS_CALDAV="has_caldav";
-	public static final String HAS_MULTIGET="has_multiget";
-	public static final String HAS_SYNC="has_sync";
-	public static final String ACTIVE="active";
-	public static final String USE_SSL="use_ssl";
+	public static final String		_ID				= "_id";
+	public static final String		FRIENDLY_NAME	= "friendly_name";
+	public static final String		LAST_CHECKED	= "last_checked";
+	public static final String		SUPPLIED_DOMAIN	= "supplied_domain";
+	public static final String		SUPPLIED_PATH	= "supplied_path";
+	public static final String		HOSTNAME		= "hostname";
+	public static final String		PRINCIPAL_PATH	= "principal_path";
+	public static final String		USERNAME		= "username";
+	public static final String		PASSWORD		= "password";
+	public static final String		PORT			= "port";
+	public static final String		AUTH_TYPE		= "auth_type";
+	public static final String		HAS_SRV			= "has_srv";
+	public static final String		HAS_WELLKNOWN	= "has_wellknown";
+	public static final String		HAS_CALDAV		= "has_caldav";
+	public static final String		HAS_MULTIGET	= "has_multiget";
+	public static final String		HAS_SYNC		= "has_sync";
+	public static final String		ACTIVE			= "active";
+	public static final String		USE_SSL			= "use_ssl";
 
+	// Possible values for authentication
+	public static final int			AUTH_NONE		= 0;
+	public static final int			AUTH_BASIC		= 1;
+	public static final int			AUTH_DIGEST		= 2;
+	
 	/*
 	 * 	(non-Javadoc)
 	 * @see android.content.ContentProvider#delete(android.net.Uri, java.lang.String, java.lang.String[])
