@@ -18,6 +18,7 @@
 
 package com.morphoss.acal.activity;
 
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -43,17 +44,16 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.view.GestureDetector.OnGestureListener;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.GestureDetector.OnGestureListener;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.DatePicker;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -62,17 +62,19 @@ import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
+import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
 import com.morphoss.acal.dataservice.CalendarDataService;
 import com.morphoss.acal.dataservice.DataRequest;
 import com.morphoss.acal.davacal.AcalAlarm;
-import com.morphoss.acal.davacal.AcalAlarm.ActionType;
 import com.morphoss.acal.davacal.AcalEventAction;
+import com.morphoss.acal.davacal.AcalAlarm.ActionType;
 import com.morphoss.acal.davacal.AcalEventAction.EVENT_FIELD;
 import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.service.aCalService;
@@ -382,8 +384,7 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		
 		boolean allDay = allDayEvent.isChecked();
 		
-		SimpleDateFormat formatter = new SimpleDateFormat("d MMMM, yyyy");
-		fromDate.setText(formatter.format(start.toJavaDate()));
+		fromDate.setText(AcalDateTime.fmtDayMonthYear(start));
 		
 		if (allDay) {
 			fromLabel.setVisibility(View.GONE);
@@ -394,21 +395,26 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 			fromTime.setVisibility(View.GONE);
 			untilTime.setText(""); 
 			untilTime.setVisibility(View.GONE); 
+
+			titlebar.setText(fromDate.getText());
 		}
 		else {
 			fromLabel.setVisibility(View.VISIBLE);
 			untilLabel.setVisibility(View.VISIBLE);
-			untilDate.setText(formatter.format(end.toJavaDate()));
+			untilDate.setText(AcalDateTime.fmtDayMonthYear(end));
 			untilDate.setVisibility(View.VISIBLE);
-			formatter = new SimpleDateFormat("hh:mma");
+
+			DateFormat formatter = DateFormat.getTimeInstance(DateFormat.SHORT);
 			fromTime.setText(formatter.format(start.toJavaDate()));
 			fromTime.setVisibility(View.VISIBLE);;
 			untilTime.setText(formatter.format(end.toJavaDate()));
 			untilTime.setVisibility(View.VISIBLE);;
+
+			formatter = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.SHORT);
+			titlebar.setText(StaticHelpers.capitaliseWords(formatter.format(start.toJavaDate())));
+
 		}
 		
-		formatter = new SimpleDateFormat("hh:mma, d MMMM, yyyy");
-		titlebar.setText(formatter.format(start.toJavaDate()));
 		
 		//Display Alarms
 		alarmList = eventAction.getAlarms();
