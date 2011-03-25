@@ -127,13 +127,16 @@ sub merge_into_xml {
 
   while( <XMLIN> ) {
     if ( ! m{<!--} && m{<string (.*?)name="(.*?)"(.*?)>(.*?)</string>} ) {
+      my $preamble = (defined($1)?$1:"");
       my $msgid = $2;
+      my $postamble = (defined($3)?$3:"");
       my $msgstr = $4;
       $msgstr =~ s{\\'}{'}g;
       next if ( ! defined($strings->{$msgid}) || $msgstr eq $strings->{$msgid} );
       $strings->{$msgid} =~ s{"}{&quot;}g;
-      $strings->{$msgid} =~ s{['\\]}{\\$1}g;
-      printf( XMLOUT '<string %sname="%s"%s>%s</string>%s', $1, $msgid, $3, $strings->{$msgid}, "\n" );
+      $strings->{$msgid} =~ s{(['\\])}{\\$1}g;
+      printf( XMLOUT '<string %sname="%s"%s>%s</string>%s',
+                        $preamble, $msgid, $postamble, $strings->{$msgid}, "\n" );
     }
     else {
       print XMLOUT;
