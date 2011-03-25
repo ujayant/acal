@@ -24,8 +24,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateExpiredException;
 
 import javax.net.ssl.SSLException;
 
@@ -47,7 +45,6 @@ import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.params.CoreProtocolPNames;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HTTP;
-import org.apache.http.util.EntityUtils;
 
 import android.os.Build;
 import android.util.Log;
@@ -60,6 +57,7 @@ public class Connector {
 	private String server;
 	private int port;
 	private String protocol;
+	private String path;
 	private String URL;
 	private HttpAuthProvider auth;
 	private Header responseHeaders[];
@@ -67,7 +65,7 @@ public class Connector {
 	private int connectionTimeOut = 60000;
 	public static final String TAG = "aCal Connector";
 
-	public String userAgent = "aCal/0.3 (Wheels off the Bus)";
+	public String userAgent = "aCal/1.0 (Fat Pig)";
 	
 	public Header[] getResponseHeaders() {
 		return this.responseHeaders;
@@ -77,10 +75,7 @@ public class Connector {
 		return this.statusCode;
 	}
 
-	public String getURL() {
-		return this.URL;
-	}
-
+	
 	public Connector (String protocol, int port, String server, HttpAuthProvider auth) {
 		this.protocol = protocol;
 		this.port = port;
@@ -102,21 +97,39 @@ public class Connector {
 
 	}
 
-	public void setServer(String protocol, int port, String server) {
-		this.protocol = protocol;
-		this.port = port;
-		this.server = server;
+	
+	public Connector ( ConnectUri uriTarget) {
+		this.protocol = uriTarget.protocol;
+		this.port = uriTarget.port;
+		this.server = uriTarget.hostName;
+		this.path = uriTarget.path;
 		this.URL = this.protocol+"://"+this.server+":"+this.port;
+		this.auth = uriTarget.getAuthObject();
+		try {
+			this.userAgent = aCalService.aCalVersion;
+		}
+		catch ( Exception e ){
+			if ( Constants.LOG_DEBUG ) Log.d(TAG, "Couldn't assign userAgent from aCalService.aCalVersion");
+			if ( Constants.LOG_DEBUG ) Log.d(TAG,Log.getStackTraceString(e));
+		}
+
+// User-Agent: aCal/0.3 (google; Nexus One; passion; HTC; passion; FRG83D)  Android/2.2.1 (75603)
+		this.userAgent += " (" + Build.BRAND + "; " + Build.MODEL + "; " + Build.PRODUCT + "; "
+					+ Build.MANUFACTURER + "; " + Build.DEVICE + "; " + Build.DISPLAY + "; " + Build.BOARD + ") "
+					+ " Android/" + Build.VERSION.RELEASE + " (" + Build.VERSION.INCREMENTAL + ")";
 	}
 
-	public void setAuth(HttpAuthProvider auth) {
-		this.auth = auth;
-	}
-
-	public InputStream sendRequest(String method, String path, Header[] headers, Object data) throws SendRequestFailedException, SSLException {
+	
+	public InputStream sendRequest(String method, String requestPath, Header[] headers, Object data) throws SendRequestFailedException, SSLException {
 		long down = 0;
 		long up = 0;
 		long start = System.currentTimeMillis();
+
+		// Temporary hack to allow new & old usage styles to work side by side
+		if ( requestPath == null && path != null ) {
+			requestPath = path;
+		}
+
 		try {
 
 			// Set parameters, schema connection manager and create client and add auth
@@ -130,10 +143,10 @@ public class Connector {
 				this.auth.setAuth(httpclient);
 
 			if ( Constants.LOG_DEBUG && Constants.debugDavCommunication )
-				Log.d(TAG, method+" "+URL+path);
+				Log.d(TAG, method+" "+URL+requestPath);
 
 			// Create request and add headers and entity
-			DavRequest request = new DavRequest(method, URL+path);
+			DavRequest request = new DavRequest(method, URL+requestPath);
 			request.addHeader(new BasicHeader("User-Agent", userAgent));
 			for (Header h : headers) {
 				request.addHeader(h);
