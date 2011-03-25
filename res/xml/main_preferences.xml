@@ -30,7 +30,13 @@
 		android:summary="@string/Snooze_PrefSummary"
 		android:selectable="true"
 		android:enabled="true"
-		android:defaultValue="5"/>
+		android:defaultValue="10"/>
+
+	<CheckBoxPreference
+		android:key="@string/prefTwelveTwentyfour"
+		android:title="@string/TwelveTwentyfour_PrefTitle"
+		android:summaryOn="@string/TwelveTwentyfour_OnSummary"
+		android:summaryOff="@string/TwelveTwentyfour_OffSummary"/>
 	
 	<!-- This Preference is dynamically populated in AcalPreferences.java-->
 	<ListPreference

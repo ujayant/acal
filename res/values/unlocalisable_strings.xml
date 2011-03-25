@@ -6,11 +6,6 @@
 
 <string name="appName">aCal</string>
 
-<string name="YearViewSize_PrefKey">YearViewNumMonths</string>
-<string name="Snooze_PrefKey">SnoozeTime</string>
-<string name="DefaultCollection_PrefKey">DefaultCollection</string>
-<string name="DefaultAlarmTone_PrefKey">DefaultAlarmTone</string>
-
 <dimen name="MonthDayTextSize">14sp</dimen>
 <color name="MonthDayFG">#001060</color>
 <color name="MonthDayInMonthBG">#A0DDDDDD</color>

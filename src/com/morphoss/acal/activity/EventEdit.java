@@ -94,6 +94,9 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 	private static final int ADD_ALARM_DIALOG = 5;
 	private static final int SET_REPEAT_RULE_DIALOG = 6;
 	private static final int WHICH_EVENT_DIALOG = 7;
+
+	private SharedPreferences prefs;
+	boolean prefer24hourFormat = false;
 	
 	private String[] repeatRules;
 	private static final String[] eventOptions = new String[] {
@@ -164,6 +167,10 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		//Ensure service is actually running
 		this.startService(new Intent(this, aCalService.class));
 
+		// Get time display preference
+		prefs = PreferenceManager.getDefaultSharedPreferences(this);
+		prefer24hourFormat = prefs.getBoolean(getString(R.string.prefTwelveTwentyfour), false);
+		
 		//Set up buttons
 		this.setupButton(R.id.event_apply_button, APPLY);
 		this.setupButton(R.id.event_cancel_button, CANCEL);
@@ -227,7 +234,6 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 			defaults.put( EVENT_FIELD.location, "" );
 			defaults.put( EVENT_FIELD.description, "" );
 			
-			SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 			ContentValues collectionData = DavCollections.getRow(collectionId, getContentResolver());
 			Integer preferredCollectionId = Integer.parseInt(prefs.getString(getString(R.string.DefaultCollection_PrefKey), "-1"));
 			if ( preferredCollectionId != -1 ) {
@@ -639,12 +645,12 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 			return new TimePickerDialog(this, fromTimeListener,
 					start.getHour(), 
 					start.getMinute(),
-					false);
+					prefer24hourFormat);
 		case UNTIL_TIME_DIALOG:
 			return new TimePickerDialog(this, untilTimeListener,
 					end.getHour(), 
 					end.getMinute(),
-					false);
+					prefer24hourFormat);
 		case SELECT_COLLECTION_DIALOG:
 				AlertDialog.Builder builder = new AlertDialog.Builder(this);
 				builder.setTitle("Pick a collection");

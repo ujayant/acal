@@ -151,4 +151,12 @@
 <string name="FromPrompt">From:</string>
 <string name="UntilPrompt">Until:</string>
 
+<string name="defaultCalendar">Default Calendar</string>
+<string name="theCalendarForNewEvents">The calendar to be used by default for new events.</string>
+
+<string name="TwelveTwentyfour_PrefTitle">Use 24-hour format</string>
+<string name="TwelveTwentyfour_OnSummary">14:00</string>
+<string name="TwelveTwentyfour_OffSummary">2:00pm</string>
+
+
 </resources>
