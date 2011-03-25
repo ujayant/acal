@@ -134,5 +134,12 @@
 <string name="Add">Añadir</string>
 <string name="UnNamedServer">Servidor sin nombre</string>
 
+<string name="LocationPrompt"></string>
+<string name="NotesPrompt"></string>
+<string name="AlarmsPrompt"></string>
+<string name="RepeatsPrompt"></string>
+<string name="AllDayPrompt"></string>
+<string name="FromPrompt"></string>
+<string name="UntilPrompt"></string>
 
 </resources>

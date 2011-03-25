@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: aCal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-03-21 21:47+1300\n"
-"PO-Revision-Date: 2011-03-23 21:03+0000\n"
+"POT-Creation-Date: 2011-03-23 22:51+1300\n"
+"PO-Revision-Date: 2011-03-24 00:00+0000\n"
 "Last-Translator: marc0s <marc0s@fsfe.org>\n"
 "Language-Team: Spanish (Spain) <None>\n"
 "MIME-Version: 1.0\n"
@@ -17,6 +17,7 @@ msgstr ""
 "Language: es_ES\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
 
+# Strings that should not be localised belong in unlocalisable_strings.xml
 msgid "theDayEachWeekStartsWith"
 msgstr "El día en el que empieza la semana"
 
@@ -396,25 +397,23 @@ msgstr "Añadir"
 msgid "UnNamedServer"
 msgstr "Servidor sin nombre"
 
-# Below here the strings are not things that should be localised and should
-# probably move to another file
-msgid "applyButton"
+msgid "LocationPrompt"
 msgstr ""
 
-msgid "cancelButton"
+msgid "NotesPrompt"
 msgstr ""
 
-msgid "appName"
+msgid "AlarmsPrompt"
 msgstr ""
 
-msgid "YearViewSize_PrefKey"
+msgid "RepeatsPrompt"
 msgstr ""
 
-msgid "Snooze_PrefKey"
+msgid "AllDayPrompt"
 msgstr ""
 
-msgid "DefaultCollection_PrefKey"
+msgid "FromPrompt"
 msgstr ""
 
-msgid "DefaultAlarmTone_PrefKey"
+msgid "UntilPrompt"
 msgstr ""
