@@ -18,6 +18,9 @@
 
 package com.morphoss.acal;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 
 public final class StaticHelpers {
 
@@ -78,6 +81,17 @@ public final class StaticHelpers {
 			ret += Integer.toHexString(colours[i]) + Integer.toHexString(colours[i]);
 		}
 		return ret;
+	}
+	
+	public static String capitaliseWords( String boring ) {
+		final Pattern wordSplitter = Pattern.compile("\\b(\\w+)\\b", Pattern.CASE_INSENSITIVE | Pattern.DOTALL );
+		StringBuffer capped = new StringBuffer();
+		Matcher m = wordSplitter.matcher(boring);
+		while( m.find() ) {
+			m.appendReplacement(capped, m.group().substring(0,1).toUpperCase() + m.group().substring(1));
+		}
+		m.appendTail(capped);
+		return capped.toString();
 	}
 	
 }
