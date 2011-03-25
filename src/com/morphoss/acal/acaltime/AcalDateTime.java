@@ -19,6 +19,8 @@
 package com.morphoss.acal.acaltime;
 
 import java.io.Serializable;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.TimeZone;
@@ -32,6 +34,7 @@ import android.util.Log;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.HashCodeUtil;
 import com.morphoss.acal.R;
+import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.davacal.AcalProperty;
 import com.morphoss.acal.service.aCalService;
 
@@ -1502,22 +1505,15 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	}
 
 
+	/**
+	 * We do it this way to more easily get a localised month name.
+	 * @param month
+	 * @return
+	 */
 	public static String getMonthName(int month) {
-		switch( month ) {
-			case JANUARY: return aCalService.getContextString(R.string.January);
-			case FEBRUARY: return aCalService.getContextString(R.string.February);
-			case MARCH: return aCalService.getContextString(R.string.March);
-			case APRIL: return aCalService.getContextString(R.string.April);
-			case MAY: return aCalService.getContextString(R.string.May);
-			case JUNE: return aCalService.getContextString(R.string.June);
-			case JULY: return aCalService.getContextString(R.string.July);
-			case AUGUST: return aCalService.getContextString(R.string.August);
-			case SEPTEMBER: return aCalService.getContextString(R.string.September);
-			case OCTOBER: return aCalService.getContextString(R.string.October);
-			case NOVEMBER: return aCalService.getContextString(R.string.November);
-			case DECEMBER: return aCalService.getContextString(R.string.December);
-		}
-		throw new IllegalArgumentException();
+		final SimpleDateFormat monthFormatter = new SimpleDateFormat("MMMM");
+		String monthName = monthFormatter.format(new Date(2011,month,1));
+		return monthName.substring(0, 1).toUpperCase() + monthName.substring(1); 
 	}
 
 	public String getMonthName() {
@@ -1548,7 +1544,8 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	}
 
 	public static String fmtDayMonthYear(AcalDateTime c) {
-		return c.get(DAY_OF_MONTH) + getSuffix(c.get(DAY_OF_MONTH)) + " " + fmtMonthYear(c);
+		final DateFormat dateFormatter = DateFormat.getDateInstance(DateFormat.LONG);
+		return StaticHelpers.capitaliseWords(dateFormatter.format(c.toJavaDate()));
 	}
 
 
