@@ -100,7 +100,7 @@
 								android:text="@string/FromPrompt" 
 								android:id="@+id/EventFromLabel" 
 								android:layout_height="wrap_content"
-								android:layout_width="42sp"
+								android:layout_width="50dp"
 								style="@style/event_view_label"/>
 							<Button 
 								android:id="@+id/EventFromDate"
@@ -126,7 +126,7 @@
 								android:text="@string/UntilPrompt" 
 								android:id="@+id/EventUntilLabel" 
 								android:layout_height="wrap_content"
-								android:layout_width="42sp"
+								android:layout_width="50dp"
 								style="@style/event_view_label"/>
 							<Button 
 								android:id="@+id/EventUntilDate" 
