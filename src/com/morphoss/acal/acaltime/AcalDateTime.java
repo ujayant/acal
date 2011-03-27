@@ -1512,7 +1512,7 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	 */
 	public static String getMonthName(int month) {
 		final SimpleDateFormat monthFormatter = new SimpleDateFormat("MMMM");
-		String monthName = monthFormatter.format(new Date(2011,month,1));
+		String monthName = monthFormatter.format(new Date(2011,(month - 1),1));
 		return monthName.substring(0, 1).toUpperCase() + monthName.substring(1); 
 	}
 
