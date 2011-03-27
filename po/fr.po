@@ -1,0 +1,425 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+msgid ""
+msgstr ""
+"Project-Id-Version: aCal\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2011-03-23 22:51+1300\n"
+"PO-Revision-Date: 2011-03-27 00:25+0000\n"
+"Last-Translator: tikismoke <webmaster@tikijs.dyndns.org>\n"
+"Language-Team: French <None>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1)\n"
+
+# Strings that should not be localised belong in unlocalisable_strings.xml
+msgid "theDayEachWeekStartsWith"
+msgstr "Premier jour de chaque semaine."
+
+msgid "firstDayOfWeek"
+msgstr "Premier jour de la semaine"
+
+msgid "ok"
+msgstr "OK"
+
+msgid "cancel"
+msgstr "Annuler"
+
+msgid "appDescription"
+msgstr ""
+"Un calendrier pour Android qui sauvegardera vos évènements, tâches, notes et"
+" contacts sur un serveur CalDAV/CardDAV, tel que DAViCal (voir: "
+"www.davical.org)"
+
+msgid "Active"
+msgstr "Actif"
+
+msgid "Add_Server"
+msgstr "Ajouter un Serveur"
+
+msgid "A_name_for_this_server_configuration"
+msgstr "Nom utilisé pour la configuration de ce serveur"
+
+msgid "Authentication_Type"
+msgstr "Type d'authentification"
+
+msgid "Simple_Path"
+msgstr "Chemin simple"
+
+msgid "Simple_Domain"
+msgstr "Domaine simple"
+
+msgid "Enter_a_brief_summary_of_the_event"
+msgstr "Entrez un bref résumé de l'événement"
+
+msgid "Name"
+msgstr "Nom"
+
+msgid "Force_full_resync"
+msgstr "Forcer la re-synchronisation"
+
+msgid "Password"
+msgstr "Mot de passe"
+
+msgid "Save"
+msgstr "Enregistrer"
+
+msgid "Settings"
+msgstr "Paramètres"
+
+msgid "Server_Name"
+msgstr "Nom du serveur"
+
+msgid "Server_Options"
+msgstr "Options du serveur"
+
+msgid "Collection_Options"
+msgstr "Options de la Collection"
+
+msgid "Colour"
+msgstr "Couleur"
+
+msgid "Default_timezone"
+msgstr "Fuseau horaire par défaut"
+
+msgid "Server_Path"
+msgstr "Chemin sur le serveur"
+
+msgid "Server_Port"
+msgstr "Port du serveur"
+
+msgid "Summary"
+msgstr "Sommaire"
+
+msgid "Sync_collection_now"
+msgstr "Synchroniser maintenant"
+
+msgid "Disable_collection"
+msgstr "Désactiver la collection"
+
+msgid "The_authentication_type_used"
+msgstr "Type d'authentification utilisé par le serveur"
+
+msgid "The_password_to_use"
+msgstr "Mot de passe pour l'autentification au serveur"
+
+msgid "The_path_on_the_server"
+msgstr "Chemin sur le serveur, tel que &quot;/caldav.php/user/&quot;"
+
+msgid "The_domain_for_your_organisation"
+msgstr "Nom de domaine de votre entreprise, tel que &quot;morphoss.com&quot;"
+
+msgid "The_servers_hostname"
+msgstr ""
+"Nom d'hotes complet du serveur, comme &quot;calendar.davical.com&quot;"
+
+msgid "The_username_to_use"
+msgstr "Nom d'utilisateur pour l'autentification au serveur"
+
+msgid "Username"
+msgstr "Nom d'utilisateur"
+
+msgid "Use_SSL"
+msgstr "Utiliser SSL"
+
+msgid "Whether_this_server_is_active"
+msgstr "Si ce serveur doit-être activé"
+
+msgid "Whether_to_use_encryption"
+msgstr "S'il faut utiliser un connection cryptée avec le serveur"
+
+msgid "appActivityEventCreate"
+msgstr "Nouvel événement"
+
+msgid "appActivityServerConfigList"
+msgstr "Serveurs"
+
+msgid "appActivityAddServerList"
+msgstr "Modèles de serveur"
+
+msgid "appActivityCollectionConfigList"
+msgstr "Calendriers et carnets d'adresses"
+
+msgid "appActivityDebugSettings"
+msgstr "Paramètres de débogage"
+
+msgid "appActivitySettings"
+msgstr "Paramètres"
+
+msgid "appActivityYearView"
+msgstr "aCal - Vue année"
+
+msgid "appActivityPreference"
+msgstr "Préférences"
+
+msgid "The_port_to_connect_to"
+msgstr "Port utilisé pour se connecter au serveur"
+
+msgid "A_name_for_this_collection"
+msgstr "Nom pour cette collection"
+
+msgid "pActive_addressbook"
+msgstr "Actif pour les carnet d'adresses"
+
+msgid "pActive_for_events"
+msgstr "Actif pour les événements"
+
+msgid "pActive_for_journal"
+msgstr "Actif pour les Notes"
+
+msgid "pActive_for_tasks"
+msgstr "Actif pour les tâches"
+
+msgid "pUse_Alarms"
+msgstr "Utiliser les alarmes dans cette collections?"
+
+msgid "Use_Alarms"
+msgstr "Alarmes activées"
+
+msgid "Active_addressbook"
+msgstr ""
+"Est-ce que cette collection est utilisé pour enregistrer des contacts?"
+
+msgid "Active_for_events"
+msgstr ""
+"Est-ce que cette collection est utilisé pour enregistrer des événements?"
+
+msgid "Active_for_journal"
+msgstr "Est-ce que cette collection est utilisé pour enregistrer des  notes?"
+
+msgid "Active_for_tasks"
+msgstr "Est-ce que cette collection est utilisé pour enregistrer des  tâches?"
+
+msgid "The_colour_associated_with_this_collection"
+msgstr "Couleur associée aux données de cette collection"
+
+msgid "The_timezone_new_events_default_to"
+msgstr "Fuseau horaire pour les nouveaux éléments de cette colletcion"
+
+msgid "pMax_age_on_3g"
+msgstr "Sync en minutes en 3G"
+
+msgid "The_maximum_age_for_data_while_on_3g"
+msgstr ""
+"Temps maximum (en minutes) avant la mise à jour lors de l'utilisation en 3G"
+
+msgid "pMax_age_on_wifi"
+msgstr "Sync en minutes en WIFI"
+
+msgid "The_maximum_age_for_data_while_on_wifi"
+msgstr ""
+"Temps maximum (en minutes) avant la mise à jour lors de l'utilisation en "
+"WIFI"
+
+msgid "Use_alarms_from_this_calendar"
+msgstr "Les alarmes pour se calendrier doivent-elles êtres affichées?"
+
+msgid "Monday"
+msgstr "Lundi"
+
+msgid "Tuesday"
+msgstr "Mardi"
+
+msgid "Wednesday"
+msgstr "Mercredi"
+
+msgid "Thursday"
+msgstr "Jeudi"
+
+msgid "Friday"
+msgstr "Vendredi"
+
+msgid "Saturday"
+msgstr "Samedi"
+
+msgid "Sunday"
+msgstr "Dimanche"
+
+msgid "Mon"
+msgstr "Lun"
+
+msgid "Tue"
+msgstr "Mar"
+
+msgid "Wed"
+msgstr "Mer"
+
+msgid "Thu"
+msgstr "Jeu"
+
+msgid "Fri"
+msgstr "Ven"
+
+msgid "Sat"
+msgstr "Sam"
+
+msgid "Sun"
+msgstr "Dim"
+
+msgid "chMon"
+msgstr "L"
+
+msgid "chTue"
+msgstr "M"
+
+msgid "chWed"
+msgstr "M"
+
+msgid "chThu"
+msgstr "J"
+
+msgid "chFri"
+msgstr "V"
+
+msgid "chSat"
+msgstr "S"
+
+msgid "chSun"
+msgstr "D"
+
+msgid "January"
+msgstr "Janvier"
+
+msgid "February"
+msgstr "Février"
+
+msgid "March"
+msgstr "Mars"
+
+msgid "April"
+msgstr "Avril"
+
+msgid "May"
+msgstr "Mai"
+
+msgid "June"
+msgstr "Juin"
+
+msgid "July"
+msgstr "Juillet"
+
+msgid "August"
+msgstr "Août"
+
+msgid "September"
+msgstr "Septembre"
+
+msgid "October"
+msgstr "Octobre"
+
+msgid "November"
+msgstr "Novembre"
+
+msgid "December"
+msgstr "Décembre"
+
+msgid "Jan"
+msgstr "Jan"
+
+msgid "Feb"
+msgstr "Fév"
+
+msgid "Mar"
+msgstr "Mar"
+
+msgid "Apr"
+msgstr "Avr"
+
+# <string name="May">May</string>
+msgid "Jun"
+msgstr "Jui"
+
+msgid "Jul"
+msgstr "Jui"
+
+msgid "Aug"
+msgstr "Aou"
+
+msgid "Sep"
+msgstr "Sep"
+
+msgid "Oct"
+msgstr "Oct"
+
+msgid "Nov"
+msgstr "Nov"
+
+msgid "Dec"
+msgstr "Déc"
+
+msgid "YearViewSize_PrefTitle"
+msgstr "Nombre de mois dans la vue année"
+
+msgid "YearViewSize_PrefSummary"
+msgstr "Nombre de mois visible dans la vue année"
+
+msgid "Snooze_PrefTitle"
+msgstr ""
+
+msgid "Snooze_PrefSummary"
+msgstr ""
+
+msgid "DefaultCollection_PrefTitle"
+msgstr "Collection par défaut"
+
+msgid "DefaultCollection_PrefSummary"
+msgstr "Collection par défaut à utiliser pour les nouveaux évenements."
+
+msgid "DefaultAlarmTone_PrefTitle"
+msgstr "Sonnerie par défaut"
+
+msgid "DefaultAlarmTone_PrefSummary"
+msgstr "Son par défaut utilisé pour les alarmes."
+
+msgid "Today"
+msgstr "Aujourd'hui"
+
+msgid "Year"
+msgstr "Année"
+
+msgid "Month"
+msgstr "Mois"
+
+msgid "Edit"
+msgstr "Modifier"
+
+msgid "Apply"
+msgstr "Appliquer"
+
+msgid "Advanced"
+msgstr "Avancée"
+
+msgid "Simple"
+msgstr "Simple"
+
+msgid "Add"
+msgstr "Ajouter"
+
+msgid "UnNamedServer"
+msgstr "Serveur sans nom"
+
+msgid "LocationPrompt"
+msgstr "Emplacement"
+
+msgid "NotesPrompt"
+msgstr "Notes:"
+
+msgid "AlarmsPrompt"
+msgstr "Alarmes:"
+
+msgid "RepeatsPrompt"
+msgstr "Répétitions:"
+
+msgid "AllDayPrompt"
+msgstr "Événement sur la journée:"
+
+msgid "FromPrompt"
+msgstr "De:"
+
+msgid "UntilPrompt"
+msgstr "Jusqu'à:"
