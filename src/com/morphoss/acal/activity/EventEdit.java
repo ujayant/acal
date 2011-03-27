@@ -21,6 +21,7 @@ package com.morphoss.acal.activity;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Formatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -99,23 +100,10 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 	boolean prefer24hourFormat = false;
 	
 	private String[] repeatRules;
-	private static final String[] eventOptions = new String[] {
-		"This Instance Only",
-		"All Instances",
-		"This and all future instances"
-	};
+	private static String[] eventChangeRanges; // See strings.xml R.array.EventChangeAffecting
 		
-	private static final String[] alarmOptions = new String[] {
-		"At Event Time",
-		"10 Minutes before",
-		"30 Minutes before",
-		"1 Hour before",
-		"2 Hours before",
-		"12 Hours before",
-		"1 Day before",
-		"Cancel"
-	};
-	
+	// Must match R.array.RelativeAlarmTimes (strings.xml)
+	private static String[] alarmRelativeTimeStrings;
 	private static final AcalDuration[] alarmValues = new AcalDuration[] {
 		new AcalDuration(),
 		new AcalDuration("-PT10M"),
@@ -170,6 +158,12 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		// Get time display preference
 		prefs = PreferenceManager.getDefaultSharedPreferences(this);
 		prefer24hourFormat = prefs.getBoolean(getString(R.string.prefTwelveTwentyfour), false);
+
+		if ( alarmRelativeTimeStrings == null )
+			alarmRelativeTimeStrings = getResources().getStringArray(R.array.RelativeAlarmTimes);
+
+		if ( eventChangeRanges == null )
+			eventChangeRanges = getResources().getStringArray(R.array.EventChangeAffecting);
 		
 		//Set up buttons
 		this.setupButton(R.id.event_apply_button, APPLY);
@@ -410,11 +404,11 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 			untilDate.setText(AcalDateTime.fmtDayMonthYear(end));
 			untilDate.setVisibility(View.VISIBLE);
 
-			DateFormat formatter = DateFormat.getTimeInstance(DateFormat.SHORT);
+			DateFormat formatter = new SimpleDateFormat(prefer24hourFormat?"HH:mm":"hh:mm:aa");
 			fromTime.setText(formatter.format(start.toJavaDate()));
-			fromTime.setVisibility(View.VISIBLE);;
+			fromTime.setVisibility(View.VISIBLE);
 			untilTime.setText(formatter.format(end.toJavaDate()));
-			untilTime.setVisibility(View.VISIBLE);;
+			untilTime.setVisibility(View.VISIBLE);
 
 			formatter = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.SHORT);
 			titlebar.setText(StaticHelpers.capitaliseWords(formatter.format(start.toJavaDate())));
@@ -434,30 +428,67 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		int weekNum = start.getMonthWeek();
 		String dowStr = "";
 		String dowLongString = "";
+		String everyDowString = "";
 		switch (dow) {
-			case 0: dowStr="MO"; dowLongString = "Monday"; break;
-			case 1: dowStr="TU"; dowLongString = "Tuesday"; break;
-			case 2: dowStr="WE"; dowLongString = "Wednesday"; break;
-			case 3: dowStr="TH"; dowLongString = "Thursday"; break;
-			case 4: dowStr="FR"; dowLongString = "Friday"; break;
-			case 5: dowStr="SA"; dowLongString = "Saturday"; break;
-			case 6: dowStr="SU"; dowLongString = "Sunday"; break;
+			case 0:
+				dowStr="MO";
+				dowLongString = getString(R.string.Monday);
+				everyDowString = getString(R.string.EveryMonday);
+				break;
+			case 1:
+				dowStr="TU";
+				dowLongString = getString(R.string.Tuesday);
+				everyDowString = getString(R.string.EveryTuesday);
+				break;
+			case 2:
+				dowStr="WE";
+				dowLongString = getString(R.string.Wednesday);
+				everyDowString = getString(R.string.EveryWednesday);
+				break;
+			case 3:
+				dowStr="TH";
+				dowLongString = getString(R.string.Thursday);
+				everyDowString = getString(R.string.EveryThursday);
+				break;
+			case 4:
+				dowStr="FR";
+				dowLongString = getString(R.string.Friday); 
+				everyDowString = getString(R.string.EveryFriday);
+				break;
+			case 5:
+				dowStr="SA";
+				dowLongString = getString(R.string.Saturday); 
+				everyDowString = getString(R.string.EverySaturday);
+				break;
+			case 6:
+				dowStr="SU";
+				dowLongString = getString(R.string.Sunday); 	
+				everyDowString = getString(R.string.EverySunday);
+				break;
 		}
-		String dailyRepeatName = "Every Weekday";
+		String dailyRepeatName = getString(R.string.EveryWeekday);
 		String dailyRepeatRule = "FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR;COUNT=260";
 		if (start.get(AcalDateTime.DAY_OF_WEEK) == AcalDateTime.SATURDAY || start.get(AcalDateTime.DAY_OF_WEEK) == AcalDateTime.SUNDAY) {
-			dailyRepeatName = "Every Weekend";
+			dailyRepeatName = getString(R.string.EveryWeekend);
 			dailyRepeatRule = "FREQ=WEEKLY;BYDAY=SA,SU;COUNT=104";
 		}
+
+		// TODO: This is unsatisfactory, but it's a start...
+		StringBuilder everyNthOfMonth = new StringBuilder("");
+		Formatter fNthOfMonth = new Formatter(everyNthOfMonth);
+		fNthOfMonth.format(getString(R.string.EveryNthOfTheMonth),start.getMonthDay()+AcalDateTime.getSuffix(start.getMonthDay()));
+		StringBuilder everyNthSomedayOfMonth = new StringBuilder("");
+		Formatter fNthSomedayOfMonth = new Formatter(everyNthSomedayOfMonth);
+		fNthSomedayOfMonth.format(getString(R.string.EveryMonthOnTheNthSomeday),weekNum+AcalDateTime.getSuffix(weekNum)+" "+dowLongString);
 		
 		this.repeatRules = new String[] {
-				"Occurs once",
-				"Daily",
-				dailyRepeatName,
-				"Every "+dowLongString,
-				"On the "+start.getMonthDay()+AcalDateTime.getSuffix(start.getMonthDay())+" of each month",
-				"On the "+weekNum+AcalDateTime.getSuffix(weekNum)+" "+dowLongString+" of each month",
-				"Yearly"
+					getString(R.string.OnlyOnce),
+					getString(R.string.EveryDay),
+					dailyRepeatName,
+					everyDowString,
+					fNthOfMonth.toString(),
+					fNthSomedayOfMonth.toString(),
+					getString(R.string.EveryYear)
 		};
 		this.repeatRulesValues = new String[] {
 				"FREQ=DAILY;COUNT=400",
@@ -471,7 +502,7 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		if (repeatRuleString == null) repeatRuleString = "";
 		AcalRepeatRule RRule = new AcalRepeatRule(start, repeatRuleString); 
 		String rr = RRule.repeatRule.toPrettyString();
-		if (rr == null || rr.equals("")) rr = "Once Only";
+		if (rr == null || rr.equals("")) rr = getString(R.string.OnlyOnce);
 		repeatsView.setText(rr);
 	}
 
@@ -536,13 +567,13 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		try {
 			Log.i(TAG,"Saving event with action " + eventAction.getAction() );
 			if (eventAction.getAction() == AcalEventAction.ACTION_CREATE)
-				Toast.makeText(this, "Event Saved", Toast.LENGTH_LONG).show();
+				Toast.makeText(this, getString(R.string.EventSaved), Toast.LENGTH_LONG).show();
 			else if (eventAction.getAction() == AcalEventAction.ACTION_MODIFY_ALL)
-				Toast.makeText(this, "Modified all instances of this event.", Toast.LENGTH_LONG).show();
+				Toast.makeText(this, getString(R.string.ModifiedAllInstances), Toast.LENGTH_LONG).show();
 			else if (eventAction.getAction() == AcalEventAction.ACTION_MODIFY_SINGLE)
-				Toast.makeText(this, "Modified single instance of this event.", Toast.LENGTH_LONG).show();
+				Toast.makeText(this, getString(R.string.ModifiedOneInstance), Toast.LENGTH_LONG).show();
 			else if (eventAction.getAction() == AcalEventAction.ACTION_MODIFY_ALL_FUTURE)
-				Toast.makeText(this, "Modified this and all future instances of this event.", Toast.LENGTH_LONG).show();
+				Toast.makeText(this, getString(R.string.ModifiedThisAndFuture), Toast.LENGTH_LONG).show();
 
 			this.dataRequest.eventChanged(eventAction);
 			Intent ret = new Intent();
@@ -554,7 +585,7 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		catch (Exception e) {
 			if ( e.getMessage() != null ) Log.d(TAG,e.getMessage());
 			if (Constants.LOG_DEBUG)Log.d(TAG,Log.getStackTraceString(e));
-			Toast.makeText(this, "Error saving event data", Toast.LENGTH_LONG).show();
+			Toast.makeText(this, getString(R.string.ErrorSavingEvent), Toast.LENGTH_LONG).show();
 		}
 	}
 
@@ -653,7 +684,7 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 					prefer24hourFormat);
 		case SELECT_COLLECTION_DIALOG:
 				AlertDialog.Builder builder = new AlertDialog.Builder(this);
-				builder.setTitle("Pick a collection");
+				builder.setTitle(getString(R.string.ChooseACollection));
 				builder.setItems(this.collectionsArray, new DialogInterface.OnClickListener() {
 				    public void onClick(DialogInterface dialog, int item) {
 				    	setSelectedCollection(collectionsArray[item]);
@@ -662,8 +693,8 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 				return builder.create();
 		case ADD_ALARM_DIALOG:
 			builder = new AlertDialog.Builder(this);
-			builder.setTitle("Pick an alarm time");
-			builder.setItems(EventEdit.alarmOptions, new DialogInterface.OnClickListener() {
+			builder.setTitle(getString(R.string.ChooseAlarmTime));
+			builder.setItems(EventEdit.alarmRelativeTimeStrings, new DialogInterface.OnClickListener() {
 			    public void onClick(DialogInterface dialog, int item) {
 			    	//translate item to equal alarmValue index 
 			    	if (item == 5) return;
@@ -687,8 +718,8 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 			return builder.create();
 		case WHICH_EVENT_DIALOG:
 			builder = new AlertDialog.Builder(this);
-			builder.setTitle("Select how many instances of this event to change:");
-			builder.setItems(EventEdit.eventOptions, new DialogInterface.OnClickListener() {
+			builder.setTitle(getString(R.string.ChooseInstancesToChange));
+			builder.setItems(EventEdit.eventChangeRanges, new DialogInterface.OnClickListener() {
 			    public void onClick(DialogInterface dialog, int item) {
 			    	switch (item) {
 			    		case 0: eventAction.setAction(AcalEventAction.ACTION_MODIFY_SINGLE); saveChanges(); return;
@@ -700,7 +731,7 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 			return builder.create();
 		case SET_REPEAT_RULE_DIALOG:
 			builder = new AlertDialog.Builder(this);
-			builder.setTitle("Pick a repeat rule");
+			builder.setTitle(getString(R.string.ChooseRepeatFrequency));
 			builder.setItems(this.repeatRules, new DialogInterface.OnClickListener() {
 			    public void onClick(DialogInterface dialog, int item) {
 			    	String newRule = "";
