@@ -169,7 +169,18 @@ public class EventView extends Activity implements OnGestureListener, OnTouchLis
 		}
 		
 		TextView alarmsView = (TextView) this.findViewById(R.id.EventAlarmsContent);
-		alarmsView.setText(alarms);
+		if ( alarms != null && ! alarms.equals("") ) {
+			alarmsView.setText(alarms);
+		}
+		else {
+			alarmsView.setText("");
+			alarmsView.setHeight(0);
+			TextView alarmsPrompt = (TextView) this.findViewById(R.id.EventAlarmsLabel);
+			alarmsPrompt.setText("");
+			alarmsPrompt.setHeight(0);
+			RelativeLayout alarmsLayout = (RelativeLayout) this.findViewById(R.id.EventAlarmsLayout);
+			alarmsLayout.setPadding(0, 0, 0, 0);
+		}
 		
 		TextView repeatsView = (TextView) this.findViewById(R.id.EventRepeatsContent);
 		AcalRepeatRule RRule = new AcalRepeatRule(start, repetition); 
