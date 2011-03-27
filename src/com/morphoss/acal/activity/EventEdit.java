@@ -404,7 +404,7 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 			untilDate.setText(AcalDateTime.fmtDayMonthYear(end));
 			untilDate.setVisibility(View.VISIBLE);
 
-			DateFormat formatter = new SimpleDateFormat(prefer24hourFormat?"HH:mm":"hh:mm:aa");
+			DateFormat formatter = new SimpleDateFormat(prefer24hourFormat?"HH:mm":"hh:mmaa");
 			fromTime.setText(formatter.format(start.toJavaDate()));
 			fromTime.setVisibility(View.VISIBLE);
 			untilTime.setText(formatter.format(end.toJavaDate()));
