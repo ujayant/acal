@@ -243,13 +243,14 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 		return this.dtstart;
 	}
 
-	public String getTimeText(AcalDateTime viewDateStart, AcalDateTime viewDateEnd ) {
+	public String getTimeText(AcalDateTime viewDateStart, AcalDateTime viewDateEnd, boolean as24HourTime ) {
 		AcalDateTime start = this.getStart();
 		start.applyLocalTimeZone();
 		AcalDateTime finish = this.getEnd();
 		if ( finish != null ) finish.applyLocalTimeZone();
 		String timeText = "";
-		SimpleDateFormat timeFormatter = new SimpleDateFormat("HH:mm");
+		String timeFormatString = (as24HourTime ? "HH:mm" : "hh:mmaa");
+		SimpleDateFormat timeFormatter = new SimpleDateFormat(timeFormatString);
 		
 		if ( start.before(viewDateStart) || (finish != null && finish.after(viewDateEnd)) ){
 			if ( start.isDate() ) {
@@ -260,9 +261,9 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 				SimpleDateFormat finishFormatter = timeFormatter;
 				
 				if ( start.before(viewDateStart) )
-					startFormatter  = new SimpleDateFormat("MMM d, HH:mm");
+					startFormatter  = new SimpleDateFormat("MMM d, "+timeFormatString);
 				if ( finish.after(viewDateEnd) )
-					finishFormatter = new SimpleDateFormat("MMM d, HH:mm");
+					finishFormatter = new SimpleDateFormat("MMM d, "+timeFormatString);
 		
 				timeText = (startFormatter.format(start.toJavaDate())+" - "
 							+ (finish == null ? "null" : finishFormatter.format(finish.toJavaDate())));

@@ -72,7 +72,7 @@ public class AlarmActivity extends Activity implements OnClickListener  {
 	private static final int NOTIFICATION_ID = 1;
 	private String ns;
 	private NotificationManager mNotificationManager;
-	
+	private SharedPreferences prefs;	
 	
 	private int CLOSE = 0;
 	private int SNOOZE = 1;
@@ -92,6 +92,7 @@ public class AlarmActivity extends Activity implements OnClickListener  {
 		PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
 		wl = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP, "aCal Alarm");
 		wl.acquire();	
+		prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
 
 		//prepare gui elements
@@ -150,7 +151,7 @@ public class AlarmActivity extends Activity implements OnClickListener  {
 			AcalDateTime viewDate = new AcalDateTime();
 			viewDate.applyLocalTimeZone();
 			viewDate.setDaySecond(0);
-			time.setText(event.getTimeText(viewDate, AcalDateTime.addDays(viewDate,1)));
+			time.setText(event.getTimeText(viewDate, AcalDateTime.addDays(viewDate,1),prefs.getBoolean(getString(R.string.prefTwelveTwentyfour), false)));
 			
 			playAlarm();
 		}
@@ -160,10 +161,10 @@ public class AlarmActivity extends Activity implements OnClickListener  {
 			Log.e(TAG,Log.getStackTraceString(e));
 		}
 	}
+
 	private void playAlarm() {
 		if (mp != null && mp.isPlaying()) return;
 		v.cancel();
-		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 		String uri = prefs.getString(getString(R.string.DefaultAlarmTone_PrefKey), "null" );
 		if (uri.equals("null")) {
 			mp  = MediaPlayer.create(this, R.raw.dove);

@@ -18,13 +18,11 @@
 
 package com.morphoss.acal.activity;
 
-import java.text.SimpleDateFormat;
-import java.util.List;
-
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -68,6 +66,7 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 	public static final int CONTEXT_EDIT = 0;
 	public static final int CONTEXT_DELETE = 1;
 	
+	private SharedPreferences prefs;	
 
 	/**
 	 * <p>Create a new adaptor with the attributes provided. The date range provided specifies the date range that all
@@ -80,6 +79,9 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 		viewDate.applyLocalTimeZone();
 		viewDate.setDaySecond(0);
 		viewDateEnd = AcalDateTime.addDays(viewDate, 1);
+
+		// Get preferences
+		prefs = PreferenceManager.getDefaultSharedPreferences(this.context);
 	}
 
 	/**
@@ -152,7 +154,9 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 		else
 			title.setText("Untitled");
 
-		time.setText(event.getTimeText(viewDate, viewDateEnd) + (event.isPending ? " (saving)" : "") );
+		time.setText(event.getTimeText(viewDate, viewDateEnd,
+					prefs.getBoolean(context.getString(R.string.prefTwelveTwentyfour), false))
+					+ (event.isPending ? " (saving)" : "") );
 
 		if (event.getLocation() != null && !event.getLocation().equals("") )
 			location.setText(event.getLocation());

@@ -18,14 +18,15 @@
 
 package com.morphoss.acal.activity;
 
-import java.text.SimpleDateFormat;
 import java.util.List;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -61,6 +62,7 @@ public class EventView extends Activity implements OnGestureListener, OnTouchLis
 	
 	//private AcalDateTime currentDate;
 	private AcalEventAction event;
+	private SharedPreferences prefs;	
 	
 	
 	public void onCreate(Bundle savedInstanceState) {
@@ -71,6 +73,8 @@ public class EventView extends Activity implements OnGestureListener, OnTouchLis
 		this.startService(new Intent(this, aCalService.class));
 		//gestureDetector = new GestureDetector(this);
 
+		// Get preferences
+		prefs = PreferenceManager.getDefaultSharedPreferences(this);
 		
 		//Set up buttons
 		this.setupButton(R.id.event_today_button, TODAY);
@@ -129,7 +133,7 @@ public class EventView extends Activity implements OnGestureListener, OnTouchLis
 		viewDate.applyLocalTimeZone();
 		viewDate.setDaySecond(0);
 		TextView time = (TextView) this.findViewById(R.id.EventTimeContent);
-		time.setText(event.getTimeText(viewDate, AcalDateTime.addDays(viewDate, 1)) );
+		time.setText(event.getTimeText(viewDate, AcalDateTime.addDays(viewDate, 1),prefs.getBoolean(getString(R.string.prefTwelveTwentyfour), false)));
 		time.setTextColor(colour);
 
 		TextView titlebar = (TextView)this.findViewById(R.id.EventViewTitle);
