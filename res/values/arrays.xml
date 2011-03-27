@@ -21,4 +21,25 @@
 	<item>9</item>
 	<item>12</item>
 </string-array>
+
+<string-array 
+	name="RelativeAlarmTimes">
+		<item>@string/alarmAtEventTime</item>
+		<item>@string/alarm10MinutesPrior</item>
+		<item>@string/alarm30MinutesPrior</item>
+		<item>@string/alarm1HourPrior</item>
+		<item>@string/alarm2HoursPrior</item>
+		<item>@string/alarm12HoursPrior</item>
+		<item>@string/alarm1DayPrior</item>
+		<item>@string/cancel</item>
+</string-array>
+
+<string-array 
+	name="EventChangeAffecting">
+		<item>@string/changeThisInstance</item>
+		<item>@string/changeAllInstances</item>
+		<item>@string/changeThisAndFuture</item>
+</string-array>
+
+
 </resources>

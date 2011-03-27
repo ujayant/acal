@@ -158,5 +158,45 @@
 <string name="TwelveTwentyfour_OnSummary">14:00</string>
 <string name="TwelveTwentyfour_OffSummary">2:00pm</string>
 
+<string name="OnlyOnce">Occurs once</string>
+<string name="EveryWeekday">Every Weekday</string>
+<string name="EveryWeekend">Every Weekend</string>
+<string name="EveryDay">Daily</string>
+<string name="EveryYear">Yearly</string>
+
+<string name="EveryMonday">Every Monday</string>
+<string name="EveryTuesday">Every Tuesday</string>
+<string name="EveryWednesday">Every Wednesday</string>
+<string name="EveryThursday">Every Thursday</string>
+<string name="EveryFriday">Every Friday</string>
+<string name="EverySaturday">Every Saturday</string>
+<string name="EverySunday">Every Sunday</string>
+
+<string name="EveryNthOfTheMonth">On every %s of the month</string>
+<string name="EveryMonthOnTheNthSomeday">On the %s of each month</string>
+
+<string name="EventSaved">Event Saved.</string>
+<string name="ModifiedAllInstances">Modified all instances of this event.</string>
+<string name="ModifiedOneInstance">Modified single instance of this event.</string>
+<string name="ModifiedThisAndFuture">Modified this and all future instances of this event.</string>
+<string name="ErrorSavingEvent">Error saving event data - please try again.</string>
+
+<string name="ChooseACollection">Choose a Collection</string>
+<string name="ChooseAlarmTime">Choose an Alarm Time</string>
+<string name="ChooseInstancesToChange">Which instances are to change?</string>
+<string name="ChooseRepeatFrequency">Choose a Repeat Frequency</string>
+
+
+<string name="alarmAtEventTime">At Event Time</string>
+<string name="alarm10MinutesPrior">10 minutes before</string>
+<string name="alarm30MinutesPrior">30 minutes before</string>
+<string name="alarm1HourPrior">One hour before</string>
+<string name="alarm2HoursPrior">Two hours before</string>
+<string name="alarm12HoursPrior">12 hours before</string>
+<string name="alarm1DayPrior">One day before</string>
+
+<string name="changeThisInstance">This Instance Only</string>
+<string name="changeAllInstances">All Instances</string>
+<string name="changeThisAndFuture">This and all future instances</string>
 
 </resources>
