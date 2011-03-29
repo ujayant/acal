@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: aCal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-03-23 22:51+1300\n"
-"PO-Revision-Date: 2011-03-25 18:36+0000\n"
+"POT-Creation-Date: 2011-03-27 22:05+1300\n"
+"PO-Revision-Date: 2011-03-28 20:31+0000\n"
 "Last-Translator: marc0s <marc0s@fsfe.org>\n"
 "Language-Team: Catalan <None>\n"
 "MIME-Version: 1.0\n"
@@ -401,22 +401,136 @@ msgid "UnNamedServer"
 msgstr "Servidor sense nom"
 
 msgid "LocationPrompt"
-msgstr ""
+msgstr "Localització:"
 
 msgid "NotesPrompt"
-msgstr ""
+msgstr "Notes:"
 
 msgid "AlarmsPrompt"
-msgstr ""
+msgstr "Alarmes:"
 
 msgid "RepeatsPrompt"
-msgstr ""
+msgstr "Repeticions:"
 
 msgid "AllDayPrompt"
-msgstr ""
+msgstr "Cita de tot un dia:"
 
 msgid "FromPrompt"
-msgstr ""
+msgstr "Des de:"
 
 msgid "UntilPrompt"
-msgstr ""
+msgstr "Fins a:"
+
+msgid "defaultCalendar"
+msgstr "Calendari predeterminat"
+
+msgid "theCalendarForNewEvents"
+msgstr "El calendari a utilitzar per les noves cites de forma predeterminada"
+
+msgid "TwelveTwentyfour_PrefTitle"
+msgstr "Utilitzar el format 24 hores"
+
+msgid "TwelveTwentyfour_OnSummary"
+msgstr "14:00"
+
+msgid "TwelveTwentyfour_OffSummary"
+msgstr "2:00pm"
+
+msgid "OnlyOnce"
+msgstr "Un sol cop"
+
+msgid "EveryWeekday"
+msgstr "Cada dia laborable"
+
+msgid "EveryWeekend"
+msgstr "Cada cap de setmana"
+
+msgid "EveryDay"
+msgstr "Cada dia"
+
+msgid "EveryYear"
+msgstr "Cada any"
+
+msgid "EveryMonday"
+msgstr "Cada dilluns"
+
+msgid "EveryTuesday"
+msgstr "Cada dimarts"
+
+msgid "EveryWednesday"
+msgstr "Cada dimecres"
+
+msgid "EveryThursday"
+msgstr "Cada dijous"
+
+msgid "EveryFriday"
+msgstr "Cada divendres"
+
+msgid "EverySaturday"
+msgstr "Cada dissabte"
+
+msgid "EverySunday"
+msgstr "Cada diumenge"
+
+msgid "EveryNthOfTheMonth"
+msgstr "Cada %s del mes"
+
+msgid "EveryMonthOnTheNthSomeday"
+msgstr "El %s de cada mes"
+
+msgid "EventSaved"
+msgstr "Cita guardada."
+
+msgid "ModifiedAllInstances"
+msgstr "Modificades totes les instàncies d'aquesta cita."
+
+msgid "ModifiedOneInstance"
+msgstr "Modificada la instància d'aquesta cita."
+
+msgid "ModifiedThisAndFuture"
+msgstr "Modificades aquesta i totes les instàncies futures d'aquesta cita."
+
+msgid "ErrorSavingEvent"
+msgstr "Error guardant cita - si us plau torneu-ho a intentar."
+
+msgid "ChooseACollection"
+msgstr "Escull una col·lecció"
+
+msgid "ChooseAlarmTime"
+msgstr "Escull l'hora de l'alarma"
+
+msgid "ChooseInstancesToChange"
+msgstr "Quines són les instàncies a canviar?"
+
+msgid "ChooseRepeatFrequency"
+msgstr "Escull una freqüència de repetició"
+
+msgid "alarmAtEventTime"
+msgstr "A l'hora de la cita"
+
+msgid "alarm10MinutesPrior"
+msgstr "10 minuts abans"
+
+msgid "alarm30MinutesPrior"
+msgstr "30 minuts abans"
+
+msgid "alarm1HourPrior"
+msgstr "Una hora abans"
+
+msgid "alarm2HoursPrior"
+msgstr "Dues hores abans"
+
+msgid "alarm12HoursPrior"
+msgstr "12 hores abans"
+
+msgid "alarm1DayPrior"
+msgstr "Un dia abans"
+
+msgid "changeThisInstance"
+msgstr "Només aquesta instància"
+
+msgid "changeAllInstances"
+msgstr "Totes les instàncies"
+
+msgid "changeThisAndFuture"
+msgstr "Aquesta i totes les futures"

@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: aCal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-03-23 22:51+1300\n"
-"PO-Revision-Date: 2011-03-24 00:00+0000\n"
+"POT-Creation-Date: 2011-03-27 22:05+1300\n"
+"PO-Revision-Date: 2011-03-28 20:41+0000\n"
 "Last-Translator: marc0s <marc0s@fsfe.org>\n"
 "Language-Team: Spanish (Spain) <None>\n"
 "MIME-Version: 1.0\n"
@@ -398,22 +398,136 @@ msgid "UnNamedServer"
 msgstr "Servidor sin nombre"
 
 msgid "LocationPrompt"
-msgstr ""
+msgstr "Localización:"
 
 msgid "NotesPrompt"
-msgstr ""
+msgstr "Notas:"
 
 msgid "AlarmsPrompt"
-msgstr ""
+msgstr "Alarmas:"
 
 msgid "RepeatsPrompt"
-msgstr ""
+msgstr "Repeticiones:"
 
 msgid "AllDayPrompt"
-msgstr ""
+msgstr "Cita de todo un día"
 
 msgid "FromPrompt"
-msgstr ""
+msgstr "Desde:"
 
 msgid "UntilPrompt"
-msgstr ""
+msgstr "Hasta:"
+
+msgid "defaultCalendar"
+msgstr "Calendario predeterminado"
+
+msgid "theCalendarForNewEvents"
+msgstr "El calendario predeterminado para las nuevas citas."
+
+msgid "TwelveTwentyfour_PrefTitle"
+msgstr "Usar formato 24h"
+
+msgid "TwelveTwentyfour_OnSummary"
+msgstr "14:00"
+
+msgid "TwelveTwentyfour_OffSummary"
+msgstr "2:00pm"
+
+msgid "OnlyOnce"
+msgstr "Una sola vez"
+
+msgid "EveryWeekday"
+msgstr "Cada día laborable"
+
+msgid "EveryWeekend"
+msgstr "Cada fin de semana"
+
+msgid "EveryDay"
+msgstr "Cada día"
+
+msgid "EveryYear"
+msgstr "Cada año"
+
+msgid "EveryMonday"
+msgstr "Cada lunes"
+
+msgid "EveryTuesday"
+msgstr "Cada martes"
+
+msgid "EveryWednesday"
+msgstr "Cada miércoles"
+
+msgid "EveryThursday"
+msgstr "Cada jueves"
+
+msgid "EveryFriday"
+msgstr "Cada viernes"
+
+msgid "EverySaturday"
+msgstr "Cada sábado"
+
+msgid "EverySunday"
+msgstr "Cada domingo"
+
+msgid "EveryNthOfTheMonth"
+msgstr "Cada %s del mes"
+
+msgid "EveryMonthOnTheNthSomeday"
+msgstr "Cada %s de cada mes"
+
+msgid "EventSaved"
+msgstr "Cita guardada"
+
+msgid "ModifiedAllInstances"
+msgstr "Modificadas todas las instancias de esta cita."
+
+msgid "ModifiedOneInstance"
+msgstr "Modificada una instancia de esta cita."
+
+msgid "ModifiedThisAndFuture"
+msgstr "Modificada ésta y todas las instancias futuras de esta cita."
+
+msgid "ErrorSavingEvent"
+msgstr "Error guardando cita - porfavor prueba de nuevo."
+
+msgid "ChooseACollection"
+msgstr "Elige una colección"
+
+msgid "ChooseAlarmTime"
+msgstr "Elige la hora de la alarma"
+
+msgid "ChooseInstancesToChange"
+msgstr "¿Qué instancias cambiar?"
+
+msgid "ChooseRepeatFrequency"
+msgstr "Elige la frecuencia de repetición"
+
+msgid "alarmAtEventTime"
+msgstr "A la hora de la cita"
+
+msgid "alarm10MinutesPrior"
+msgstr "10 minutos antes"
+
+msgid "alarm30MinutesPrior"
+msgstr "30 minutos antes"
+
+msgid "alarm1HourPrior"
+msgstr "Una hora antes"
+
+msgid "alarm2HoursPrior"
+msgstr "Dos horas antes"
+
+msgid "alarm12HoursPrior"
+msgstr "12 horas antes"
+
+msgid "alarm1DayPrior"
+msgstr "Un dia antes"
+
+msgid "changeThisInstance"
+msgstr "Sólo esta instancia"
+
+msgid "changeAllInstances"
+msgstr "Todas las instancias"
+
+msgid "changeThisAndFuture"
+msgstr "Ésta y todas las instancias futuras"

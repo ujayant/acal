@@ -3,11 +3,8 @@
 <resources>
 <string name="theDayEachWeekStartsWith">Die Woche fängt an mit</string>
 <string name="firstDayOfWeek">Erster Wochentag</string>
-    
 <string name="cancel">Abbrechen</string>
 <string name="appDescription">Ein Kalender für Android, der Ereignisse, Aufgaben, Notizen und Kontakte auf einem CalDAV- bzw. CardDAV-Server -- bspw. DAViCal (siehe www.davical.org) speichert.</string>
-
-
 <string name="Active">aktiv</string>
 <string name="Add_Server">Server hinzufügen</string>
 <string name="A_name_for_this_server_configuration">Name, der für diese Server-Konfiguration verwendet werden soll</string>
@@ -47,7 +44,6 @@
 <string name="appActivityYearView">aCal - Jahresansicht</string>
 <string name="appActivityPreference">Einstellungen</string>
 <string name="The_port_to_connect_to">Port, der auf dem Server verwendet wird</string>
-
 <string name="A_name_for_this_collection">Name für diese Sammlung</string>
 <string name="pActive_for_events">Aktiv für Ereignisse</string>
 <string name="pActive_for_journal">Aktiv für Notizen</string>
@@ -65,7 +61,6 @@
 <string name="pMax_age_on_wifi">Minuten bis zur Synchronisation bei WLAN</string>
 <string name="The_maximum_age_for_data_while_on_wifi">Die maximale Zeit (in Minuten) bis zur Aktualisierung im WLAN</string>
 <string name="Use_alarms_from_this_calendar">Sollten Benachrichtigungen in diesem Kalender angezeigt werden?</string>
-
 <string name="Monday">Montag</string>
 <string name="Tuesday">Dienstag</string>
 <string name="Wednesday">Mittwoch</string>
@@ -73,7 +68,6 @@
 <string name="Friday">Freitag</string>
 <string name="Saturday">Samstag</string>
 <string name="Sunday">Sonntag</string>
-
 <string name="Mon">Mo</string>
 <string name="Tue">Di</string>
 <string name="Wed">Mi</string>
@@ -81,11 +75,9 @@
 <string name="Fri">Fr</string>
 <string name="Sat">Sa</string>
 <string name="Sun">So</string>
-
 <string name="chTue">D</string>
 <string name="chWed">M</string>
 <string name="chThu">D</string>
-
 <string name="January">Januar</string>
 <string name="February">Februar</string>
 <string name="March">März</string>
@@ -94,24 +86,17 @@
 <string name="July">Juli</string>
 <string name="October">Oktober</string>
 <string name="December">Dezember</string>
-
 <string name="Mar">Mrz</string>
 <!-- <string name="May">May</string> --> <!-- Already defined  -->
 <string name="Oct">Okt</string>
 <string name="Dec">Dez</string>
-
-
 <string name="YearViewSize_PrefTitle">Anzahl der Monate in der Jahresansicht</string>
 <string name="YearViewSize_PrefSummary">Anzahl der Monate die in der Jahresansicht sichtbar sind</string>
-
 <string name="Snooze_PrefTitle">Snooze Zeit</string>
-
 <string name="DefaultCollection_PrefTitle">Standardsammlung</string>
 <string name="DefaultCollection_PrefSummary">Die Standardsammlung für neue Elemente</string>
-
 <string name="DefaultAlarmTone_PrefTitle">Standard Erinnerungsmelodie</string>
 <string name="DefaultAlarmTone_PrefSummary">Standard Erinnerungsmelodie für Erinnerungen</string>
-
 <string name="Today">Heute</string>
 <string name="Year">Jahr</string>
 <string name="Month">Monat</string>
@@ -119,7 +104,6 @@
 <string name="Simple">Einfach</string>
 <string name="Add">Hinzufügen</string>
 <string name="UnNamedServer">Unbekannter Server</string>
-
 <string name="LocationPrompt">Ort:</string>
 <string name="NotesPrompt">Notizen:</string>
 <string name="AlarmsPrompt">Erinnerungen:</string>
@@ -127,5 +111,4 @@
 <string name="AllDayPrompt">Ganztägiges Ereignis:</string>
 <string name="FromPrompt">Von:</string>
 <string name="UntilPrompt">Bis:</string>
-
 </resources>

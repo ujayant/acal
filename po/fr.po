@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: aCal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-03-23 22:51+1300\n"
-"PO-Revision-Date: 2011-03-27 00:25+0000\n"
+"POT-Creation-Date: 2011-03-27 22:05+1300\n"
+"PO-Revision-Date: 2011-03-28 22:37+0000\n"
 "Last-Translator: tikismoke <webmaster@tikijs.dyndns.org>\n"
 "Language-Team: French <None>\n"
 "MIME-Version: 1.0\n"
@@ -359,10 +359,12 @@ msgid "YearViewSize_PrefSummary"
 msgstr "Nombre de mois visible dans la vue année"
 
 msgid "Snooze_PrefTitle"
-msgstr ""
+msgstr "Temps répétition"
 
 msgid "Snooze_PrefSummary"
 msgstr ""
+"Combien de minutes après l'alarme doit-on répéter lors de l'appuie sur la "
+"fonction répéter"
 
 msgid "DefaultCollection_PrefTitle"
 msgstr "Collection par défaut"
@@ -423,3 +425,117 @@ msgstr "De:"
 
 msgid "UntilPrompt"
 msgstr "Jusqu'à:"
+
+msgid "defaultCalendar"
+msgstr "Calendrier par défaut "
+
+msgid "theCalendarForNewEvents"
+msgstr "Calendrier a utiliser par défaut pour les nouveaux événements."
+
+msgid "TwelveTwentyfour_PrefTitle"
+msgstr ""
+
+msgid "TwelveTwentyfour_OnSummary"
+msgstr "14:00"
+
+msgid "TwelveTwentyfour_OffSummary"
+msgstr "2:00pm "
+
+msgid "OnlyOnce"
+msgstr ""
+
+msgid "EveryWeekday"
+msgstr ""
+
+msgid "EveryWeekend"
+msgstr ""
+
+msgid "EveryDay"
+msgstr "Quotidien"
+
+msgid "EveryYear"
+msgstr "Annuel"
+
+msgid "EveryMonday"
+msgstr ""
+
+msgid "EveryTuesday"
+msgstr ""
+
+msgid "EveryWednesday"
+msgstr ""
+
+msgid "EveryThursday"
+msgstr ""
+
+msgid "EveryFriday"
+msgstr ""
+
+msgid "EverySaturday"
+msgstr ""
+
+msgid "EverySunday"
+msgstr ""
+
+msgid "EveryNthOfTheMonth"
+msgstr ""
+
+msgid "EveryMonthOnTheNthSomeday"
+msgstr ""
+
+msgid "EventSaved"
+msgstr ""
+
+msgid "ModifiedAllInstances"
+msgstr ""
+
+msgid "ModifiedOneInstance"
+msgstr ""
+
+msgid "ModifiedThisAndFuture"
+msgstr ""
+
+msgid "ErrorSavingEvent"
+msgstr ""
+
+msgid "ChooseACollection"
+msgstr ""
+
+msgid "ChooseAlarmTime"
+msgstr ""
+
+msgid "ChooseInstancesToChange"
+msgstr ""
+
+msgid "ChooseRepeatFrequency"
+msgstr ""
+
+msgid "alarmAtEventTime"
+msgstr ""
+
+msgid "alarm10MinutesPrior"
+msgstr ""
+
+msgid "alarm30MinutesPrior"
+msgstr ""
+
+msgid "alarm1HourPrior"
+msgstr "Une heure avant"
+
+msgid "alarm2HoursPrior"
+msgstr "Deux heures avant"
+
+msgid "alarm12HoursPrior"
+msgstr "12 heures avant"
+
+msgid "alarm1DayPrior"
+msgstr "Un jour avant"
+
+msgid "changeThisInstance"
+msgstr ""
+
+msgid "changeAllInstances"
+msgstr ""
+
+msgid "changeThisAndFuture"
+msgstr ""
