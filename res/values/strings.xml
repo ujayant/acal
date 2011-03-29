@@ -187,6 +187,12 @@
 <string name="ChooseRepeatFrequency">Choose a Repeat Frequency</string>
 
 <string name="Add_Alarm">Add Alarm</string>
+<string name="errorMustHaveActiveCalendar">Cannot edit event without an active calendar.</string>
+<string name="errorSavingFile">Error Saving File</string>
+<string name="ServerDataSaved">Server data written. Filename: </string>
+<string name="NewManualServerConfiguration">Manual Configuration</string>
+<string name="ManualServerConfigurationBlurb">Manually enter the server information</string>
+<string name="SavedServerConfigurationBlurb">A saved server configuration</string>
 
 <string name="alarmAtEventTime">At Event Time</string>
 <string name="alarm10MinutesPrior">10 minutes before</string>

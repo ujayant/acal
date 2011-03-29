@@ -184,15 +184,15 @@ public class ServerConfigList extends ListActivity {
 			
 		} catch (IOException e) {
 			Log.e(TAG, "Error creating XML File: "+e);
-			Toast.makeText(this, "Error Saving File", Toast.LENGTH_LONG).show();
+			Toast.makeText(this, getString(R.string.errorSavingFile), Toast.LENGTH_LONG).show();
 			return;
 		}
 		try {
 			new ServerConfigData(server).writeToFile(newxmlfile);
-		    Toast.makeText(this, "Server Data Saved To"+newxmlfile.getAbsolutePath(), Toast.LENGTH_LONG).show();
+		    Toast.makeText(this, getString(R.string.ServerDataSaved) + newxmlfile.getAbsolutePath(), Toast.LENGTH_LONG).show();
 		} catch (IOException e) {
-			Log.e(TAG, "Error creating XML File: "+e);
-			Toast.makeText(this, "Error Saving File", Toast.LENGTH_LONG).show();
+			Log.e(TAG, "Error writing to XML File: "+e);
+			Toast.makeText(this, getString(R.string.errorSavingFile), Toast.LENGTH_LONG).show();
 		}
 	}
 	
@@ -283,13 +283,13 @@ public class ServerConfigList extends ListActivity {
 			if (toPass.getAsInteger(ServerConfiguration.MODEKEY) == ServerConfiguration.MODE_CREATE) {
 				//go to add server list screen
 				serverConfigIntent.setClassName("com.morphoss.acal",
-				"com.morphoss.acal.activity.serverconfig.AddServerList");
+							"com.morphoss.acal.activity.serverconfig.AddServerList");
 				ServerConfigList.this.startActivity(serverConfigIntent);
 			} else {
 			
 				// Begin new activity
 				serverConfigIntent.setClassName("com.morphoss.acal",
-						"com.morphoss.acal.activity.serverconfig.ServerConfiguration");
+							"com.morphoss.acal.activity.serverconfig.ServerConfiguration");
 				serverConfigIntent.putExtra("ServerData", toPass);
 				ServerConfigList.this.startActivity(serverConfigIntent);
 			}

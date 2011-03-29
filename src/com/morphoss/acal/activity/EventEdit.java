@@ -100,10 +100,10 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 	boolean prefer24hourFormat = false;
 	
 	private String[] repeatRules;
-	private static String[] eventChangeRanges; // See strings.xml R.array.EventChangeAffecting
+	private String[] eventChangeRanges; // See strings.xml R.array.EventChangeAffecting
 		
 	// Must match R.array.RelativeAlarmTimes (strings.xml)
-	private static String[] alarmRelativeTimeStrings;
+	private String[] alarmRelativeTimeStrings;
 	private static final AcalDuration[] alarmValues = new AcalDuration[] {
 		new AcalDuration(),
 		new AcalDuration("-PT10M"),
@@ -159,11 +159,8 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		prefs = PreferenceManager.getDefaultSharedPreferences(this);
 		prefer24hourFormat = prefs.getBoolean(getString(R.string.prefTwelveTwentyfour), false);
 
-		if ( alarmRelativeTimeStrings == null )
-			alarmRelativeTimeStrings = getResources().getStringArray(R.array.RelativeAlarmTimes);
-
-		if ( eventChangeRanges == null )
-			eventChangeRanges = getResources().getStringArray(R.array.EventChangeAffecting);
+		alarmRelativeTimeStrings = getResources().getStringArray(R.array.RelativeAlarmTimes);
+		eventChangeRanges = getResources().getStringArray(R.array.EventChangeAffecting);
 		
 		//Set up buttons
 		this.setupButton(R.id.event_apply_button, APPLY);
@@ -176,7 +173,7 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 			collectionId = activeCollections.get(0).getAsInteger(DavCollections._ID);
 		else {
 			this.finish();	//cant work if no active collections
-			Toast.makeText(this, "Cannot edit event of inactive calendar.", Toast.LENGTH_LONG);
+			Toast.makeText(this, getString(R.string.errorMustHaveActiveCalendar), Toast.LENGTH_LONG);
 			return;
 		}
 		
@@ -694,7 +691,7 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		case ADD_ALARM_DIALOG:
 			builder = new AlertDialog.Builder(this);
 			builder.setTitle(getString(R.string.ChooseAlarmTime));
-			builder.setItems(EventEdit.alarmRelativeTimeStrings, new DialogInterface.OnClickListener() {
+			builder.setItems(alarmRelativeTimeStrings, new DialogInterface.OnClickListener() {
 			    public void onClick(DialogInterface dialog, int item) {
 			    	//translate item to equal alarmValue index 
 			    	if (item == 5) return;
@@ -719,7 +716,7 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		case WHICH_EVENT_DIALOG:
 			builder = new AlertDialog.Builder(this);
 			builder.setTitle(getString(R.string.ChooseInstancesToChange));
-			builder.setItems(EventEdit.eventChangeRanges, new DialogInterface.OnClickListener() {
+			builder.setItems(eventChangeRanges, new DialogInterface.OnClickListener() {
 			    public void onClick(DialogInterface dialog, int item) {
 			    	switch (item) {
 			    		case 0: eventAction.setAction(AcalEventAction.ACTION_MODIFY_SINGLE); saveChanges(); return;
