@@ -186,6 +186,7 @@
 <string name="ChooseInstancesToChange">Which instances are to change?</string>
 <string name="ChooseRepeatFrequency">Choose a Repeat Frequency</string>
 
+<string name="Add_Alarm">Add Alarm</string>
 
 <string name="alarmAtEventTime">At Event Time</string>
 <string name="alarm10MinutesPrior">10 minutes before</string>

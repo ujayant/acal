@@ -219,7 +219,7 @@
 								android:layout_height="wrap_content"
 								android:layout_width="wrap_content"
 								android:layout_gravity="left|center_vertical"
-								android:text="Add Alarm"
+								android:text="@string/Add_Alarm"
 								style="@style/event_view_content"/>
 						</LinearLayout>
 						
