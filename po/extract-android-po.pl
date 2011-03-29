@@ -133,13 +133,14 @@ sub merge_into_xml {
       my $msgstr = $4;
       $msgstr =~ s{\\'}{'}g;
       next if ( ! defined($strings->{$msgid}) || $msgstr eq $strings->{$msgid} );
+      next if ( $strings->{$msgid} eq "" );
       $strings->{$msgid} =~ s{"}{&quot;}g;
       $strings->{$msgid} =~ s{(['\\])}{\\$1}g;
       printf( XMLOUT '<string %sname="%s"%s>%s</string>%s',
                         $preamble, $msgid, $postamble, $strings->{$msgid}, "\n" );
     }
     else {
-      print XMLOUT;
+      print XMLOUT unless( $_ =~ m{^\s*$} );
     }
   }
   
