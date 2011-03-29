@@ -113,8 +113,6 @@ public class AddServerListAdapter extends BaseAdapter {
 		}
 		
 		
-
-		
 		// Add the 'Other Server' Option
 		otherServer = new ContentValues();
 		otherServer.put(ServerConfiguration.MODEKEY, ServerConfiguration.MODE_CREATE);
@@ -160,13 +158,20 @@ public class AddServerListAdapter extends BaseAdapter {
 		//Icon
 		if (other) {
 			icon.setBackgroundDrawable(context.getResources().getDrawable(R.drawable.plus_icon));
-			title.setText("Create New");
-			blurb.setText("Manually enter server information");
+			title.setText(context.getString(R.string.NewManualServerConfiguration));
+			blurb.setText(context.getString(R.string.ManualServerConfigurationBlurb));
 		}
 		else if (!preconfig) {
 			icon.setBackgroundDrawable(context.getResources().getDrawable(R.drawable.icon));
 			title.setText(item.getAsString(Servers.FRIENDLY_NAME));
-			blurb.setText("A saved server configuration");
+			StringBuilder blurbString = new StringBuilder("");
+			if ( item.getAsString(Servers.HOSTNAME) != null ) blurbString.append(item.getAsString(Servers.HOSTNAME));
+			else if ( item.getAsString(Servers.SUPPLIED_DOMAIN) != null ) blurbString.append(item.getAsString(Servers.HOSTNAME)); 
+			if ( item.getAsString(Servers.PRINCIPAL_PATH) != null ) blurbString.append(item.getAsString(Servers.PRINCIPAL_PATH));
+			else if ( item.getAsString(Servers.SUPPLIED_PATH) != null )  blurbString.append(item.getAsString(Servers.SUPPLIED_PATH));
+			
+			if ( blurbString.equals("") ) blurbString.append(context.getString(R.string.SavedServerConfigurationBlurb)); 
+			blurb.setText(blurbString);
 		}
 		else {
 			//in future we will add custom icons
