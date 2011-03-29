@@ -88,7 +88,10 @@ public final class StaticHelpers {
 		StringBuffer capped = new StringBuffer();
 		Matcher m = wordSplitter.matcher(boring);
 		while( m.find() ) {
-			m.appendReplacement(capped, m.group().substring(0,1).toUpperCase() + m.group().substring(1));
+			if ( m.group().matches("(de|von|to|for|of|vom)") )
+				m.appendReplacement(capped, m.group());
+			else
+				m.appendReplacement(capped, m.group().substring(0,1).toUpperCase() + m.group().substring(1));
 		}
 		m.appendTail(capped);
 		return capped.toString();
