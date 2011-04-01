@@ -8,7 +8,7 @@
 		android:summary="@string/theDayEachWeekStartsWith" 
 		android:selectable="true" 
 		android:entries="@array/DaysOfWeek" 
-		android:entryValues="@array/DaysOfWeek"
+		android:entryValues="@array/DaysOfWeekOrdinal"
 		android:enabled="true" 
 		android:defaultValue="@string/Monday">
 	</ListPreference>

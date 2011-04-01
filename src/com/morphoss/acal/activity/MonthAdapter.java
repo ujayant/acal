@@ -20,21 +20,19 @@ package com.morphoss.acal.activity;
 
 
 import java.util.HashMap;
-import java.util.List;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.view.View.OnClickListener;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateTime;
-import com.morphoss.acal.davacal.AcalEvent;
 import com.morphoss.acal.views.MonthDayBox;
 
 /**
@@ -98,22 +96,13 @@ public class MonthAdapter extends BaseAdapter {
 	private void getFirstDay(Context context) {
 		//check preferred first day
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-		String day = prefs.getString(context.getString(R.string.firstDayOfWeek), context.getString(R.string.Monday));
-		if (day.equalsIgnoreCase(context.getString(R.string.Monday)))
-			this.firstCol = AcalDateTime.MONDAY;
-		else if (day.equalsIgnoreCase(context.getString(R.string.Tuesday)))
-			this.firstCol = AcalDateTime.TUESDAY;
-		else if (day.equalsIgnoreCase(context.getString(R.string.Wednesday)))
-			this.firstCol = AcalDateTime.WEDNESDAY;
-		else if (day.equalsIgnoreCase(context.getString(R.string.Thursday)))
-			this.firstCol = AcalDateTime.THURSDAY;
-		else if (day.equalsIgnoreCase(context.getString(R.string.Friday)))
-			this.firstCol = AcalDateTime.FRIDAY;
-		else if (day.equalsIgnoreCase(context.getString(R.string.Saturday)))
-			this.firstCol = AcalDateTime.SATURDAY;
-		else if (day.equalsIgnoreCase(context.getString(R.string.Sunday)))
-			this.firstCol = AcalDateTime.SUNDAY;
-
+		try {
+			this.firstCol = Integer.parseInt(prefs.getString(context.getString(R.string.firstDayOfWeek), "0"));
+			if ( this.firstCol < AcalDateTime.MONDAY || this.firstCol > AcalDateTime.SUNDAY ) throw new Exception();
+		}
+		catch( Exception e ) {
+			this.firstCol = AcalDateTime.MONDAY; 
+		}
 	}
 	
 	public int getCount() {

@@ -24,7 +24,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
@@ -33,9 +32,6 @@ import android.view.View.MeasureSpec;
 import android.widget.TextView;
 
 import com.morphoss.acal.R;
-import com.morphoss.acal.R.id;
-import com.morphoss.acal.R.layout;
-import com.morphoss.acal.R.string;
 import com.morphoss.acal.acaltime.AcalDateTime;
 
 public class MonthImageGenerator {
@@ -226,23 +222,14 @@ public class MonthImageGenerator {
 	}
 
 	private void getFirstDay(Context context) {
-		//check prefered first day
+		//check preferred first day
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-		String day = prefs.getString(context.getString(R.string.firstDayOfWeek), context.getString(R.string.Monday));
-		if (day.equalsIgnoreCase(context.getString(R.string.Monday)))
-			this.firstCol = AcalDateTime.MONDAY;
-		else if (day.equalsIgnoreCase(context.getString(R.string.Tuesday)))
-			this.firstCol = AcalDateTime.TUESDAY;
-		else if (day.equalsIgnoreCase(context.getString(R.string.Wednesday)))
-			this.firstCol = AcalDateTime.WEDNESDAY;
-		else if (day.equalsIgnoreCase(context.getString(R.string.Thursday)))
-			this.firstCol = AcalDateTime.THURSDAY;
-		else if (day.equalsIgnoreCase(context.getString(R.string.Friday)))
-			this.firstCol = AcalDateTime.FRIDAY;
-		else if (day.equalsIgnoreCase(context.getString(R.string.Saturday)))
-			this.firstCol = AcalDateTime.SATURDAY;
-		else if (day.equalsIgnoreCase(context.getString(R.string.Sunday)))
-			this.firstCol = AcalDateTime.SUNDAY;
-
+		try {
+			this.firstCol = Integer.parseInt(prefs.getString(context.getString(R.string.firstDayOfWeek), "0"));
+			if ( this.firstCol < AcalDateTime.MONDAY || this.firstCol > AcalDateTime.SUNDAY ) throw new Exception();
+		}
+		catch( Exception e ) {
+			this.firstCol = AcalDateTime.MONDAY; 
+		}
 	}
 }
