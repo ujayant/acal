@@ -23,49 +23,43 @@
              <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <activity android:launchMode="standard" android:name=".activity.Create" android:label="@string/appActivityEventCreate" android:icon="@drawable/icon">
-            <intent-filter>
-             <action android:name="com.morphoss.acal.activity.Create" />
-             <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </activity>
-        <activity android:launchMode="standard" android:name=".activity.serverconfig.ServerConfigList" android:label="@string/appActivityServerConfigList" android:icon="@drawable/icon">
+        <activity android:launchMode="standard" android:name=".activity.serverconfig.ServerConfigList" android:label="@string/appActivityServerConfigList" android:icon="@drawable/icon" android:screenOrientation="portrait">
             <intent-filter>
              <action android:name="com.morphoss.acal.activity.serverconfig.ServerConfigList" />
              <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <activity android:launchMode="standard" android:name=".activity.serverconfig.AddServerList" android:label="@string/appActivityAddServerList" android:icon="@drawable/icon">
+        <activity android:launchMode="standard" android:name=".activity.serverconfig.AddServerList" android:label="@string/appActivityAddServerList" android:icon="@drawable/icon" android:screenOrientation="portrait">
             <intent-filter>
              <action android:name="com.morphoss.acal.activity.serverconfig.AddServerList" />
              <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <activity android:launchMode="standard" android:name=".activity.CollectionConfigList" android:label="@string/appActivityCollectionConfigList" android:icon="@drawable/icon">
+        <activity android:launchMode="standard" android:name=".activity.CollectionConfigList" android:label="@string/appActivityCollectionConfigList" android:icon="@drawable/icon" android:screenOrientation="portrait">
             <intent-filter>
              <action android:name="com.morphoss.acal.activity.CollectionConfigList" />
              <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <activity android:launchMode="standard" android:name=".activity.Settings" android:label="@string/appActivitySettings" android:icon="@drawable/icon">
+        <activity android:launchMode="standard" android:name=".activity.Settings" android:label="@string/appActivitySettings" android:icon="@drawable/icon" android:screenOrientation="portrait">
             <intent-filter>
              <action android:name="com.morphoss.acal.activity.Settings" />
              <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <activity android:launchMode="standard" android:name=".activity.DebugSettings" android:label="@string/appActivityDebugSettings" android:icon="@drawable/icon">
+        <activity android:launchMode="standard" android:name=".activity.DebugSettings" android:label="@string/appActivityDebugSettings" android:icon="@drawable/icon" android:screenOrientation="portrait">
             <intent-filter>
              <action android:name="com.morphoss.acal.activity.DebugSettings" />
              <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-         <activity android:launchMode="standard" android:name=".activity.serverconfig.ServerConfiguration">
+         <activity android:launchMode="standard" android:name=".activity.serverconfig.ServerConfiguration" android:screenOrientation="portrait">
             <intent-filter>
 	             <action android:name="com.morphoss.acal.activity.serverconfig.ServerConfiguration" />
     	         <category android:name="android.intent.category.DEFAULT" />
 			</intent-filter>
         </activity>
-         <activity android:launchMode="standard" android:name=".activity.CollectionConfiguration">
+         <activity android:launchMode="standard" android:name=".activity.CollectionConfiguration" android:screenOrientation="portrait">
             <intent-filter>
 	             <action android:name="com.morphoss.acal.activity.CollectionConfiguration" />
     	         <category android:name="android.intent.category.DEFAULT" />
@@ -83,13 +77,13 @@
     	         <category android:name="android.intent.category.DEFAULT" />
 			</intent-filter>
         </activity>
-        <activity android:launchMode="singleInstance" android:name=".activity.AlarmActivity">
+        <activity android:launchMode="singleInstance" android:name=".activity.AlarmActivity" android:screenOrientation="portrait">
             <intent-filter>
 	             <action android:name="com.morphoss.acal.activity.AlarmActivity" />
     	         <category android:name="android.intent.category.DEFAULT" />
 			</intent-filter>
         </activity>
-        <activity android:launchMode="standard" android:name=".activity.AcalPreferences" android:label="@string/appActivityPreference">
+        <activity android:launchMode="standard" android:name=".activity.AcalPreferences" android:label="@string/appActivityPreference" android:screenOrientation="portrait">
          	<intent-filter>
 	             <action android:name="com.morphoss.acal.activity.AcalPreferences" />
     	         <category android:name="android.intent.category.DEFAULT" />
