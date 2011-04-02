@@ -24,9 +24,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import android.content.Context;
 import android.util.Log;
 
 import com.morphoss.acal.Constants;
+import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalRepeatRule.RRuleFreqType;
 
 /**
@@ -206,10 +208,10 @@ public abstract class AcalRepeatRuleParser {
 		return s.toString();
 	}
 
-	public String toPrettyString() {
-		if ( count == 0 ) return "Occurs Once";
+	public String toPrettyString(Context cx) {
+		if ( count == 0 ) return cx.getString(R.string.OnlyOnce);
 
-		StringBuilder s = new StringBuilder(getPrettyFrequencyName());
+		StringBuilder s = new StringBuilder(getPrettyFrequencyName(cx));
 		
 		boolean firstOne = true;
 		if ( bymonth != null ) {
@@ -308,7 +310,7 @@ public abstract class AcalRepeatRuleParser {
 	protected abstract void nextFrequency();
 	public abstract List<AcalDateTime> buildSet();
 	public abstract String getFrequencyName();
-	public abstract String getPrettyFrequencyName();
+	public abstract String getPrettyFrequencyName(Context cx);
 
 	public void resetBaseDate() {
 		currentBase  = null;

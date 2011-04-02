@@ -20,6 +20,10 @@ package com.morphoss.acal.acaltime;
 
 import java.util.List;
 
+import android.content.Context;
+
+import com.morphoss.acal.R;
+import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.acaltime.AcalRepeatRule.RRuleFreqType;
 
 /**
@@ -57,9 +61,9 @@ public class AcalRepeatWeekly extends AcalRepeatRuleParser {
 	}
 
 	@Override
-	public String getPrettyFrequencyName() {
-		if ( interval != 1 ) return "Every "+interval+" weeks";
-		return "Weekly";
+	public String getPrettyFrequencyName(Context cx) {
+		if ( interval != 1 ) return String.format(cx.getString(R.string.EveryNWeeks), Integer.toString(interval));
+		return cx.getString(R.string.EveryWeek);
 	}
 
 }
