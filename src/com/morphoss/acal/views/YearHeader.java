@@ -21,7 +21,6 @@ package com.morphoss.acal.views;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.ColorFilter;
 import android.graphics.Paint;
 
 public class YearHeader extends YearViewNode {
