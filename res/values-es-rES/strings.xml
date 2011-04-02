@@ -97,11 +97,10 @@
 <string name="October">Octubre</string>
 <string name="November">Noviembre</string>
 <string name="December">Diciembre</string>
-<string name="Jan">Ene</string>
-<string name="Apr">Abr</string>
-<!-- <string name="May">May</string> --> <!-- Already defined  -->
-<string name="Aug">Ago</string>
-<string name="Dec">Dic</string>
+<string name="thJan">Ene</string>
+<string name="thApr">Abr</string>
+<string name="thAug">Ago</string>
+<string name="thDec">Dic</string>
 <string name="YearViewSize_PrefTitle">Número de meses en vista anual</string>
 <string name="YearViewSize_PrefSummary">El número de meses visibles en la vista anual</string>
 <string name="Snooze_PrefTitle">Tiempo a dormir</string>

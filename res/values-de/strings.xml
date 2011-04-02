@@ -86,10 +86,10 @@
 <string name="July">Juli</string>
 <string name="October">Oktober</string>
 <string name="December">Dezember</string>
-<string name="Mar">Mrz</string>
-<!-- <string name="May">May</string> --> <!-- Already defined  -->
-<string name="Oct">Okt</string>
-<string name="Dec">Dez</string>
+<string name="thMar">Mrz</string>
+<string name="thMay">Mai</string>
+<string name="thOct">Okt</string>
+<string name="thDec">Dez</string>
 <string name="YearViewSize_PrefTitle">Anzahl der Monate in der Jahresansicht</string>
 <string name="YearViewSize_PrefSummary">Anzahl der Monate die in der Jahresansicht sichtbar sind</string>
 <string name="Snooze_PrefTitle">Snooze Zeit</string>

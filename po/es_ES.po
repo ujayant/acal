@@ -312,38 +312,40 @@ msgstr "Noviembre"
 msgid "December"
 msgstr "Diciembre"
 
-msgid "Jan"
+msgid "thJan"
 msgstr "Ene"
 
-msgid "Feb"
+msgid "thFeb"
 msgstr "Feb"
 
-msgid "Mar"
+msgid "thMar"
 msgstr "Mar"
 
-msgid "Apr"
+msgid "thApr"
 msgstr "Abr"
 
-# <string name="May">May</string>
-msgid "Jun"
+msgid "thMay"
+msgstr "May"
+
+msgid "thJun"
 msgstr "Jun"
 
-msgid "Jul"
+msgid "thJul"
 msgstr "Jul"
 
-msgid "Aug"
+msgid "thAug"
 msgstr "Ago"
 
-msgid "Sep"
+msgid "thSep"
 msgstr "Sep"
 
-msgid "Oct"
+msgid "thOct"
 msgstr "Oct"
 
-msgid "Nov"
+msgid "thNov"
 msgstr "Nov"
 
-msgid "Dec"
+msgid "thDec"
 msgstr "Dic"
 
 msgid "YearViewSize_PrefTitle"

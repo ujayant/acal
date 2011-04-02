@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-03-27 22:05+1300\n"
+"POT-Creation-Date: 2011-04-02 13:59+1300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -312,38 +312,40 @@ msgstr "November"
 msgid "December"
 msgstr "December"
 
-msgid "Jan"
+msgid "thJan"
 msgstr "Jan"
 
-msgid "Feb"
+msgid "thFeb"
 msgstr "Feb"
 
-msgid "Mar"
+msgid "thMar"
 msgstr "Mar"
 
-msgid "Apr"
+msgid "thApr"
 msgstr "Apr"
 
-# <string name="May">May</string> 
-msgid "Jun"
+msgid "thMay"
+msgstr "May"
+
+msgid "thJun"
 msgstr "Jun"
 
-msgid "Jul"
+msgid "thJul"
 msgstr "Jul"
 
-msgid "Aug"
+msgid "thAug"
 msgstr "Aug"
 
-msgid "Sep"
+msgid "thSep"
 msgstr "Sep"
 
-msgid "Oct"
+msgid "thOct"
 msgstr "Oct"
 
-msgid "Nov"
+msgid "thNov"
 msgstr "Nov"
 
-msgid "Dec"
+msgid "thDec"
 msgstr "Dec"
 
 msgid "YearViewSize_PrefTitle"
@@ -445,8 +447,26 @@ msgstr "Every Weekend"
 msgid "EveryDay"
 msgstr "Daily"
 
+msgid "EveryWeek"
+msgstr "Weekly"
+
+msgid "EveryMonth"
+msgstr "Monthly"
+
 msgid "EveryYear"
 msgstr "Yearly"
+
+msgid "EveryNDays"
+msgstr "Every %s days"
+
+msgid "EveryNWeeks"
+msgstr "Every %s weeks"
+
+msgid "EveryNMonths"
+msgstr "Every %s months"
+
+msgid "EveryNYears"
+msgstr "Every %s years"
 
 msgid "EveryMonday"
 msgstr "Every Monday"
@@ -501,6 +521,27 @@ msgstr "Which instances are to change?"
 
 msgid "ChooseRepeatFrequency"
 msgstr "Choose a Repeat Frequency"
+
+msgid "Add_Alarm"
+msgstr "Add Alarm"
+
+msgid "errorMustHaveActiveCalendar"
+msgstr "Cannot edit event without an active calendar."
+
+msgid "errorSavingFile"
+msgstr "Error Saving File"
+
+msgid "ServerDataSaved"
+msgstr "Server data written. Filename: "
+
+msgid "NewManualServerConfiguration"
+msgstr "Manual Configuration"
+
+msgid "ManualServerConfigurationBlurb"
+msgstr "Manually enter the server information"
+
+msgid "SavedServerConfigurationBlurb"
+msgstr "A saved server configuration"
 
 msgid "alarmAtEventTime"
 msgstr "At Event Time"
