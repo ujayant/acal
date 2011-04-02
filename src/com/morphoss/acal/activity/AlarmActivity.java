@@ -38,6 +38,7 @@ import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.View.OnClickListener;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -78,20 +79,42 @@ public class AlarmActivity extends Activity implements OnClickListener  {
 	private int SNOOZE = 1;
 	private int MAP = 2;
 
-	
+	// These values are not defined until Android 2.0 or later, so we have
+	// to define them ourselves.  They won't work unless you're on a 2.x or
+	// later device either, of course...
+	private int WINDOW_FLAG_DISMISS_KEYGUARD = 0x00400000;
+	private int WINDOW_FLAG_SHOW_WHEN_LOCKED = 0x00080000;
+	private int WINDOW_FLAG_TURN_SCREEN_ON   = 0x00200000;
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
+		PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
+		wl = pm.newWakeLock(
+					PowerManager.FULL_WAKE_LOCK
+					| PowerManager.ACQUIRE_CAUSES_WAKEUP
+					| PowerManager.ON_AFTER_RELEASE
+					, "aCal Alarm"
+			);
+		wl.acquire();	
+
+		
+		getWindow().addFlags(
+					  WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+//					| WINDOW_FLAG_DISMISS_KEYGUARD
+					| WINDOW_FLAG_SHOW_WHEN_LOCKED
+					| WINDOW_FLAG_TURN_SCREEN_ON
+				);
+
 		this.setContentView(R.layout.alarm_activity);
-		//getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED));
+		
+		
 		connectToService();
 		ns = Context.NOTIFICATION_SERVICE;
 		am = (AudioManager)this.getSystemService(Context.AUDIO_SERVICE);
 		v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 		mNotificationManager = (NotificationManager) getSystemService(ns);
-		PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
-		wl = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP, "aCal Alarm");
-		wl.acquire();	
 		prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
 
@@ -167,7 +190,7 @@ public class AlarmActivity extends Activity implements OnClickListener  {
 		v.cancel();
 		String uri = prefs.getString(getString(R.string.DefaultAlarmTone_PrefKey), "null" );
 		if (uri.equals("null")) {
-			mp  = MediaPlayer.create(this, R.raw.dove);
+			mp  = MediaPlayer.create(this, R.raw.assembly);
 		} else {
 			mp  = MediaPlayer.create(this, Uri.parse(uri));
 		}
@@ -180,8 +203,9 @@ public class AlarmActivity extends Activity implements OnClickListener  {
 			mp.start();
 		}
 	}
+
+	
 	private void createNotification(String text) {
-		
 
 		int icon = R.drawable.icon;
 		long when = System.currentTimeMillis();
@@ -198,6 +222,7 @@ public class AlarmActivity extends Activity implements OnClickListener  {
 		mNotificationManager.notify(NOTIFICATION_ID, notification);
 	}
 
+	
 	private void connectToService() {
 		try {
 			if (this.isBound) return;
