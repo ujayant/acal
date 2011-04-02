@@ -470,21 +470,15 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 			dailyRepeatRule = "FREQ=WEEKLY;BYDAY=SA,SU;COUNT=104";
 		}
 
-		// TODO: This is unsatisfactory, but it's a start...
-		StringBuilder everyNthOfMonth = new StringBuilder("");
-		Formatter fNthOfMonth = new Formatter(everyNthOfMonth);
-		fNthOfMonth.format(getString(R.string.EveryNthOfTheMonth),start.getMonthDay()+AcalDateTime.getSuffix(start.getMonthDay()));
-		StringBuilder everyNthSomedayOfMonth = new StringBuilder("");
-		Formatter fNthSomedayOfMonth = new Formatter(everyNthSomedayOfMonth);
-		fNthSomedayOfMonth.format(getString(R.string.EveryMonthOnTheNthSomeday),weekNum+AcalDateTime.getSuffix(weekNum)+" "+dowLongString);
-		
 		this.repeatRules = new String[] {
 					getString(R.string.OnlyOnce),
 					getString(R.string.EveryDay),
 					dailyRepeatName,
 					everyDowString,
-					fNthOfMonth.toString(),
-					fNthSomedayOfMonth.toString(),
+					String.format(this.getString(R.string.EveryNthOfTheMonth),
+								start.getMonthDay()+AcalDateTime.getSuffix(start.getMonthDay())),
+					String.format(this.getString(R.string.EveryMonthOnTheNthSomeday),
+								weekNum+AcalDateTime.getSuffix(weekNum)+" "+dowLongString),
 					getString(R.string.EveryYear)
 		};
 		this.repeatRulesValues = new String[] {
@@ -498,7 +492,7 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		String repeatRuleString = (String)eventAction.getField(EVENT_FIELD.repeatRule);
 		if (repeatRuleString == null) repeatRuleString = "";
 		AcalRepeatRule RRule = new AcalRepeatRule(start, repeatRuleString); 
-		String rr = RRule.repeatRule.toPrettyString();
+		String rr = RRule.repeatRule.toPrettyString(this);
 		if (rr == null || rr.equals("")) rr = getString(R.string.OnlyOnce);
 		repeatsView.setText(rr);
 	}
@@ -555,6 +549,7 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		this.showDialog(WHICH_EVENT_DIALOG);
 
 	}
+
 	private void saveChanges() {
 		
 		while (!isBound) {

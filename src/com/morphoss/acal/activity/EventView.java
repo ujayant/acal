@@ -184,8 +184,8 @@ public class EventView extends Activity implements OnGestureListener, OnTouchLis
 		
 		TextView repeatsView = (TextView) this.findViewById(R.id.EventRepeatsContent);
 		AcalRepeatRule RRule = new AcalRepeatRule(start, repetition); 
-		String rr = RRule.repeatRule.toPrettyString();
-		if (rr == null || rr.equals("")) rr = "Once Only";
+		String rr = RRule.repeatRule.toPrettyString(this);
+		if (rr == null || rr.equals("")) rr = getString(R.string.OnlyOnce);
 		repeatsView.setText(rr);
 		
 		

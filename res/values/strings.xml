@@ -107,18 +107,18 @@
 <string name="November">November</string>
 <string name="December">December</string>
 
-<string name="Jan">Jan</string>
-<string name="Feb">Feb</string>
-<string name="Mar">Mar</string>
-<string name="Apr">Apr</string>
-<!-- <string name="May">May</string> --> <!-- Already defined  -->
-<string name="Jun">Jun</string>
-<string name="Jul">Jul</string>
-<string name="Aug">Aug</string>
-<string name="Sep">Sep</string>
-<string name="Oct">Oct</string>
-<string name="Nov">Nov</string>
-<string name="Dec">Dec</string>
+<string name="thJan">Jan</string>
+<string name="thFeb">Feb</string>
+<string name="thMar">Mar</string>
+<string name="thApr">Apr</string>
+<string name="thMay">May</string>
+<string name="thJun">Jun</string>
+<string name="thJul">Jul</string>
+<string name="thAug">Aug</string>
+<string name="thSep">Sep</string>
+<string name="thOct">Oct</string>
+<string name="thNov">Nov</string>
+<string name="thDec">Dec</string>
 
 
 <string name="YearViewSize_PrefTitle">Number of Months in Year View</string>
@@ -161,8 +161,16 @@
 <string name="OnlyOnce">Occurs once</string>
 <string name="EveryWeekday">Every Weekday</string>
 <string name="EveryWeekend">Every Weekend</string>
+
 <string name="EveryDay">Daily</string>
+<string name="EveryWeek">Weekly</string>
+<string name="EveryMonth">Monthly</string>
 <string name="EveryYear">Yearly</string>
+
+<string name="EveryNDays">Every %s days</string>
+<string name="EveryNWeeks">Every %s weeks</string>
+<string name="EveryNMonths">Every %s months</string>
+<string name="EveryNYears">Every %s years</string>
 
 <string name="EveryMonday">Every Monday</string>
 <string name="EveryTuesday">Every Tuesday</string>
