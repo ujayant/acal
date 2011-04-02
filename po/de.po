@@ -7,10 +7,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: aCal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-03-23 22:51+1300\n"
-"PO-Revision-Date: 2011-03-25 13:46+0000\n"
+"POT-Creation-Date: 2011-03-27 22:05+1300\n"
+"PO-Revision-Date: 2011-03-29 16:49+0000\n"
 "Last-Translator: fmms <mail@felixmoeller.de>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language-Team: German <>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -421,3 +421,120 @@ msgstr "Von:"
 
 msgid "UntilPrompt"
 msgstr "Bis:"
+
+msgid "defaultCalendar"
+msgstr "Standardkalender"
+
+msgid "theCalendarForNewEvents"
+msgstr ""
+"Der Kalender, der standardmäßig für neue Ereignisse verwendet werden soll."
+
+msgid "TwelveTwentyfour_PrefTitle"
+msgstr "24-Stunden-Format benutzen"
+
+msgid "TwelveTwentyfour_OnSummary"
+msgstr "14:00"
+
+msgid "TwelveTwentyfour_OffSummary"
+msgstr ""
+
+msgid "OnlyOnce"
+msgstr "Tritt einmal auf"
+
+msgid "EveryWeekday"
+msgstr "Jeden Wochentag"
+
+msgid "EveryWeekend"
+msgstr "Jedes Wochenende"
+
+msgid "EveryDay"
+msgstr "täglich"
+
+msgid "EveryYear"
+msgstr "jährlich"
+
+msgid "EveryMonday"
+msgstr "Jeden Montag"
+
+msgid "EveryTuesday"
+msgstr "Jeden Dienstag"
+
+msgid "EveryWednesday"
+msgstr "Jeden Mittwoch"
+
+msgid "EveryThursday"
+msgstr "Jeden Donnerstag"
+
+msgid "EveryFriday"
+msgstr "Jeden Freitag"
+
+msgid "EverySaturday"
+msgstr "Jeden Samstag"
+
+msgid "EverySunday"
+msgstr "Jeden Sonntag"
+
+msgid "EveryNthOfTheMonth"
+msgstr ""
+
+msgid "EveryMonthOnTheNthSomeday"
+msgstr ""
+
+msgid "EventSaved"
+msgstr "Ereignis gespeichert"
+
+msgid "ModifiedAllInstances"
+msgstr "Alle Vorkommnisse dieses Ereignisses bearbeitet."
+
+msgid "ModifiedOneInstance"
+msgstr "Ein einzelnen Auftritt des Ereignisses bearbeitet."
+
+msgid "ModifiedThisAndFuture"
+msgstr ""
+"Das aktuelle und alle zukünftigen Vorkommnisse dieses Ereignisses "
+"bearbeitet."
+
+msgid "ErrorSavingEvent"
+msgstr "Fehler beim Speichern - bitte versuchen Sie es erneut."
+
+msgid "ChooseACollection"
+msgstr "Eine Sammlung auswählen"
+
+msgid "ChooseAlarmTime"
+msgstr "Auswahl der Benachrichtigungszeit"
+
+msgid "ChooseInstancesToChange"
+msgstr "Welches Vorkommnis soll bearbeitet werden?"
+
+msgid "ChooseRepeatFrequency"
+msgstr "Wählen Sie eine Auftrittsfrequenz"
+
+msgid "alarmAtEventTime"
+msgstr "Zu Ereignissbeginn"
+
+msgid "alarm10MinutesPrior"
+msgstr "10 Minuten vorher"
+
+msgid "alarm30MinutesPrior"
+msgstr "30 Minuten vorher"
+
+msgid "alarm1HourPrior"
+msgstr "1 Stunde vorher"
+
+msgid "alarm2HoursPrior"
+msgstr "2 Stunden vorher"
+
+msgid "alarm12HoursPrior"
+msgstr "12 Stunden vorher"
+
+msgid "alarm1DayPrior"
+msgstr "Einen Tag vorher"
+
+msgid "changeThisInstance"
+msgstr "Ausschließlich dieses Vorkommen"
+
+msgid "changeAllInstances"
+msgstr "Alle Vorkommnisse"
+
+msgid "changeThisAndFuture"
+msgstr "Dieses und alle zukünftigen Vorkommnisse"
