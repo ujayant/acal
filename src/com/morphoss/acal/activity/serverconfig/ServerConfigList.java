@@ -29,7 +29,6 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.os.RemoteException;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.MenuItem;

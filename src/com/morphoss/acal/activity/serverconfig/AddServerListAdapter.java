@@ -23,16 +23,20 @@ import java.io.FilenameFilter;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.view.View.OnClickListener;
 import android.widget.BaseAdapter;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -47,7 +51,7 @@ public class AddServerListAdapter extends BaseAdapter {
 	private Context context;
 	private ArrayList<ContentValues> data;
 	private ContentValues otherServer;
-	private int preconfig=0;
+	private int lastSavedConfig=0;
 	
 	public AddServerListAdapter(Context c) {
 		this.context = c;
@@ -56,35 +60,9 @@ public class AddServerListAdapter extends BaseAdapter {
 	
 	private void populateData() {
 		data = new ArrayList<ContentValues>();
-		preconfig=0;
-		//A Bit of magic to get all the right files from /raw
-		ArrayList<Integer> list = new ArrayList<Integer>();
-		Field[] fields = R.raw.class.getFields();
-		for(Field f : fields)
-		try {
-				String name = f.getName();
-				if (name == null || name.length() < 11) continue;
-				if (name.substring(0,10).equalsIgnoreCase("serverconf")) 
-					list.add(f.getInt(null));
-		    } catch (IllegalArgumentException e) {
-		    } catch (IllegalAccessException e) { }
+		
+		lastSavedConfig=0;
 
-		for (int i : list) {
-			try {
-				InputStream in = context.getResources().openRawResource(i);
-				List<ServerConfigData> l = ServerConfigData.getServerConfigDataFromFile(in);
-				for (ServerConfigData scd : l) {
-					ContentValues cv = scd.getContentValues();
-					cv.put(ServerConfiguration.MODEKEY, ServerConfiguration.MODE_IMPORT);
-					data.add(cv);
-					preconfig++;;
-				}
-			} catch (Exception e) {
-				Log.e(TAG, "Error parsing file: "+e);
-			}
-		}
-		
-		
 		//first find all 'acal' files in appropriate directories
 		try {
 			File publicDir = new File(Constants.PUBLIC_DATA_DIR);
@@ -102,6 +80,7 @@ public class AddServerListAdapter extends BaseAdapter {
 						ContentValues cv = scd.getContentValues();
 						cv.put(ServerConfiguration.MODEKEY, ServerConfiguration.MODE_IMPORT);
 						data.add(cv);
+						lastSavedConfig++;;
 					}
 				} catch (Exception e) {
 					Log.e(TAG, "Error parsing file: "+filename+" - "+e);
@@ -111,9 +90,48 @@ public class AddServerListAdapter extends BaseAdapter {
 			Log.e(TAG, "Error reading file list: "+e);
 			Log.d(TAG,Log.getStackTraceString(e));
 		}
+
 		
+		// Now we list all the preconfigured setups...
+		//A Bit of magic to get all the right files from /raw
+		Map<String,Integer> list = new HashMap<String,Integer>();
+		ContentValues imageIds = new ContentValues();
+		Field[] fields = R.raw.class.getFields();
+		for(Field f : fields) {
+			try {
+				String name = f.getName();
+				if (name == null || name.length() < 11) continue;
+				if (name.substring(0,10).equalsIgnoreCase("serverconf")) { 
+					list.put(name.substring(11), f.getInt(null));
+					Log.w(TAG, "Found preconfigured setup for '"+name.substring(11)+"'");
+				}
+				else if (name.substring(0,11).equalsIgnoreCase("serverimage")) {
+					imageIds.put(name.substring(12), f.getInt(null));
+					Log.w(TAG, "Found image for '"+name.substring(12)+"'");
+				}
+		    } catch (IllegalArgumentException e) {
+		    } catch (IllegalAccessException e) { }
+		}
+		    
+		for ( Entry<String,Integer> confEntry : list.entrySet()) {
+			try {
+				InputStream in = context.getResources().openRawResource(confEntry.getValue());
+				List<ServerConfigData> l = ServerConfigData.getServerConfigDataFromFile(in);
+				for (ServerConfigData scd : l) {
+					ContentValues cv = scd.getContentValues();
+					cv.put(ServerConfiguration.MODEKEY, ServerConfiguration.MODE_IMPORT);
+					if ( imageIds.getAsInteger(confEntry.getKey()) != null ) {
+						cv.put(ServerConfiguration.IMAGE_KEY, imageIds.getAsInteger(confEntry.getKey()));
+						Log.w(TAG, "Setup image for '"+confEntry.getKey()+"'");
+					}
+					data.add(cv);
+				}
+			} catch (Exception e) {
+				Log.e(TAG, "Error parsing file: "+e);
+			}
+		}
 		
-		// Add the 'Other Server' Option
+		// And finally we add the 'Manual Connfiguration' option
 		otherServer = new ContentValues();
 		otherServer.put(ServerConfiguration.MODEKEY, ServerConfiguration.MODE_CREATE);
 
@@ -147,13 +165,14 @@ public class AddServerListAdapter extends BaseAdapter {
 		title = (TextView) rowLayout.findViewById(R.id.AddServerItemTitle);
 		blurb = (TextView) rowLayout.findViewById(R.id.AddServerItemBlurb);
 		icon = rowLayout.findViewById(R.id.AddServerItemIcon);
+		RelativeLayout thisRow = (RelativeLayout) rowLayout.findViewById(R.id.AddServerItem);
 		
 		final ContentValues item;
 		boolean preconfig=false;
 		boolean other=false;
 		if (position < data.size() ) item = data.get(position);
 		else { item = otherServer; other = true; }
-		preconfig = position<this.preconfig;
+		preconfig = (position >= this.lastSavedConfig);
 		
 		//Icon
 		if (other) {
@@ -175,9 +194,20 @@ public class AddServerListAdapter extends BaseAdapter {
 		}
 		else {
 			//in future we will add custom icons
-			icon.setBackgroundDrawable(context.getResources().getDrawable(R.drawable.question_icon));
-			title.setText(item.getAsString(Servers.FRIENDLY_NAME));
-			blurb.setText(item.getAsString("INFO"));
+			if ( item.getAsInteger(ServerConfiguration.IMAGE_KEY) != null ) {
+				Log.w(TAG, "Special lastSavedConfig image for '"+item.getAsString(Servers.FRIENDLY_NAME)+"'");
+				thisRow.setBackgroundColor(android.R.color.white);
+				thisRow.setBackgroundResource(item.getAsInteger(ServerConfiguration.IMAGE_KEY));
+				icon.setBackgroundColor(0);
+				title.setText(item.getAsString(""));
+				blurb.setText(item.getAsString(""));
+			}
+			else {
+				icon.setBackgroundDrawable(context.getResources().getDrawable(R.drawable.question_icon));
+				title.setText(item.getAsString(Servers.FRIENDLY_NAME));
+				blurb.setText(item.getAsString("INFO"));
+			}
+			
 		}
 		rowLayout.setTag(item);
 		rowLayout.setOnClickListener(new OnClickListener() {
@@ -193,5 +223,10 @@ public class AddServerListAdapter extends BaseAdapter {
 			}
 		});
 		return rowLayout;
+	}
+
+	public void signUp( String signUpUrl ) {
+		Intent viewIntent = new Intent("android.intent.action.VIEW", Uri.parse("http://www.novoda.com"));
+		context.startActivity(viewIntent);
 	}
 }

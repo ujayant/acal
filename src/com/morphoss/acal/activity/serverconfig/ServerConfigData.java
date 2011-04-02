@@ -117,6 +117,7 @@ public class ServerConfigData {
 		//finally we close the file stream
 		fileos.close();
 	}
+
 	public static List<ServerConfigData> getServerConfigDataFromFile(InputStream in) {
 		//use Sax to deconstruct xml
 		SAXParserFactory spf = SAXParserFactory.newInstance();
@@ -139,6 +140,7 @@ public class ServerConfigData {
 
 		return sdsp.getList();
 	}
+
 	public static List<ServerConfigData> getServerConfigDataFromFile(File file) {
 		//use Sax to deconstruct xml
 		SAXParserFactory spf = SAXParserFactory.newInstance();

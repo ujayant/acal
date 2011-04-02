@@ -72,6 +72,10 @@ public class ServerConfiguration extends PreferenceActivity implements OnPrefere
 	//The Key to be used in serverData for storing the mode value.
 	public static final String MODEKEY = "MODE";
 
+	//The Key to be used in serverData for storing the image resourceId
+	public static final String IMAGE_KEY = "IMAGE_RESOURCE";
+
+
 	//The Modes available for this activity. serverData MUST have one of these or the activity will abort
 	public static final int MODE_EDIT = 1;
 	public static final int MODE_CREATE = 2;
