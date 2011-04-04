@@ -14,7 +14,7 @@ use warnings;
 # Stuff that should not be hard-coded, but is :-)
 my $resources_dir = "../res";
 my $strings_filename = "strings";
-my $messages_filename = "messages.po";
+my $messages_filename = "messages.pot";
 
 if ( $ARGV[0] eq "extract" ) {
   # Update/extract the strings for the messages.po file
