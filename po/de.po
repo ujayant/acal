@@ -7,9 +7,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: aCal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-03-27 22:05+1300\n"
-"PO-Revision-Date: 2011-03-29 16:49+0000\n"
-"Last-Translator: fmms <mail@felixmoeller.de>\n"
+"POT-Creation-Date: 2011-04-02 13:59+1300\n"
+"PO-Revision-Date: 2011-04-04 11:08+0000\n"
+"Last-Translator: roerch <transifex@roerch.ping.de>\n"
 "Language-Team: German <>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -61,7 +61,7 @@ msgid "Name"
 msgstr "Name"
 
 msgid "Force_full_resync"
-msgstr "Resynchronisation erzingen"
+msgstr "Resynchronisation erzwingen"
 
 msgid "Password"
 msgstr "Passwort"
@@ -79,7 +79,7 @@ msgid "Server_Options"
 msgstr "Servereinstellungen"
 
 msgid "Collection_Options"
-msgstr "Collection Options"
+msgstr "Sammlungsoptionen"
 
 msgid "Colour"
 msgstr "Farbe"
@@ -165,7 +165,7 @@ msgid "A_name_for_this_collection"
 msgstr "Name für diese Sammlung"
 
 msgid "pActive_addressbook"
-msgstr "Active Addressbook"
+msgstr "Aktives Adressbuch"
 
 msgid "pActive_for_events"
 msgstr "Aktiv für Ereignisse"
@@ -321,7 +321,7 @@ msgid "thFeb"
 msgstr "Feb"
 
 msgid "thMar"
-msgstr "Mrz"
+msgstr "Mär"
 
 msgid "thApr"
 msgstr "Apr"
@@ -360,7 +360,9 @@ msgid "Snooze_PrefTitle"
 msgstr "Snooze Zeit"
 
 msgid "Snooze_PrefSummary"
-msgstr "How many minutes to snooze alarms when the snooze button is pressed"
+msgstr ""
+"Nach wievielen Minuten soll die Benachrichtigung wiederholt werden, wenn der"
+" Snooze Knopf gedrückt wurde."
 
 msgid "DefaultCollection_PrefTitle"
 msgstr "Standardsammlung"
@@ -387,10 +389,10 @@ msgid "Edit"
 msgstr "Bearbeiten"
 
 msgid "Apply"
-msgstr "Apply"
+msgstr "Anwenden"
 
 msgid "Advanced"
-msgstr "Advanced"
+msgstr "Erweitert"
 
 msgid "Simple"
 msgstr "Einfach"
@@ -399,7 +401,7 @@ msgid "Add"
 msgstr "Hinzufügen"
 
 msgid "UnNamedServer"
-msgstr "Unbekannter Server"
+msgstr "Unbenannter Server"
 
 msgid "LocationPrompt"
 msgstr "Ort:"
@@ -411,7 +413,7 @@ msgid "AlarmsPrompt"
 msgstr "Erinnerungen:"
 
 msgid "RepeatsPrompt"
-msgstr "Wiederholung:"
+msgstr "Wiederholungen:"
 
 msgid "AllDayPrompt"
 msgstr "Ganztägiges Ereignis:"
@@ -436,7 +438,7 @@ msgid "TwelveTwentyfour_OnSummary"
 msgstr "14:00"
 
 msgid "TwelveTwentyfour_OffSummary"
-msgstr ""
+msgstr "2:00pm"
 
 msgid "OnlyOnce"
 msgstr "Tritt einmal auf"
@@ -450,8 +452,26 @@ msgstr "Jedes Wochenende"
 msgid "EveryDay"
 msgstr "täglich"
 
+msgid "EveryWeek"
+msgstr "Wöchentlich"
+
+msgid "EveryMonth"
+msgstr "Monatlich"
+
 msgid "EveryYear"
 msgstr "jährlich"
+
+msgid "EveryNDays"
+msgstr "Alle %s Tage"
+
+msgid "EveryNWeeks"
+msgstr "Alle %s Wochen"
+
+msgid "EveryNMonths"
+msgstr "Alle %s Monate"
+
+msgid "EveryNYears"
+msgstr "Alle %s Jahre"
 
 msgid "EveryMonday"
 msgstr "Jeden Montag"
@@ -475,10 +495,10 @@ msgid "EverySunday"
 msgstr "Jeden Sonntag"
 
 msgid "EveryNthOfTheMonth"
-msgstr ""
+msgstr "An jedem %s des Monats"
 
 msgid "EveryMonthOnTheNthSomeday"
-msgstr ""
+msgstr "Am %s jeden Monats"
 
 msgid "EventSaved"
 msgstr "Ereignis gespeichert"
@@ -487,7 +507,7 @@ msgid "ModifiedAllInstances"
 msgstr "Alle Vorkommnisse dieses Ereignisses bearbeitet."
 
 msgid "ModifiedOneInstance"
-msgstr "Ein einzelnen Auftritt des Ereignisses bearbeitet."
+msgstr "Einen einzelnen Auftritt des Ereignisses bearbeitet."
 
 msgid "ModifiedThisAndFuture"
 msgstr ""
@@ -508,6 +528,27 @@ msgstr "Welches Vorkommnis soll bearbeitet werden?"
 
 msgid "ChooseRepeatFrequency"
 msgstr "Wählen Sie eine Auftrittsfrequenz"
+
+msgid "Add_Alarm"
+msgstr "Alarm hinzufügen"
+
+msgid "errorMustHaveActiveCalendar"
+msgstr "Kann Ereignis nicht ohne aktiven Kalender editieren."
+
+msgid "errorSavingFile"
+msgstr "Fehler beim speichern der Datei"
+
+msgid "ServerDataSaved"
+msgstr "Server Daten geschrieben. Dateiname: "
+
+msgid "NewManualServerConfiguration"
+msgstr "Manuelle Konfiguration"
+
+msgid "ManualServerConfigurationBlurb"
+msgstr "Server Informationen manuell eingeben"
+
+msgid "SavedServerConfigurationBlurb"
+msgstr "eine gespeicherte Server-Konfiguration"
 
 msgid "alarmAtEventTime"
 msgstr "Zu Ereignissbeginn"
