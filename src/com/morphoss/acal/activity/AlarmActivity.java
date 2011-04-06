@@ -66,7 +66,7 @@ public class AlarmActivity extends Activity implements OnClickListener  {
 	private TextView time;
 	private ImageView mapButton;
 	private ImageView snoozeButton;
-	private ImageView cancelButton;
+	private ImageView dismissButton;
 	private MediaPlayer mp;
 	private AudioManager am;
 	private Vibrator v;
@@ -75,16 +75,16 @@ public class AlarmActivity extends Activity implements OnClickListener  {
 	private NotificationManager mNotificationManager;
 	private SharedPreferences prefs;	
 	
-	private int CLOSE = 0;
-	private int SNOOZE = 1;
-	private int MAP = 2;
+	private static final int DIMISS = 0;
+	private static final int SNOOZE = 1;
+	private static final int MAP = 2;
 
 	// These values are not defined until Android 2.0 or later, so we have
 	// to define them ourselves.  They won't work unless you're on a 2.x or
 	// later device either, of course...
-	private int WINDOW_FLAG_DISMISS_KEYGUARD = 0x00400000;
-	private int WINDOW_FLAG_SHOW_WHEN_LOCKED = 0x00080000;
-	private int WINDOW_FLAG_TURN_SCREEN_ON   = 0x00200000;
+//	private static final int WINDOW_FLAG_DISMISS_KEYGUARD = 0x00400000;
+	private static final int WINDOW_FLAG_SHOW_WHEN_LOCKED = 0x00080000;
+	private static final int WINDOW_FLAG_TURN_SCREEN_ON   = 0x00200000;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -125,7 +125,7 @@ public class AlarmActivity extends Activity implements OnClickListener  {
 		time = (TextView) this.findViewById(R.id.AlarmContentTimeTextView1);
 		mapButton = (ImageView) this.findViewById(R.id.map_button);
 		snoozeButton = (ImageView) this.findViewById(R.id.snooze_button);
-		cancelButton = (ImageView) this.findViewById(R.id.cancel_button);
+		dismissButton = (ImageView) this.findViewById(R.id.dismiss_button);
 
 	}
 
@@ -138,7 +138,7 @@ public class AlarmActivity extends Activity implements OnClickListener  {
 		isBound = true;
 		setupButton(mapButton, MAP);
 		setupButton(snoozeButton, SNOOZE);
-		setupButton(cancelButton, CLOSE);
+		setupButton(dismissButton, DIMISS);
 		showNextAlarm();
 	}
 
@@ -168,7 +168,8 @@ public class AlarmActivity extends Activity implements OnClickListener  {
 			title.setText(currentAlarm.description);
 			createNotification(currentAlarm.description);
 			AcalEvent event = currentAlarm.getEvent();
-			if (event == null) throw new IllegalStateException("Alarms passed to AlarmActivity MUST have an associated event");
+			if (event == null)
+				throw new IllegalStateException("Alarms passed to AlarmActivity MUST have an associated event");
 			location.setText(event.getLocation());
 
 			AcalDateTime viewDate = new AcalDateTime();
@@ -282,12 +283,12 @@ public class AlarmActivity extends Activity implements OnClickListener  {
 				if (Constants.LOG_DEBUG)Log.e(TAG, "ERROR: Can't snooze alarm: "+e);
 			}
 		}
-		if (arg0 == cancelButton) {
-			if (Constants.LOG_DEBUG)Log.d(TAG, "Cancelling alarm.");
+		if (arg0 == dismissButton) {
+			if (Constants.LOG_DEBUG)Log.d(TAG, "Dismissing alarm.");
 			try {
-				this.dataRequest.cancelAlarm(currentAlarm);
+				this.dataRequest.dismissAlarm(currentAlarm);
 			} catch (Exception e) {
-				if (Constants.LOG_DEBUG)Log.e(TAG, "ERROR: Can't cancel alarm: "+e);
+				if (Constants.LOG_DEBUG)Log.e(TAG, "ERROR: Can't dismiss alarm: "+e);
 			}
 
 		}

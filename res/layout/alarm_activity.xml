@@ -157,7 +157,7 @@ A Country in the world"
 					android:layout_width="wrap_content"
 					android:layout_height="wrap_content"						
 					android:layout_gravity="center"
-					android:src="@drawable/snooze_button"
+					android:src="@drawable/alarm_snooze_button"
 					android:scaleType="fitCenter"/>
 			</LinearLayout>
 			
@@ -168,11 +168,11 @@ A Country in the world"
 				android:gravity="center"
 				android:layout_weight="10">
 				<ImageView
-					android:id="@+id/cancel_button"
+					android:id="@+id/dismiss_button"
 					android:layout_width="wrap_content"
 					android:layout_height="wrap_content"
 					android:layout_gravity="center"
-					android:src="@drawable/alarm_cancel_button"
+					android:src="@drawable/alarm_dismiss_button"
 					android:scaleType="fitCenter"/>
 			</LinearLayout>
 		</LinearLayout>

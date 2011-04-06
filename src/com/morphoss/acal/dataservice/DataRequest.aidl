@@ -12,7 +12,7 @@ interface DataRequest {
 	void registerCallback(DataRequestCallBack cb);
 	void unregisterCallback(DataRequestCallBack cb);
 	AcalAlarm getCurrentAlarm();
-	void cancelAlarm(in AcalAlarm alarm);
+	void dismissAlarm(in AcalAlarm alarm);
 	void snoozeAlarm(in AcalAlarm alarm);
 	void eventChanged(in AcalEventAction action);
 }

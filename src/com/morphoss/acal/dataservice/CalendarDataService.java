@@ -1056,7 +1056,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 		}
 
 		@Override
-		public void cancelAlarm(AcalAlarm alarm) throws RemoteException {
+		public void dismissAlarm(AcalAlarm alarm) throws RemoteException {
 			this.triggeredAlarmDismissedByUser(alarm);
 		}
 
