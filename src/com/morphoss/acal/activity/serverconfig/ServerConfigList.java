@@ -223,8 +223,9 @@ public class ServerConfigList extends ListActivity {
 			case CONTEXT_DISCOVER:
 				if ( Constants.LOG_VERBOSE ) Log.v(TAG, "Scheduling HomeSetDiscovery on successful server config.");
 				try {
+					ContentValues server = serverData.get(serverNames[(int)id]);
 					ServiceRequest sr = serviceManager.getServiceRequest(); 
-					sr.homeSetDiscovery((int)id);
+					sr.homeSetDiscovery(server.getAsInteger(Servers._ID));
 				} catch (Exception e) {
 					if (Constants.LOG_VERBOSE)
 						Log.v(TAG,"Error starting home set discovery: "+e.getMessage()+" "+Log.getStackTraceString(e));
