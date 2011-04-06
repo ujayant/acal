@@ -48,8 +48,7 @@ import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.providers.DavResources;
 import com.morphoss.acal.providers.Servers;
 import com.morphoss.acal.service.SynchronisationJobs.WriteActions;
-import com.morphoss.acal.service.connector.Connector;
-import com.morphoss.acal.service.connector.ConnectorRequestError;
+import com.morphoss.acal.service.connector.AcalRequestor;
 import com.morphoss.acal.xml.DavNode;
 
 public class SyncCollectionContents extends ServiceJob {
@@ -75,12 +74,13 @@ public class SyncCollectionContents extends ServiceJob {
 	// doing a sync.  Not how often we actually wake up and hit the server
 	// with a request.  Nevertheless we should not do this more than every
 	// minute or so in production.
-	private final long			minBetweenSyncs		= (Constants.LOG_DEBUG ? 30000 : 300000);	// milliseconds
+	private static final long	minBetweenSyncs		= (Constants.LOG_DEBUG ? 30000 : 300000);	// milliseconds
 
 	private ContentResolver		cr;
 	private aCalService			context;
 	private boolean	synchronisationForced			= false;
-	
+	private AcalRequestor 		requestor;
+
 	/**
 	 * <p>
 	 * Constructor
@@ -126,7 +126,8 @@ public class SyncCollectionContents extends ServiceJob {
 			return;
 		}
 
-		if (Constants.LOG_DEBUG) Log.d(TAG, "Starting sync on collection " + this.collectionPath + " (" + this.collectionId + ")");
+		if (Constants.LOG_DEBUG)
+			Log.d(TAG, "Starting sync on collection " + this.collectionPath + " (" + this.collectionId + ")");
 
 		if (!(1 == serverData.getAsInteger(Servers.ACTIVE))) {
 			if (Constants.LOG_DEBUG) Log.d(TAG, "Server is no longer active - sync cancelled: " + serverData.getAsInteger(Servers.ACTIVE)
@@ -212,6 +213,8 @@ public class SyncCollectionContents extends ServiceJob {
 			// get serverData
 			serverData = SynchronisationJobs.getServerData(serverId, cr);
 			if (serverData == null) throw new Exception("No record for ID " + serverId);
+			requestor = AcalRequestor.fromServerValues(serverData);
+			requestor.setPath(collectionPath);
 		}
 		catch (Exception e) {
 			// Error getting data
@@ -233,7 +236,18 @@ public class SyncCollectionContents extends ServiceJob {
 	 * @return true if we still need to syncMarkedResources() afterwards.
 	 */
 	private boolean doRegularSyncReport() {
-		DavNode root = doSyncDataRequest();
+		DavNode root = doCalendarRequest("REPORT", 1,
+					"<?xml version=\"1.0\" encoding=\"utf-8\" ?>"
+					+ "<sync-collection xmlns=\"DAV:\">"
+						+ "<prop>"
+							+ "<getetag/>"
+							+ "<getlastmodified/>"
+							+ "<" + dataType + "-data xmlns=\"" + nameSpace + "\"/>"
+						+ "</prop>"
+					+ "<sync-token>" + syncToken + "</sync-token>"
+					+ "</sync-collection>"
+				);
+
 		boolean needSyncAfterwards = false; 
 
 		if (root == null) {
@@ -317,46 +331,6 @@ public class SyncCollectionContents extends ServiceJob {
 		return needSyncAfterwards;
 	}
 
-	/**
-	 * <p>
-	 * Does a sync-collection REPORT for this collection looking for -data of the appropriate type.
-	 * </p>
-	 * 
-	 * @param hrefs
-	 * @return <p>
-	 *         A DavNode which is the root of the multistatus response.
-	 *         </p>
-	 */
-	private DavNode doSyncDataRequest() {
-		long start = System.currentTimeMillis();
-
-		String xml = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>"
-					+ "<sync-collection xmlns=\"DAV:\">"
-						+ "<prop>"
-							+ "<getetag/>"
-							+ "<getlastmodified/>"
-							+ "<" + dataType + "-data xmlns=\"" + nameSpace + "\"/>"
-						+ "</prop>"
-					+ "<sync-token>" + syncToken + "</sync-token>"
-					+ "</sync-collection>";
-		if (Constants.LOG_DEBUG) Log.d(TAG, "Requesting sync-collection REPORT including data.");
-
-		Header[] headers = new Header[] { new BasicHeader("Content-Type", "text/xml; encoding=UTF-8"), new BasicHeader("Depth", "1") };
-		DavNode root = null;
-		try {
-			root = SynchronisationJobs.getXmlTree(this.serverId, "REPORT", this.collectionPath, headers, xml,
-						this.serverData, 5 );
-		}
-		catch (ConnectorRequestError re) {
-			if (re.getStatus() == 404) {
-				Log.i(TAG,"Sync REPORT got 404 on "+collectionPath+" so a HomeSetsUpdate is being scheduled.");
-				ServiceJob sj = new HomeSetsUpdate(serverId);
-				context.addWorkerJob(sj);
-			}
-		}
-		if (Constants.LOG_VERBOSE) Log.v(TAG, "Http Request and xml parse completed in " + (System.currentTimeMillis() - start) + "ms");
-		return root;
-	}
 
 	/**
 	 * <p>
@@ -370,14 +344,23 @@ public class SyncCollectionContents extends ServiceJob {
 		boolean needSyncAfterwards = false;
 		if ( !collectionTagChanged() ) return false;
 
-		DavNode root = doPropfindRequest();
-		Map<String, ContentValues> ourResourceMap = getCurrentResourceMap();
+		DavNode root = 	doCalendarRequest("PROPFIND", 1,
+					"<?xml version=\"1.0\" encoding=\"utf-8\" ?>"
+					+ "<propfind xmlns=\"DAV:\" xmlns:CS=\"http://calendarserver.org/ns/\">"
+						+ "<prop>"
+							+ "<getetag/>"
+								+ "<CS:getctag/>"
+						+ "</prop>"
+					+ "</propfind>"
+				);
 
 		if (root == null ) {
 			Log.i(TAG, "Unable to PROPFIND collection " + this.collectionPath + " (ID:" + this.collectionId
 						+ " - no data from server.");
 			return false;
 		}
+
+		Map<String, ContentValues> ourResourceMap = getCurrentResourceMap();
 
 		AcalDBHelper dbHelper = new AcalDBHelper(this.context);
 		SQLiteDatabase db = dbHelper.getWritableDatabase();
@@ -474,29 +457,15 @@ public class SyncCollectionContents extends ServiceJob {
 	 *         </p>
 	 */
 	private boolean collectionTagChanged() {
-		String xml = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>"
+		if (Constants.LOG_DEBUG) Log.d(TAG, "Requesting CTag on collection.");
+		DavNode root = doCalendarRequest("PROPFIND", 0,
+					"<?xml version=\"1.0\" encoding=\"utf-8\" ?>"
 					+ "<propfind xmlns=\"DAV:\" xmlns:CS=\"http://calendarserver.org/ns/\">"
 						+ "<prop>"
 	          				+ "<CS:getctag/>"
 						+ "</prop>"
-					+ "</propfind>";
-		if (Constants.LOG_DEBUG) Log.d(TAG, "Requesting CTag on collection.");
-
-		Header[] headers = new Header[] { new BasicHeader("Content-Type", "text/xml; encoding=UTF-8"),
-					new BasicHeader("Depth", "0") };
-		DavNode root = null;
-		try {
-			root = SynchronisationJobs.getXmlTree(this.serverId, "PROPFIND", this.collectionPath,
-						headers, xml, serverData, 2);
-		}
-		catch (ConnectorRequestError re) {
-			if (re.getStatus() == 404) {
-				Log.i(TAG,"PROPFIND got 404 on "+collectionPath+" so a HomeSetsUpdate is being scheduled.");
-				ServiceJob sj = new HomeSetsUpdate(serverId);
-				context.addWorkerJob(sj);
-			}
-			throw new IllegalStateException("Attempting to sync non-existent collection.");
-		}
+					+ "</propfind>"
+				);
 		
 		if ( root == null ) {
 			Log.i(TAG,"No response from server - deferring sync.");
@@ -524,44 +493,37 @@ public class SyncCollectionContents extends ServiceJob {
 		return true;
 	}
 
+
+
+	private Header[] getHeaders( int depth ) {
+		return new Header[] {
+					new BasicHeader("Content-Type", "text/xml; encoding=UTF-8"),
+					new BasicHeader("Depth", Integer.toString(depth))
+				};
+	}
+
+	
 	/**
 	 * <p>
-	 * Does a Depth: 1 PROPFIND for this collection looking for stuff to sync with the server.
+	 * Does a request against the collection path
 	 * </p>
 	 * 
 	 * @return <p>
 	 *         A DavNode which is the root of the multistatus response.
 	 *         </p>
 	 */
-	private DavNode doPropfindRequest() {
-		long start = System.currentTimeMillis();
-
-		String xml = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>"
-					+ "<propfind xmlns=\"DAV:\" xmlns:CS=\"http://calendarserver.org/ns/\">"
-						+ "<prop>"
-							+ "<getetag/>"
-	          				+ "<CS:getctag/>"
-						+ "</prop>"
-					+ "</propfind>";
-		if (Constants.LOG_DEBUG) Log.d(TAG, "Requesting depth: 1 PROPFIND to find modified resources.");
-
-		Header[] headers = new Header[] { new BasicHeader("Content-Type", "text/xml; encoding=UTF-8"),
-					new BasicHeader("Depth", "1") };
-		DavNode root = null;
-		try {
-			root = SynchronisationJobs.getXmlTree(this.serverId, "PROPFIND", this.collectionPath, headers, xml, serverData, 5);
+	private DavNode doCalendarRequest( String method, int depth, String xml) {
+		DavNode root = requestor.doXmlRequest(method, collectionPath, getHeaders(depth), xml);
+		if ( requestor.getStatusCode() == 404 ) {
+			Log.i(TAG,"Sync PROPFIND got 404 on "+collectionPath+" so a HomeSetsUpdate is being scheduled.");
+			ServiceJob sj = new HomeSetsUpdate(serverId);
+			context.addWorkerJob(sj);
+			return null;
 		}
-		catch (ConnectorRequestError re) {
-			if (re.getStatus() == 404) {
-				Log.i(TAG,"PROPFIND got 404 on "+collectionPath+" so a HomeSetsUpdate is being scheduled.");
-				ServiceJob sj = new HomeSetsUpdate(serverId);
-				context.addWorkerJob(sj);
-			}
-		}
-		if (Constants.LOG_VERBOSE) Log.v(TAG, "Http Request and xml parse completed in " + (System.currentTimeMillis() - start) + "ms");
 		return root;
 	}
 
+	
 	/**
 	 * Checks the resources we have in the DB currently flagged as needing synchronisation, and synchronises
 	 * them if they are using an addressbook-multiget or calendar-multiget request, depending on the
@@ -606,6 +568,17 @@ public class SyncCollectionContents extends ServiceJob {
 	private void syncWithMultiget(Map<String, ContentValues> originalData, Object[] hrefs) {
 		long fullMethod = System.currentTimeMillis();
 
+		String baseXml = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>"
+			+ "<" + multigetReportTag + " xmlns=\"" + nameSpace + "\" xmlns:D=\"DAV:\">\n"
+				+ "<D:prop>\n"
+					+ "<D:getetag/>\n"
+					+ "<D:getcontenttype/>\n"
+					+ "<D:getlastmodified/>\n"
+					+ "<" + dataType + "-data/>\n"
+				+ "</D:prop>\n"
+				+ "%s"
+				+ "</" + multigetReportTag + ">";
+		
 		for (int hrefIndex = 0; hrefIndex < hrefs.length; hrefIndex += nPerMultiget) {
 			if ( hrefIndex > 0 ) {
 				// Reschedule for another run, rather than continue now.
@@ -613,7 +586,16 @@ public class SyncCollectionContents extends ServiceJob {
 				context.addWorkerJob(sj);
 				return;
 			}
-			DavNode root = doMultigetRequest(hrefs, hrefIndex);
+			int limit = nPerMultiget + hrefIndex;
+			if ( limit > hrefs.length ) limit = hrefs.length;
+			StringBuilder hrefList = new StringBuilder();
+			for (int i = hrefIndex; i < limit; i++) {
+				hrefList.append(String.format("<D:href>%s</D:href>", collectionPath + hrefs[i].toString()));
+			}
+		
+			if (Constants.LOG_DEBUG) Log.d(TAG, "Requesting " + multigetReportTag + " for " + nPerMultiget + " resources.");
+			DavNode root = doCalendarRequest( "REPORT", 1, String.format(baseXml,hrefList.toString()) );
+
 			if (root == null) {
 				Log.w(TAG, "Unable to sync collection " + this.collectionPath + " (ID:" + this.collectionId
 							+ " - no data from server).");
@@ -664,54 +646,6 @@ public class SyncCollectionContents extends ServiceJob {
 		return;
 	}
 
-	/**
-	 * <p>
-	 * Does a multiget request of the appropriate type for this kind of collection with the array of hrefs
-	 * which are passed in.
-	 * </p>
-	 * 
-	 * @param hrefs
-	 * @return <p>
-	 *         A DavNode which is the root of the multistatus response.
-	 *         </p>
-	 */
-	private DavNode doMultigetRequest(Object[] hrefs, int startFrom) {
-		long start = System.currentTimeMillis();
-
-		String xml = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>"
-					+ "<" + multigetReportTag + " xmlns=\"" + nameSpace + "\" xmlns:D=\"DAV:\">\n"
-						+ "<D:prop>\n"
-							+ "<D:getetag/>\n"
-							+ "<D:getcontenttype/>\n"
-							+ "<D:getlastmodified/>\n"
-							+ "<" + dataType + "-data/>\n"
-						+ "</D:prop>\n";
-
-		int limit = nPerMultiget + startFrom;
-		if ( limit > hrefs.length ) limit = hrefs.length;
-		for (int i = startFrom; i < limit; i++) {
-			xml += "<D:href>" + collectionPath + hrefs[i].toString() + "</D:href>";
-		}
-		xml += "</" + multigetReportTag + ">";
-
-		if (Constants.LOG_DEBUG) Log.d(TAG, "Requesting " + multigetReportTag + " for " + nPerMultiget + " resources.");
-		
-		DavNode root = null;
-		try {
-			Header[] headers = new Header[] { new BasicHeader("Content-Type", "text/xml; encoding=UTF-8") };
-			root = SynchronisationJobs.getXmlTree(serverId, "REPORT", collectionPath, headers, xml, serverData, 5);
-		}
-		catch (ConnectorRequestError re) {
-			if (re.getStatus() == 404) {
-				Log.i(TAG, "Multiget REPORT got 404 on " + collectionPath + " so a HomeSetsUpdate is being scheduled.");
-				ServiceJob sj = new HomeSetsUpdate(serverId);
-				context.addWorkerJob(sj);
-			}
-		}
-
-		if (Constants.LOG_VERBOSE)	Log.v(TAG, "Http Request and xml parse completed in " + (System.currentTimeMillis() - start) + "ms");
-		return root;
-	}
 
 	/**
 	 * <p>
@@ -830,15 +764,8 @@ public class SyncCollectionContents extends ServiceJob {
 		for (int hrefIndex = 0; hrefIndex < hrefs.length; hrefIndex++) {
 			try {
 				String path = collectionPath + hrefs[hrefIndex];
-				Connector con = SynchronisationJobs.prepareRequest(serverId, path, headers, "", serverData);
-				if (con == null) {
-					Log.w(TAG, "Unable to initialise HttpClient connection for syncWithGet: " + path);
-					db.endTransaction();
-					db.close();
-					return;
-				}
 
-				InputStream in = con.sendRequest("GET", path, headers, "");
+				InputStream in = requestor.doRequest("GET", path, headers, "");
 				if (in == null) {
 					if (Constants.LOG_DEBUG) Log.d(TAG, "Error - Unable to get data stream from server.");
 					db.endTransaction();
@@ -846,12 +773,12 @@ public class SyncCollectionContents extends ServiceJob {
 					return;
 				}
 				else {
-					int status = con.getStatusCode();
+					int status = requestor.getStatusCode();
 					switch (status) {
 						case 200: // Status O.K.
 							ContentValues cv = originalData.get(hrefs[hrefIndex]);
 							cv.put(DavResources.RESOURCE_DATA, in.toString());
-							for (Header hdr : con.getResponseHeaders()) {
+							for (Header hdr : requestor.getResponseHeaders()) {
 								if (hdr.getName().equalsIgnoreCase("ETag")) {
 									cv.put(DavResources.ETAG, hdr.getValue());
 									cv.put(DavResources.NEEDS_SYNC, false);
@@ -921,7 +848,7 @@ public class SyncCollectionContents extends ServiceJob {
 		ConnectivityManager conMan = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo netInfo = conMan.getActiveNetworkInfo();
 		long maxAgeMs = minBetweenSyncs;
-		if ( netInfo.getType() == ConnectivityManager.TYPE_MOBILE )
+		if ( netInfo != null && netInfo.getType() == ConnectivityManager.TYPE_MOBILE )
 			maxAgeMs = collectionData.getAsLong(DavCollections.MAX_SYNC_AGE_3G);
 		else
 			maxAgeMs = collectionData.getAsLong(DavCollections.MAX_SYNC_AGE_WIFI);

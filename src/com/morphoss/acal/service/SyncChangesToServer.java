@@ -49,7 +49,7 @@ import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.providers.DavResources;
 import com.morphoss.acal.providers.PendingChanges;
 import com.morphoss.acal.service.SynchronisationJobs.WriteActions;
-import com.morphoss.acal.service.connector.Connector;
+import com.morphoss.acal.service.connector.AcalRequestor;
 import com.morphoss.acal.service.connector.SendRequestFailedException;
 
 public class SyncChangesToServer extends ServiceJob {
@@ -60,6 +60,8 @@ public class SyncChangesToServer extends ServiceJob {
 	private ContentResolver		cr;
 	private aCalService			context;
 
+	private AcalRequestor 		requestor;
+	
 	List<ContentValues>			pendingChangesList	= null;
 	int							pendingPos			= -1;
 	Set<Integer>				collectionsToSync	= null;
@@ -79,7 +81,8 @@ public class SyncChangesToServer extends ServiceJob {
 	public void run(aCalService context) {
 		this.context = context;
 		this.cr = this.context.getContentResolver();
-
+		this.requestor = new AcalRequestor();
+		
 		if ( !marshallChangesToSync() ) {
 			if (Constants.LOG_VERBOSE) Log.v(TAG, "No local changes to synchronise.");
 			return; // without rescheduling
@@ -172,6 +175,7 @@ public class SyncChangesToServer extends ServiceJob {
 			Log.e(TAG, "Error getting collection data from DB.");
 			return;
 		}
+		requestor.setFromServer(serverData);
 
 		String collectionPath = collectionData.getAsString(DavCollections.COLLECTION_PATH);
 		String newData = pending.getAsString(PendingChanges.NEW_DATA);
@@ -221,12 +225,7 @@ public class SyncChangesToServer extends ServiceJob {
 		String path = collectionPath + resourcePath;
 
 		Header[] headers = new Header[] { eTagHeader, contentHeader};
-		Connector con = SynchronisationJobs.prepareRequest(serverId, path, headers, newData, serverData);
-		if (con == null) {
-			Log.w(TAG, "Unable to initialise HttpClient connection for putResourceToServer: " + path);
-			return;
-		}
-
+		
 		if (Constants.LOG_DEBUG)	Log.d(TAG, "Making "+action.toString()+" request to "+path);
 
 		// If we made it this far we should do a sync on this collection ASAP after we're done
@@ -235,19 +234,15 @@ public class SyncChangesToServer extends ServiceJob {
 		InputStream in = null;
 		try {
 			if ( action == WriteActions.DELETE )
-				in = con.sendRequest( "DELETE", path, headers, "");
+				in = requestor.doRequest( "DELETE", path, headers, null);
 			else
-				in = con.sendRequest( "PUT", path, headers, newData);
-		}
-		catch (SSLException e) {
-			throw e;
+				in = requestor.doRequest( "PUT", path, headers, newData);
 		}
 		catch (SendRequestFailedException e) {
 			Log.w(TAG,"HTTP Request failed: "+e.getMessage());
-			Log.w(TAG,Log.getStackTraceString(e));
 		}
 			
-		int status = con.getStatusCode();
+		int status = requestor.getStatusCode();
 		switch (status) {
 			case 201: // Status Created (normal for INSERT).
 			case 204: // Status No Content (normal for DELETE).
@@ -256,7 +251,7 @@ public class SyncChangesToServer extends ServiceJob {
 				resourceData.put(DavResources.RESOURCE_DATA, newData);
 				resourceData.put(DavResources.NEEDS_SYNC, true);
 				resourceData.put(DavResources.ETAG, "");
-				for (Header hdr : con.getResponseHeaders()) {
+				for (Header hdr : requestor.getResponseHeaders()) {
 					if (hdr.getName().equalsIgnoreCase("ETag")) {
 						resourceData.put(DavResources.ETAG, hdr.getValue());
 						resourceData.put(DavResources.NEEDS_SYNC, false);
@@ -277,7 +272,7 @@ public class SyncChangesToServer extends ServiceJob {
 					db.setTransactionSuccessful();
 				}
 				catch (Exception e) {
-					Log.e(TAG, "Exception PUTting resource to server: " + e.getMessage());
+					Log.e(TAG, action.toString()+": Exception applying resource to server: " + e.getMessage());
 					Log.e(TAG, Log.getStackTraceString(e));
 				}
 				finally {
@@ -288,12 +283,12 @@ public class SyncChangesToServer extends ServiceJob {
 				break;
 
 			case 403: // Server won't accept it
-				Log.w(TAG, "Status " + status + " on PUT request for " + path + " giving up on change.");
+				Log.w(TAG, action.toString()+": Status " + status + " on request for " + path + " giving up on change.");
 				PendingChanges.deletePendingChange(context, pendingId);
 				break;
 
 			default: // Unknown code
-				Log.w(TAG, "Status " + status + " on PUT request for " + path);
+				Log.w(TAG, action.toString()+": Status " + status + " on request for " + path);
 				if ( in != null ) {
 					// Possibly we got an error message...
 					byte[] buffer = new byte[1024];

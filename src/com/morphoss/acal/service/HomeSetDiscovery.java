@@ -30,7 +30,7 @@ import android.util.Log;
 
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.providers.PathSets;
-import com.morphoss.acal.providers.Servers;
+import com.morphoss.acal.service.connector.AcalRequestor;
 import com.morphoss.acal.xml.DavNode;
 
 public class HomeSetDiscovery extends ServiceJob {
@@ -39,13 +39,14 @@ public class HomeSetDiscovery extends ServiceJob {
 	private int serverId;
 	private aCalService context;
 	private ContentResolver cr;
+	private AcalRequestor requestor;
 
-	private Header[] pHomeHeaders = new Header[] {
+	final private static Header[] pHomeHeaders = new Header[] {
 			new BasicHeader("Depth","0"),
 			new BasicHeader("Content-Type","text/xml; encoding=UTF-8")
 	};
 
-	private final String pHomeData = 
+	final private static String pHomeData = 
 "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
 "<propfind xmlns=\"DAV:\" xmlns:C=\"urn:ietf:params:xml:ns:caldav\" xmlns:A=\"urn:ietf:params:xml:ns:carddav\">\n"+
 " <prop>\n"+
@@ -71,10 +72,12 @@ public class HomeSetDiscovery extends ServiceJob {
 		DavNode root = null;
 		try {
 			ContentValues serverData = SynchronisationJobs.getServerData(serverId, cr);
-			String principalPath = serverData.getAsString(Servers.PRINCIPAL_PATH);
-			root = SynchronisationJobs.getXmlTree(this.serverId, "PROPFIND", principalPath, pHomeHeaders, pHomeData, serverData, 5);
-		} catch (Exception e) {
-			Log.e(TAG,"Unable to get data for "+this.serverId+" aborting.");
+			requestor = AcalRequestor.fromServerValues(serverData);
+			root = requestor.doXmlRequest("PROPFIND", null, pHomeHeaders, pHomeData);
+		}
+		catch (Exception e) {
+			Log.e(TAG,"Error getting home set data for "+this.serverId);
+			Log.d(TAG,Log.getStackTraceString(e));
 		}
 		if (root == null) {
 			Log.w(TAG, "No home-set data from server for.");

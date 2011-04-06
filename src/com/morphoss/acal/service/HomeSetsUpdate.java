@@ -40,7 +40,7 @@ import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.providers.PathSets;
 import com.morphoss.acal.providers.Servers;
-import com.morphoss.acal.service.connector.ConnectorRequestError;
+import com.morphoss.acal.service.connector.AcalRequestor;
 import com.morphoss.acal.xml.CalendarTimeZoneNode;
 import com.morphoss.acal.xml.DavNode;
 
@@ -49,6 +49,31 @@ public class HomeSetsUpdate extends ServiceJob {
 	private int serverId;
 	private aCalService context;
 	private ContentResolver cr;
+	private AcalRequestor requestor;
+
+	private final static Header[] pCalendarHeaders = new Header[] {
+		new BasicHeader("Depth","1"),
+		new BasicHeader("Content-Type","text/xml; encoding=UTF-8")
+	};
+
+	private final static String pCalendarRequest =
+"<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"+
+"<propfind xmlns=\""+Constants.NS_DAV+"\""+
+"    xmlns:C=\""+Constants.NS_CALDAV+"\""+
+"    xmlns:ACAL=\""+Constants.NS_ACAL+"\""+
+"    xmlns:CS=\""+Constants.NS_CALENDARSERVER+"\">\n"+
+" <prop>\n"+
+"  <displayname/>\n"+
+"  <resourcetype/>\n"+
+"  <supported-report-set/>\n"+
+"  <supported-method-set/>\n"+
+"  <current-user-privilege-set/>\n"+
+"  <CS:getctag/>\n"+
+"  <C:supported-calendar-component-set/>\n"+
+"  <C:calendar-timezone/>\n"+
+"  <ACAL:acal-colour/>\n"+
+" </prop>\n"+
+"</propfind>";				                  
 
 
 	/**
@@ -66,6 +91,8 @@ public class HomeSetsUpdate extends ServiceJob {
 	public void run(aCalService context) {
 		this.context = context;
 		this.cr = context.getContentResolver();
+		ContentValues serverData = SynchronisationJobs.getServerData(serverId, cr);
+		this.requestor = AcalRequestor.fromServerValues(serverData);
 
 		if (Constants.LOG_DEBUG) Log.d(TAG, "Refreshing DavCollections for server "+this.serverId);
 		String homeSetPaths[] = fetchHomeSets();
@@ -113,54 +140,101 @@ public class HomeSetsUpdate extends ServiceJob {
 
 
 	/**
-	 * Do a PROPFIND request against the home-set path looking for the collections
-	 * which it contains.
-	 * @param homePath
-	 * @return the xml response as a DavNode
+	 * Update all of the collections we can find within a homeSet
+	 * @param homeSet
 	 */
-	private DavNode propfindHomeCollections( String homePath ) {
+	private void updateCollectionsWithin( String homeSet ) {
 
-		Header[] pCalendarHeaders = new Header[] {
-				new BasicHeader("Depth","1"),
-				new BasicHeader("Content-Type","text/xml; encoding=UTF-8")
-		};
-		
-		if (Constants.LOG_VERBOSE) Log.v(TAG, "Using PROPFIND to request home-set collections in " + homePath );
-		DavNode root = null;
-		try {
-			ContentValues serverData = SynchronisationJobs.getServerData(serverId, cr);
-			root = SynchronisationJobs.getXmlTree(this.serverId, "PROPFIND", homePath,
-			                  pCalendarHeaders,
-			                  "<?xml version=\"1.0\" encoding=\"utf-8\"?>"+
-				          		"<propfind xmlns=\""+Constants.NS_DAV+"\""+
-				          		" xmlns:C=\""+Constants.NS_CALDAV+"\""+
-				          		" xmlns:ACAL=\""+Constants.NS_ACAL+"\""+
-				          		" xmlns:CS=\""+Constants.NS_CALENDARSERVER+"\">"+
-				          			"<prop>"+
-				          				"<displayname/>"+
-				          				"<resourcetype/>"+
-				          				"<supported-report-set/>"+
-				          				"<supported-method-set/>"+
-				          				"<current-user-privilege-set/>"+
-				          				"<CS:getctag/>"+
-				          				"<C:supported-calendar-component-set/>"+
-				          				"<C:calendar-timezone/>"+
-				          				"<ACAL:acal-colour/>"+
-				          			"</prop>"+
-				          		"</propfind>",				                  
-				                  serverData, 5);
+		if (Constants.LOG_DEBUG) Log.d(TAG,"Updating collections within "+homeSet);
+
+		Map<String,ContentValues> deleteList = new HashMap<String,ContentValues>();
+		String collectionPath = null;
+		Cursor cursor = cr.query(DavCollections.CONTENT_URI, null,
+					DavCollections.SERVER_ID+"="+serverId +" AND "+ DavCollections.COLLECTION_PATH+" LIKE ?",
+					new String[] { homeSet + "%"}, null);
+		for( cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext() ) {
+			ContentValues cv = new ContentValues();
+			DatabaseUtils.cursorRowToContentValues(cursor, cv);
+			collectionPath = cv.getAsString(DavCollections.COLLECTION_PATH);
+			deleteList.put(collectionPath, cv);
 		}
-		catch (ConnectorRequestError re) {
-			if ( re.getStatus() >= 301 && re.getStatus() <= 307 ) {
-				
-			}
-			else if (re.getStatus() == 404) {
-				Log.i(TAG, "PROPFIND got 404 on " + homePath + " so a HomeSetDiscovery is being scheduled.");
+		cursor.close();
+
+		try {
+			DavNode root = requestor.doXmlRequest("PROPFIND", homeSet, pCalendarHeaders, pCalendarRequest);
+			if (requestor.getStatusCode() == 404) {
+				Log.i(TAG, "PROPFIND got 404 on " + homeSet + " so a HomeSetDiscovery is being scheduled.");
 				ServiceJob sj = new HomeSetDiscovery(serverId);
 				context.addWorkerJob(sj);
+				return;
 			}
+
+			List<DavNode> responseList = root.getNodesFromPath("multistatus/response");
+			for (DavNode response : responseList) {
+				List<DavNode> propstats = response.getNodesFromPath("propstat");
+				for ( DavNode propstat : propstats ) {
+					if ( !propstat.getFirstNodeText("status").equalsIgnoreCase("HTTP/1.1 200 OK") ) continue;
+	
+					//Get current collection path
+					collectionPath = response.getFirstNodeText("href");
+					if ( collectionPath != null ) {
+						if ( collectionPath.equals(homeSet) ) {
+							// Update CTAG and NEEDS_SYNC if this is the home-set URL
+							String ctag = propstat.getFirstNodeText("prop/getctag");
+							if ( ctag != null ) {
+								ContentValues cv = new ContentValues();
+								cv.put(PathSets.COLLECTION_TAG,ctag);
+								cv.put(PathSets.NEEDS_SYNC,false);
+								cv.put(PathSets.LAST_CHECKED,new AcalDateTime().fmtIcal());
+								cr.update(PathSets.CONTENT_URI, cv,
+											PathSets.SERVER_ID+"="+serverId+" AND "+PathSets.PATH+"=?",
+											new String[] {homeSet});
+							}
+						}
+						else {
+							if ( updateCollectionFromPropstat( collectionPath, propstat ) ) {
+								deleteList.remove(collectionPath);
+							}
+						}
+					}
+				}
+
+				//Remove subtree to free up memory
+				root.removeSubTree(response);
+			}
+			
+			if ( !deleteList.isEmpty() ) {
+				StringBuilder deleteIn = null;
+				for( Entry<String,ContentValues> d : deleteList.entrySet() ) {
+					if ( deleteIn == null ) {
+						deleteIn = new StringBuilder(DavCollections.SERVER_ID);
+						deleteIn.append("=");
+						deleteIn.append(serverId);
+						deleteIn.append(" AND ");
+						deleteIn.append(DavCollections._ID);
+						deleteIn.append(" IN (");
+					}
+					else {
+						deleteIn.append(",");
+					}
+					deleteIn.append(d.getValue().getAsInteger(DavCollections._ID));
+
+					aCalService.databaseDispatcher.dispatchEvent(
+								new DatabaseChangedEvent(DatabaseChangedEvent.DATABASE_RECORD_DELETED,
+											DavCollections.class,
+											d.getValue()) );
+				}
+				deleteIn.append(")");
+				if ( Constants.LOG_DEBUG ) { Log.d(TAG,"Deleting collections from DB where:");
+					Log.d(TAG,deleteIn.toString());
+				}
+				cr.delete(DavCollections.CONTENT_URI, deleteIn.toString(), null);
+			}
+	
+		} catch (Exception ex2) {
+			Log.e(TAG,"Unknown error when updating collections within home sets: "+ex2.getMessage());
+			Log.e(TAG,Log.getStackTraceString(ex2));
 		}
-		return root;
 	}
 
 	
@@ -373,96 +447,6 @@ public class HomeSetsUpdate extends ServiceJob {
 	}
 
 	
-	/**
-	 * Update all of the collections we can find within a homeSet
-	 * @param homeSet
-	 */
-	private void updateCollectionsWithin( String homeSet ) {
-		DavNode root = propfindHomeCollections( homeSet );
-
-		if (Constants.LOG_DEBUG) Log.d(TAG,"Updating collections within "+homeSet);
-
-		Map<String,ContentValues> deleteList = new HashMap<String,ContentValues>();
-		String collectionPath = null;
-		Cursor cursor = cr.query(DavCollections.CONTENT_URI, null,
-					DavCollections.SERVER_ID+"="+serverId +" AND "+ DavCollections.COLLECTION_PATH+" LIKE ?",
-					new String[] { homeSet + "%"}, null);
-		for( cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext() ) {
-			ContentValues cv = new ContentValues();
-			DatabaseUtils.cursorRowToContentValues(cursor, cv);
-			collectionPath = cv.getAsString(DavCollections.COLLECTION_PATH);
-			deleteList.put(collectionPath, cv);
-		}
-		cursor.close();
-
-		try {
-			List<DavNode> responseList = root.getNodesFromPath("multistatus/response");
-			for (DavNode response : responseList) {
-				List<DavNode> propstats = response.getNodesFromPath("propstat");
-				for ( DavNode propstat : propstats ) {
-					if ( !propstat.getFirstNodeText("status").equalsIgnoreCase("HTTP/1.1 200 OK") ) continue;
-	
-					//Get current collection path
-					collectionPath = response.getFirstNodeText("href");
-					if ( collectionPath != null ) {
-						if ( collectionPath.equals(homeSet) ) {
-							// Update CTAG and NEEDS_SYNC if this is the home-set URL
-							String ctag = propstat.getFirstNodeText("prop/getctag");
-							if ( ctag != null ) {
-								ContentValues cv = new ContentValues();
-								cv.put(PathSets.COLLECTION_TAG,ctag);
-								cv.put(PathSets.NEEDS_SYNC,false);
-								cv.put(PathSets.LAST_CHECKED,new AcalDateTime().fmtIcal());
-								cr.update(PathSets.CONTENT_URI, cv,
-											PathSets.SERVER_ID+"="+serverId+" AND "+PathSets.PATH+"=?",
-											new String[] {homeSet});
-							}
-						}
-						else {
-							if ( updateCollectionFromPropstat( collectionPath, propstat ) ) {
-								deleteList.remove(collectionPath);
-							}
-						}
-					}
-				}
-
-				//Remove subtree to free up memory
-				root.removeSubTree(response);
-			}
-			
-			if ( !deleteList.isEmpty() ) {
-				StringBuilder deleteIn = null;
-				for( Entry<String,ContentValues> d : deleteList.entrySet() ) {
-					if ( deleteIn == null ) {
-						deleteIn = new StringBuilder(DavCollections.SERVER_ID);
-						deleteIn.append("=");
-						deleteIn.append(serverId);
-						deleteIn.append(" AND ");
-						deleteIn.append(DavCollections._ID);
-						deleteIn.append(" IN (");
-					}
-					else {
-						deleteIn.append(",");
-					}
-					deleteIn.append(d.getValue().getAsInteger(DavCollections._ID));
-
-					aCalService.databaseDispatcher.dispatchEvent(
-								new DatabaseChangedEvent(DatabaseChangedEvent.DATABASE_RECORD_DELETED,
-											DavCollections.class,
-											d.getValue()) );
-				}
-				deleteIn.append(")");
-				if ( Constants.LOG_DEBUG ) { Log.d(TAG,"Deleting collections from DB where:");
-					Log.d(TAG,deleteIn.toString());
-				}
-				cr.delete(DavCollections.CONTENT_URI, deleteIn.toString(), null);
-			}
-	
-		} catch (Exception ex2) {
-			Log.e(TAG,"Unknown error when updating collections within home sets: "+ex2.getMessage());
-			Log.e(TAG,Log.getStackTraceString(ex2));
-		}
-	}
 
 	@Override
 	public String getDescription() {

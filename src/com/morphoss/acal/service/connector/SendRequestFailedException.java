@@ -27,4 +27,8 @@ public class SendRequestFailedException extends IOException {
 	 */
 	private static final long serialVersionUID = -860438182377989830L;
 
+	public SendRequestFailedException(String msg) {
+		super(msg);
+	}
+
 }

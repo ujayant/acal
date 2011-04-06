@@ -43,7 +43,7 @@ import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.providers.DavResources;
 import com.morphoss.acal.providers.Servers;
 import com.morphoss.acal.service.SynchronisationJobs.WriteActions;
-import com.morphoss.acal.service.connector.ConnectorRequestError;
+import com.morphoss.acal.service.connector.AcalRequestor;
 import com.morphoss.acal.xml.DavNode;
 
 public class InitialCollectionSync extends ServiceJob {
@@ -54,6 +54,7 @@ public class InitialCollectionSync extends ServiceJob {
 	private boolean isCollectionIdAssigned = false;
 	private boolean collectionNeedsSync = false;
 
+	private AcalRequestor 		requestor;
 	
 	private static final String TAG = "aCal InitialCollectionSync";
 	private ContentResolver cr;
@@ -108,7 +109,19 @@ public class InitialCollectionSync extends ServiceJob {
 		collectionNeedsSync = false;
 
 		if (Constants.LOG_DEBUG) Log.d(TAG, "Starting initial sync process for server " + serverId + ", Collection: " + collectionPath);
-		ContentValues serverData = SynchronisationJobs.getServerData(serverId, cr);
+		ContentValues serverData;
+		try {
+			// get serverData
+			serverData = SynchronisationJobs.getServerData(serverId, cr);
+			if (serverData == null) throw new Exception("No record for ID " + serverId);
+			requestor = AcalRequestor.fromServerValues(serverData);
+			requestor.setPath(collectionPath);
+		}
+		catch (Exception e) {
+			// Error getting data
+			Log.e(TAG, "Error getting server data from DB: " + e.getMessage());
+			return;
+		}
 		
 		if ( null == serverData.getAsInteger(Servers.HAS_SYNC) || 0 == serverData.getAsInteger(Servers.HAS_SYNC) ) {
 			Log.i(TAG, "Skipping initial sync process since server does not support WebDAV synchronisation");
@@ -116,21 +129,19 @@ public class InitialCollectionSync extends ServiceJob {
 		}
 		else {
 	
-			try {
-				DavNode root = SynchronisationJobs.getXmlTree(serverId, "REPORT", collectionPath,
-										syncHeaders, syncData, serverData, 5);
-				if ( root == null ) {
-					Log.w(TAG, "Unable to do intial sync - no XML data from server.");
-					collectionNeedsSync = true;
-				}
-				else {
-					processSyncToDatabase(root);
-				}
+			DavNode root = requestor.doXmlRequest("REPORT", collectionPath, syncHeaders, syncData);
+			if (requestor.getStatusCode() == 404) {
+				Log.i(TAG, "Sync REPORT got 404 on " + collectionPath + " so a HomeSetsUpdate is being scheduled.");
+				ServiceJob sj = new HomeSetsUpdate(serverId);
+				context.addWorkerJob(sj);
+				return;
 			}
-			catch (ConnectorRequestError re) {
-				if (re.getStatus() == 404) {
-					Log.i(TAG, "Sync REPORT got 404 on " + collectionPath + " so we'll give up on this one.");
-				}
+			if ( root == null ) {
+				Log.w(TAG, "Unable to do intial sync - no XML data from server.");
+				collectionNeedsSync = true;
+			}
+			else {
+				processSyncToDatabase(root);
 			}
 		}
 

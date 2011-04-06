@@ -214,4 +214,14 @@
 <string name="changeAllInstances">All Instances</string>
 <string name="changeThisAndFuture">This and all future instances</string>
 
+<string name="internetNotAvailable">The internet is not currently available</string>
+<string name="couldNotDiscoverPort">Could not discover HTTP port for CalDAV server</string>
+<string name="couldNotDiscoverPrincipal">Could not discover principal path - using supplied values.</string>
+<string name="foundPrincipalPath">Found server principal path at &quot;%s&quot;</string>
+<string name="serverSupportsCalDAV">Server supports CalDAV.</string>
+<string name="serverLacksCalDAV">Server does not support CalDAV.</string>
+<string name="serverFailedValidation">There was an error validating the server:</string>
+<string name="saveSettingsAnyway">Would you like to save these settings anyway?</string>
+<string name="serverValidationSuccess">Server validation was successful.</string>
+
 </resources>
