@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-04-02 13:59+1300\n"
+"POT-Creation-Date: 2011-04-06 17:49+1200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -572,3 +572,30 @@ msgstr "All Instances"
 
 msgid "changeThisAndFuture"
 msgstr "This and all future instances"
+
+msgid "internetNotAvailable"
+msgstr "The internet is not currently available"
+
+msgid "couldNotDiscoverPort"
+msgstr "Could not discover HTTP port for CalDAV server"
+
+msgid "couldNotDiscoverPrincipal"
+msgstr "Could not discover principal path - using supplied values."
+
+msgid "foundPrincipalPath"
+msgstr "Found server principal path at &quot;%s&quot;"
+
+msgid "serverSupportsCalDAV"
+msgstr "Server supports CalDAV."
+
+msgid "serverLacksCalDAV"
+msgstr "Server does not support CalDAV."
+
+msgid "serverFailedValidation"
+msgstr "There was an error validating the server:"
+
+msgid "saveSettingsAnyway"
+msgstr "Would you like to save these settings anyway?"
+
+msgid "serverValidationSuccess"
+msgstr "Server validation was successful."
