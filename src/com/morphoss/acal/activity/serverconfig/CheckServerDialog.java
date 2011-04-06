@@ -157,12 +157,18 @@ public class CheckServerDialog implements Runnable {
 			}
 
 			// Step 2, Try some PROPFIND requests to find a principal path
-			boolean discovered = false;
+			boolean discovered	= false;
+			boolean authOK		= false;
+			boolean authFailed	= false;
 			if ( serverData.getAsString(Servers.PRINCIPAL_PATH) != null ) {
 				discovered = doPropfindPrincipal(serverData.getAsString(Servers.PRINCIPAL_PATH));
+				if ( requestor.getStatusCode() < 300 ) authOK = true;
+				else if ( requestor.getStatusCode() == 401 ) authFailed = true;
 			}
 			if ( !discovered && serverData.getAsString(Servers.SUPPLIED_PATH) != null ) {
 				discovered = doPropfindPrincipal(serverData.getAsString(Servers.SUPPLIED_PATH));
+				if ( requestor.getStatusCode() < 300 ) authOK = true; 
+				else if ( requestor.getStatusCode() == 401 ) authFailed = true;
 			}
 			if ( !discovered ) {
 				String[] tryForPaths = {
@@ -172,11 +178,15 @@ public class CheckServerDialog implements Runnable {
 						};
 				for (int i = 0; !discovered && i < tryForPaths.length; i++) {
 					discovered = doPropfindPrincipal(tryForPaths[i]);
+					if ( requestor.getStatusCode() < 300 ) authOK = true; 
+					else if ( requestor.getStatusCode() == 401 ) authFailed = true;
 				}
 			}
 
 			if ( !discovered ) {
 				successMessages.add(context.getString(R.string.couldNotDiscoverPrincipal));
+				if ( authFailed && !authOK )
+					successMessages.add(context.getString(R.string.authenticationFailed));
 			}
 			else {
 				successMessages.add(String.format(context.getString(R.string.foundPrincipalPath), requestor.fullUrl()));
