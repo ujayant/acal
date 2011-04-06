@@ -42,6 +42,7 @@ sub extract_po_file {
       my $msgid = $1;
       my $msgstr = $2;
       $msgstr =~ s{\\'}{'}g;
+      $msgstr =~ s/"/&quot;/g;
       printf( XGETTEXT 'msgid "%s"%s', $msgid, "\n" );
       printf( XGETTEXT 'msgstr "%s"%s', $msgstr, "\n\n" );
     };
