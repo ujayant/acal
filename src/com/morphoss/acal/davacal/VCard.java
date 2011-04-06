@@ -18,9 +18,6 @@
 
 package com.morphoss.acal.davacal;
 
-import com.morphoss.acal.davacal.VComponent.ComponentParts;
-
-import android.content.ContentValues;
 
 public class VCard extends VComponent {
 

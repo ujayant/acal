@@ -18,7 +18,6 @@
 
 package com.morphoss.acal.activity.serverconfig;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -46,7 +45,6 @@ import com.morphoss.acal.providers.Servers;
 import com.morphoss.acal.service.connector.AcalRequestor;
 import com.morphoss.acal.service.connector.SendRequestFailedException;
 import com.morphoss.acal.xml.DavNode;
-import com.morphoss.acal.xml.DavXmlTreeBuilder;
 
 
 /**

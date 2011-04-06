@@ -23,7 +23,6 @@ import java.util.List;
 import android.content.Context;
 
 import com.morphoss.acal.R;
-import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.acaltime.AcalRepeatRule.RRuleFreqType;
 
 /**

@@ -33,10 +33,8 @@ import android.util.Log;
 
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.HashCodeUtil;
-import com.morphoss.acal.R;
 import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.davacal.AcalProperty;
-import com.morphoss.acal.service.aCalService;
 
 /**
  * <h1>AcalDateTime</h1>

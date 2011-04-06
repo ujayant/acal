@@ -18,9 +18,6 @@
 
 package com.morphoss.acal.service;
 
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -33,7 +30,6 @@ import com.morphoss.acal.Constants;
 import com.morphoss.acal.DatabaseChangedEvent;
 import com.morphoss.acal.DatabaseEventDispatcher;
 import com.morphoss.acal.R;
-import com.morphoss.acal.activity.MonthView;
 
 public class aCalService extends Service {
 

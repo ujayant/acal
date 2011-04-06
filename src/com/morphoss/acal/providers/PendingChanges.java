@@ -31,10 +31,8 @@ import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.morphoss.acal.DatabaseChangedEvent;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.database.AcalDBHelper;
-import com.morphoss.acal.service.aCalService;
 
 /**
  * <p>This ContentProvider interfaces with the pending_change table in the database.</p>

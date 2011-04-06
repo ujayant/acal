@@ -18,13 +18,6 @@
 
 package com.morphoss.acal.providers;
 
-import com.morphoss.acal.Constants;
-import com.morphoss.acal.DatabaseChangedEvent;
-import com.morphoss.acal.ServiceManager;
-import com.morphoss.acal.activity.CollectionConfigList;
-import com.morphoss.acal.database.AcalDBHelper;
-import com.morphoss.acal.service.aCalService;
-
 import android.content.ContentProvider;
 import android.content.ContentResolver;
 import android.content.ContentUris;
@@ -37,10 +30,13 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
-import android.os.RemoteException;
 import android.text.TextUtils;
 import android.util.Log;
-import android.widget.Toast;
+
+import com.morphoss.acal.Constants;
+import com.morphoss.acal.DatabaseChangedEvent;
+import com.morphoss.acal.database.AcalDBHelper;
+import com.morphoss.acal.service.aCalService;
 
 /**
  * <p>This ContentProvider interfaces with the dav_collection table in the database.</p>
