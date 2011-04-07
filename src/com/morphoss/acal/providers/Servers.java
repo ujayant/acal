@@ -18,10 +18,6 @@
 
 package com.morphoss.acal.providers;
 
-import com.morphoss.acal.DatabaseChangedEvent;
-import com.morphoss.acal.database.AcalDBHelper;
-import com.morphoss.acal.service.aCalService;
-
 import android.content.ContentProvider;
 import android.content.ContentUris;
 import android.content.ContentValues;
@@ -34,6 +30,11 @@ import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
+
+import com.morphoss.acal.DatabaseChangedEvent;
+import com.morphoss.acal.StaticHelpers;
+import com.morphoss.acal.database.AcalDBHelper;
+import com.morphoss.acal.service.aCalService;
 
 /**
  * <P>This ContentProvider interfaces with the dav_server table in the database.</P>
@@ -265,4 +266,33 @@ public class Servers extends ContentProvider {
 		}
 
 	}
+
+	/**
+	 * Static method to clone <em>only</em> valid database fields into a new object.
+	 * @param serverData
+	 * @return
+	 */
+	public static ContentValues cloneValidColumns(ContentValues serverData) {
+		ContentValues cloned = new ContentValues();
+		StaticHelpers.copyContentValue(cloned, serverData, _ID);
+		StaticHelpers.copyContentValue(cloned, serverData, FRIENDLY_NAME);
+		StaticHelpers.copyContentValue(cloned, serverData, LAST_CHECKED);
+		StaticHelpers.copyContentValue(cloned, serverData, SUPPLIED_DOMAIN);
+		StaticHelpers.copyContentValue(cloned, serverData, SUPPLIED_PATH);
+		StaticHelpers.copyContentValue(cloned, serverData, HOSTNAME);
+		StaticHelpers.copyContentValue(cloned, serverData, PRINCIPAL_PATH);
+		StaticHelpers.copyContentValue(cloned, serverData, USERNAME);
+		StaticHelpers.copyContentValue(cloned, serverData, PASSWORD);
+		StaticHelpers.copyContentValue(cloned, serverData, PORT);
+		StaticHelpers.copyContentValue(cloned, serverData, AUTH_TYPE);
+		StaticHelpers.copyContentValue(cloned, serverData, HAS_SRV);
+		StaticHelpers.copyContentValue(cloned, serverData, HAS_WELLKNOWN);
+		StaticHelpers.copyContentValue(cloned, serverData, HAS_CALDAV);
+		StaticHelpers.copyContentValue(cloned, serverData, HAS_MULTIGET);
+		StaticHelpers.copyContentValue(cloned, serverData, HAS_SYNC);
+		StaticHelpers.copyContentValue(cloned, serverData, ACTIVE);
+		StaticHelpers.copyContentValue(cloned, serverData, USE_SSL);
+		return cloned;
+	}
+
 }

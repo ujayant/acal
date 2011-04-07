@@ -21,6 +21,8 @@ package com.morphoss.acal;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import android.content.ContentValues;
+
 
 public final class StaticHelpers {
 
@@ -83,6 +85,11 @@ public final class StaticHelpers {
 		return ret;
 	}
 	
+	/**
+	 * Capitalise words in a sentence, apart from some specifically excepted ones.
+	 * @param boring
+	 * @return
+	 */
 	public static String capitaliseWords( String boring ) {
 		final Pattern wordSplitter = Pattern.compile("\\b(\\w+)\\b", Pattern.CASE_INSENSITIVE | Pattern.DOTALL );
 		StringBuffer capped = new StringBuffer();
@@ -98,6 +105,11 @@ public final class StaticHelpers {
 	}
 
 	static final char[] HEXES = new char[] {'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
+	/**
+	 * Convert a byte array into a hex string
+	 * @param raw
+	 * @return
+	 */
 	public static String toHexString( byte[] raw ) {
 		if (raw == null) {
 			return null;
@@ -107,6 +119,11 @@ public final class StaticHelpers {
 			hex.append(HEXES[(b & 0xF0) >> 4]).append(HEXES[(b & 0x0F)]);
 		}
 		return hex.toString();
+	}
+
+	public static void copyContentValue(ContentValues cloned, ContentValues serverData, String columnName) {
+		String aValue = serverData.getAsString(columnName);
+		if ( aValue != null ) cloned.put(columnName, aValue);
 	}
 	
 }

@@ -314,9 +314,8 @@ public class ServerConfiguration extends PreferenceActivity implements OnPrefere
 	 * CREATE mode to EDIT mode if update was successful.</p>
 	 */
 	private void createRecord() {
-		serverData.remove(MODEKEY);
 		try {
-			Uri result = getContentResolver().insert(Servers.CONTENT_URI, serverData);
+			Uri result = getContentResolver().insert(Servers.CONTENT_URI, Servers.cloneValidColumns(serverData));
 			int id = Integer.parseInt(result.getPathSegments().get(0));
 			if (id < 0) throw new Exception("Failed to add server");
 			serverData.put(Servers._ID, id);
@@ -338,9 +337,7 @@ public class ServerConfiguration extends PreferenceActivity implements OnPrefere
 	 */
 	private void updateRecord() {
 		Uri provider = ContentUris.withAppendedId(Servers.CONTENT_URI, serverData.getAsInteger(Servers._ID));
-		serverData.remove(MODEKEY);
-		getContentResolver().update(provider, serverData, null, null);
-		serverData.put(MODEKEY, MODE_EDIT);
+		getContentResolver().update(provider, Servers.cloneValidColumns(serverData), null, null);
 	}
 
 	
