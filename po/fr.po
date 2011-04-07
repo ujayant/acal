@@ -7,9 +7,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: aCal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-03-27 22:05+1300\n"
-"PO-Revision-Date: 2011-04-01 18:52+0000\n"
-"Last-Translator: tikismoke <webmaster@tikijs.dyndns.org>\n"
+"POT-Creation-Date: 2011-04-06 17:49+1200\n"
+"PO-Revision-Date: 2011-04-07 00:00+0000\n"
+"Last-Translator: karora <andrew@mcmillan.net.nz>\n"
 "Language-Team: French <None>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -456,8 +456,26 @@ msgstr "Chaque week-end"
 msgid "EveryDay"
 msgstr "Quotidien"
 
+msgid "EveryWeek"
+msgstr "Hebdomadaire"
+
+msgid "EveryMonth"
+msgstr "Mensuel"
+
 msgid "EveryYear"
 msgstr "Annuel"
+
+msgid "EveryNDays"
+msgstr "Tous les %s jours"
+
+msgid "EveryNWeeks"
+msgstr "Toutes les %s semaine"
+
+msgid "EveryNMonths"
+msgstr "Tous les %s mois"
+
+msgid "EveryNYears"
+msgstr "Toutes les %s années"
 
 msgid "EveryMonday"
 msgstr "Tous les Lundi"
@@ -515,6 +533,27 @@ msgstr "Quels sont les instances à changer?"
 msgid "ChooseRepeatFrequency"
 msgstr "Choisissez une fréquence de répétition"
 
+msgid "Add_Alarm"
+msgstr "Ajouter une alarme"
+
+msgid "errorMustHaveActiveCalendar"
+msgstr "Impossible de modifier un événement sans calendrier actif."
+
+msgid "errorSavingFile"
+msgstr "Erreur d'enregistrement du fichier"
+
+msgid "ServerDataSaved"
+msgstr "Données de serveur écrite. Nom du fichier:"
+
+msgid "NewManualServerConfiguration"
+msgstr "Configuration manuelle"
+
+msgid "ManualServerConfigurationBlurb"
+msgstr "Entrer manuellement les informations du serveur"
+
+msgid "SavedServerConfigurationBlurb"
+msgstr "Une configuration de serveur sauvegardé"
+
 msgid "alarmAtEventTime"
 msgstr "A l'heure"
 
@@ -544,3 +583,30 @@ msgstr "Toutes les instances"
 
 msgid "changeThisAndFuture"
 msgstr "Cette instances et toutes les suivantes"
+
+msgid "internetNotAvailable"
+msgstr ""
+
+msgid "couldNotDiscoverPort"
+msgstr ""
+
+msgid "couldNotDiscoverPrincipal"
+msgstr ""
+
+msgid "foundPrincipalPath"
+msgstr ""
+
+msgid "serverSupportsCalDAV"
+msgstr ""
+
+msgid "serverLacksCalDAV"
+msgstr ""
+
+msgid "serverFailedValidation"
+msgstr ""
+
+msgid "saveSettingsAnyway"
+msgstr ""
+
+msgid "serverValidationSuccess"
+msgstr ""

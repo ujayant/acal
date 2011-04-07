@@ -2,22 +2,22 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: aCal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-03-27 22:05+1300\n"
-"PO-Revision-Date: 2011-03-29 00:40-03:00\n"
-"Last-Translator: Samuel Ribeiro da Costa Vale <srcvale@minaslivre.org>\n"
-"Language-Team: Brazilian Portuguese <None>\n"
-"Language: pt_BR\n"
+"POT-Creation-Date: 2011-04-06 17:49+1200\n"
+"PO-Revision-Date: 2011-04-07 00:00+0000\n"
+"Last-Translator: karora <andrew@mcmillan.net.nz>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: pt_BR\n"
 "Plural-Forms: nplurals=2; plural=(n > 1)\n"
 
-# Strings that should not be localised belong in unlocalisable_strings.xml 
+# Strings that should not be localised belong in unlocalisable_strings.xml
 msgid "theDayEachWeekStartsWith"
 msgstr "O dia de início da semana"
 
@@ -32,9 +32,9 @@ msgstr "Cancelar"
 
 msgid "appDescription"
 msgstr ""
-"Uma agenda para Android que armazena seus compromissos, tarefas, anotações e"
-"contatos em um servidor CalDAV / CardDAV remoto, como o DAViCal (Veja: http://"
-"davical.org)"
+"Uma agenda para Android que armazena seus compromissos, tarefas, anotações "
+"econtatos em um servidor CalDAV / CardDAV remoto, como o DAViCal (Veja: "
+"http://davical.org)"
 
 msgid "Active"
 msgstr "Ativo"
@@ -358,7 +358,8 @@ msgid "Snooze_PrefTitle"
 msgstr "Tempo de espera"
 
 msgid "Snooze_PrefSummary"
-msgstr "Quantos minutos devem ser esperados quando utilizada a função de espera"
+msgstr ""
+"Quantos minutos devem ser esperados quando utilizada a função de espera"
 
 msgid "DefaultCollection_PrefTitle"
 msgstr "Coleção padrão"
@@ -447,8 +448,26 @@ msgstr "Todos os fins de semana"
 msgid "EveryDay"
 msgstr "Diariamente"
 
+msgid "EveryWeek"
+msgstr ""
+
+msgid "EveryMonth"
+msgstr ""
+
 msgid "EveryYear"
 msgstr "Anualmente"
+
+msgid "EveryNDays"
+msgstr ""
+
+msgid "EveryNWeeks"
+msgstr ""
+
+msgid "EveryNMonths"
+msgstr ""
+
+msgid "EveryNYears"
+msgstr ""
 
 msgid "EveryMonday"
 msgstr "Toda segunda-feira"
@@ -504,6 +523,27 @@ msgstr "Que instâncias do compromisso serão alteradas?"
 msgid "ChooseRepeatFrequency"
 msgstr "Escolha a frequência de repetição"
 
+msgid "Add_Alarm"
+msgstr ""
+
+msgid "errorMustHaveActiveCalendar"
+msgstr ""
+
+msgid "errorSavingFile"
+msgstr ""
+
+msgid "ServerDataSaved"
+msgstr ""
+
+msgid "NewManualServerConfiguration"
+msgstr ""
+
+msgid "ManualServerConfigurationBlurb"
+msgstr ""
+
+msgid "SavedServerConfigurationBlurb"
+msgstr ""
+
 msgid "alarmAtEventTime"
 msgstr "Na hora do compromisso"
 
@@ -533,3 +573,30 @@ msgstr "Todas as instâncias"
 
 msgid "changeThisAndFuture"
 msgstr "Esta e todas as instâncias futuras"
+
+msgid "internetNotAvailable"
+msgstr ""
+
+msgid "couldNotDiscoverPort"
+msgstr ""
+
+msgid "couldNotDiscoverPrincipal"
+msgstr ""
+
+msgid "foundPrincipalPath"
+msgstr ""
+
+msgid "serverSupportsCalDAV"
+msgstr ""
+
+msgid "serverLacksCalDAV"
+msgstr ""
+
+msgid "serverFailedValidation"
+msgstr ""
+
+msgid "saveSettingsAnyway"
+msgstr ""
+
+msgid "serverValidationSuccess"
+msgstr ""

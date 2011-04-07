@@ -7,9 +7,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: aCal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-04-02 13:59+1300\n"
-"PO-Revision-Date: 2011-04-04 11:08+0000\n"
-"Last-Translator: roerch <transifex@roerch.ping.de>\n"
+"POT-Creation-Date: 2011-04-06 17:49+1200\n"
+"PO-Revision-Date: 2011-04-07 00:00+0000\n"
+"Last-Translator: SunTsu <transifex.20.suntsu@spamgourmet.com>\n"
 "Language-Team: German <>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -144,7 +144,7 @@ msgid "appActivityAddServerList"
 msgstr "Servervorlagen"
 
 msgid "appActivityCollectionConfigList"
-msgstr "Kalendar und Adressbuch"
+msgstr "Kalender und Adressbuch"
 
 msgid "appActivityDebugSettings"
 msgstr "Debug-Einstellungen"
@@ -357,7 +357,7 @@ msgid "YearViewSize_PrefSummary"
 msgstr "Anzahl der Monate die in der Jahresansicht sichtbar sind"
 
 msgid "Snooze_PrefTitle"
-msgstr "Snooze Zeit"
+msgstr "Snooze Zeitraum"
 
 msgid "Snooze_PrefSummary"
 msgstr ""
@@ -374,7 +374,7 @@ msgid "DefaultAlarmTone_PrefTitle"
 msgstr "Standard Erinnerungsmelodie"
 
 msgid "DefaultAlarmTone_PrefSummary"
-msgstr "Standard Erinnerungsmelodie für Erinnerungen"
+msgstr "Standard Erinnerungsmelodie für Benachrichtigungen"
 
 msgid "Today"
 msgstr "Heute"
@@ -507,7 +507,7 @@ msgid "ModifiedAllInstances"
 msgstr "Alle Vorkommnisse dieses Ereignisses bearbeitet."
 
 msgid "ModifiedOneInstance"
-msgstr "Einen einzelnen Auftritt des Ereignisses bearbeitet."
+msgstr "Einen einzelnes Ereignis bearbeitet."
 
 msgid "ModifiedThisAndFuture"
 msgstr ""
@@ -579,3 +579,32 @@ msgstr "Alle Vorkommnisse"
 
 msgid "changeThisAndFuture"
 msgstr "Dieses und alle zukünftigen Vorkommnisse"
+
+msgid "internetNotAvailable"
+msgstr "Keine Internetverbindung verfügbar"
+
+msgid "couldNotDiscoverPort"
+msgstr "HTTP Port des CalDAV Servers konnte nicht ermittelt werden"
+
+msgid "couldNotDiscoverPrincipal"
+msgstr ""
+"Der \"Principal\" Pfad des Servers konnte nicht ermittelt werden - benutze "
+"die Vorgaben des Benutzers."
+
+msgid "foundPrincipalPath"
+msgstr "\"Principal\" Pfad des Servers unter &quot;%s&quot; gefunden"
+
+msgid "serverSupportsCalDAV"
+msgstr "Server unterstützt CalDAV."
+
+msgid "serverLacksCalDAV"
+msgstr "Server unterstützt CalDAV nicht."
+
+msgid "serverFailedValidation"
+msgstr "Es gab einen Fehler bei der Überprüfung des Servers."
+
+msgid "saveSettingsAnyway"
+msgstr "Möchten Sie diese Einstellungen trotzdem speichern?"
+
+msgid "serverValidationSuccess"
+msgstr "Serverüberprüfung war erfolgreich."
