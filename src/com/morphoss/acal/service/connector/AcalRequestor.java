@@ -102,14 +102,29 @@ public class AcalRequestor {
 	private SchemeRegistry schemeRegistry;
 	private Header responseHeaders[];
 	private int statusCode = -1;
-	private int connectionTimeOut = 60000;
+	private int connectionTimeOut = 30000;
+	private int socketTimeOut = 60000;
 	private int redirectLimit = 5;
 	private int redirectCount = 0;
 
 	
+	/**
+	 * Construct an uninitialised AcalRequestor.  After calling this you will need to
+	 * initialise things by either calling setFromServer() or interpretUriString() before
+	 * you will be able to make a request. 
+	 */
 	public AcalRequestor() {
 	}
 
+	/**
+	 * Construct a new contentvalues from these path components.
+	 * @param hostIn
+	 * @param proto
+	 * @param portIn
+	 * @param pathIn
+	 * @param user
+	 * @param pass
+	 */
 	public AcalRequestor( String hostIn, Integer proto, Integer portIn, String pathIn, String user, String pass ) {
 		hostName = hostIn;
 		setPortProtocol(portIn,proto);
@@ -120,13 +135,26 @@ public class AcalRequestor {
 		initialise();
 	}
 
+	/**
+	 * Construct a new AcalRequestor from the values in a ContentValues which has been read
+	 * from a Server row in the database.  The path will be set to the principal-path value
+	 * so you may need to specify a different path on the actual request(s).
+	 * @param cvServerData
+	 * @return
+	 */
 	public static AcalRequestor fromServerValues( ContentValues cvServerData ) {
 		AcalRequestor result = new AcalRequestor();
 		result.setFromServer(cvServerData);
 		return result;
 	}
 
-	
+
+	/**
+	 * Adjust the current URI values to align with those in a ContentValues which has been read
+	 * from a Server row in the database.  The path will be set to the principal-path value
+	 * so you may need to specify a different path on the actual request(s)
+	 * @param cvServerData
+	 */
 	public void setFromServer( ContentValues cvServerData ) {
 		String hostName = cvServerData.getAsString(Servers.HOSTNAME);
 		if ( hostName == null || hostName.equals("") ) {
@@ -141,6 +169,8 @@ public class AcalRequestor {
 		setPath(requestPath);
 		setPortProtocol(cvServerData.getAsInteger(Servers.PORT),cvServerData.getAsInteger(Servers.USE_SSL));
 
+		setAuthType(cvServerData.getAsInteger(Servers.AUTH_TYPE));
+		authRequired = ( authType != Servers.AUTH_NONE );
 		username = cvServerData.getAsString(Servers.USERNAME);
 		password = cvServerData.getAsString(Servers.PASSWORD);
 
@@ -150,15 +180,9 @@ public class AcalRequestor {
 	
 	private void initialise() {
 		if ( userAgent == null ) {
-			try {
-				userAgent = aCalService.aCalVersion;
-			}
-			catch ( Exception e ){
-				if ( Constants.LOG_DEBUG ) Log.d(TAG, "Couldn't assign userAgent from aCalService.aCalVersion");
-				if ( Constants.LOG_DEBUG ) Log.d(TAG,Log.getStackTraceString(e));
-			}
+			userAgent = aCalService.aCalVersion;
 	
-	// User-Agent: aCal/0.3 (google; Nexus One; passion; HTC; passion; FRG83D)  Android/2.2.1 (75603)
+			// User-Agent: aCal/0.3 (google; Nexus One; passion; HTC; passion; FRG83D)  Android/2.2.1 (75603)
 			userAgent += " (" + Build.BRAND + "; " + Build.MODEL + "; " + Build.PRODUCT + "; "
 						+ Build.MANUFACTURER + "; " + Build.DEVICE + "; " + Build.DISPLAY + "; " + Build.BOARD + ") "
 						+ " Android/" + Build.VERSION.RELEASE + " (" + Build.VERSION.INCREMENTAL + ")";
@@ -178,7 +202,11 @@ public class AcalRequestor {
 	}
 
 
-	
+	/**
+	 * Takes the current AcalRequestor values and applies them to the Server ContentValues
+	 * to be saved back in the database.  Used during the server discovery process.
+	 * @param cvServerData
+	 */
 	public void applySettings(ContentValues cvServerData) {
 		cvServerData.put(Servers.HOSTNAME, hostName);
 		cvServerData.put(Servers.USE_SSL, (protocol.equals("https")?1:0));
@@ -188,15 +216,29 @@ public class AcalRequestor {
 	}
 
 	
-	
+	/**
+	 * Retrieve the HTTP headers received with the most recent response. 
+	 * @return
+	 */
 	public Header[] getResponseHeaders() {
 		return this.responseHeaders;
 	}
-	
+
+	/**
+	 * Retrieve the HTTP status code of the most recent response.
+	 * @return
+	 */
 	public int getStatusCode() {
 		return this.statusCode;
 	}
-	
+
+	/**
+	 * Interpret the URI in the string to set protocol, host, port & path for the next request.
+	 * If the URI only matches a path part then protocol/host/port will be unchanged. This call
+	 * will only allow for path parts that are anchored to the web root.  This is generally used
+	 * internally for following Location: redirects.
+	 * @param uriString
+	 */
 	public void interpretUriString(String uriString) {
 		// Match a URL, including an ipv6 address like http://[DEAD:BEEF:CAFE:F00D::]:8008/
 		final Pattern uriMatcher = Pattern.compile(
@@ -236,6 +278,7 @@ public class AcalRequestor {
 				if ( Constants.LOG_VERBOSE ) Log.v(TAG,"Found redirect path '"+m.group(4)+"'");
 				setPath(m.group(4));
 			}
+			if ( !initialised ) initialise();
 		}
 		else {
 			m = pathMatcher.matcher(uriString);
@@ -340,16 +383,29 @@ public class AcalRequestor {
 	}
 
 	
+	/**
+	 * Get the current path used for the last request, or recently set.
+	 * @return
+	 */
 	public String getPath() {
 		return path;
 	}
 
 	
+	/**
+	 * Get the current authentication type used for the last request, or recently set.
+	 * @return
+	 */
 	public int getAuthType() {
 		return authType;
 	}
 
 	
+	/**
+	 * Set the port and protocol to the supplied values, with sanity checking.
+	 * @param newPort
+	 * @param newProtocol
+	 */
 	public void setPortProtocol(Integer newPort, Integer newProtocol) {
 		protocol = (newProtocol == null || newProtocol != 1 ? "http" : "https");
 		if ( newPort == null || newPort < 1 || newPort > 65535 || newPort == 80 || newPort == 443 )
@@ -358,16 +414,31 @@ public class AcalRequestor {
 			port = newPort;
 	}
 
-	
-	public void setTimeOut(int newTimeOut) {
-		if ( connectionTimeOut == newTimeOut ) return;
-		connectionTimeOut = newTimeOut;
+
+	/**
+	 * Set the timeouts to use for subsequent requests, in milliseconds. The connectionTimeOut
+	 * says how long to wait for the connection to be established, and the socketTimeOut says
+	 * how long to wait for data after the connection is established. 
+	 * @param newConnectionTimeOut
+	 * @param newSocketTimeOut
+	 */
+	public void setTimeOuts( int newConnectionTimeOut, int newSocketTimeOut ) {
+		if ( socketTimeOut == newSocketTimeOut && connectionTimeOut == newConnectionTimeOut ) return;
+		socketTimeOut = newSocketTimeOut;
+		connectionTimeOut = newConnectionTimeOut;
+		if ( !initialised ) return;
 		HttpParams params = httpClient.getParams();
+		params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT, socketTimeOut);
 		params.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, connectionTimeOut);
 		httpClient = new DefaultHttpClient(connManager, httpParams);
 	}
 
 	
+	/**
+	 * Set the path for the next request, with some sanity checking to force the path
+	 * to start with a '/'.
+	 * @param newPath
+	 */
 	public void setPath(String newPath) {
 		if ( newPath == null || newPath.equals("") ) {
 			path = "/";
@@ -380,7 +451,32 @@ public class AcalRequestor {
 			path = newPath;
 	}
 
+
+	/**
+	 * Set the authentication type to be used for the next request.
+	 * @param newAuthType
+	 */
+	public void setAuthType( Integer newAuthType ) {
+		if ( newAuthType == Servers.AUTH_BASIC || newAuthType == Servers.AUTH_DIGEST ) { 
+			authType = newAuthType;
+			return;
+		}
+		authType = Servers.AUTH_NONE;
+	}
+
 	
+	/**
+	 * Force the next request to use authentication pre-emptively.
+	 */
+	public void setAuthRequired() {
+		authRequired = true;
+	}
+
+	
+	/**
+	 * Return the current protocol/host/port/path as a URL.
+	 * @return
+	 */
 	public String fullUrl() {
 		return protocol
 				+ "://"
@@ -390,11 +486,16 @@ public class AcalRequestor {
 	}
 
 	
+	/**
+	 * Retrieve the unlocalised name of the authentication scheme currently in effect.
+	 * @return
+	 */
 	public String getAuthTypeName() {
 		switch (authType) {
+			// Only used in debug logging so don't need l10n
 			case Servers.AUTH_BASIC:	return "Basic";
 			case Servers.AUTH_DIGEST:	return "Digest";
-			default:					return "No";
+			default:					return "NoAuth";
 		}
 	}
 
@@ -426,8 +527,9 @@ public class AcalRequestor {
 		params.setParameter(CoreProtocolPNames.PROTOCOL_VERSION, HttpVersion.HTTP_1_1);
 		params.setParameter(CoreProtocolPNames.HTTP_CONTENT_CHARSET, HTTP.UTF_8);
 		params.setParameter(CoreProtocolPNames.USER_AGENT, userAgent );
+		params.setParameter(CoreConnectionPNames.SOCKET_BUFFER_SIZE,4096);
+		params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT, socketTimeOut);
 		params.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, connectionTimeOut);
-		params.setParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK, false);
 		params.setBooleanParameter(ClientPNames.HANDLE_REDIRECTS, false);
 		
 		return params;
@@ -435,12 +537,13 @@ public class AcalRequestor {
 
 
 	
-	private InputStream sendRequest( Header[] headers, Object data )
+	private InputStream sendRequest( Header[] headers, String entityString )
 									throws SendRequestFailedException, SSLException, AuthenticationFailure {
 		long down = 0;
 		long up = 0;
 		long start = System.currentTimeMillis();
 
+		if ( !initialised ) throw new IllegalStateException("AcalRequestor has not been initialised!");
 		statusCode = -1;
 		try {
 			// Create request and add headers and entity
@@ -451,8 +554,8 @@ public class AcalRequestor {
 			if ( authRequired && authType != Servers.AUTH_NONE)
 				request.addHeader(buildAuthHeader());
 			
-			if (data != null) {
-				request.setEntity(new StringEntity(data.toString(),"UTF-8"));
+			if (entityString != null) {
+				request.setEntity(new StringEntity(entityString.toString(),"UTF-8"));
 				up = request.getEntity().getContentLength();
 			}
 			
@@ -474,29 +577,29 @@ public class AcalRequestor {
 			}
 			HttpHost host = new HttpHost(this.hostName, requestPort, requestProtocol);
 
-			if ( Constants.LOG_DEBUG && Constants.debugDavCommunication ) {
-				Log.d(TAG, method+" "+this.fullUrl());
+			if ( Constants.LOG_VERBOSE && Constants.debugDavCommunication ) {
+				Log.v(TAG, method+" "+this.fullUrl());
 
 				for ( Header h : request.getAllHeaders() ) {
-					Log.d(TAG,"H>  "+h.getName()+":"+h.getValue() );
+					Log.v(TAG,"H>  "+h.getName()+":"+h.getValue() );
 				}
-				if (data != null) {
-					Log.d(TAG, "----------------------- vvv Request Body vvv -----------------------" );
-					for( String line : data.toString().split("\n") ) {
-						if ( line.length() == data.toString().length() ) {
+				if (entityString != null) {
+					Log.v(TAG, "----------------------- vvv Request Body vvv -----------------------" );
+					for( String line : entityString.toString().split("\n") ) {
+						if ( line.length() == entityString.toString().length() ) {
 							int end;
 							int length = line.length();
 							for( int pos=0; pos < length; pos += 120 ) {
 								end = pos+120;
 								if ( end > length ) end = length;
-								Log.d(TAG, "R>  " + line.substring(pos, end) );
+								Log.v(TAG, "R>  " + line.substring(pos, end) );
 							}
 						}
 						else {
-							Log.d(TAG, "R>  " + line.replaceAll("\r$", "") );
+							Log.v(TAG, "R>  " + line.replaceAll("\r$", "") );
 						}
 					}
-					Log.d(TAG, "----------------------- ^^^ Request Body ^^^ -----------------------" );
+					Log.v(TAG, "----------------------- ^^^ Request Body ^^^ -----------------------" );
 				}
 			}
 			
@@ -514,14 +617,14 @@ public class AcalRequestor {
 			long finish = System.currentTimeMillis();
 			double timeTaken = ((double)(finish-start))/1000.0;
 
-			if ( Constants.LOG_DEBUG && Constants.debugDavCommunication ) {
-				Log.d(TAG, "Response: "+statusCode+", Sent: "+up+", Received: "+down+", Took: "+timeTaken+" seconds");
+			if ( Constants.LOG_VERBOSE && Constants.debugDavCommunication ) {
+				Log.v(TAG, "Response: "+statusCode+", Sent: "+up+", Received: "+down+", Took: "+timeTaken+" seconds");
 				for (Header h : responseHeaders) {
-					Log.d(TAG,"H<  "+h.getName()+": "+h.getValue() );
+					Log.v(TAG,"H<  "+h.getName()+": "+h.getValue() );
 				}
 				if (entity != null) {
 					if ( Constants.LOG_DEBUG && Constants.debugDavCommunication ) {
-						Log.d(TAG, "----------------------- vvv Response Body vvv -----------------------" );
+						Log.v(TAG, "----------------------- vvv Response Body vvv -----------------------" );
 						BufferedReader r = new BufferedReader(new InputStreamReader(entity.getContent()));
 						StringBuilder total = new StringBuilder();
 						String line;
@@ -534,14 +637,14 @@ public class AcalRequestor {
 								for( int pos=0; pos < length; pos += 120 ) {
 									end = pos+120;
 									if ( end > length ) end = length;
-									Log.d(TAG, "R<  " + line.substring(pos, end) );
+									Log.v(TAG, "R<  " + line.substring(pos, end) );
 								}
 							}
 							else {
-								Log.d(TAG, "R<  " + line.replaceAll("\r$", "") );
+								Log.v(TAG, "R<  " + line.replaceAll("\r$", "") );
 							}
 						}
-						Log.d(TAG, "----------------------- ^^^ Response Body ^^^ -----------------------" );
+						Log.v(TAG, "----------------------- ^^^ Response Body ^^^ -----------------------" );
 						return new ByteArrayInputStream( total.toString().getBytes() );
 					}
 				}
@@ -578,13 +681,28 @@ public class AcalRequestor {
 	}
 
 
-	
-	public InputStream doRequest( String method, String path, Header[] headers, Object data ) throws SendRequestFailedException, SSLException {
+	/**
+	 * Do a new HTTP <method> request with these headers and entity (request body) against
+	 * this path (or the current path, if null).  The headers & entity may also be null in
+	 * some simple cases.
+	 * 
+	 * If the server requests Digest or Basic authentication a second request will be made
+	 * supplying these (if possible).  Likewise the method will follow up to five redirects
+	 * before giving up on a request.
+	 * @param method
+	 * @param path
+	 * @param headers
+	 * @param entity
+	 * @return
+	 * @throws SendRequestFailedException
+	 * @throws SSLException
+	 */
+	public InputStream doRequest( String method, String path, Header[] headers, String entity ) throws SendRequestFailedException, SSLException {
 		InputStream result = null;
 		this.method = method;
 		if ( path != null ) this.path = path;
 		try {
-			result = sendRequest( headers, data );
+			result = sendRequest( headers, entity );
 		}
 		catch (SSLException e) 					{ throw e; }
 		catch (SendRequestFailedException e)	{ throw e; }
@@ -597,7 +715,7 @@ public class AcalRequestor {
 			// we need to try again after we interpret the auth request.
 			try {
 				interpretRequestedAuth(getAuthHeader());
-				return sendRequest( headers, data );
+				return sendRequest( headers, entity );
 			}
 			catch (AuthenticationFailure e1) {
 				throw new SendRequestFailedException("Authentication Failed: "+e1.getMessage());
@@ -622,7 +740,7 @@ public class AcalRequestor {
 				Log.d(TAG, method + " " +oldUrl+" redirected to: "+fullUrl());
 			if ( redirectCount++ < redirectLimit ) {
 				// Follow redirect
-				return doRequest( method, null, headers, data ); 
+				return doRequest( method, null, headers, entity ); 
 			}
 		}
 
@@ -632,11 +750,12 @@ public class AcalRequestor {
 	
 	/**
 	 * <p>
-	 * Does an XML request against the collection path
+	 * Does an XML request against the specified path (or the previously set path, if null),
+	 * following redirects and returning the root DavNode of an XML tree.
 	 * </p>
 	 * 
 	 * @return <p>
-	 *         A DavNode which is the root of the multistatus response.
+	 *         A DavNode which is the root of the multistatus response, or null if it couldn't be parsed.
 	 *         </p>
 	 */
 	public DavNode doXmlRequest( String method, String requestPath, Header[] headers, String xml) {
