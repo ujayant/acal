@@ -1,37 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
 	android:layout_width="fill_parent" 
 	android:layout_height="fill_parent" 
 	android:orientation="vertical" 
 	android:background="@drawable/morphossbg">
-	
-	<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+	<LinearLayout 
 		android:layout_width="fill_parent" 
-		android:layout_height="500sp" android:layout_weight="1">
+		android:layout_height="fill_parent"
+		android:layout_weight="3">
+			
+			<TextView
+				android:id="@+id/week_view_corner"
+				android:layout_width="fill_parent" 
+				android:layout_height="fill_parent"
+				android:layout_weight="10"
+				style="@style/WV_header_corner_box"
+				/>
 		
-		<com.morphoss.acal.widget.AcalViewFlipper
-			android:id="@+id/month_grid_flipper" 
-			android:layout_width="fill_parent" 
-			android:layout_height="wrap_content"/>
-	
+		
+			<com.morphoss.acal.weekview.WeekViewHeader
+				android:id="@+id/week_view_header"
+				android:layout_width="fill_parent" 
+				android:layout_height="fill_parent"
+				android:layout_weight="1"
+			/>
 	</LinearLayout>
-	
-	
-	<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+ 
+ 	<LinearLayout 
 		android:layout_width="fill_parent" 
-		android:layout_height="fill_parent" android:layout_weight="1">
-		<com.morphoss.acal.widget.AcalViewFlipper
-			android:id="@+id/month_list_flipper" 
-			android:layout_width="fill_parent" 
-			android:layout_height="fill_parent"/>
-	</LinearLayout>
-	
+		android:layout_height="fill_parent"
+		android:layout_weight="1">
+ 
+ 			<com.morphoss.acal.weekview.WeekViewSideBar
+				android:id="@+id/week_view_sidebar"
+				android:layout_width="fill_parent" 
+				android:layout_height="fill_parent"
+				android:layout_weight="15"
+			/>
+			<LinearLayout 
+				android:layout_width="fill_parent" 
+				android:layout_height="fill_parent"
+				android:layout_weight="1"
+				android:orientation="vertical">
+ 				
+ 				<com.morphoss.acal.weekview.WeekViewMultiDay
+					android:id="@+id/week_view_multi_day"
+					android:layout_width="fill_parent" 
+					android:layout_height="fill_parent"
+					android:layout_weight="3"
+				/>
+ 				<com.morphoss.acal.weekview.WeekViewDays
+					android:id="@+id/week_view_days"
+					android:layout_width="fill_parent" 
+					android:layout_height="fill_parent"
+					android:layout_weight="1"
+				/>
+			</LinearLayout>
+ 	</LinearLayout>
 	<LinearLayout
 		android:id="@+id/button_layout" 
 		android:layout_width="fill_parent" 
 		android:gravity="bottom"
 		android:layout_height="50sp"
 		android:background="#50500000"
+
 		android:layout_gravity="bottom">
 	
 		<LinearLayout
@@ -39,7 +73,7 @@
 			android:layout_height="fill_parent"
 			android:layout_weight="1"
 			android:gravity="center" android:padding="0sp">
-			<Button android:id="@+id/month_today_button"
+			<Button android:id="@+id/year_today_button"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
 				style="@style/bottom_button"
@@ -52,33 +86,22 @@
 			android:layout_height="fill_parent"
 			android:layout_weight="1"
 			android:gravity="center" android:padding="0sp">
-			<Button android:id="@+id/month_week_button"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				style="@style/bottom_button"
-				android:text="@string/Week"
-				android:width="70sp"
-				android:layout_gravity="center" android:includeFontPadding="true" android:padding="0sp"/>
-		</LinearLayout>
-		<LinearLayout
-			android:layout_width="fill_parent" 
-			android:layout_height="fill_parent"
-			android:layout_weight="1"
-			android:gravity="center" android:padding="0sp">
-			<Button android:id="@+id/month_year_button"
+			<Button android:id="@+id/year_month_button"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
 				android:layout_gravity="center"
 				style="@style/bottom_button"
-				android:text="@string/Year"
-				android:width="70sp" android:includeFontPadding="true" android:padding="0sp"/>
+				android:text="@string/Month"
+				android:width="70sp" 
+				android:includeFontPadding="true" 
+				android:padding="0sp"/>
 		</LinearLayout>
 		<LinearLayout
 			android:layout_width="fill_parent" 
 			android:layout_height="fill_parent"
 			android:layout_weight="1"
 			android:gravity="center" android:padding="0sp">
-			<Button android:id="@+id/month_add_button"
+			<Button android:id="@+id/year_add_button"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
 				android:layout_gravity="center"
@@ -87,5 +110,4 @@
 				style="@style/bottom_add_button" android:includeFontPadding="true" android:padding="0sp" android:gravity="center_horizontal|center_vertical"/>
 		</LinearLayout>
 	</LinearLayout>
-
 </LinearLayout>

@@ -6,7 +6,7 @@
     <application 
     	android:icon="@drawable/icon" 
     	android:label="@string/appName" 
-    	android:debuggable="false" 
+    	android:debuggable="true" 
     	android:description="@string/appDescription"
         android:theme="@android:style/Theme.NoTitleBar">
     	
@@ -22,6 +22,18 @@
              <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+        
+        <activity 
+        	android:launchMode="standard" 
+        	android:name=".weekview.WeekViewActivity" 
+        	android:label="@string/appActivityWeekView" 
+        	android:icon="@drawable/icon">
+            <intent-filter>
+             	<action android:name="com.morphoss.acal.weekview.WeekViewActivity" />
+             	<category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        
         <activity android:launchMode="standard" android:name=".activity.serverconfig.ServerConfigList" android:label="@string/appActivityServerConfigList" android:icon="@drawable/icon" android:screenOrientation="portrait">
             <intent-filter>
              <action android:name="com.morphoss.acal.activity.serverconfig.ServerConfigList" />

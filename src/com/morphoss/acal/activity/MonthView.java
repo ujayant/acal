@@ -63,6 +63,7 @@ import com.morphoss.acal.dataservice.DataRequestCallBack;
 import com.morphoss.acal.davacal.AcalEvent;
 import com.morphoss.acal.davacal.AcalEventAction;
 import com.morphoss.acal.service.aCalService;
+import com.morphoss.acal.weekview.WeekViewActivity;
 import com.morphoss.acal.widget.AcalViewFlipper;
 
 /**
@@ -147,6 +148,7 @@ public class MonthView extends Activity implements OnGestureListener,
 
 	/* Fields relating to buttons */
 	public static final int TODAY = 0;
+	public static final int WEEK = 1;
 	public static final int YEAR = 2;
 	public static final int ADD = 3;
 
@@ -202,6 +204,7 @@ public class MonthView extends Activity implements OnGestureListener,
 
 		// Set up buttons
 		this.setupButton(R.id.month_today_button, TODAY, getString(R.string.Today));
+		this.setupButton(R.id.month_week_button, WEEK, getString(R.string.Week));
 		this.setupButton(R.id.month_year_button, YEAR, getString(R.string.Year));
 		this.setupButton(R.id.month_add_button, ADD, "+");
 
@@ -990,6 +993,13 @@ public class MonthView extends Activity implements OnGestureListener,
 			Intent eventEditIntent = new Intent(this, EventEdit.class);
 			eventEditIntent.putExtras(bundle);
 			this.startActivity(eventEditIntent);
+			break;
+		case WEEK:
+			bundle = new Bundle();
+			bundle.putParcelable("StartDay", selectedDate);
+			Intent weekIntent = new Intent(this, WeekViewActivity.class);
+			weekIntent.putExtras(bundle);
+			this.startActivity(weekIntent);
 			break;
 		case YEAR:
 			bundle = new Bundle();
