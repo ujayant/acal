@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: aCal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-03-27 22:05+1300\n"
-"PO-Revision-Date: 2011-03-28 20:41+0000\n"
+"POT-Creation-Date: 2011-04-06 17:49+1200\n"
+"PO-Revision-Date: 2011-04-07 18:44+0000\n"
 "Last-Translator: marc0s <marc0s@fsfe.org>\n"
 "Language-Team: Spanish (Spain) <None>\n"
 "MIME-Version: 1.0\n"
@@ -447,8 +447,26 @@ msgstr "Cada fin de semana"
 msgid "EveryDay"
 msgstr "Cada día"
 
+msgid "EveryWeek"
+msgstr "Cada semana"
+
+msgid "EveryMonth"
+msgstr "Cada mes"
+
 msgid "EveryYear"
 msgstr "Cada año"
+
+msgid "EveryNDays"
+msgstr "Cada N días"
+
+msgid "EveryNWeeks"
+msgstr "Cada N semanas"
+
+msgid "EveryNMonths"
+msgstr "Cada N meses"
+
+msgid "EveryNYears"
+msgstr "Cada N años"
 
 msgid "EveryMonday"
 msgstr "Cada lunes"
@@ -504,6 +522,27 @@ msgstr "¿Qué instancias cambiar?"
 msgid "ChooseRepeatFrequency"
 msgstr "Elige la frecuencia de repetición"
 
+msgid "Add_Alarm"
+msgstr "Añadir alarma"
+
+msgid "errorMustHaveActiveCalendar"
+msgstr "No se puede editar la cita sin un calendario activo."
+
+msgid "errorSavingFile"
+msgstr "Error guardando fichero."
+
+msgid "ServerDataSaved"
+msgstr "Datos del servidor guardados. Nombre del fichero:"
+
+msgid "NewManualServerConfiguration"
+msgstr "Configuración manual"
+
+msgid "ManualServerConfigurationBlurb"
+msgstr "Introducir manualmente la configuración del servidor"
+
+msgid "SavedServerConfigurationBlurb"
+msgstr "Una configuración de servidor guardada"
+
 msgid "alarmAtEventTime"
 msgstr "A la hora de la cita"
 
@@ -533,3 +572,32 @@ msgstr "Todas las instancias"
 
 msgid "changeThisAndFuture"
 msgstr "Ésta y todas las instancias futuras"
+
+msgid "internetNotAvailable"
+msgstr "Internet no está disponible"
+
+msgid "couldNotDiscoverPort"
+msgstr "No se ha podido encontrar el puerto HTTP para el servidor CalDAV"
+
+msgid "couldNotDiscoverPrincipal"
+msgstr ""
+"No se ha podido encontrar la ruta a la identidad - usando los valores "
+"propuestos"
+
+msgid "foundPrincipalPath"
+msgstr "Se ha encontrado la ruta a la identidad en &quot;%s&quot;"
+
+msgid "serverSupportsCalDAV"
+msgstr "El servidor soporta CalDAV"
+
+msgid "serverLacksCalDAV"
+msgstr "El servidor no tiene soporte CalDAV"
+
+msgid "serverFailedValidation"
+msgstr "Ha ocurrido un error validando el servidor:"
+
+msgid "saveSettingsAnyway"
+msgstr "¿Quieres guardar la configuración de todas maneras?"
+
+msgid "serverValidationSuccess"
+msgstr "La validación del serivdor ha sido satisfactoria."
