@@ -266,7 +266,7 @@ public class AlarmActivity extends Activity implements OnClickListener  {
 	@Override
 	public void onClick(View arg0) {
 		if (arg0 == mapButton) {
-			if (Constants.LOG_DEBUG)Log.d(TAG, "Starting Map");
+			if (Constants.LOG_DEBUG) Log.d(TAG, "Starting Map");
 			String loc = location.getText().toString();
 			//replace whitespaces with '+'
 			loc.replace("\\s", "+");
@@ -278,14 +278,16 @@ public class AlarmActivity extends Activity implements OnClickListener  {
 		if (arg0 == snoozeButton) {
 			if (Constants.LOG_DEBUG)Log.d(TAG, "Snoozing Alarm");
 			try {
+				if ( dataRequest == null ) connectToService();
 				this.dataRequest.snoozeAlarm(currentAlarm);
-			} catch (RemoteException e) {
+			} catch (Exception e) {
 				if (Constants.LOG_DEBUG)Log.e(TAG, "ERROR: Can't snooze alarm: "+e);
 			}
 		}
 		if (arg0 == dismissButton) {
 			if (Constants.LOG_DEBUG)Log.d(TAG, "Dismissing alarm.");
 			try {
+				if ( dataRequest == null ) connectToService();
 				this.dataRequest.dismissAlarm(currentAlarm);
 			} catch (Exception e) {
 				if (Constants.LOG_DEBUG)Log.e(TAG, "ERROR: Can't dismiss alarm: "+e);
