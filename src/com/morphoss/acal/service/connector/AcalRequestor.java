@@ -502,8 +502,8 @@ public class AcalRequestor {
 	
 	private String getLocationHeader() {
 		for( Header h : responseHeaders ) {
-			if (Constants.LOG_DEBUG && Constants.debugDavCommunication)
-				Log.d(TAG, "Header: " + h.getName() + ":" + h.getValue());
+			if (Constants.LOG_VERBOSE && Constants.debugDavCommunication)
+				Log.v(TAG, "Header: " + h.getName() + ":" + h.getValue());
 			if (h.getName().equalsIgnoreCase("Location"))
 				return h.getValue();
 		}
@@ -513,8 +513,8 @@ public class AcalRequestor {
 	
 	private Header getAuthHeader() {
 		for( Header h : responseHeaders ) {
-			if (Constants.LOG_DEBUG && Constants.debugDavCommunication)
-				Log.d(TAG, "Header: " + h.getName() + ":" + h.getValue());
+			if (Constants.LOG_VERBOSE && Constants.debugDavCommunication)
+				Log.v(TAG, "Header: " + h.getName() + ":" + h.getValue());
 			if ( h.getName().equalsIgnoreCase("WWW-Authenticate") ) return h;
 		}
 		return null;
@@ -617,8 +617,10 @@ public class AcalRequestor {
 			long finish = System.currentTimeMillis();
 			double timeTaken = ((double)(finish-start))/1000.0;
 
+			if ( Constants.LOG_DEBUG )
+				Log.d(TAG, "Response: "+statusCode+", Sent: "+up+", Received: "+down+", Took: "+timeTaken+" seconds");
+			
 			if ( Constants.LOG_VERBOSE && Constants.debugDavCommunication ) {
-				Log.v(TAG, "Response: "+statusCode+", Sent: "+up+", Received: "+down+", Took: "+timeTaken+" seconds");
 				for (Header h : responseHeaders) {
 					Log.v(TAG,"H<  "+h.getName()+": "+h.getValue() );
 				}
