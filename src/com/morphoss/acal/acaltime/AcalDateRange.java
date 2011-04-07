@@ -92,7 +92,8 @@ public class AcalDateRange implements Parcelable, Cloneable {
 		else {
 			answer = ( !dTest.end.before(start) && dTest.start.before(end) );
 		}
-		if ( Constants.debugDateTime && Constants.LOG_VERBOSE )	Log.v(TAG,"Overlap of ("+start.fmtIcal()+","+(end==null?"null":end.fmtIcal())+") & ("
+		if ( Constants.debugDateTime && Constants.LOG_VERBOSE )
+			Log.v(TAG,"Overlap of ("+start.fmtIcal()+","+(end==null?"null":end.fmtIcal())+") & ("
 						+ dTest.start.fmtIcal()+","+(dTest.end==null?"null":dTest.end.fmtIcal())+") is: "
 						+ (answer? "yes":"no")
 					);
