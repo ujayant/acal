@@ -118,6 +118,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 	public Thread worker;
 
 	private DataRequest.Stub dataRequest = new DataRequestHandler();
+	
 	private DataRequestCallBack callback = null;
 
 	private static AcalDateTime earlyTimeStamp = null;
@@ -141,7 +142,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 	private PendingIntent alarmIntent = null;
 	private AlarmManager alarmManager;
 	private long nextTriggerTime = Long.MAX_VALUE;
-
+	
 	private long inResourceTx = 0;
 	final private static long MAX_TX_AGE = 30000;
 
@@ -756,6 +757,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 			if (callback != null) {
 				try {
 					callback.statusChanged(UPDATE, false);
+					dataRequest.flushCache();
 				} catch (RemoteException e) {
 
 				}
@@ -815,6 +817,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 			}
 			if (callback != null) {
 				try {
+					dataRequest.flushCache();
 					callback.statusChanged(UPDATE, false);
 				} catch (RemoteException e) {
 
@@ -850,6 +853,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 				updateAlarms();
 				if (callback != null) {
 					try {
+						dataRequest.flushCache();
 						callback.statusChanged(UPDATE, false);
 					} catch (RemoteException e) {
 
@@ -882,7 +886,22 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 	 *
 	 */
 	private class DataRequestHandler extends DataRequest.Stub {
+		
+		private EventCache eventCache = new EventCache();
+		
 
+		//EventCache methods
+		@SuppressWarnings("unchecked")
+		public List getEventsForDay(AcalDateTime day) { eventCache.addDay(day,this); return eventCache.getEventsForDay(day); }
+		public int getNumberEventsForDay(AcalDateTime day) {eventCache.addDay(day,this); return eventCache.getNumberEventsForDay(day); }
+		public AcalEvent getNthEventForDay(AcalDateTime day, int n) {eventCache.addDay(day,this); return eventCache.getNthEventForDay(day, n); }
+		public void deleteEvent(AcalDateTime day, int n) {eventCache.addDay(day,this); eventCache.deleteEvent(day, n); }
+		public void flushCache() {eventCache.flushCache();}
+		
+		
+		
+		
+		
 		@Override
 		public List<AcalEvent> getEventsForDateRange(AcalDateRange dateRange)	throws RemoteException {
 			int processed = 0;
@@ -1073,9 +1092,5 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 			setNextAlarmTrigger();
 			saveState();
 		}
-
-
-
 	}
-
 }

@@ -162,7 +162,6 @@ public class MonthView extends Activity implements OnGestureListener,
 	/* Fields relating to calendar data */
 	private DataRequest dataRequest = null;
 	private boolean isBound = false;
-	private EventCache eventCache;
 
 	/* Fields relating to Intent Results */
 	public static final int PICK_MONTH_FROM_YEAR_VIEW = 0;
@@ -248,7 +247,6 @@ public class MonthView extends Activity implements OnGestureListener,
 	@Override
 	public void onResume() {
 		super.onResume();
-		if (this.eventCache != null) this.eventCache.flushCache();
 		loadState();
 		connectToService();
 	}
@@ -317,11 +315,12 @@ public class MonthView extends Activity implements OnGestureListener,
 		}
 		if (isBound) {
 			try {
-				if (dataRequest != null)
+				if (dataRequest != null) {
+					dataRequest.flushCache();
 					dataRequest.unregisterCallback(mCallback);
+				}
 				this.unbindService(mConnection);
 				this.isBound = false;
-				this.eventCache = null;
 				dataRequest = null;
 			} catch (RemoteException re) {
 
@@ -733,66 +732,74 @@ public class MonthView extends Activity implements OnGestureListener,
 		}
 	}
 
-	private void dataServiceInitialise(boolean state) {
-		if (eventCache != null) eventCache.flushCache();
-		if (!state)
-			changeSelectedDate(this.selectedDate);
-	}
-
-
 	/**
 	 * Methods for managing event structure
 	 */
+	@SuppressWarnings("unchecked")
 	public ArrayList<AcalEvent> getEventsForDay(AcalDateTime day) {
-		if (eventCache == null) return new ArrayList<AcalEvent>();
-		return eventCache.getEventsForDay(day);
+		if (dataRequest == null) return new ArrayList<AcalEvent>();
+		try {
+			return (ArrayList<AcalEvent>) dataRequest.getEventsForDay(day);
+		} catch (RemoteException e) {
+			if (Constants.LOG_DEBUG) Log.d(TAG,"Remote Exception accessing eventcache: "+e);
+			return new ArrayList<AcalEvent>();
+		}
 	}
 
 	public int getNumberEventsForDay(AcalDateTime day) {
-		if (eventCache == null) return 0;
-		return eventCache.getNumberEventsForDay(day);
+		if (dataRequest == null) return 0;
+		try {
+			return dataRequest.getNumberEventsForDay(day);
+		} catch (RemoteException e) {
+			if (Constants.LOG_DEBUG) Log.d(TAG,"Remote Exception accessing eventcache: "+e);
+			return 0;
+		}
 	}
 
 	public AcalEvent getNthEventForDay(AcalDateTime day, int n) {
-		if (eventCache == null) return null;
-		return eventCache.getNthEventForDay(day, n);
+		if (dataRequest == null) return null;
+		try {
+			return dataRequest.getNthEventForDay(day, n);
+		} catch (RemoteException e) {
+			if (Constants.LOG_DEBUG) Log.d(TAG,"Remote Exception accessing eventcache: "+e);
+			return null;
+		}
 	}
 
 	public void deleteSingleEvent(AcalDateTime day, int n) {
-		if (eventCache == null) return;
-		AcalEvent ae = eventCache.getNthEventForDay(day, n);
-		AcalEventAction action = new AcalEventAction(ae);
-		action.setAction(AcalEventAction.ACTION_DELETE_SINGLE);
+		if (dataRequest == null) return;
 		try {
+			AcalEvent ae = dataRequest.getNthEventForDay(day, n);
+			AcalEventAction action = new AcalEventAction(ae);
+			action.setAction(AcalEventAction.ACTION_DELETE_SINGLE);
 			this.dataRequest.eventChanged(action);
-			eventCache.deleteEvent(day, n);
+			dataRequest.deleteEvent(day, n);
 		} catch (RemoteException e) {
 			Log.e(TAG,"Error deleting event: "+e);
-			
 		}
 		this.changeSelectedDate(this.selectedDate);
 	}
 	public void deleteAllEvent(AcalDateTime day, int n) {
-		if (eventCache == null) return;
-		AcalEvent ae = eventCache.getNthEventForDay(day, n);
-		AcalEventAction action = new AcalEventAction(ae);
-		action.setAction(AcalEventAction.ACTION_DELETE_ALL);
+		if (dataRequest == null) return;
 		try {
+			AcalEvent ae = dataRequest.getNthEventForDay(day, n);
+			AcalEventAction action = new AcalEventAction(ae);
+			action.setAction(AcalEventAction.ACTION_DELETE_ALL);
 			this.dataRequest.eventChanged(action);
-			eventCache.deleteEvent(day, n);
+			dataRequest.deleteEvent(day, n);
 		} catch (RemoteException e) {
 			Log.e(TAG,"Error deleting event: "+e);
 		}
 		this.changeSelectedDate(this.selectedDate);
 	}
 	public void deleteFutureEvent(AcalDateTime day, int n) {
-		if (eventCache == null) return;
-		AcalEvent ae = eventCache.getNthEventForDay(day, n);
-		AcalEventAction action = new AcalEventAction(ae);
-		action.setAction(AcalEventAction.ACTION_DELETE_ALL_FUTURE);
+		if (dataRequest == null) return;
 		try {
+			AcalEvent ae = dataRequest.getNthEventForDay(day, n);
+			AcalEventAction action = new AcalEventAction(ae);
+			action.setAction(AcalEventAction.ACTION_DELETE_ALL_FUTURE);
 			this.dataRequest.eventChanged(action);
-			eventCache.deleteEvent(day, n);
+			dataRequest.deleteEvent(day, n);
 		} catch (RemoteException e) {
 			Log.e(TAG,"Error deleting event: "+e);
 			
@@ -1025,7 +1032,6 @@ public class MonthView extends Activity implements OnGestureListener,
 			// service through an IDL interface, so get a client-side
 			// representation of that from the raw service object.
 			dataRequest = DataRequest.Stub.asInterface(service);
-			eventCache = new EventCache(dataRequest);
 			try {
 				dataRequest.registerCallback(mCallback);
 				
@@ -1038,7 +1044,6 @@ public class MonthView extends Activity implements OnGestureListener,
 
 		public void onServiceDisconnected(ComponentName className) {
 			dataRequest = null;
-			eventCache = null;
 			isBound = false;
 		}
 	};
@@ -1069,7 +1074,7 @@ public class MonthView extends Activity implements OnGestureListener,
 			int val = msg.arg2;
 			switch (type) {
 			case CalendarDataService.UPDATE:
-				MonthView.this.dataServiceInitialise(false);
+				changeSelectedDate(selectedDate);
 				break;
 			}
 

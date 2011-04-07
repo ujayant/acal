@@ -16,7 +16,7 @@
  *
  */
 
-package com.morphoss.acal.activity;
+package com.morphoss.acal.dataservice;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,6 +28,7 @@ import android.os.RemoteException;
 
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
+import com.morphoss.acal.dataservice.CalendarDataService;
 import com.morphoss.acal.dataservice.DataRequest;
 import com.morphoss.acal.davacal.AcalEvent;
 
@@ -45,9 +46,6 @@ public class EventCache {
 	//A refresh directive
 	//A delete directive
 	
-	//Connection to cds
-	final DataRequest dataRequest;
-	
 	//events go into large array in order of occurrence (NB, we could have up to MAX_DAYS+31 in the cache)
 	final static int MAX_DAYS = 180;
 	
@@ -56,10 +54,7 @@ public class EventCache {
 	
 	//A queue of requested dates, lets us know which dates to remove (oldest first);
 	final LinkedList<Integer> dateQueue = new LinkedList<Integer>();
-	
-
-	public EventCache(DataRequest dr) { this.dataRequest = dr; }
-	
+		
 	//Converts a datetime to a day hash
 	private int getDateHash(AcalDateTime day) {
 		return day.getMonthDay() + (day.getMonth()*32) + (day.getYear()*32*13);
@@ -78,7 +73,8 @@ public class EventCache {
 	 *  4) Update the queue to keep track of which days should be wiped from the cache first
 	 * @param day
 	 */
-	private synchronized void addDay(AcalDateTime day) {
+	@SuppressWarnings("unchecked")
+	public synchronized void addDay(AcalDateTime day, DataRequest dataRequest) {
 		if (cachedEvents.containsKey(getDateHash(day))) return;	//already in collection
 		
 		//only ensure size when adding, otherwise if MAX_DAYS is to small we could run into problems.
@@ -182,23 +178,19 @@ public class EventCache {
 	
 	/** Methods required by month view */
 	public synchronized ArrayList<AcalEvent> getEventsForDay(AcalDateTime day) {
-		this.addDay(day);
 		return cachedEvents.get(getDateHash(day));
 	}
 
 	public synchronized int getNumberEventsForDay(AcalDateTime day) {
-		this.addDay(day);
 		if (!cachedEvents.containsKey(getDateHash(day))) return 0;
 		return cachedEvents.get(getDateHash(day)).size();
 	}
 
 	public synchronized AcalEvent getNthEventForDay(AcalDateTime day, int n) {
-		this.addDay(day);
 		return cachedEvents.get(getDateHash(day)).get(n);
 	}
 
 	public synchronized void deleteEvent(AcalDateTime day, int n) {
-		this.addDay(day);
 		cachedEvents.get(getDateHash(day)).remove(n);
 	}
 	
