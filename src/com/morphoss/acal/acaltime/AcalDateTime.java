@@ -314,17 +314,13 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 				newDateTime.tzName = "UTC";
 			}
 			else if (m.group(10) != null && !m.group(10).equals("") ) {
-				newDateTime.tzName = getOlsonName(m.group(10));
-				if ( newDateTime.tzName != null )
-					newDateTime.tz = TimeZone.getTimeZone(newDateTime.tzName);
+				newDateTime.overwriteTimeZone(m.group(10));
 			}
 			else if ( m.group(9) != null && m.group(9).equals("") ) {
 				// This is unlikely to be even close to working, since for this
 				// format we only got an offset, and all we could really do is guess
 				// what that might mean, in any case.
-				newDateTime.tzName = getOlsonName(m.group(9));
-				if ( newDateTime.tzName != null )
-					newDateTime.tz = TimeZone.getTimeZone(newDateTime.tzName);
+				newDateTime.overwriteTimeZone(m.group(9));
 			}
 		}
 		else if (m.matches() ) {
@@ -336,12 +332,30 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	}
 
 
+	/**
+	 * Simply write the named timezone to the current object making no attempt to adjust
+	 * the validity of the current date / time information. 
+	 * @param tzName
+	 */
+	private void overwriteTimeZone( String newTzName ) {
+		if ( newTzName == null || newTzName.equals("")) {
+			tzName = null;
+			tz = null;
+			return;
+		}
+		tzName = getOlsonName(newTzName);
+		tz = TimeZone.getTimeZone(tzName);
+		if ( tz == null ) tzName = null;
+	}
+
+	
 	public static String getOlsonName( String tzIdParam ) {
 		Matcher m = Constants.tzOlsonExtractor.matcher(tzIdParam);
 		if ( m.matches() ) {
 			return m.group(1);
 		}
-		return null;
+		Log.w(TAG,"Could not get Olson name from "+tzIdParam);
+		return tzIdParam;
 	}
 
 	
@@ -382,11 +396,7 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 		AcalDateTime result = fromString( dateString );
 
 		if ( isDateParam != null ) result.isDate = isDateParam.equalsIgnoreCase("DATE");
-		if ( tzIdParam != null ) {
-			result.tzName = getOlsonName(tzIdParam);
-			if ( result.tzName != null )
-				result.tz = TimeZone.getTimeZone(result.tzName);
-		}
+		if ( tzIdParam != null ) result.overwriteTimeZone(tzIdParam);
 		if ( Constants.debugDateTime ) result.checkEpoch();
 		return result;
 	}
@@ -868,9 +878,7 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	public synchronized boolean setTimeZone( String newTz ) {
 		if ( tzName == newTz || (tzName != null && tzName.equals(newTz)) ) return true;
 		if ( year == YEAR_NOT_SET ) calculateDateTime();  // Because we're going to invalidate the epoch...
-		if ( newTz == null ) tz = null;
-		else tz = TimeZone.getTimeZone(newTz);
-		tzName = (tz== null ? null : newTz);
+		this.overwriteTimeZone(newTz);
 		epoch = EPOCH_NOT_SET;
 		return true;
 	}
@@ -885,9 +893,7 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	public synchronized boolean shiftTimeZone( String newTz ) {
 		if ( tzName == newTz || (tzName != null && tzName.equals(newTz)) ) return true;
 		if ( epoch == EPOCH_NOT_SET ) calculateEpoch();  // Because we're going to invalidate the date...
-		if ( newTz == null ) tz = null;
-		else tz = TimeZone.getTimeZone(newTz);
-		tzName = (tz== null ? null : newTz);
+		this.overwriteTimeZone(newTz);
 		year = YEAR_NOT_SET;
 		if ( Constants.debugDateTime ) calculateDateTime();
 		return true;
@@ -904,6 +910,8 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	 */
 	public synchronized boolean applyLocalTimeZone() {
 		String newTimeZone = TimeZone.getDefault().getID();
+		if ( Constants.LOG_VERBOSE && Constants.debugDateTime )
+			Log.v(TAG,"Applying local ("+newTimeZone+") to date which is "+(tzName==null?"floating":tzName));
 		if ( isFloating() )
 			return setTimeZone(newTimeZone);
 		else
@@ -1357,7 +1365,6 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 				c.hour = hour;
 				c.minute = minute;
 				c.second = second;
-				c.epoch = epoch;
 			}
 		}
 		
@@ -1572,11 +1579,7 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 		dt.weekStart = (short) in.readInt();
 		dt.isDate = (in.readByte() == 'D');
 		boolean tzIsSet = (in.readByte() == '1');
-		if ( tzIsSet ) dt.tzName = in.readString();
-		if ( dt.tzName == null )
-			dt.tz = null;
-		else
-			dt.tz = TimeZone.getTimeZone(dt.tzName);
+		if ( tzIsSet ) dt.overwriteTimeZone(in.readString());
 		dt.year = AcalDateTime.YEAR_NOT_SET;
 		return dt;
 	}
