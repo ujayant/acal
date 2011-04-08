@@ -18,12 +18,24 @@
 
 package com.morphoss.acal.weekview;
 
+import java.util.ArrayList;
+
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.IBinder;
+import android.os.Message;
+import android.os.RemoteException;
 import android.util.Log;
 import android.view.GestureDetector;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.GestureDetector.OnGestureListener;
@@ -31,9 +43,15 @@ import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.widget.Button;
 
+import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
+import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.activity.EventEdit;
+import com.morphoss.acal.dataservice.CalendarDataService;
+import com.morphoss.acal.dataservice.DataRequest;
+import com.morphoss.acal.dataservice.DataRequestCallBack;
+import com.morphoss.acal.davacal.AcalEvent;
 import com.morphoss.acal.widget.NumberPickerDialog;
 import com.morphoss.acal.widget.NumberSelectedListener;
 
@@ -61,7 +79,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 
 	//Size options in pixels
 	public static final int DAY_WIDTH = 100;
-	public static final int HALF_HOUR_HEIGHT = 20;
+	public static final int HALF_HOUR_HEIGHT = 40;
 	
 	private static final int DATE_PICKER = 0;
 	
@@ -69,6 +87,15 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	private GestureDetector gestureDetector;
 	private AcalDateTime selectedDate = new AcalDateTime();
 	
+	/* Fields relating to calendar data */
+	private DataRequest dataRequest = null;
+	private boolean isBound = false;
+	
+	
+	/**
+	 * Set up buttons, UI listeners and views.
+	 * @param savedInstanceState Contains the day of the week that we start with
+	 */
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		gestureDetector = new GestureDetector(this);
@@ -79,23 +106,212 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		multiday= (WeekViewMultiDay)this.findViewById(R.id.week_view_multi_day);
 		days 	= (WeekViewDays) 	this.findViewById(R.id.week_view_days);
 		
+		selectedDate.applyLocalTimeZone();
+		selectedDate.setHour(0); selectedDate.setMinute(0); selectedDate.setSecond(0);
+		
 		// Set up buttons
 		this.setupButton(R.id.year_today_button, TODAY);
 		this.setupButton(R.id.year_month_button, MONTH);
 		this.setupButton(R.id.year_add_button, ADD);
-
 	}
+	
+	//force all displays to update
+	private void refresh() {
+		//TODO
+	}
+	
+	public AcalDateTime getCurrentDate() {
+		return this.selectedDate;
+	}
+	public ArrayList<AcalEvent> getEventsForDateRange(AcalDateRange range) {
+		try {
+			return (ArrayList<AcalEvent>) this.dataRequest.getEventsForDateRange(range);
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+		}
+		return new ArrayList<AcalEvent>();
+	}
+	
+	/** Connect to CDS - needed to get event information for views. */
+	private void connectToService() {
+		try {
+			if (this.isBound)
+				return;
+			Intent intent = new Intent(this, CalendarDataService.class);
+			Bundle b = new Bundle();
+			b.putInt(CalendarDataService.BIND_KEY,
+					CalendarDataService.BIND_DATA_REQUEST);
+			intent.putExtras(b);
+			this.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+		} catch (Exception e) {
+			Log.e(TAG, "Error connecting to service: " + e.getMessage());
+		}
+	}
+	
 	
 	@Override 
 	public void onPause() {
 		super.onPause();
+		if (isBound) {
+			try {
+				if (dataRequest != null) {
+					dataRequest.flushCache();
+					dataRequest.unregisterCallback(mCallback);
+				}
+				this.unbindService(mConnection);
+				this.isBound = false;
+				dataRequest = null;
+			} catch (RemoteException re) {
+
+			}
+		}
 	}
 	
 	@Override
 	public void onResume() {
 		super.onResume();
+		connectToService();
 	}
 	
+	/**
+	 * <p>
+	 * Called when user has selected 'Settings' from menu. Starts Settings
+	 * Activity.
+	 * </p>
+	 */
+	private void settings() {
+		Intent settingsIntent = new Intent();
+		settingsIntent.setClassName("com.morphoss.acal",
+				"com.morphoss.acal.activity.Settings");
+		this.startActivity(settingsIntent);
+	}
+	
+	/**
+	 * Methods for managing event structure
+	 */
+	@SuppressWarnings("unchecked")
+	public ArrayList<AcalEvent> getEventsForDay(AcalDateTime day) {
+		if (dataRequest == null) return new ArrayList<AcalEvent>();
+		try {
+			return (ArrayList<AcalEvent>) dataRequest.getEventsForDay(day);
+		} catch (RemoteException e) {
+			if (Constants.LOG_DEBUG) Log.d(TAG,"Remote Exception accessing eventcache: "+e);
+			return new ArrayList<AcalEvent>();
+		}
+	}
+
+	public int getNumberEventsForDay(AcalDateTime day) {
+		if (dataRequest == null) return 0;
+		try {
+			return dataRequest.getNumberEventsForDay(day);
+		} catch (RemoteException e) {
+			if (Constants.LOG_DEBUG) Log.d(TAG,"Remote Exception accessing eventcache: "+e);
+			return 0;
+		}
+	}
+
+	public AcalEvent getNthEventForDay(AcalDateTime day, int n) {
+		if (dataRequest == null) return null;
+		try {
+			return dataRequest.getNthEventForDay(day, n);
+		} catch (RemoteException e) {
+			if (Constants.LOG_DEBUG) Log.d(TAG,"Remote Exception accessing eventcache: "+e);
+			return null;
+		}
+	}
+	/**
+	 * <p>
+	 * Responsible for handling the menu button push.
+	 * </p>
+	 * 
+	 * @see android.app.Activity#onCreateOptionsMenu(android.view.Menu)
+	 */
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.main_options_menu, menu);
+		return true;
+	}
+	/**
+	 * <p>
+	 * Called when the user selects an option from the options menu. Determines
+	 * what (if any) Activity should start.
+	 * </p>
+	 * 
+	 * @see android.app.Activity#onOptionsItemSelected(android.view.MenuItem)
+	 */
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// Handle item selection
+		switch (item.getItemId()) {
+		case R.id.settingsMenuItem:
+			settings();
+			return true;
+		default:
+			return super.onOptionsItemSelected(item);
+		}
+	}
+	/************************************************************************
+	 * Service Connection management *
+	 ************************************************************************/
+
+	private ServiceConnection mConnection = new ServiceConnection() {
+		public void onServiceConnected(ComponentName className, IBinder service) {
+			// This is called when the connection with the service has been
+			// established, giving us the service object we can use to
+			// interact with the service. We are communicating with our
+			// service through an IDL interface, so get a client-side
+			// representation of that from the raw service object.
+			dataRequest = DataRequest.Stub.asInterface(service);
+			try {
+				dataRequest.registerCallback(mCallback);
+				
+			} catch (RemoteException re) {
+
+			}
+			isBound = true;
+			refresh();
+		}
+
+		public void onServiceDisconnected(ComponentName className) {
+			dataRequest = null;
+			isBound = false;
+		}
+	};
+
+	/**
+	 * This implementation is used to receive callbacks from the remote service.
+	 */
+	private DataRequestCallBack mCallback = new DataRequestCallBack.Stub() {
+		/**
+		 * This is called by the remote service regularly to tell us about new
+		 * values. Note that IPC calls are dispatched through a thread pool
+		 * running in each process, so the code executing here will NOT be
+		 * running in our main thread like most other things -- so, to update
+		 * the UI, we need to use a Handler to hop over there.
+		 */
+		public void statusChanged(int type, boolean value) {
+			mHandler.sendMessage(mHandler.obtainMessage(BUMP_MSG, type,
+					(value ? 1 : 0)));
+		}
+	};
+
+	private static final int BUMP_MSG = 1;
+
+	private Handler mHandler = new Handler() {
+		@Override
+		public void handleMessage(Message msg) {
+			int type = msg.arg1;
+			int val = msg.arg2;
+			switch (type) {
+			case CalendarDataService.UPDATE:
+				refresh();
+				break;
+			}
+
+		}
+
+	};
 	/**
 	 * <p>
 	 * Helper method for setting up buttons

@@ -756,8 +756,8 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 			resetWorker();
 			if (callback != null) {
 				try {
-					callback.statusChanged(UPDATE, false);
 					dataRequest.flushCache();
+					callback.statusChanged(UPDATE, false);
 				} catch (RemoteException e) {
 
 				}
@@ -892,11 +892,11 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 
 		//EventCache methods
 		@SuppressWarnings("unchecked")
-		public List getEventsForDay(AcalDateTime day) { eventCache.addDay(day,this); return eventCache.getEventsForDay(day); }
-		public int getNumberEventsForDay(AcalDateTime day) {eventCache.addDay(day,this); return eventCache.getNumberEventsForDay(day); }
-		public AcalEvent getNthEventForDay(AcalDateTime day, int n) {eventCache.addDay(day,this); return eventCache.getNthEventForDay(day, n); }
-		public void deleteEvent(AcalDateTime day, int n) {eventCache.addDay(day,this); eventCache.deleteEvent(day, n); }
-		public void flushCache() {eventCache.flushCache();}
+		public synchronized List getEventsForDay(AcalDateTime day) { eventCache.addDay(day,this); return eventCache.getEventsForDay(day); }
+		public synchronized int getNumberEventsForDay(AcalDateTime day) {eventCache.addDay(day,this); return eventCache.getNumberEventsForDay(day); }
+		public synchronized AcalEvent getNthEventForDay(AcalDateTime day, int n) {eventCache.addDay(day,this); return eventCache.getNthEventForDay(day, n); }
+		public synchronized void deleteEvent(AcalDateTime day, int n) {eventCache.addDay(day,this); eventCache.deleteEvent(day, n); }
+		public synchronized void flushCache() {eventCache.flushCache();}
 		
 		
 		

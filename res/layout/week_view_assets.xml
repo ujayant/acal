@@ -9,8 +9,28 @@
 		android:text="Mon\nApr 20" 		
 		android:layout_height="fill_parent" 
 		android:layout_width="fill_parent"
-		android:gravity="center" 
-		style="@style/WV_header_day_box">
-		
+		style="@style/WV_header_day_box"
+		android:visibility="gone">
+	</TextView>
+	<TextView
+   		android:id="@+id/WV_header_multi_day_box"  
+		android:layout_height="fill_parent" 
+		android:layout_width="fill_parent"
+		style="@style/WV_header_multi_day_box"
+		android:visibility="gone">
+	</TextView>
+	<TextView
+   		android:id="@+id/WV_side_box"  
+		android:layout_height="fill_parent" 
+		android:layout_width="fill_parent"
+		style="@style/WV_side_box"
+		android:visibility="gone">
+	</TextView>
+	<TextView
+   		android:id="@+id/WV_side_box_half"  
+		android:layout_height="fill_parent" 
+		android:layout_width="fill_parent"
+		style="@style/WV_side_box_half"
+		android:visibility="gone">
 	</TextView>
 </LinearLayout>

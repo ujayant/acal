@@ -11,34 +11,35 @@
 		android:layout_height="fill_parent"
 		android:layout_weight="3">
 			
+				
 			<TextView
 				android:id="@+id/week_view_corner"
 				android:layout_width="fill_parent" 
 				android:layout_height="fill_parent"
-				android:layout_weight="10"
+				android:layout_weight="15"
 				style="@style/WV_header_corner_box"
 				/>
-		
-		
+				
 			<com.morphoss.acal.weekview.WeekViewHeader
 				android:id="@+id/week_view_header"
 				android:layout_width="fill_parent" 
-				android:layout_height="fill_parent"
-				android:layout_weight="1"
-			/>
+				android:layout_height="fill_parent"	
+				android:layout_weight="1"/>
 	</LinearLayout>
  
  	<LinearLayout 
 		android:layout_width="fill_parent" 
 		android:layout_height="fill_parent"
-		android:layout_weight="1">
+		android:layout_weight="1"
+		>
  
- 			<com.morphoss.acal.weekview.WeekViewSideBar
+ 				<com.morphoss.acal.weekview.WeekViewSideBar
 				android:id="@+id/week_view_sidebar"
 				android:layout_width="fill_parent" 
 				android:layout_height="fill_parent"
 				android:layout_weight="15"
 			/>
+				
 			<LinearLayout 
 				android:layout_width="fill_parent" 
 				android:layout_height="fill_parent"
@@ -51,6 +52,8 @@
 					android:layout_height="fill_parent"
 					android:layout_weight="3"
 				/>
+ 			
+ 				
  				<com.morphoss.acal.weekview.WeekViewDays
 					android:id="@+id/week_view_days"
 					android:layout_width="fill_parent" 
