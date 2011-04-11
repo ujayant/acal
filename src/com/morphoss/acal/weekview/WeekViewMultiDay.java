@@ -25,6 +25,7 @@ public class WeekViewMultiDay extends ImageView {
 	
 	private WeekViewActivity context; 
 	private AcalDateTime date;
+	private float scrollx = 0;
 	
 	/** Default Constructor */
 	public WeekViewMultiDay(Context context, AttributeSet attrs, int defStyle) {
@@ -34,7 +35,7 @@ public class WeekViewMultiDay extends ImageView {
 		}
 		if (!(context instanceof WeekViewActivity)) throw new IllegalStateException("Week View Started with invalid context.");
 		this.context = (WeekViewActivity) context;
-		this.date = this.context.getCurrentDate();
+		this.date = this.context.getCurrentDate().clone();
 	}
 	
 	/** Default Constructor */
@@ -45,7 +46,7 @@ public class WeekViewMultiDay extends ImageView {
 		}
 		if (!(context instanceof WeekViewActivity)) throw new IllegalStateException("Week View Started with invalid context.");
 		this.context = (WeekViewActivity) context;
-		this.date = this.context.getCurrentDate();
+		this.date = this.context.getCurrentDate().clone();
 	}
 	
 	
@@ -57,11 +58,23 @@ public class WeekViewMultiDay extends ImageView {
 		}
 		if (!(context instanceof WeekViewActivity)) throw new IllegalStateException("Week View Started with invalid context.");
 		this.context = (WeekViewActivity) context;
-		this.date = this.context.getCurrentDate();
+		this.date = this.context.getCurrentDate().clone();
+	}
+	
+	public void moveX(float dx) {
+		this.scrollx+=dx;
+		if (this.scrollx >= WeekViewActivity.DAY_WIDTH) {
+			this.date.addDays(1);
+			this.scrollx-=WeekViewActivity.DAY_WIDTH;
+		} else if (this.scrollx <= 0-WeekViewActivity.DAY_WIDTH) {
+			this.date.addDays(-1);
+			this.scrollx+=WeekViewActivity.DAY_WIDTH;
+		}
+		
 	}
 	
 	private ArrayList<SimpleEventObject> getEventList(long startEpoch, AcalDateRange range, float pixelsPerHour) {
-		ArrayList<AcalEvent> eventList = context.getEventsForDateRange(range);
+		ArrayList<AcalEvent> eventList = context.getEventsForDays(range);
 		ArrayList<SimpleEventObject> events = new ArrayList<SimpleEventObject>();
 		for (AcalEvent e : eventList) {
 			//only add events that cover at least one full calendar day
@@ -112,7 +125,7 @@ public class WeekViewMultiDay extends ImageView {
 			boolean hasEvent = false;
 			for(int j=0;j < timeTable[i].length && timeTable[i][j] != null;j++) {
 				SimpleEventObject event = timeTable[i][j];
-					event.draw(i*singleHeight,singleHeight,canvas,context);
+					event.draw((int)(0-dayWidth-scrollx),i*singleHeight,singleHeight,canvas,context);
 					hasEvent=true;
 			}
 			if (!hasEvent) break;
@@ -122,7 +135,7 @@ public class WeekViewMultiDay extends ImageView {
 		p.setStyle(Paint.Style.STROKE);
 		p.setColor(Color.parseColor("#333333"));
 		for (x =0; (x<totalWidth+dayWidth); x+=dayWidth)
-		canvas.drawRect(x, 0, dayWidth, canvas.getHeight()-1, p);
+		canvas.drawRect(x-scrollx, 0, dayWidth-scrollx, canvas.getHeight()-1, p); 
 	}
 
 	public void setDate(AcalDateTime date) {
@@ -147,7 +160,7 @@ public class WeekViewMultiDay extends ImageView {
 			end = startX+width-1;
 		}
 		
-		public void draw(float y, float height, Canvas c, Context con) {
+		public void draw(float x, float y, float height, Canvas c, Context con) {
 			LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 			View v = (View) inflater.inflate(R.layout.week_view_assets, null);
 			TextView title = ((TextView) v.findViewById(R.id.WV_header_multi_day_box));
@@ -159,7 +172,7 @@ public class WeekViewMultiDay extends ImageView {
 			Bitmap returnedBitmap = Bitmap.createBitmap((int)width, (int)height,Bitmap.Config.ARGB_8888);
 			Canvas tempCanvas = new Canvas(returnedBitmap);
 			title.draw(tempCanvas);
-			c.drawBitmap(returnedBitmap,startX, y, new Paint());
+			c.drawBitmap(returnedBitmap,startX+x, y, new Paint());
 		}
 
 		@Override

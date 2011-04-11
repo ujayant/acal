@@ -20,6 +20,7 @@ public class WeekViewSideBar extends ImageView {
 	
 	private WeekViewActivity context; 
 	private AcalDateTime date;
+	private float verticalOffset = 0;
 	
 	/** Default Constructor */
 	public WeekViewSideBar(Context context, AttributeSet attrs, int defStyle) {
@@ -55,61 +56,39 @@ public class WeekViewSideBar extends ImageView {
 		this.date = this.context.getCurrentDate();
 	}
 	
-
+	public void setVerticalOffset(int offset) {
+		int[] location = new int[2];
+		this.getLocationOnScreen(location);
+		if (offset-location[1] != this.verticalOffset) {
+			this.verticalOffset = offset-location[1]; 
+			this.invalidate(); //force redraw
+		}
+	}
+	
 	@Override
 	public void draw(Canvas canvas) {
 		super.draw(canvas);
+		
+		if (this.getWidth() == 0) return;
+		if (this.getHeight() == 0) return;
 		Paint p = new Paint();
 		p.setStyle(Paint.Style.FILL);
-		p.setColor(Color.parseColor("#ffffff"));
-		canvas.drawRect(0, 0, canvas.getWidth(), canvas.getHeight(), p);
-		
-		
+		p.setColor(Color.parseColor("#f0f0f0"));
+		canvas.drawRect(0, 0, this.getWidth(), this.getHeight(), p);
 		if (this.isInEditMode()) {
 			return;
 		}
-		float hour = 0;
-		float h = this.getHeight();
-		float width = this.getWidth()-1;
-		float boxHeight = WeekViewActivity.HALF_HOUR_HEIGHT;
-		float y = 0-boxHeight/2;
-		float x = 0;
-		boolean half = false;
-		while(y<=h) {
-			drawBox(x,y,width,boxHeight,canvas,half,hour,p);
-			half=!half;
-			if (!half) hour++;
-			y+=boxHeight;
-		}
+		
+		float offset = verticalOffset+(WeekViewActivity.HALF_HOUR_HEIGHT/2);
+		
+		canvas.drawBitmap(context.getImageCache().getSideBar(this.getWidth()), 0,offset, p);
 		p.setStyle(Paint.Style.STROKE);
 		p.setColor(Color.parseColor("#333333"));
-		canvas.drawRect(0, 0, width, canvas.getHeight(), p);
+		canvas.drawRect(0, 0, this.getWidth(), this.getHeight(), p);
 
-	}
-	
-	public void drawBox(float x, float y, float width, float height, Canvas c, boolean half, float hour, Paint p) {
-		LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-		View v = (View) inflater.inflate(R.layout.week_view_assets, null);
-		TextView box;
-		if (!half) box= ((TextView) v.findViewById(R.id.WV_side_box));
-		else box= ((TextView) v.findViewById(R.id.WV_side_box_half));
-		box.setVisibility(View.VISIBLE);
-		String text = "";
-		if (half) text="30";
-		else if (hour == 0)text="12 "+(hour<12?"a":"p");
-		else text=(int)hour+" "+(hour<12?"a":"p");
-		box.setText(text);
-		box.measure(MeasureSpec.makeMeasureSpec((int) width, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec((int) height, MeasureSpec.EXACTLY));
-		box.layout(0,0, (int)width, (int)height);
-		Bitmap returnedBitmap = Bitmap.createBitmap((int)width, (int)height,Bitmap.Config.ARGB_8888);
-		Canvas tempCanvas = new Canvas(returnedBitmap);
-		box.draw(tempCanvas);
-		c.drawBitmap(returnedBitmap,x, y,p);
 	}
 
 	public void setDate(AcalDateTime date) {
 		this.date = date;
 	}
-	
-
 }

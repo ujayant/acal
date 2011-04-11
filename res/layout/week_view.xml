@@ -16,8 +16,7 @@
 				android:layout_width="fill_parent" 
 				android:layout_height="fill_parent"
 				android:layout_weight="10"
-				style="@style/WV_header_corner_box"
-				/>
+				style="@style/WV_header_corner_box"/>
 		
 			<com.morphoss.acal.weekview.WeekViewHeader
 				android:id="@+id/week_view_header"

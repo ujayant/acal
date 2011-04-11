@@ -893,6 +893,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 		//EventCache methods
 		@SuppressWarnings("unchecked")
 		public synchronized List getEventsForDay(AcalDateTime day) { eventCache.addDay(day,this); return eventCache.getEventsForDay(day); }
+		public synchronized List getEventsForDays(AcalDateRange range) { return eventCache.getEventsForDays(range,this); }
 		public synchronized int getNumberEventsForDay(AcalDateTime day) {eventCache.addDay(day,this); return eventCache.getNumberEventsForDay(day); }
 		public synchronized AcalEvent getNthEventForDay(AcalDateTime day, int n) {eventCache.addDay(day,this); return eventCache.getNthEventForDay(day, n); }
 		public synchronized void deleteEvent(AcalDateTime day, int n) {eventCache.addDay(day,this); eventCache.deleteEvent(day, n); }

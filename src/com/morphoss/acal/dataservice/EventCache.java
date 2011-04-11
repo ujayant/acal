@@ -20,6 +20,7 @@ package com.morphoss.acal.dataservice;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.TreeMap;
@@ -28,8 +29,6 @@ import android.os.RemoteException;
 
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
-import com.morphoss.acal.dataservice.CalendarDataService;
-import com.morphoss.acal.dataservice.DataRequest;
 import com.morphoss.acal.davacal.AcalEvent;
 
 /**
@@ -112,15 +111,17 @@ public class EventCache {
 			Collections.sort(result); //, new EventComparator());
 			
 			//For some reason we sometimes get events before the requested range.
-			int minHash = getDateHash(first,month,year);
-			for (int i = 0; i< result.size(); i++) {
-				if (getDateHash(result.get(i).dtstart)<minHash){
-					result.remove(i);
-					i--;
-				}
-			}
+			//int minHash = getDateHash(first,month,year);
+			//for (int i = 0; i< result.size(); i++) {
+			//	if (getDateHash(result.get(i).dtstart)<minHash){
+			//		result.remove(i);
+			//		i--;
+			//	}
+			//}
 			
 			int currentPointer = 0;
+			//temp storage for multiday events
+			ArrayList<AcalEvent> multiDayEvents = new ArrayList<AcalEvent>();
 			
 			while (currentPointer < result.size() && first <= last) {
 				int curHash = getDateHash(first++,month,year);
@@ -129,8 +130,18 @@ public class EventCache {
 				
 				//The list for the current day
 				ArrayList<AcalEvent> todaysEvents = new ArrayList<AcalEvent>();
+				//add any previous days multi day events
+				Iterator<AcalEvent> i = multiDayEvents.iterator();
+				while (i.hasNext()) {
+					AcalEvent event = i.next();
+					todaysEvents.add(event);
+					if (getDateHash(event.getEnd()) == curHash) i.remove();	//remove multiday events that expire today
+				}
+				
 				//while the current item has the same hash (i.e. the same day)	add it to the current list
 				while (getDateHash(currentEvent.dtstart) == curHash ) {
+					//check to see if multi day event, if so add to multi day list
+					if (getDateHash(currentEvent.getEnd()) > curHash) multiDayEvents.add(currentEvent);
 					todaysEvents.add(currentEvent);
 					currentPointer++;
 					if (currentPointer >= result.size()) break;
@@ -175,6 +186,21 @@ public class EventCache {
 		
 	}
 	
+	/** Methods required by month view */
+	public synchronized ArrayList<AcalEvent> getEventsForDays(AcalDateRange range,DataRequest dr) {
+		AcalDateTime current = range.start.clone();
+		ArrayList<AcalEvent> ret = new ArrayList<AcalEvent>();
+		while (current.before(range.end)) {
+			this.addDay(current, dr);
+			ArrayList<AcalEvent> curList = getEventsForDay(current);
+			for (AcalEvent e : curList) {
+				if (!ret.contains(e))ret.add(e);
+			}
+			current.addDays(1);
+			
+		}
+		return ret;
+	}
 	
 	/** Methods required by month view */
 	public synchronized ArrayList<AcalEvent> getEventsForDay(AcalDateTime day) {

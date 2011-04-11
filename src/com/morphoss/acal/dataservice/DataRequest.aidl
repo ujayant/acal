@@ -19,6 +19,7 @@ interface DataRequest {
 	void snoozeAlarm(in AcalAlarm alarm);
 	void eventChanged(in AcalEventAction action);
 	List getEventsForDay(in AcalDateTime day);
+	List getEventsForDays(in AcalDateRange days);
 	int getNumberEventsForDay(in AcalDateTime day);
 	AcalEvent getNthEventForDay(in AcalDateTime day, int n);
 	void deleteEvent(in AcalDateTime day, int n);

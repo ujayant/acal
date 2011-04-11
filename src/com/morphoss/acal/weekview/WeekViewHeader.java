@@ -22,6 +22,7 @@ public class WeekViewHeader extends ImageView {
 	
 	private WeekViewActivity context; 
 	private AcalDateTime date;
+	private float scrollx;
 	
 	/** Default Constructor */
 	public WeekViewHeader(Context context, AttributeSet attrs, int defStyle) {
@@ -31,7 +32,7 @@ public class WeekViewHeader extends ImageView {
 		}
 		if (!(context instanceof WeekViewActivity)) throw new IllegalStateException("Week View Started with invalid context.");
 		this.context = (WeekViewActivity) context;
-		this.date = this.context.getCurrentDate();
+		this.date = this.context.getCurrentDate().clone();
 		// TODO Auto-generated constructor stub
 	}
 	
@@ -43,7 +44,7 @@ public class WeekViewHeader extends ImageView {
 		}
 		if (!(context instanceof WeekViewActivity)) throw new IllegalStateException("Week View Started with invalid context.");
 		this.context = (WeekViewActivity) context;
-		this.date = this.context.getCurrentDate();
+		this.date = this.context.getCurrentDate().clone();
 	}
 	
 	
@@ -55,7 +56,18 @@ public class WeekViewHeader extends ImageView {
 		}
 		if (!(context instanceof WeekViewActivity)) throw new IllegalStateException("Week View Started with invalid context.");
 		this.context = (WeekViewActivity) context;
-		this.date = this.context.getCurrentDate();
+		this.date = this.context.getCurrentDate().clone();
+	}
+	
+	public void moveX(float dx) {
+		this.scrollx+=dx;
+		if (this.scrollx >= WeekViewActivity.DAY_WIDTH) {
+			this.date.addDays(1);
+			this.scrollx-=WeekViewActivity.DAY_WIDTH;
+		} else if (this.scrollx <= 0-WeekViewActivity.DAY_WIDTH) {
+			this.date.addDays(-1);
+			this.scrollx+=WeekViewActivity.DAY_WIDTH;
+		}
 	}
 
 	@Override
@@ -73,8 +85,8 @@ public class WeekViewHeader extends ImageView {
 		int dayWidth = WeekViewActivity.DAY_WIDTH;
 		int dayHeight = this.getHeight();
 		int totalWidth = this.getWidth();
-		while(x<totalWidth) {
-			drawBox(x,y,dayWidth,dayHeight,canvas,startDate);
+		while(x<totalWidth+(2*dayWidth)) {
+			drawBox((int)(0-dayWidth-scrollx)+x,y,dayWidth,dayHeight,canvas,startDate);
 			startDate.addDays(1);
 			x+=dayWidth;
 		}

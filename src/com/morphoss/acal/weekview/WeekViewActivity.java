@@ -81,6 +81,9 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	public static final int DAY_WIDTH = 100;
 	public static final int HALF_HOUR_HEIGHT = 40;
 	
+	//Image cache
+	private WeekViewImageCache imageCache;
+	
 	private static final int DATE_PICKER = 0;
 	
 	/* Fields Relating to Gesture Detection */
@@ -106,6 +109,9 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		multiday= (WeekViewMultiDay)this.findViewById(R.id.week_view_multi_day);
 		days 	= (WeekViewDays) 	this.findViewById(R.id.week_view_days);
 		
+		//days needs to connect to sidebar and multiday
+		days.addScrollFriends(sidebar,multiday,header);
+		
 		selectedDate.applyLocalTimeZone();
 		selectedDate.setHour(0); selectedDate.setMinute(0); selectedDate.setSecond(0);
 		
@@ -117,17 +123,26 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	
 	//force all displays to update
 	private void refresh() {
-		//TODO
+		header.invalidate();
+		days.invalidate();	
+		sidebar.invalidate();
+		multiday.invalidate();
+	}
+	
+	public WeekViewImageCache getImageCache() {
+		return this.imageCache;
 	}
 	
 	public AcalDateTime getCurrentDate() {
 		return this.selectedDate;
 	}
-	public ArrayList<AcalEvent> getEventsForDateRange(AcalDateRange range) {
-		try {
-			return (ArrayList<AcalEvent>) this.dataRequest.getEventsForDateRange(range);
-		} catch (RemoteException e) {
-			// TODO Auto-generated catch block
+	public ArrayList<AcalEvent> getEventsForDays(AcalDateRange range) {
+		if (isBound && dataRequest != null) {
+			try {
+				return (ArrayList<AcalEvent>) this.dataRequest.getEventsForDays(range);
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+			}
 		}
 		return new ArrayList<AcalEvent>();
 	}
@@ -169,8 +184,10 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	
 	@Override
 	public void onResume() {
-		super.onResume();
+		super.onResume();		
 		connectToService();
+		imageCache = new WeekViewImageCache(this,DAY_WIDTH,HALF_HOUR_HEIGHT);
+		refresh();
 	}
 	
 	/**
@@ -301,14 +318,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	private Handler mHandler = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {
-			int type = msg.arg1;
-			int val = msg.arg2;
-			switch (type) {
-			case CalendarDataService.UPDATE:
-				refresh();
-				break;
-			}
-
+			refresh();
 		}
 
 	};
@@ -358,7 +368,9 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	}
 	@Override
 	public boolean onScroll(MotionEvent start, MotionEvent current, float dx, float dy) {
-		return false;
+		if (Math.abs(dx)>Math.abs(dy)) days.move(dx,0);
+		else days.move(0,dy);
+		return true;
 	}
 	@Override
 	public void onShowPress(MotionEvent arg0) {
