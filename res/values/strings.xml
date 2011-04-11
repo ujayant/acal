@@ -121,6 +121,9 @@
 <string name="thNov">Nov</string>
 <string name="thDec">Dec</string>
 
+<!-- If the user is displaying AM/PM we need a single character to display e.g. 1p for 1:00pm -->
+<string name="oneCharMorning">a</string>
+<string name="oneCharAfternoon">p</string>
 
 <string name="YearViewSize_PrefTitle">Number of Months in Year View</string>
 <string name="YearViewSize_PrefSummary">The number of months that are visible in the year view</string>
@@ -137,6 +140,7 @@
 <string name="Today">Today</string>
 <string name="Year">Year</string>
 <string name="Month">Month</string>
+<string name="Week">Week</string>
 <string name="Edit">Edit</string>
 <string name="Apply">Apply</string>
 <string name="Advanced">Advanced</string>
@@ -148,7 +152,7 @@
 <string name="NotesPrompt">Notes:</string>
 <string name="AlarmsPrompt">Alarms:</string>
 <string name="RepeatsPrompt">Repeats:</string>
-<string name="AllDayPrompt">All Day event:</string>
+<string name="AllDayPrompt">All Day:</string>
 <string name="FromPrompt">From:</string>
 <string name="UntilPrompt">Until:</string>
 
@@ -183,6 +187,7 @@
 
 <string name="EveryNthOfTheMonth">On every %s of the month</string>
 <string name="EveryMonthOnTheNthSomeday">On the %s of each month</string>
+<string name="CustomRepeatRule">Custom Repetition</string>
 
 <string name="EventSaved">Event Saved.</string>
 <string name="ModifiedAllInstances">Modified all instances of this event.</string>
@@ -210,6 +215,7 @@
 <string name="alarm2HoursPrior">Two hours before</string>
 <string name="alarm12HoursPrior">12 hours before</string>
 <string name="alarm1DayPrior">One day before</string>
+<string name="alarmCustom">Custom Alarm</string>
 
 <string name="changeThisInstance">This Instance Only</string>
 <string name="changeAllInstances">All Instances</string>
