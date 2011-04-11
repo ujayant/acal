@@ -210,6 +210,11 @@ public abstract class VComponent {
 		return content.componentString;
 	}
 
+	/**
+	 * This can be useful if you want the value of a unique property.  Otherwise, not so much.
+	 * @param name
+	 * @return
+	 */
 	public synchronized AcalProperty getProperty(String name) {
 		if (name == null) return null;
 		this.populateProperties();
@@ -218,11 +223,27 @@ public abstract class VComponent {
 		if (this.persistenceCount == 0) destroyProperties();
 		return ret;
 	}
-	
+
+	/**
+	 * This can be useful if you know you don't have two properties of the same name.
+	 * @return
+	 */
 	public synchronized Map<String,AcalProperty> getProperties() {
 		this.populateProperties();
 		Map<String,AcalProperty>ret = Collections.unmodifiableMap(properties);
 		if (this.persistenceCount == 0) this.destroyProperties();
+		return ret;
+	}
+
+	/**
+	 * If you have multiple properties with the same name, you'll need this one...
+	 * @return an array of AcalProperty which are all of the properties of the component
+	 */
+	public synchronized AcalProperty[] getAllProperties() {
+		AcalProperty[] ret = new AcalProperty[content.propertyLines.length];
+		for( int i=0; i < content.propertyLines.length; i++ ) {
+			ret[i] = AcalProperty.fromString(content.propertyLines[i]);
+		}
 		return ret;
 	}
 	
