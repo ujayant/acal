@@ -27,6 +27,7 @@ import java.util.Set;
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
 
+import android.app.ActivityManager;
 import android.content.ContentQueryMap;
 import android.content.ContentResolver;
 import android.content.ContentValues;
@@ -37,6 +38,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.Debug;
 import android.util.Log;
 
 import com.morphoss.acal.Constants;
@@ -54,7 +56,7 @@ import com.morphoss.acal.xml.DavNode;
 public class SyncCollectionContents extends ServiceJob {
 
 	public static final String	TAG					= "aCal SyncCollectionContents";
-	private static final int	nPerMultiget		= 100;
+	private static final int	nPerMultiget		= 30;
 
 	private int					collectionId		= -1;
 	private int					serverId			= -1;
@@ -580,12 +582,6 @@ public class SyncCollectionContents extends ServiceJob {
 				+ "</" + multigetReportTag + ">";
 		
 		for (int hrefIndex = 0; hrefIndex < hrefs.length; hrefIndex += nPerMultiget) {
-			if ( hrefIndex > 0 ) {
-				// Reschedule for another run, rather than continue now.
-				SyncCollectionContents sj = new SyncCollectionContents(collectionId,true);
-				context.addWorkerJob(sj);
-				return;
-			}
 			int limit = nPerMultiget + hrefIndex;
 			if ( limit > hrefs.length ) limit = hrefs.length;
 			StringBuilder hrefList = new StringBuilder();
@@ -635,6 +631,32 @@ public class SyncCollectionContents extends ServiceJob {
 				Log.e(TAG, Log.getStackTraceString(e));
 				db.endTransaction();
 				db.close();
+			}
+			if ( hrefIndex + nPerMultiget < hrefs.length ) {
+				if ( Constants.LOG_DEBUG ) {
+					Debug.MemoryInfo mi = new Debug.MemoryInfo();
+					try {
+						Debug.getMemoryInfo(mi);
+					}
+					catch ( Exception e ) {
+						Log.i(TAG,"Unable to get Debug.MemoryInfo() because: " + e.getMessage());
+					}
+					if ( mi != null ) {
+						Log.d(TAG,String.format("MemoryInfo: Dalvik(%d,%d,%d), Native(%d,%d,%d), Other(%d,%d,%d)",
+									mi.dalvikPrivateDirty, mi.dalvikPss, mi.dalvikSharedDirty,
+									mi.nativePrivateDirty, mi.nativePss, mi.nativeSharedDirty,
+									mi.otherPrivateDirty,  mi.otherPss,  mi.otherSharedDirty ) );
+					}
+				}
+				ActivityManager.MemoryInfo ammi = new ActivityManager.MemoryInfo();
+				if ( ammi.lowMemory ) {
+					Log.i(TAG, "Android thinks we're low memory right now, rescheduling more sync in 30 seconds time." );
+					// Reschedule for another run, rather than continue now.
+					SyncCollectionContents sj = new SyncCollectionContents(collectionId,true);
+					sj.TIME_TO_EXECUTE = System.currentTimeMillis() + 30000;
+					context.addWorkerJob(sj);
+					return;
+				}
 			}
 		}
 

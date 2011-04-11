@@ -38,7 +38,7 @@ public class Constants {
 	/** Generally useful patterns */
 	public static final Pattern lineSplitter = Pattern.compile("\r?\n"); 
 	public static final Pattern rfc5545UnWrapper = Pattern.compile("\r?\n ");
-	public static final Pattern tzOlsonExtractor = Pattern.compile(".*((?:Antarctica|America|Africa|Atlantic|Asia|Australia|Indian|Europe|Pacific|US)/(?:(?:[^/]+)/)?[^/]+)");
+	public static final Pattern tzOlsonExtractor = Pattern.compile(".*((?:Antarctica|America|Africa|Atlantic|Asia|Australia|Indian|Europe|Pacific|US)/(?:(?:[^/\"]+)/)?[^/\"]+)\"?");
 	public final static Pattern splitOnCommas = Pattern.compile(",");
 	
 	/** How much stuff to spit out into the logs */

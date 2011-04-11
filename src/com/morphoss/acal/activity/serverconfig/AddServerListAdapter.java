@@ -103,11 +103,13 @@ public class AddServerListAdapter extends BaseAdapter {
 				if (name == null || name.length() < 11) continue;
 				if (name.substring(0,10).equalsIgnoreCase("serverconf")) { 
 					list.put(name.substring(11), f.getInt(null));
-					Log.w(TAG, "Found preconfigured setup for '"+name.substring(11)+"'");
+					if ( Constants.LOG_DEBUG )
+						Log.d(TAG, "Found preconfigured setup for '"+name.substring(11)+"'");
 				}
 				else if (name.substring(0,11).equalsIgnoreCase("serverimage")) {
 					imageIds.put(name.substring(12), f.getInt(null));
-					Log.w(TAG, "Found image for '"+name.substring(12)+"'");
+					if ( Constants.LOG_DEBUG )
+						Log.d(TAG, "Found image for '"+name.substring(12)+"'");
 				}
 		    } catch (IllegalArgumentException e) {
 		    } catch (IllegalAccessException e) { }
@@ -122,7 +124,8 @@ public class AddServerListAdapter extends BaseAdapter {
 					cv.put(ServerConfiguration.MODEKEY, ServerConfiguration.MODE_IMPORT);
 					if ( imageIds.getAsInteger(confEntry.getKey()) != null ) {
 						cv.put(ServerConfiguration.IMAGE_KEY, imageIds.getAsInteger(confEntry.getKey()));
-						Log.w(TAG, "Setup image for '"+confEntry.getKey()+"'");
+						if ( Constants.LOG_DEBUG )
+							Log.d(TAG, "Setup image for '"+confEntry.getKey()+"'");
 					}
 					data.add(cv);
 				}
@@ -193,7 +196,6 @@ public class AddServerListAdapter extends BaseAdapter {
 			blurb.setText(blurbString);
 		}
 		else {
-			//in future we will add custom icons
 			if ( item.getAsInteger(ServerConfiguration.IMAGE_KEY) != null ) {
 				Log.w(TAG, "Special lastSavedConfig image for '"+item.getAsString(Servers.FRIENDLY_NAME)+"'");
 				thisRow.setBackgroundColor(android.R.color.white);

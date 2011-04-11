@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: aCal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-03-27 22:05+1300\n"
-"PO-Revision-Date: 2011-03-28 20:31+0000\n"
+"POT-Creation-Date: 2011-04-06 17:49+1200\n"
+"PO-Revision-Date: 2011-04-07 18:39+0000\n"
 "Last-Translator: marc0s <marc0s@fsfe.org>\n"
 "Language-Team: Catalan <None>\n"
 "MIME-Version: 1.0\n"
@@ -450,8 +450,26 @@ msgstr "Cada cap de setmana"
 msgid "EveryDay"
 msgstr "Cada dia"
 
+msgid "EveryWeek"
+msgstr "Cada setmana"
+
+msgid "EveryMonth"
+msgstr "Cada mes"
+
 msgid "EveryYear"
 msgstr "Cada any"
+
+msgid "EveryNDays"
+msgstr "Cada N dies"
+
+msgid "EveryNWeeks"
+msgstr "Cada N setmanes"
+
+msgid "EveryNMonths"
+msgstr "Cada N mesos"
+
+msgid "EveryNYears"
+msgstr "Cada N anys"
 
 msgid "EveryMonday"
 msgstr "Cada dilluns"
@@ -507,6 +525,27 @@ msgstr "Quines són les instàncies a canviar?"
 msgid "ChooseRepeatFrequency"
 msgstr "Escull una freqüència de repetició"
 
+msgid "Add_Alarm"
+msgstr "Afegir alarma"
+
+msgid "errorMustHaveActiveCalendar"
+msgstr "No es pot editar una cita sense un calendari actiu."
+
+msgid "errorSavingFile"
+msgstr "Error guardant fitxer"
+
+msgid "ServerDataSaved"
+msgstr "Dades del servidor guardades. Nom de fitxer:"
+
+msgid "NewManualServerConfiguration"
+msgstr "Configuració manual"
+
+msgid "ManualServerConfigurationBlurb"
+msgstr "Entrar la informació del servidor manualment"
+
+msgid "SavedServerConfigurationBlurb"
+msgstr "Una configuració de servidor guardada"
+
 msgid "alarmAtEventTime"
 msgstr "A l'hora de la cita"
 
@@ -536,3 +575,31 @@ msgstr "Totes les instàncies"
 
 msgid "changeThisAndFuture"
 msgstr "Aquesta i totes les futures"
+
+msgid "internetNotAvailable"
+msgstr "Internet no es troba disponible"
+
+msgid "couldNotDiscoverPort"
+msgstr "No s'ha pogut trobar el port HTTP pel servidor CalDAV"
+
+msgid "couldNotDiscoverPrincipal"
+msgstr ""
+"No s'ha pogut trobar el camí a la identitat - utilitzant els valors donats"
+
+msgid "foundPrincipalPath"
+msgstr "S'ha trobat el path de la identitat a &quot;%s&quot;"
+
+msgid "serverSupportsCalDAV"
+msgstr "El servidor suporta CalDAV"
+
+msgid "serverLacksCalDAV"
+msgstr "El servidor no suporta CalDAV"
+
+msgid "serverFailedValidation"
+msgstr "Hi ha hagut un error validant el servidor:"
+
+msgid "saveSettingsAnyway"
+msgstr "Vols gravar els paràmetres igualment?"
+
+msgid "serverValidationSuccess"
+msgstr "La validació del servidor ha estat satisfactòria."

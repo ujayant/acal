@@ -225,5 +225,5 @@
 <string name="saveSettingsAnyway">Would you like to save these settings anyway?</string>
 <string name="serverValidationSuccess">Server validation was successful.</string>
 <string name="Week">Week</string>
-
+<string name="authenticationFailed">Unable to authenticate with server.</string>
 </resources>

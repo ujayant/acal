@@ -1,0 +1,606 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+msgid ""
+msgstr ""
+"Project-Id-Version: aCal\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2011-04-06 17:49+1200\n"
+"PO-Revision-Date: 2011-04-07 00:00+0000\n"
+"Last-Translator: zenlord <zenlord@gmail.com>\n"
+"Language-Team: Dutch (Belgium/Flemish) <None>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: nl_BE\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+
+# Strings that should not be localised belong in unlocalisable_strings.xml
+msgid "theDayEachWeekStartsWith"
+msgstr "De dag waarmee elke week begint"
+
+msgid "firstDayOfWeek"
+msgstr "Eerste dag van de week"
+
+msgid "ok"
+msgstr "OK"
+
+msgid "cancel"
+msgstr "Annuleren"
+
+msgid "appDescription"
+msgstr ""
+"Een kalender voor Android die uw gebeurtenissen, taken, notities en "
+"contacten bewaart op een externe CalDAV / CardDAV server, zoals davical "
+"(Zie: www.davical.org)"
+
+msgid "Active"
+msgstr "Actief"
+
+msgid "Add_Server"
+msgstr "Server toevoegen"
+
+msgid "A_name_for_this_server_configuration"
+msgstr "Een naam om te gebruiken voor deze server configuratie"
+
+msgid "Authentication_Type"
+msgstr "Authenticatie Type"
+
+msgid "Simple_Path"
+msgstr "Eenvoudig Pad"
+
+msgid "Simple_Domain"
+msgstr "Eenvoudig Domein"
+
+msgid "Enter_a_brief_summary_of_the_event"
+msgstr "Geef een korte samenvatting van het evenement"
+
+msgid "Name"
+msgstr "Naam"
+
+msgid "Force_full_resync"
+msgstr "Forceer hersynchronisatie"
+
+msgid "Password"
+msgstr "Wachtwoord"
+
+msgid "Save"
+msgstr "Opslaan"
+
+msgid "Settings"
+msgstr "Instellingen"
+
+msgid "Server_Name"
+msgstr "Servernaam"
+
+msgid "Server_Options"
+msgstr "Server-opties"
+
+msgid "Collection_Options"
+msgstr "Collectie-opties"
+
+msgid "Colour"
+msgstr "Kleur"
+
+msgid "Default_timezone"
+msgstr "Standaard Tijdzone"
+
+msgid "Server_Path"
+msgstr "Server-pad"
+
+msgid "Server_Port"
+msgstr "Serverpoort"
+
+msgid "Summary"
+msgstr "Samenvatting"
+
+msgid "Sync_collection_now"
+msgstr "Nu synchroniseren"
+
+msgid "Disable_collection"
+msgstr "Collectie uitschakelen"
+
+msgid "The_authentication_type_used"
+msgstr "Het authenticatie type gebruikt door de server"
+
+msgid "The_password_to_use"
+msgstr "Het wachtwoord te gebruiken voor authenticatie met de server"
+
+msgid "The_path_on_the_server"
+msgstr "Het pad op de server, zoals &quot;/caldav.php/user/&quot;"
+
+msgid "The_domain_for_your_organisation"
+msgstr "De domeinnaam van uw organisatie, zoals &quot;morphoss.com&quot;"
+
+msgid "The_servers_hostname"
+msgstr ""
+"De volledige hostnaam van de server zoals &quot;calendar.davical.com&quot;"
+
+msgid "The_username_to_use"
+msgstr "De gebruikersnaam om te gebruiken voor authenticatie met de server"
+
+msgid "Username"
+msgstr "Gebruikersnaam"
+
+msgid "Use_SSL"
+msgstr "SSL gebruiken"
+
+msgid "Whether_this_server_is_active"
+msgstr "Of deze server actief moet worden gebruikt"
+
+msgid "Whether_to_use_encryption"
+msgstr "Of encryptie moet gebruikt worden voor de verbinding met de server"
+
+msgid "appActivityEventCreate"
+msgstr "Nieuwe Gebeurtenis"
+
+msgid "appActivityServerConfigList"
+msgstr "Servers"
+
+msgid "appActivityAddServerList"
+msgstr "Server Sjablonen"
+
+msgid "appActivityCollectionConfigList"
+msgstr "Kalenders en Adresboeken"
+
+msgid "appActivityDebugSettings"
+msgstr "Instellingen voor foutopsporing"
+
+msgid "appActivitySettings"
+msgstr "Instellingen"
+
+msgid "appActivityYearView"
+msgstr "aCal - Bekijk Jaar"
+
+msgid "appActivityPreference"
+msgstr "Voorkeuren"
+
+msgid "The_port_to_connect_to"
+msgstr "De poort om verbinding te maken met de server"
+
+msgid "A_name_for_this_collection"
+msgstr "Een naam voor deze collectie"
+
+msgid "pActive_addressbook"
+msgstr "Actief adresboek"
+
+msgid "pActive_for_events"
+msgstr "Actief voor Gebeurtenissen"
+
+msgid "pActive_for_journal"
+msgstr "Actief voor Notes"
+
+msgid "pActive_for_tasks"
+msgstr "Actief voor Taken"
+
+msgid "pUse_Alarms"
+msgstr "Gebruik notificaties in deze collectie?"
+
+msgid "Use_Alarms"
+msgstr "Notificaties ingeschakeld"
+
+msgid "Active_addressbook"
+msgstr "Wordt deze collectie gebruikt om contactpersonen op te slaan?"
+
+msgid "Active_for_events"
+msgstr "Wordt deze collectie gebruikt om gebeurtenissen op te slaan?"
+
+msgid "Active_for_journal"
+msgstr "Wordt deze collectie gebruikt om notities op te slaan?"
+
+msgid "Active_for_tasks"
+msgstr "Wordt deze collectie gebruikt om taken op te slaan?"
+
+msgid "The_colour_associated_with_this_collection"
+msgstr "De kleur voor gegevens uit deze collectie"
+
+msgid "The_timezone_new_events_default_to"
+msgstr ""
+"De tijdzone die wordt gebruikt voor nieuwe gebeurtenissen in deze collectie"
+
+msgid "pMax_age_on_3g"
+msgstr "Sync minuten op 3g"
+
+msgid "The_maximum_age_for_data_while_on_3g"
+msgstr "De maximale tijd (in minuten) voordat u update via 3G"
+
+msgid "pMax_age_on_wifi"
+msgstr "Sync minuten op WiFi"
+
+msgid "The_maximum_age_for_data_while_on_wifi"
+msgstr "De maximale tijd (in minuten) voordat u update via WiFi"
+
+msgid "Use_alarms_from_this_calendar"
+msgstr "Moeten notificaties in deze kalender worden weergegeven?"
+
+msgid "Monday"
+msgstr "Maandag"
+
+msgid "Tuesday"
+msgstr "Dinsdag"
+
+msgid "Wednesday"
+msgstr "Woensdag"
+
+msgid "Thursday"
+msgstr "Donderdag"
+
+msgid "Friday"
+msgstr "Vrijdag"
+
+msgid "Saturday"
+msgstr "Zaterdag"
+
+msgid "Sunday"
+msgstr "Zondag"
+
+msgid "Mon"
+msgstr "Ma"
+
+msgid "Tue"
+msgstr "Di"
+
+msgid "Wed"
+msgstr "Woe"
+
+msgid "Thu"
+msgstr "Do"
+
+msgid "Fri"
+msgstr "Vrij"
+
+msgid "Sat"
+msgstr "Zat"
+
+msgid "Sun"
+msgstr "Zon"
+
+msgid "chMon"
+msgstr "M"
+
+msgid "chTue"
+msgstr "D"
+
+msgid "chWed"
+msgstr "W"
+
+msgid "chThu"
+msgstr "D"
+
+msgid "chFri"
+msgstr "V"
+
+msgid "chSat"
+msgstr "Z"
+
+msgid "chSun"
+msgstr "Z"
+
+msgid "January"
+msgstr "Januari"
+
+msgid "February"
+msgstr "Februari"
+
+msgid "March"
+msgstr "Maart"
+
+msgid "April"
+msgstr "April"
+
+msgid "May"
+msgstr "Mei"
+
+msgid "June"
+msgstr "Juni"
+
+msgid "July"
+msgstr "Juli"
+
+msgid "August"
+msgstr "Augustus"
+
+msgid "September"
+msgstr "September"
+
+msgid "October"
+msgstr "Oktober"
+
+msgid "November"
+msgstr "November"
+
+msgid "December"
+msgstr "December"
+
+msgid "thJan"
+msgstr "Jan"
+
+msgid "thFeb"
+msgstr "Feb"
+
+msgid "thMar"
+msgstr "Maa"
+
+msgid "thApr"
+msgstr "Apr"
+
+msgid "thMay"
+msgstr "Mei"
+
+msgid "thJun"
+msgstr "Jun"
+
+msgid "thJul"
+msgstr "Jul"
+
+msgid "thAug"
+msgstr "Aug"
+
+msgid "thSep"
+msgstr "Sep"
+
+msgid "thOct"
+msgstr "Okt"
+
+msgid "thNov"
+msgstr "Nov"
+
+msgid "thDec"
+msgstr "Dec"
+
+msgid "YearViewSize_PrefTitle"
+msgstr "Aantal zichtbare maanden in Jaar-view"
+
+msgid "YearViewSize_PrefSummary"
+msgstr "Het aantal maanden dat zichtbaar is in Jaar-view"
+
+msgid "Snooze_PrefTitle"
+msgstr "Snooze tijd"
+
+msgid "Snooze_PrefSummary"
+msgstr ""
+"Hoeveel minuten worden notificaties uitgesteld wanneer de snooze-knop wordt "
+"ingedrukt?"
+
+msgid "DefaultCollection_PrefTitle"
+msgstr "Standaard Collectie"
+
+msgid "DefaultCollection_PrefSummary"
+msgstr "De standaard collectie om te gebruiken voor nieuwe gebeurtenissen"
+
+msgid "DefaultAlarmTone_PrefTitle"
+msgstr "Standaard alarmgeluid"
+
+msgid "DefaultAlarmTone_PrefSummary"
+msgstr "Het standaard geluid voor notificaties."
+
+msgid "Today"
+msgstr "Vandaag"
+
+msgid "Year"
+msgstr "Jaar"
+
+msgid "Month"
+msgstr "Maand"
+
+msgid "Edit"
+msgstr "Bewerken"
+
+msgid "Apply"
+msgstr "Toepassen"
+
+msgid "Advanced"
+msgstr "Geavanceerd"
+
+msgid "Simple"
+msgstr "Eenvoudig"
+
+msgid "Add"
+msgstr "Toevoegen"
+
+msgid "UnNamedServer"
+msgstr "Naamloze Server"
+
+msgid "LocationPrompt"
+msgstr "Locatie:"
+
+msgid "NotesPrompt"
+msgstr "Opmerkingen:"
+
+msgid "AlarmsPrompt"
+msgstr "Notificaties:"
+
+msgid "RepeatsPrompt"
+msgstr "Herhaling:"
+
+msgid "AllDayPrompt"
+msgstr "Gebeurtenis duurt hele dag:"
+
+msgid "FromPrompt"
+msgstr "Van:"
+
+msgid "UntilPrompt"
+msgstr "Tot:"
+
+msgid "defaultCalendar"
+msgstr "Standaard kalender"
+
+msgid "theCalendarForNewEvents"
+msgstr "De standaard kalender om te gebruiken voor nieuwe gebeurtenissen."
+
+msgid "TwelveTwentyfour_PrefTitle"
+msgstr "Gebruik 24-uurs formaat"
+
+msgid "TwelveTwentyfour_OnSummary"
+msgstr "14:00"
+
+msgid "TwelveTwentyfour_OffSummary"
+msgstr "14:00"
+
+msgid "OnlyOnce"
+msgstr "Geen herhaling"
+
+msgid "EveryWeekday"
+msgstr "Iedere weekdag"
+
+msgid "EveryWeekend"
+msgstr "Ieder weekend"
+
+msgid "EveryDay"
+msgstr "Dagelijks"
+
+msgid "EveryWeek"
+msgstr "Wekelijks"
+
+msgid "EveryMonth"
+msgstr "Maandelijks"
+
+msgid "EveryYear"
+msgstr "Jaarlijks"
+
+msgid "EveryNDays"
+msgstr "Iedere %s dagen"
+
+msgid "EveryNWeeks"
+msgstr "Iedere %s weken"
+
+msgid "EveryNMonths"
+msgstr "Iedere %s maanden"
+
+msgid "EveryNYears"
+msgstr "Iedere %s jaren"
+
+msgid "EveryMonday"
+msgstr "Iedere maandag"
+
+msgid "EveryTuesday"
+msgstr "Iedere dinsdag"
+
+msgid "EveryWednesday"
+msgstr "Iedere woensdag"
+
+msgid "EveryThursday"
+msgstr "Iedere donderdag"
+
+msgid "EveryFriday"
+msgstr "Iedere vrijdag"
+
+msgid "EverySaturday"
+msgstr "Iedere zaterdag"
+
+msgid "EverySunday"
+msgstr "Iedere zondag"
+
+msgid "EveryNthOfTheMonth"
+msgstr "Iedere %s van de maand"
+
+msgid "EveryMonthOnTheNthSomeday"
+msgstr "Op de %s van iedere maand"
+
+msgid "EventSaved"
+msgstr "Gebeurtenis bewaard."
+
+msgid "ModifiedAllInstances"
+msgstr "Alle instanties van deze gebeurtenis bewerkt."
+
+msgid "ModifiedOneInstance"
+msgstr "Eén instantie van deze gebeurtenis bewerkt."
+
+msgid "ModifiedThisAndFuture"
+msgstr "Deze en alle toekomstige instanties van deze gebeurtenis bewerkt."
+
+msgid "ErrorSavingEvent"
+msgstr "Fout bij het opslaan van gebeurtenis - probeer aub  opnieuw."
+
+msgid "ChooseACollection"
+msgstr "Kies een Collectie"
+
+msgid "ChooseAlarmTime"
+msgstr "Kies een Meldingstijd"
+
+msgid "ChooseInstancesToChange"
+msgstr "Welke instanties moeten worden gewijzigd?"
+
+msgid "ChooseRepeatFrequency"
+msgstr "Kies een Herhaal Frequentie"
+
+msgid "Add_Alarm"
+msgstr "Melding toevoegen"
+
+msgid "errorMustHaveActiveCalendar"
+msgstr "Kan gebeurtenis niet bewerken zonder een actieve kalender."
+
+msgid "errorSavingFile"
+msgstr "Fout bij opslaan bestand"
+
+msgid "ServerDataSaved"
+msgstr "Server-gegevens geschreven. Bestandsnaam:"
+
+msgid "NewManualServerConfiguration"
+msgstr "Handmatige configuratie"
+
+msgid "ManualServerConfigurationBlurb"
+msgstr "Handmatig invoeren van de server informatie"
+
+msgid "SavedServerConfigurationBlurb"
+msgstr "Een opgeslagen server configuratie"
+
+msgid "alarmAtEventTime"
+msgstr "Op het ogenblik van de gebeurtenis"
+
+msgid "alarm10MinutesPrior"
+msgstr "10 minuten op voorhand"
+
+msgid "alarm30MinutesPrior"
+msgstr "30 minuten op voorhand"
+
+msgid "alarm1HourPrior"
+msgstr "1 uur op voorhand"
+
+msgid "alarm2HoursPrior"
+msgstr "2 uren op voorhand"
+
+msgid "alarm12HoursPrior"
+msgstr "12 uren op voorhand"
+
+msgid "alarm1DayPrior"
+msgstr "1 dag op voorhand"
+
+msgid "changeThisInstance"
+msgstr "Enkel deze instantie"
+
+msgid "changeAllInstances"
+msgstr "Alle instanties"
+
+msgid "changeThisAndFuture"
+msgstr "Deze en alle toekomstige instanties"
+
+msgid "internetNotAvailable"
+msgstr "Het internet is momenteel niet beschikbaar"
+
+msgid "couldNotDiscoverPort"
+msgstr "Kon HTTP-poort voor CalDAV-server niet vinden"
+
+msgid "couldNotDiscoverPrincipal"
+msgstr ""
+"Kon Principaal-pad niet vinden - de ingevoerde waarden worden gebruikt."
+
+msgid "foundPrincipalPath"
+msgstr "Principaal-pad van server gevonden op &quot;%s&quot;"
+
+msgid "serverSupportsCalDAV"
+msgstr "Server ondersteunt CalDAV."
+
+msgid "serverLacksCalDAV"
+msgstr "Server ondersteunt geen CalDAV."
+
+msgid "serverFailedValidation"
+msgstr "Er is een fout opgetreden bij het valideren van de server:"
+
+msgid "saveSettingsAnyway"
+msgstr "Wilt u toch deze instellingen opslaan?"
+
+msgid "serverValidationSuccess"
+msgstr "Server werd gevalideerd."

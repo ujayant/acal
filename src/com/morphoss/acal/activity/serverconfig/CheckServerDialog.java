@@ -157,12 +157,18 @@ public class CheckServerDialog implements Runnable {
 			}
 
 			// Step 2, Try some PROPFIND requests to find a principal path
-			boolean discovered = false;
+			boolean discovered	= false;
+			boolean authOK		= false;
+			boolean authFailed	= false;
 			if ( serverData.getAsString(Servers.PRINCIPAL_PATH) != null ) {
 				discovered = doPropfindPrincipal(serverData.getAsString(Servers.PRINCIPAL_PATH));
+				if ( requestor.getStatusCode() < 300 ) authOK = true;
+				else if ( requestor.getStatusCode() == 401 ) authFailed = true;
 			}
 			if ( !discovered && serverData.getAsString(Servers.SUPPLIED_PATH) != null ) {
 				discovered = doPropfindPrincipal(serverData.getAsString(Servers.SUPPLIED_PATH));
+				if ( requestor.getStatusCode() < 300 ) authOK = true; 
+				else if ( requestor.getStatusCode() == 401 ) authFailed = true;
 			}
 			if ( !discovered ) {
 				String[] tryForPaths = {
@@ -172,11 +178,15 @@ public class CheckServerDialog implements Runnable {
 						};
 				for (int i = 0; !discovered && i < tryForPaths.length; i++) {
 					discovered = doPropfindPrincipal(tryForPaths[i]);
+					if ( requestor.getStatusCode() < 300 ) authOK = true; 
+					else if ( requestor.getStatusCode() == 401 ) authFailed = true;
 				}
 			}
 
 			if ( !discovered ) {
 				successMessages.add(context.getString(R.string.couldNotDiscoverPrincipal));
+				if ( authFailed && !authOK )
+					successMessages.add(context.getString(R.string.authenticationFailed));
 			}
 			else {
 				successMessages.add(String.format(context.getString(R.string.foundPrincipalPath), requestor.fullUrl()));
@@ -370,7 +380,7 @@ public class CheckServerDialog implements Runnable {
 	 * @return
 	 */
 	private boolean tryPort( int port, int protocol, int timeOutMillis ) {
-		requestor.setTimeOut(timeOutMillis);
+		requestor.setTimeOuts(timeOutMillis,3000);
 		requestor.setPortProtocol( port, protocol );
 		Log.i(TAG, "Starting probe of "+requestor.fullUrl());
 		try {
@@ -393,7 +403,7 @@ public class CheckServerDialog implements Runnable {
 	private boolean doPropfindPrincipal( String requestPath ) {
 		Log.i(TAG, "Doing PROPFIND for current-user-principal on " + requestor.fullUrl() );
 		try {
-			requestor.setTimeOut(10000);
+			requestor.setTimeOuts(4000,15000);
 			DavNode root = requestor.doXmlRequest("PROPFIND", requestPath, pPathHeaders, pPathRequestData);
 			
 			int status = requestor.getStatusCode();
@@ -402,7 +412,19 @@ public class CheckServerDialog implements Runnable {
 			checkCalendarAccess(requestor.getResponseHeaders());
 
 			if ( status == 207 ) {
+				if ( Constants.LOG_DEBUG ) Log.d(TAG, "Checking for principal path in response...");
+				for ( DavNode href : root.getNodesFromPath("multistatus/response/propstat/prop/current-user-principal/unauthenticated") ) {
+					if ( Constants.LOG_DEBUG ) Log.d(TAG, "Found unauthenticated principal");
+					requestor.setAuthRequired();
+					if ( Constants.LOG_DEBUG ) Log.d(TAG, "We are unauthenticated, so try forcing authentication on");
+					if ( requestor.getAuthType() == Servers.AUTH_NONE ) {
+						requestor.setAuthType(Servers.AUTH_BASIC);
+						if ( Constants.LOG_DEBUG ) Log.d(TAG, "Guessing Basic Authentication");
+					}
+					return doPropfindPrincipal(requestPath);
+				}
 				for ( DavNode href : root.getNodesFromPath("multistatus/response/propstat/prop/current-user-principal/href") ) {
+					if ( Constants.LOG_DEBUG ) Log.d(TAG, "Found principal URL :-)");
 					requestor.interpretUriString(href.getText());
 					return true;
 				}
@@ -417,6 +439,7 @@ public class CheckServerDialog implements Runnable {
 
 	
 	private boolean doOptions( String requestPath ) {
+		requestor.setTimeOuts(4000,10000);
 		try {
 			Log.i(TAG, "Starting OPTIONS on "+requestor.fullUrl());
 			requestor.doRequest("OPTIONS", requestPath, null, null);
