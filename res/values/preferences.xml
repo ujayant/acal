@@ -6,5 +6,9 @@
 	<string name="Snooze_PrefKey">SnoozeTime</string>
 	<string name="DefaultCollection_PrefKey">DefaultCollection</string>
 	<string name="DefaultAlarmTone_PrefKey">DefaultAlarmTone</string>
+	<string name="prefWorkdayStart">prefWorkdayStart</string>
+	<string name="prefWorkdayFinish">prefWorkdayFinish</string>
+	<string name="prefWeekViewLinesPerHour">prefWeekViewLinesPerHour</string>
+	<string name="prefWeekViewColumnsPerDay">prefWeekViewColumnsPerDay</string>
 
 </resources>

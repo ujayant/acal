@@ -53,5 +53,39 @@
 		android:summary="@string/DefaultAlarmTone_PrefSummary"
 		android:selectable="false"
 		android:enabled="false"/>
+
+	<PreferenceCategory android:title="Week View Preferences">
+		<EditTextPreference
+			android:key="@string/prefWorkdayStart"
+			android:title="@string/prefWorkdayStart_Title"
+			android:summary="@string/prefWorkdayStart_Summary"
+			android:selectable="true"
+			android:enabled="true"
+			android:defaultValue="9:00"/>
 	
+		<EditTextPreference
+			android:key="@string/prefWorkdayFinish"
+			android:title="@string/prefWorkdayFinish_Title"
+			android:summary="@string/prefWorkdayFinish_Summary"
+			android:selectable="true"
+			android:enabled="true"
+			android:defaultValue="15:00"/>
+	
+		<EditTextPreference
+			android:key="@string/prefWeekViewLinesPerHour"
+			android:title="@string/prefWeekViewLinesPerHour_Title"
+			android:summary="@string/prefWeekViewLinesPerHour_Summary"
+			android:selectable="true"
+			android:enabled="true"
+			android:defaultValue="2"/>
+	
+		<EditTextPreference
+			android:key="@string/prefWeekViewColumnsPerDay"
+			android:title="@string/prefWeekViewColumnsPerDay_Title"
+			android:summary="@string/prefWeekViewColumnsPerDay_Summary"
+			android:selectable="true"
+			android:enabled="true"
+			android:defaultValue="20"/>
+	</PreferenceCategory>
+
 </PreferenceScreen>
