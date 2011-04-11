@@ -8,3 +8,11 @@ design/.*#
 design/*.png
 design/*.gif
 acal.db
+.cil
+issues
+.tx
+design/10*.odt
+design/acal_icon.ico
+design/Promotional.svg
+design/main-screen-portrait.svg
+design/setup_background.svg
