@@ -19,11 +19,13 @@
 package com.morphoss.acal.providers;
 
 import android.content.ContentProvider;
+import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
@@ -43,6 +45,8 @@ import com.morphoss.acal.service.aCalService;
  *
  */
 public class Servers extends ContentProvider {
+
+	public static final String TAG = "aCal ServersProvider";
 
 	//Authority must match one defined in manifest!
 	public static final String AUTHORITY = "servers";
@@ -293,6 +297,39 @@ public class Servers extends ContentProvider {
 		StaticHelpers.copyContentValue(cloned, serverData, ACTIVE);
 		StaticHelpers.copyContentValue(cloned, serverData, USE_SSL);
 		return cloned;
+	}
+
+	/**
+	 * Static method to retrieve a particular database row for a given serverId.
+	 * @param serverId
+	 * @param contentResolver
+	 * @return A ContentValues which is the server row, or null
+	 */
+	public static ContentValues getRow(int serverId, ContentResolver contentResolver) {
+		ContentValues serverData = null;
+		Cursor c = null;
+		try {
+			c = contentResolver.query(Uri.withAppendedPath(Servers.CONTENT_URI,Long.toString(serverId)),
+						null, null, null, null);
+			if ( !c.moveToFirst() ) {
+				Log.e(TAG, "No dav_server row in DB for " + Long.toString(serverId));
+				c.close();
+				return null;
+			}
+			serverData = new ContentValues();
+			DatabaseUtils.cursorRowToContentValues(c,serverData);
+		}
+		catch (Exception e) {
+			// Error getting data
+			Log.e(TAG, "Error getting server data from DB: " + e.getMessage());
+			Log.e(TAG, Log.getStackTraceString(e));
+			c.close();
+			return null;
+		}
+		finally {
+			c.close();
+		}
+		return serverData;
 	}
 
 }
