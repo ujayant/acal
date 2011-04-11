@@ -136,6 +136,18 @@
 
 <string name="DefaultAlarmTone_PrefTitle">Default Alarm Tone</string>
 <string name="DefaultAlarmTone_PrefSummary">The default sound to use for alarms.</string>
+ 
+<string name="prefWorkdayStart_Title">Workday Start</string>
+<string name="prefWorkdayStart_Summary">The start time for the working day.</string>
+
+<string name="prefWorkdayFinish_Title">Workday Finish</string>
+<string name="prefWorkdayFinish_Summary">The finish time for the working day.</string>
+
+<string name="prefWeekViewLinesPerHour_Title">Rows Height</string>
+<string name="prefWeekViewLinesPerHour_Summary">The height of each hour of the day in week view.</string>
+
+<string name="prefWeekViewColumnsPerDay_Title">Column Width</string>
+<string name="prefWeekViewColumnsPerDay_Summary">The width of each day column in the week view.</string>
 
 <string name="Today">Today</string>
 <string name="Year">Year</string>
@@ -230,6 +242,5 @@
 <string name="serverFailedValidation">There was an error validating the server:</string>
 <string name="saveSettingsAnyway">Would you like to save these settings anyway?</string>
 <string name="serverValidationSuccess">Server validation was successful.</string>
-<string name="Week">Week</string>
 <string name="authenticationFailed">Unable to authenticate with server.</string>
 </resources>
