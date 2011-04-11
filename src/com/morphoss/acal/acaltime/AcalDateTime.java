@@ -1384,7 +1384,12 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	}
 
 
-	public synchronized void addSeconds(long delta) {
+	/**
+	 * Adds (or subtracts) a number of seconds from this AcalDateTime
+	 * @param delta
+	 * @return The current object, for chaining.
+	 */
+	public synchronized AcalDateTime addSeconds(long delta) {
 		if ( Constants.debugDateTime ) checkEpoch();
 //		final long MAX_SECONDS_DELTA = SECONDS_IN_DAY * 28;
 //		final long MIN_SECONDS_DELTA = -MAX_SECONDS_DELTA;
@@ -1411,6 +1416,7 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 //			Log.v(TAG,"Got epoch of "+epoch);
 		year = YEAR_NOT_SET;
 		if ( Constants.debugDateTime ) calculateDateTime();
+		return this;
 	}
 
 
