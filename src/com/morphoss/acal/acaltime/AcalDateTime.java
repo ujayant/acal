@@ -1337,7 +1337,12 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 		return (this.compareTo(another) > 0);
 	}
 
-	
+
+	/**
+	 * Returns a java.util.Date representation of this AcalDateTime. Particularly useful
+	 * with SimpleDateFormat to produce localised.
+	 * @return
+	 */
 	public Date toJavaDate() {
 		if ( year == YEAR_NOT_SET ) calculateDateTime();
 		return new Date(year-1900, month-1, day, hour, minute, second);
@@ -1409,6 +1414,11 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	}
 
 
+	/**
+	 * Adds an integer number of days to this AcalDateTime.  And like all integers 'days'
+	 * could be negative, and that's OK too.
+	 * @param days
+	 */
 	public synchronized void addDays(int days) {
 		if ( Constants.debugDateTime ) checkEpoch();
 		if ( year == YEAR_NOT_SET ) calculateDateTime();
@@ -1450,6 +1460,13 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	}
 
 
+	/**
+	 * Clones the supplied AcalDateTime and then adds an integer number of days to
+	 * the cloned value.  And like all integers 'days' could be negative, and that's OK too.
+	 * @param c
+	 * @param days
+	 * @return
+	 */
 	public static AcalDateTime addDays(AcalDateTime c, int days) {
 		AcalDateTime r = (AcalDateTime) c.clone();
 		r.addDays(days);
