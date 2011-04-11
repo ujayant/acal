@@ -66,7 +66,6 @@ public class SyncCollectionContents extends ServiceJob {
 	
 	@Override
 	public void run(aCalService context) {
-		
 		request.setService(context);
 		ResourceManager rm = ResourceManager.getInstance(context);
 		//send request
