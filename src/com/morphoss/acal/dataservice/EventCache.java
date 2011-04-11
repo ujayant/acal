@@ -90,8 +90,6 @@ public class EventCache {
 		int originalFirst = first;
 		AcalDateRange rangeToFetch = new AcalDateRange(new AcalDateTime(year,month,first,0,0,0,null), new AcalDateTime(year,month,last,23,59,59,null));
 		
-		
-		
 		//We need to convert a list with several days worth of events to a set of lists each with exactly one days events.
 		try {
 			ArrayList<AcalEvent> result = (ArrayList<AcalEvent>) dataRequest.getEventsForDateRange(rangeToFetch);
@@ -135,13 +133,16 @@ public class EventCache {
 				while (i.hasNext()) {
 					AcalEvent event = i.next();
 					todaysEvents.add(event);
-					if (getDateHash(event.getEnd()) == curHash) i.remove();	//remove multiday events that expire today
+
+					//remove multiday events that expire today. We need to subtract the 1 second
+					// since event end time is non-inclusive.
+					if (getDateHash(event.getEnd().addSeconds(-1)) == curHash) i.remove();
 				}
 				
 				//while the current item has the same hash (i.e. the same day)	add it to the current list
 				while (getDateHash(currentEvent.dtstart) == curHash ) {
 					//check to see if multi day event, if so add to multi day list
-					if (getDateHash(currentEvent.getEnd()) > curHash) multiDayEvents.add(currentEvent);
+					if ( getDateHash(currentEvent.getEnd().addSeconds(-1)) > curHash) multiDayEvents.add(currentEvent);
 					todaysEvents.add(currentEvent);
 					currentPointer++;
 					if (currentPointer >= result.size()) break;
@@ -190,7 +191,7 @@ public class EventCache {
 	public synchronized ArrayList<AcalEvent> getEventsForDays(AcalDateRange range,DataRequest dr) {
 		AcalDateTime current = range.start.clone();
 		ArrayList<AcalEvent> ret = new ArrayList<AcalEvent>();
-		while (current.before(range.end)) {
+		while ( current.before(range.end) ) {
 			this.addDay(current, dr);
 			ArrayList<AcalEvent> curList = getEventsForDay(current);
 			for (AcalEvent e : curList) {
