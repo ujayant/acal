@@ -98,13 +98,15 @@ public class WeekViewHeader extends ImageView {
 		this.date = date;
 	}
 	
+	
+	//TODO move to image cache
 	private void drawBox(int x, int y, int w, int h, Canvas c, AcalDateTime day) {
 		LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		View v = (View) inflater.inflate(R.layout.week_view_assets, null);
 		TextView title = ((TextView) v.findViewById(R.id.WV_header_day_box));
 		title.setVisibility(View.VISIBLE);
 		String formatString = "EEE\nMMM d";
-		if (day.get(AcalDateTime.DAY_OF_WEEK) == this.getFirstDay(context)) {
+		if (day.get(AcalDateTime.DAY_OF_WEEK) == WeekViewActivity.FIRST_DAY_OF_WEEK) {
 			formatString+=" (w)";
 		}
 		SimpleDateFormat formatter = new SimpleDateFormat(formatString);
@@ -115,19 +117,5 @@ public class WeekViewHeader extends ImageView {
 		Canvas tempCanvas = new Canvas(returnedBitmap);
 		title.draw(tempCanvas);
 		c.drawBitmap(returnedBitmap,x, y, new Paint());
-	}
-	
-	private int getFirstDay(Context context) {
-		//check preferred first day
-		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-		int ret = 0;
-		try {
-			ret = Integer.parseInt(prefs.getString(context.getString(R.string.firstDayOfWeek), "0"));
-			if ( ret < AcalDateTime.MONDAY || ret > AcalDateTime.SUNDAY ) throw new Exception();
-		}
-		catch( Exception e ) {
-			ret = AcalDateTime.MONDAY; 
-		}
-		return ret;
 	}
 }

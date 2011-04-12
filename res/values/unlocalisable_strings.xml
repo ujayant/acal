@@ -19,4 +19,11 @@
 <color name="DayEventFG">#103090</color>
 <color name="DayEventBG">#50FFFFFF</color>
 <dimen name="DayEventTextSize">14sp</dimen>
+
+<color name="WeekViewMultiDayBG">#F0F0F0</color>
+<color name="WeekViewMultiDayBorder">#333333</color>
+<color name="WeekViewSidebarBG">#F0F0F0</color>
+<color name="WeekViewSidebarBorder">#333333</color>
+<color name="WeekViewDayGridBorder">#AAAAAA</color>
+<color name="WeekViewDayGridWorkTimeBG">#AAAAAA</color>
 </resources>

@@ -73,7 +73,7 @@ public class WeekViewSideBar extends ImageView {
 		if (this.getHeight() == 0) return;
 		Paint p = new Paint();
 		p.setStyle(Paint.Style.FILL);
-		p.setColor(Color.parseColor("#f0f0f0"));
+		p.setColor(context.getResources().getColor(R.color.WeekViewSidebarBG));
 		canvas.drawRect(0, 0, this.getWidth(), this.getHeight(), p);
 		if (this.isInEditMode()) {
 			return;
@@ -83,7 +83,7 @@ public class WeekViewSideBar extends ImageView {
 		
 		canvas.drawBitmap(context.getImageCache().getSideBar(this.getWidth()), 0,offset, p);
 		p.setStyle(Paint.Style.STROKE);
-		p.setColor(Color.parseColor("#333333"));
+		p.setColor(context.getResources().getColor(R.color.WeekViewSidebarBorder));
 		canvas.drawRect(0, 0, this.getWidth(), this.getHeight(), p);
 
 	}

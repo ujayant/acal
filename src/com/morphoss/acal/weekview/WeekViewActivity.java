@@ -26,11 +26,13 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.RemoteException;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.Menu;
@@ -77,9 +79,13 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	private WeekViewMultiDay multiday;
 	private WeekViewDays	days;
 
-	//Size options in pixels
+	//Magic Numbers / Configurable values / Prefs
 	public static final int DAY_WIDTH = 100;
 	public static final int HALF_HOUR_HEIGHT = 40;
+	public static final int MINIMUM_DAY_EVENT_HEIGHT = 20;
+	public static int FIRST_DAY_OF_WEEK = 1;
+	public static boolean TIME_24_HOUR = false;
+	public static final float[] DASHED_LINE_PARAMS = new float[] {5,5};
 	
 	//Image cache
 	private WeekViewImageCache imageCache;
@@ -119,6 +125,10 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		this.setupButton(R.id.year_today_button, TODAY);
 		this.setupButton(R.id.year_month_button, MONTH);
 		this.setupButton(R.id.year_add_button, ADD);
+		
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+		TIME_24_HOUR = prefs.getBoolean(getString(R.string.prefTwelveTwentyfour), false);
+		FIRST_DAY_OF_WEEK = Integer.parseInt(prefs.getString(getString(R.string.firstDayOfWeek), "0"));
 	}
 	
 	//force all displays to update

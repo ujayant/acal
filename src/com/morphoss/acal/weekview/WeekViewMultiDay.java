@@ -96,9 +96,9 @@ public class WeekViewMultiDay extends ImageView {
 		super.draw(canvas);
 		Paint p = new Paint();
 		p.setStyle(Paint.Style.FILL);
-		p.setColor(Color.parseColor("#F0F0F0"));
+		p.setColor(context.getResources().getColor(R.color.WeekViewMultiDayBG));
 		canvas.drawRect(0, 0, canvas.getWidth(), canvas.getHeight(), p);
-	
+		
 		if (this.isInEditMode()) {
 			return;
 		}
@@ -133,7 +133,7 @@ public class WeekViewMultiDay extends ImageView {
 		
 		//draw borders around each day
 		p.setStyle(Paint.Style.STROKE);
-		p.setColor(Color.parseColor("#333333"));
+		p.setColor(context.getResources().getColor(R.color.WeekViewMultiDayBorder));
 		for (x =0; (x<totalWidth+dayWidth); x+=dayWidth)
 		canvas.drawRect(x-scrollx, 0, dayWidth-scrollx, canvas.getHeight()-1, p); 
 	}

@@ -164,7 +164,7 @@ public class WeekViewDays extends ImageView {
 			startMinute = event.dtstart.getDaySecond()/60;
 			endMinute = event.getEnd().getDaySecond()/60;
 			height = (endMinute-startMinute)*pixelsPerMinute;
-			height = Math.max(20, height);	//minimum height
+			height = Math.max(WeekViewActivity.MINIMUM_DAY_EVENT_HEIGHT, height);	//minimum height
 			this.event = event;
 		}
 		

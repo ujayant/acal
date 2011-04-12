@@ -29,8 +29,6 @@ public class WeekViewImageCache {
 	private Bitmap sidebar;
 	private int sidebarWidth = -1;
 	
-	private Bitmap daygrid;
-	private float daygridWidth = -1;
 	private int workDayStart = 9;
 	private int workDayEnd = 17;
 	private Bitmap daybox;
@@ -53,13 +51,13 @@ public class WeekViewImageCache {
 		float hourHeight = halfHeight*2;
 		Paint p = new Paint();
 		p.setStyle(Paint.Style.STROKE);
-		p.setColor(Color.parseColor("#AAAAAA"));
+		p.setColor(c.getResources().getColor(R.color.WeekViewDayGridBorder));
 		canvas.drawRect(0,0,dayWidth,hourHeight,p);
 		
 		p.setStyle(Paint.Style.STROKE);
-		p.setColor(Color.parseColor("#AAAAAA"));
+		p.setColor(c.getResources().getColor(R.color.WeekViewDayGridBorder));
 		//draw dotted center line
-		DashPathEffect dashes = new DashPathEffect(new float[]{5,5},0);
+		DashPathEffect dashes = new DashPathEffect(WeekViewActivity.DASHED_LINE_PARAMS,0);
 		p.setPathEffect(dashes);
 		canvas.drawLine(0,halfHeight, dayWidth, halfHeight, p);
 		this.daybox = returnedBitmap;
@@ -69,14 +67,14 @@ public class WeekViewImageCache {
 		canvas = new Canvas(returnedBitmap);
 		p.reset();
 		p.setStyle(Paint.Style.FILL);
-		p.setColor(Color.parseColor("#fff6f6d0"));
+		p.setColor(c.getResources().getColor(R.color.WeekViewDayGridWorkTimeBG));
 		canvas.drawRect(0,0,dayWidth,hourHeight,p);
 		p.setStyle(Paint.Style.STROKE);
-		p.setColor(Color.parseColor("#AAAAAA"));
+		p.setColor(c.getResources().getColor(R.color.WeekViewDayGridBorder));
 		canvas.drawRect(0,0,dayWidth,hourHeight,p);
 		p.reset();
 		p.setStyle(Paint.Style.STROKE);
-		p.setColor(Color.parseColor("#AAAAAA"));
+		p.setColor(c.getResources().getColor(R.color.WeekViewDayGridBorder));
 		//draw dotted center line
 		p.setPathEffect(dashes);
 		canvas.drawLine(0,halfHeight, dayWidth, halfHeight, p);
@@ -114,12 +112,18 @@ public class WeekViewImageCache {
 			else box= ((TextView) v.findViewById(R.id.WV_side_box_half));
 			box.setVisibility(View.VISIBLE);
 			String text = "";
-			if (half) text="30";
-			else if (hour == 0)text="12 a";
-			else {
-				int hd = hour;
-				if (hour >= 13) hd-=12; 
-				text=(int)hd+" "+(hour<12?"a":"p");
+			
+			if (WeekViewActivity.TIME_24_HOUR) {
+				if (half) text="30";
+				else text = hour+"";
+			} else {
+				if (half) text="30";
+				else if (hour == 0)text="12 a";
+				else {
+					int hd = hour;
+					if (hour >= 13) hd-=12; 
+					text=(int)hd+" "+(hour<12?"a":"p");
+				}
 			}
 			box.setText(text);
 			box.measure(MeasureSpec.makeMeasureSpec((int) width, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec((int) halfHeight, MeasureSpec.EXACTLY));
