@@ -299,8 +299,8 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 
 		//Title
 		this.eventName = (TextView) this.findViewById(R.id.EventName);
-		if ( eventName.getText().equals(getString(R.string.NewEventTitle))) {
-			eventName.setSelected(true);
+		if ( eventAction == null || eventAction.getAction() == AcalEventAction.ACTION_CREATE ) {
+			eventName.setSelectAllOnFocus(true);
 		}
 
 		//Collection
