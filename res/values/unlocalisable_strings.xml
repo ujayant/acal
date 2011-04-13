@@ -5,6 +5,8 @@
 <string name="cancelButton">cancelButton</string>
 
 <string name="appName">aCal</string>
+<string name="appActivityYearView">aCal - Year View</string>
+<string name="appActivityWeekView">aCal - Week View</string>
 
 <dimen name="MonthDayTextSize">14sp</dimen>
 <color name="MonthDayFG">#001060</color>

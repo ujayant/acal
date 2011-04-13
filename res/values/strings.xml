@@ -47,8 +47,6 @@
 <string name="appActivityCollectionConfigList">Calendars and Addressbooks</string>
 <string name="appActivityDebugSettings">Debug Settings</string>
 <string name="appActivitySettings">Settings</string>
-<string name="appActivityYearView">aCal - Year View</string>
-<string name="appActivityWeekView">aCal - Week View</string>
 <string name="appActivityPreference">Preferences</string>
 <string name="The_port_to_connect_to">The port to connect to on the server</string>
 

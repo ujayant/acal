@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-04-06 19:18+1200\n"
+"POT-Creation-Date: 2011-04-13 20:49+1200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -149,9 +149,6 @@ msgstr "Debug Settings"
 
 msgid "appActivitySettings"
 msgstr "Settings"
-
-msgid "appActivityYearView"
-msgstr "aCal - Year View"
 
 msgid "appActivityPreference"
 msgstr "Preferences"
@@ -348,6 +345,13 @@ msgstr "Nov"
 msgid "thDec"
 msgstr "Dec"
 
+# If the user is displaying AM/PM we need a single character to display e.g. 1p for 1:00pm 
+msgid "oneCharMorning"
+msgstr "a"
+
+msgid "oneCharAfternoon"
+msgstr "p"
+
 msgid "YearViewSize_PrefTitle"
 msgstr "Number of Months in Year View"
 
@@ -372,6 +376,30 @@ msgstr "Default Alarm Tone"
 msgid "DefaultAlarmTone_PrefSummary"
 msgstr "The default sound to use for alarms."
 
+msgid "prefWorkdayStart_Title"
+msgstr "Workday Start"
+
+msgid "prefWorkdayStart_Summary"
+msgstr "The start time for the working day."
+
+msgid "prefWorkdayFinish_Title"
+msgstr "Workday Finish"
+
+msgid "prefWorkdayFinish_Summary"
+msgstr "The finish time for the working day."
+
+msgid "prefWeekViewLinesPerHour_Title"
+msgstr "Rows Height"
+
+msgid "prefWeekViewLinesPerHour_Summary"
+msgstr "The height of each hour of the day in week view."
+
+msgid "prefWeekViewColumnsPerDay_Title"
+msgstr "Column Width"
+
+msgid "prefWeekViewColumnsPerDay_Summary"
+msgstr "The width of each day column in the week view."
+
 msgid "Today"
 msgstr "Today"
 
@@ -380,6 +408,9 @@ msgstr "Year"
 
 msgid "Month"
 msgstr "Month"
+
+msgid "Week"
+msgstr "Week"
 
 msgid "Edit"
 msgstr "Edit"
@@ -412,7 +443,7 @@ msgid "RepeatsPrompt"
 msgstr "Repeats:"
 
 msgid "AllDayPrompt"
-msgstr "All Day event:"
+msgstr "All Day:"
 
 msgid "FromPrompt"
 msgstr "From:"
@@ -495,6 +526,9 @@ msgstr "On every %s of the month"
 msgid "EveryMonthOnTheNthSomeday"
 msgstr "On the %s of each month"
 
+msgid "CustomRepeatRule"
+msgstr "Custom Repetition"
+
 msgid "EventSaved"
 msgstr "Event Saved."
 
@@ -509,6 +543,9 @@ msgstr "Modified this and all future instances of this event."
 
 msgid "ErrorSavingEvent"
 msgstr "Error saving event data - please try again."
+
+msgid "NewEventTitle"
+msgstr "New Event"
 
 msgid "ChooseACollection"
 msgstr "Choose a Collection"
@@ -563,6 +600,9 @@ msgstr "12 hours before"
 
 msgid "alarm1DayPrior"
 msgstr "One day before"
+
+msgid "alarmCustom"
+msgstr "Custom Alarm"
 
 msgid "changeThisInstance"
 msgstr "This Instance Only"
