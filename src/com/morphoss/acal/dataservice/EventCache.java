@@ -49,17 +49,17 @@ public class EventCache {
 	final static int MAX_DAYS = 180;
 	
 	//Maps dates to events. each event list must remain sorted.
-	final Map<Integer,ArrayList<AcalEvent>> cachedEvents = new TreeMap<Integer,ArrayList<AcalEvent>>();
+	static final Map<Integer,ArrayList<AcalEvent>> cachedEvents = new TreeMap<Integer,ArrayList<AcalEvent>>();
 	
 	//A queue of requested dates, lets us know which dates to remove (oldest first);
-	final LinkedList<Integer> dateQueue = new LinkedList<Integer>();
+	static final LinkedList<Integer> dateQueue = new LinkedList<Integer>();
 		
 	//Converts a datetime to a day hash
-	private int getDateHash(AcalDateTime day) {
+	static private int getDateHash(AcalDateTime day) {
 		return day.getMonthDay() + (day.getMonth()*32) + (day.getYear()*32*13);
 	}
 	
-	private int getDateHash(int day, int month, int year) {
+	static private int getDateHash(int day, int month, int year) {
 		return day + (month*32) + (year*32*13);
 	}
 	
@@ -205,6 +205,7 @@ public class EventCache {
 	
 	/** Methods required by month view */
 	public synchronized ArrayList<AcalEvent> getEventsForDay(AcalDateTime day) {
+		if (!cachedEvents.containsKey(getDateHash(day))) return null;
 		return cachedEvents.get(getDateHash(day));
 	}
 
@@ -214,10 +215,12 @@ public class EventCache {
 	}
 
 	public synchronized AcalEvent getNthEventForDay(AcalDateTime day, int n) {
+		if (!cachedEvents.containsKey(getDateHash(day))) return null;
 		return cachedEvents.get(getDateHash(day)).get(n);
 	}
 
 	public synchronized void deleteEvent(AcalDateTime day, int n) {
+		if (!cachedEvents.containsKey(getDateHash(day))) return;
 		cachedEvents.get(getDateHash(day)).remove(n);
 	}
 	
