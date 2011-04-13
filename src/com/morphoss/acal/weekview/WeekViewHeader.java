@@ -22,7 +22,6 @@ public class WeekViewHeader extends ImageView {
 	
 	private WeekViewActivity context; 
 	private AcalDateTime date;
-	private float scrollx;
 	
 	/** Default Constructor */
 	public WeekViewHeader(Context context, AttributeSet attrs, int defStyle) {
@@ -32,8 +31,7 @@ public class WeekViewHeader extends ImageView {
 		}
 		if (!(context instanceof WeekViewActivity)) throw new IllegalStateException("Week View Started with invalid context.");
 		this.context = (WeekViewActivity) context;
-		this.date = this.context.getCurrentDate().clone();
-		// TODO Auto-generated constructor stub
+		this.date = this.context.getCurrentDate();
 	}
 	
 	/** Default Constructor */
@@ -44,7 +42,7 @@ public class WeekViewHeader extends ImageView {
 		}
 		if (!(context instanceof WeekViewActivity)) throw new IllegalStateException("Week View Started with invalid context.");
 		this.context = (WeekViewActivity) context;
-		this.date = this.context.getCurrentDate().clone();
+		this.date = this.context.getCurrentDate();
 	}
 	
 	
@@ -56,20 +54,9 @@ public class WeekViewHeader extends ImageView {
 		}
 		if (!(context instanceof WeekViewActivity)) throw new IllegalStateException("Week View Started with invalid context.");
 		this.context = (WeekViewActivity) context;
-		this.date = this.context.getCurrentDate().clone();
+		this.date = this.context.getCurrentDate();
 	}
 	
-	public void moveX(float dx) {
-		this.scrollx+=dx;
-		if (this.scrollx >= WeekViewActivity.DAY_WIDTH) {
-			this.date.addDays(1);
-			this.scrollx-=WeekViewActivity.DAY_WIDTH;
-		} else if (this.scrollx <= 0-WeekViewActivity.DAY_WIDTH) {
-			this.date.addDays(-1);
-			this.scrollx+=WeekViewActivity.DAY_WIDTH;
-		}
-	}
-
 	@Override
 	public void draw(Canvas canvas) {
 		super.draw(canvas);
@@ -81,12 +68,15 @@ public class WeekViewHeader extends ImageView {
 			return;
 		}
 		AcalDateTime startDate = date.clone();
-		int x = 0; int y = 0;
+		startDate.addDays(-1);		//we start one day before the current date, current date should be first fully visible date
 		int dayWidth = WeekViewActivity.DAY_WIDTH;
+		
+		int x = (int)(0-dayWidth+context.getScrollX()); int y = 0;
+		
 		int dayHeight = this.getHeight();
 		int totalWidth = this.getWidth();
-		while(x<totalWidth+(2*dayWidth)) {
-			drawBox((int)(0-dayWidth-scrollx)+x,y,dayWidth,dayHeight,canvas,startDate);
+		while(x<(totalWidth+dayWidth)) {		//continue until we have draw one past screen edge
+			drawBox(x,y,dayWidth,dayHeight,canvas,startDate);
 			startDate.addDays(1);
 			x+=dayWidth;
 		}

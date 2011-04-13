@@ -25,5 +25,5 @@
 <color name="WeekViewSidebarBG">#F0F0F0</color>
 <color name="WeekViewSidebarBorder">#333333</color>
 <color name="WeekViewDayGridBorder">#AAAAAA</color>
-<color name="WeekViewDayGridWorkTimeBG">#AAAAAA</color>
+<color name="WeekViewDayGridWorkTimeBG">#F0F6F6D0</color>
 </resources>

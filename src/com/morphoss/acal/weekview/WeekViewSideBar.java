@@ -19,8 +19,6 @@ import com.morphoss.acal.acaltime.AcalDateTime;
 public class WeekViewSideBar extends ImageView {
 	
 	private WeekViewActivity context; 
-	private AcalDateTime date;
-	private float verticalOffset = 0;
 	
 	/** Default Constructor */
 	public WeekViewSideBar(Context context, AttributeSet attrs, int defStyle) {
@@ -30,7 +28,6 @@ public class WeekViewSideBar extends ImageView {
 		}
 		if (!(context instanceof WeekViewActivity)) throw new IllegalStateException("Week View Started with invalid context.");
 		this.context = (WeekViewActivity) context;
-		this.date = this.context.getCurrentDate();
 	}
 	
 	/** Default Constructor */
@@ -41,7 +38,6 @@ public class WeekViewSideBar extends ImageView {
 		}
 		if (!(context instanceof WeekViewActivity)) throw new IllegalStateException("Week View Started with invalid context.");
 		this.context = (WeekViewActivity) context;
-		this.date = this.context.getCurrentDate();
 	}
 	
 	
@@ -53,42 +49,30 @@ public class WeekViewSideBar extends ImageView {
 		}
 		if (!(context instanceof WeekViewActivity)) throw new IllegalStateException("Week View Started with invalid context.");
 		this.context = (WeekViewActivity) context;
-		this.date = this.context.getCurrentDate();
-	}
-	
-	public void setVerticalOffset(int offset) {
-		int[] location = new int[2];
-		this.getLocationOnScreen(location);
-		if (offset-location[1] != this.verticalOffset) {
-			this.verticalOffset = offset-location[1]; 
-			this.invalidate(); //force redraw
-		}
 	}
 	
 	@Override
 	public void draw(Canvas canvas) {
 		super.draw(canvas);
-		
+		if (this.isInEditMode()) {
+			Paint p = new Paint();
+			p.setStyle(Paint.Style.FILL);
+			p.setColor(0x00ffffff);
+			canvas.drawRect(0, 0, this.getWidth(), this.getHeight(), p);
+			return;
+		}
 		if (this.getWidth() == 0) return;
 		if (this.getHeight() == 0) return;
 		Paint p = new Paint();
 		p.setStyle(Paint.Style.FILL);
 		p.setColor(context.getResources().getColor(R.color.WeekViewSidebarBG));
 		canvas.drawRect(0, 0, this.getWidth(), this.getHeight(), p);
-		if (this.isInEditMode()) {
-			return;
-		}
 		
-		float offset = verticalOffset+(WeekViewActivity.HALF_HOUR_HEIGHT/2);
+		float offset = (context.getSideVerticalOffset()-(context.getScrollY()+(WeekViewActivity.HALF_HOUR_HEIGHT*1.5F)));
 		
 		canvas.drawBitmap(context.getImageCache().getSideBar(this.getWidth()), 0,offset, p);
 		p.setStyle(Paint.Style.STROKE);
 		p.setColor(context.getResources().getColor(R.color.WeekViewSidebarBorder));
 		canvas.drawRect(0, 0, this.getWidth(), this.getHeight(), p);
-
-	}
-
-	public void setDate(AcalDateTime date) {
-		this.date = date;
 	}
 }

@@ -76,7 +76,6 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	
 	private WeekViewHeader 	header;
 	private WeekViewSideBar sidebar;
-	private WeekViewMultiDay multiday;
 	private WeekViewDays	days;
 
 	//Magic Numbers / Configurable values / Prefs
@@ -86,10 +85,14 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	public static int FIRST_DAY_OF_WEEK = 1;
 	public static boolean TIME_24_HOUR = false;
 	public static final float[] DASHED_LINE_PARAMS = new float[] {5,5};
+	public static final int START_HOUR = 8;
+	public static final int HEADER_ITEM_HEIGHT = 10;
+	public static final int EVENT_BORDER = 2;
 	
 	//Image cache
 	private WeekViewImageCache imageCache;
 	
+	//Dialogs
 	private static final int DATE_PICKER = 0;
 	
 	/* Fields Relating to Gesture Detection */
@@ -99,6 +102,10 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	/* Fields relating to calendar data */
 	private DataRequest dataRequest = null;
 	private boolean isBound = false;
+	
+	//Fields relating to scrolling
+	private float scrollx = 0;
+	private float scrolly = 0;
 	
 	
 	/**
@@ -112,11 +119,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		this.setContentView(R.layout.week_view);
 		header 	= (WeekViewHeader) 	this.findViewById(R.id.week_view_header);
 		sidebar = (WeekViewSideBar) this.findViewById(R.id.week_view_sidebar);
-		multiday= (WeekViewMultiDay)this.findViewById(R.id.week_view_multi_day);
 		days 	= (WeekViewDays) 	this.findViewById(R.id.week_view_days);
-		
-		//days needs to connect to sidebar and multiday
-		days.addScrollFriends(sidebar,multiday,header);
 		
 		selectedDate.applyLocalTimeZone();
 		selectedDate.setHour(0); selectedDate.setMinute(0); selectedDate.setSecond(0);
@@ -126,18 +129,54 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		this.setupButton(R.id.year_month_button, MONTH);
 		this.setupButton(R.id.year_add_button, ADD);
 		
+		//Load Prefs
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-		TIME_24_HOUR = prefs.getBoolean(getString(R.string.prefTwelveTwentyfour), false);
-		FIRST_DAY_OF_WEEK = Integer.parseInt(prefs.getString(getString(R.string.firstDayOfWeek), "0"));
+		TIME_24_HOUR = prefs.getBoolean(this.getString(R.string.prefTwelveTwentyfour), false);
+		try {
+			FIRST_DAY_OF_WEEK = Integer.parseInt(prefs.getString(getString(R.string.firstDayOfWeek), "0"));
+			if ( FIRST_DAY_OF_WEEK < AcalDateTime.MONDAY || FIRST_DAY_OF_WEEK > AcalDateTime.SUNDAY ) throw new Exception();
+		}
+		catch( Exception e ) {
+			FIRST_DAY_OF_WEEK = AcalDateTime.MONDAY; 
+		}
+		
+		scrolly+=(WeekViewActivity.START_HOUR)*(WeekViewActivity.HALF_HOUR_HEIGHT*2);
 	}
 	
 	//force all displays to update
-	private void refresh() {
+	public void refresh() {
 		header.invalidate();
 		days.invalidate();	
 		sidebar.invalidate();
-		multiday.invalidate();
 	}
+	
+	public float getScrollY() {
+		return this.scrolly;
+	}
+	public float getScrollX() {
+		return this.scrollx;
+	}
+	
+	public float getSideVerticalOffset() {
+		return days.getHeaderHeight();
+	}
+	
+	public void move(float dx, float dy) {
+		this.scrolly+=dy;
+		if (scrolly < 0) scrolly = 0;
+		if (scrolly > (HALF_HOUR_HEIGHT*49-days.getHeight())) scrolly = WeekViewActivity.HALF_HOUR_HEIGHT*49-days.getHeight();
+		this.scrollx-=dx;
+		while (this.scrollx >= DAY_WIDTH) {
+			decrementCurrentDate();
+			this.scrollx-=DAY_WIDTH;
+		} 
+		while (this.scrollx <= 0-DAY_WIDTH) {
+			incrementCurrentDate();
+			this.scrollx+=DAY_WIDTH;
+		}
+		refresh();
+	}
+	
 	
 	public WeekViewImageCache getImageCache() {
 		return this.imageCache;
@@ -146,6 +185,16 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	public AcalDateTime getCurrentDate() {
 		return this.selectedDate;
 	}
+	
+	public void incrementCurrentDate() {
+		this.selectedDate.addDays(1);
+	}
+	
+	public void decrementCurrentDate() {
+		this.selectedDate.addDays(-1);
+	}
+	
+	@SuppressWarnings("unchecked")
 	public ArrayList<AcalEvent> getEventsForDays(AcalDateRange range) {
 		if (isBound && dataRequest != null) {
 			try {
@@ -374,12 +423,12 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	@Override
 	public void onLongPress(MotionEvent arg0) {
 		// TODO Auto-generated method stub
-		showDialog(DATE_PICKER);
+		//showDialog(DATE_PICKER);
 	}
 	@Override
 	public boolean onScroll(MotionEvent start, MotionEvent current, float dx, float dy) {
-		if (Math.abs(dx)>Math.abs(dy)) days.move(dx,0);
-		else days.move(0,dy);
+		if (Math.abs(dx)>Math.abs(dy)) move(dx,0);
+		else move(0,dy);
 		return true;
 	}
 	@Override

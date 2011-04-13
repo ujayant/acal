@@ -40,28 +40,13 @@
 				android:layout_weight="15"
 			/>
 				
-			<LinearLayout 
+			<com.morphoss.acal.weekview.WeekViewDays
+				android:id="@+id/week_view_days"
 				android:layout_width="fill_parent" 
 				android:layout_height="fill_parent"
 				android:layout_weight="1"
-				android:orientation="vertical">
- 				
- 				<com.morphoss.acal.weekview.WeekViewMultiDay
-					android:id="@+id/week_view_multi_day"
-					android:layout_width="fill_parent" 
-					android:layout_height="fill_parent"
-					android:layout_weight="3"
-				/>
- 			
- 				
- 				<com.morphoss.acal.weekview.WeekViewDays
-					android:id="@+id/week_view_days"
-					android:layout_width="fill_parent" 
-					android:layout_height="fill_parent"
-					android:layout_weight="1"
-				/>
-			</LinearLayout>
- 	</LinearLayout>
+			/>
+		</LinearLayout>
 	<LinearLayout
 		android:id="@+id/button_layout" 
 		android:layout_width="fill_parent" 

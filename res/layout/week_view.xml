@@ -31,39 +31,25 @@
 		android:layout_height="fill_parent"
 		android:layout_weight="1">
  
- 			<com.morphoss.acal.weekview.WeekViewSideBar
-				android:id="@+id/week_view_sidebar"
+		<com.morphoss.acal.weekview.WeekViewSideBar
+			android:id="@+id/week_view_sidebar"
+			android:layout_width="fill_parent" 
+			android:layout_height="fill_parent"
+			android:layout_weight="10"/>
+			
+		<com.morphoss.acal.weekview.WeekViewDays
+				android:id="@+id/week_view_days"
 				android:layout_width="fill_parent" 
 				android:layout_height="fill_parent"
-				android:layout_weight="10"
-			/>
-			<LinearLayout 
-				android:layout_width="fill_parent" 
-				android:layout_height="fill_parent"
-				android:layout_weight="1"
-				android:orientation="vertical">
- 				
- 				<com.morphoss.acal.weekview.WeekViewMultiDay
-					android:id="@+id/week_view_multi_day"
-					android:layout_width="fill_parent" 
-					android:layout_height="fill_parent"
-					android:layout_weight="5"
-				/>
- 				<com.morphoss.acal.weekview.WeekViewDays
-					android:id="@+id/week_view_days"
-					android:layout_width="fill_parent" 
-					android:layout_height="fill_parent"
-					android:layout_weight="1"
-				/>
-			</LinearLayout>
- 	</LinearLayout>
+				android:layout_weight="1"/>
+		</LinearLayout>
+	
 	<LinearLayout
 		android:id="@+id/button_layout" 
 		android:layout_width="fill_parent" 
 		android:gravity="bottom"
 		android:layout_height="50sp"
 		android:background="#50500000"
-
 		android:layout_gravity="bottom">
 	
 		<LinearLayout

@@ -81,7 +81,7 @@ public class WeekViewImageCache {
 		this.workbox = returnedBitmap;
 
 	}
-	public Bitmap getDayBox(int startHour, int endHour) {
+	/**public Bitmap getDayBox(int startHour, int endHour) {
 		cacheDayBoxes();
 		int numHours = endHour - startHour;
 		Bitmap returnedBitmap = Bitmap.createBitmap((int)dayWidth, (int)((halfHeight*2)*numHours),Bitmap.Config.ARGB_4444);
@@ -95,6 +95,33 @@ public class WeekViewImageCache {
 				canvas.drawBitmap(workbox, 0, curY, p);
 		}
 		return returnedBitmap;
+	}*/
+	public Bitmap getWeekDayBox(int startHour, int endHour, float offset) {
+		cacheDayBoxes();
+		int numHours = endHour - startHour;
+		Bitmap returnedBitmap = Bitmap.createBitmap((int)dayWidth, (int)((halfHeight*2)*numHours),Bitmap.Config.ARGB_4444);
+		Canvas canvas = new Canvas(returnedBitmap);
+		Paint p = new Paint();
+		for (int curHour = startHour-1; curHour<=endHour; curHour++) {
+			float curY = (halfHeight*2)*(curHour-startHour);
+			if (curHour < workDayStart || curHour >= workDayEnd)
+				canvas.drawBitmap(daybox, 0, curY+offset, p);
+			else
+				canvas.drawBitmap(workbox, 0, curY+offset, p);
+		}
+		return returnedBitmap;
+	}
+	public Bitmap getWeekEndDayBox(int startHour, int endHour, float offset) {
+		cacheDayBoxes();
+		int numHours = endHour - startHour;
+		Bitmap returnedBitmap = Bitmap.createBitmap((int)dayWidth, (int)((halfHeight*2)*numHours),Bitmap.Config.ARGB_4444);
+		Canvas canvas = new Canvas(returnedBitmap);
+		Paint p = new Paint();
+		for (int curHour = startHour-1; curHour<endHour; curHour++) {
+			float curY = (halfHeight*2)*(curHour-startHour);
+			canvas.drawBitmap(daybox, 0, curY+offset, p);
+		}
+		return returnedBitmap;
 	}
 	
 	public Bitmap getSideBar(int width) {
@@ -104,6 +131,8 @@ public class WeekViewImageCache {
 		int hour = 0;
 		Bitmap master = Bitmap.createBitmap((int)width, (int)halfHeight*50,Bitmap.Config.ARGB_4444);
 		Canvas masterCanvas = new Canvas(master);
+		String am = c.getString(R.string.oneCharMorning);
+		String pm = c.getString(R.string.oneCharAfternoon);
 		while(hour<=24) {
 			LayoutInflater inflater = (LayoutInflater) c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 			View v = (View) inflater.inflate(R.layout.week_view_assets, null);
@@ -114,15 +143,15 @@ public class WeekViewImageCache {
 			String text = "";
 			
 			if (WeekViewActivity.TIME_24_HOUR) {
-				if (half) text="30";
+				if (half) text=":30";
 				else text = hour+"";
 			} else {
-				if (half) text="30";
-				else if (hour == 0)text="12 a";
+				if (half) text=":30";
+				else if (hour == 0)text="12 "+am;
 				else {
 					int hd = hour;
 					if (hour >= 13) hd-=12; 
-					text=(int)hd+" "+(hour<12?"a":"p");
+					text=(int)hd+" "+(hour<12?am:pm);
 				}
 			}
 			box.setText(text);
@@ -153,7 +182,7 @@ public class WeekViewImageCache {
 		LayoutInflater inflater = (LayoutInflater) c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		View v = (View) inflater.inflate(R.layout.week_view_assets, null);
 		TextView title = ((TextView) v.findViewById(R.id.WV_event_box));
-		title.setBackgroundColor(e.colour);
+		title.setBackgroundColor((e.colour&0x00ffffff)|0xA0000000); //add some transparancy
 		title.setVisibility(View.VISIBLE);
 		title.setText(e.summary);
 		title.measure(MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY));
@@ -161,6 +190,13 @@ public class WeekViewImageCache {
 		Bitmap returnedBitmap = Bitmap.createBitmap(width, height,Bitmap.Config.ARGB_8888);
 		Canvas tempCanvas = new Canvas(returnedBitmap);
 		title.draw(tempCanvas);
+		//draw a border
+		Paint p = new Paint();
+		p.setStyle(Paint.Style.STROKE);
+		p.setColor(0xff333333);
+		for (int i = 0; i<WeekViewActivity.EVENT_BORDER; i++) {
+			tempCanvas.drawRect(i, i, width-i, height-i, p);
+		}
 		eventMap.put(hash, returnedBitmap);
 		eventQueue.offer(hash);
 		return returnedBitmap;
