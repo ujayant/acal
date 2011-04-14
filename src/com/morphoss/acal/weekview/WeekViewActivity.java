@@ -79,15 +79,15 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	private WeekViewDays	days;
 
 	//Magic Numbers / Configurable values / Prefs
-	public static final int DAY_WIDTH = 100;
-	public static final int HALF_HOUR_HEIGHT = 40;
+	public static final int DAY_WIDTH = 107;
+	public static final int HALF_HOUR_HEIGHT = 20;
 	public static final int MINIMUM_DAY_EVENT_HEIGHT = 20;
 	public static int FIRST_DAY_OF_WEEK = 1;
 	public static boolean TIME_24_HOUR = false;
 	public static final float[] DASHED_LINE_PARAMS = new float[] {5,5};
 	public static final int START_HOUR = 8;
 	public static final int HEADER_ITEM_HEIGHT = 20;
-	public static final int EVENT_BORDER = 2;
+	public static final int EVENT_BORDER = 1;
 	
 	//Image cache
 	private WeekViewImageCache imageCache;

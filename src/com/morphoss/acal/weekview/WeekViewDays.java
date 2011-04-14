@@ -2,7 +2,9 @@ package com.morphoss.acal.weekview;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -10,10 +12,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
-import android.view.LayoutInflater;
-import android.view.View;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateRange;
@@ -31,6 +30,7 @@ public class WeekViewDays extends ImageView {
 	private float headerHours;
 	private float pixelsPerHour;
 	private float size;
+	private float lastMaxX=0;
 	
 	/** Default Constructor */
 	public WeekViewDays(Context context, AttributeSet attrs, int defStyle) {
@@ -100,9 +100,15 @@ public class WeekViewDays extends ImageView {
 		Paint p = new Paint();
 		float dayWidth = WeekViewActivity.DAY_WIDTH;
 		float itemHeight = WeekViewActivity.HEADER_ITEM_HEIGHT;
-		
 		float totalWidth = this.getWidth();
 		float scrollx = context.getScrollX();
+		
+		//draw borders around each day
+		p.setStyle(Paint.Style.STROKE);
+		p.setColor(context.getResources().getColor(R.color.WeekViewMultiDayBorder));
+		for (float x =0+scrollx-dayWidth; (x<totalWidth+(dayWidth*2)); x+=dayWidth)
+		canvas.drawRect(x, 0, dayWidth+scrollx, headerHeight, p); 
+		
 		for (int i = 0; i<size;i++)  {
 			boolean hasEvent = false;
 			for(int j=0;j < headerTimeTable[i].length && headerTimeTable[i][j] != null;j++) {
@@ -113,11 +119,7 @@ public class WeekViewDays extends ImageView {
 			if (!hasEvent) break;
 		}
 		
-		//draw borders around each day
-		p.setStyle(Paint.Style.STROKE);
-		p.setColor(context.getResources().getColor(R.color.WeekViewMultiDayBorder));
-		for (float x =0+scrollx-dayWidth; (x<totalWidth+(dayWidth*2)); x+=dayWidth)
-		canvas.drawRect(x, 0, dayWidth+scrollx, headerHeight, p); 
+		
 	}
 	
 	private void drawBackground(Canvas canvas, float x, float y,float w, float h) {
@@ -193,9 +195,9 @@ public class WeekViewDays extends ImageView {
 		//draw events
 		while (dayX<= width) {
 		
-			SimpleEventObject[][] timeTable = getTimeTable(getEventList(currentDay));
+			SimpleEventObject[][] timeTable = getImprovedTimeTable(getEventList(currentDay));
 			//draw visible events
-			if (timeTable.length <=0) {
+			if (timeTable.length  <=0) {
 				currentDay.addDays(1);
 				dayX+=dayWidth;
 				continue;
@@ -203,17 +205,27 @@ public class WeekViewDays extends ImageView {
 			p.reset();
 			p.setStyle(Paint.Style.FILL);
 			int size = timeTable.length;
-			float depth = 0;
-			for (int i = 0; i<size && timeTable[i] != null && timeTable[i].length>0 && timeTable[i][0] != null;i++)  depth++;
-			float singleWidth = (float)dayWidth/depth;
+			Set<SimpleEventObject> drawn = new HashSet<SimpleEventObject>(); //events can show up several times in the timetable, keep a record of whats already drawn
 			for (int i = 0; i<size;i++)  {
-				boolean hasEvent = false;
-				for(int j=0;j < timeTable[i].length && timeTable[i][j] != null;j++) {
-					SimpleEventObject event = timeTable[i][j];
-						event.drawVertical(canvas, dayX+(i*singleWidth), y, singleWidth, height,  scrolly);
-						hasEvent=true;
+				int curX = 0;
+				for(int j=0;j < timeTable[i].length;j++) {
+					if (timeTable[i][j] != null) {
+						if (drawn.contains(timeTable[i][j])) {
+							curX+=timeTable[i][j].lastWidth;
+							continue;
+						}
+						drawn.add(timeTable[i][j]);
+						
+						//calculate width
+						int depth  = 0;
+						for (int k = j; k<=lastMaxX && (timeTable[i][k] == null || timeTable[i][k] == timeTable[i][j]); k++) depth++;
+						float singleWidth = (dayWidth/(lastMaxX+1))*(depth);	
+						SimpleEventObject event = timeTable[i][j];
+						event.drawVertical(canvas, dayX+curX, y, singleWidth, height,  scrolly);
+						event.lastWidth = singleWidth;
+						curX+=singleWidth;
+					}
 				}
-				if (!hasEvent) break;
 			}
 			currentDay.addDays(1);
 			dayX+=dayWidth;
@@ -257,9 +269,11 @@ public class WeekViewDays extends ImageView {
 	public class SimpleEventObject implements Comparable<SimpleEventObject> {
 		private AcalDateTime start;
 		private AcalDateTime end;
+		private AcalDateRange range;
 		private long resourceId;
 		private String summary;
 		private int colour;
+		public float lastWidth;
 		
 		//Vars for main week view
 		private int startMinute=-1; 	//the minute in the day that this event starts
@@ -270,6 +284,8 @@ public class WeekViewDays extends ImageView {
 		public SimpleEventObject(AcalEvent event) {
 			start = event.dtstart;
 			end = event.getEnd();
+			AcalDateTime ttEnd = end.clone();
+			range = new AcalDateRange(start,ttEnd);
 			resourceId = event.getResourceId();
 			summary = event.getSummary();
 			colour = event.getColour();
@@ -371,6 +387,29 @@ public class WeekViewDays extends ImageView {
 				i++;
 			}
 		}
+		return timetable;
+	}
+	
+	private SimpleEventObject[][] getImprovedTimeTable(List<SimpleEventObject> events) {
+		Collections.sort(events);
+		SimpleEventObject[][] timetable = new SimpleEventObject[events.size()][events.size()]; //maximum possible
+		int maxX = 0;
+		for (SimpleEventObject seo : events){
+			int x = 0; int y = 0;
+			while (timetable[y][x] != null) {
+				if (seo.range.overlaps(timetable[y][x].range)) {
+					
+					//if our end time is before [y][x]'s, we need to extend[y][x]'s range
+					if (seo.end.before(timetable[y][x].end)) timetable[y+1][x] = timetable[y][x];
+					x++;
+				} else {
+					y++;
+				}
+			}
+			timetable[y][x] = seo;
+			if (x > maxX) maxX = x;
+		}
+		lastMaxX = maxX;
 		return timetable;
 	}
 	
