@@ -110,65 +110,8 @@ public class SynchronisationJobs extends ServiceJob {
 		return this.jobtype;
 	}
 
-	public static ContentValues getServerData(int serverId, ContentResolver cr) {
 
-		ContentValues serverData = new ContentValues();
-		Cursor mCursor = null;
 
-		try {
-			// get serverData
-			mCursor = cr.query(ContentUris.withAppendedId(Servers.CONTENT_URI, serverId), null, null, null, null);
-			if ( !mCursor.moveToFirst() ) {
-				mCursor.close();
-				return null;
-			}
-
-			DatabaseUtils.cursorRowToContentValues(mCursor,serverData);
-
-		}
-		catch (Exception e) {
-			// Error getting data
-			Log.e(TAG, "Error getting server data from DB: " + e.getMessage());
-			Log.e(TAG, Log.getStackTraceString(e));
-			return null;
-		}
-		finally {
-			if (mCursor != null) mCursor.close();
-		}
-
-		return serverData;
-
-	}
-
-	
-	public static ContentValues getResourceData(long resourceId, ContentResolver cr) {
-		ContentValues resourceData = null;
-		Cursor mCursor = null;
-		try {
-			mCursor = cr.query(DavResources.CONTENT_URI, null, DavResources._ID + "=?",
-						new String[] {Long.toString(resourceId)}, null);
-			if ( !mCursor.moveToFirst() ) {
-				Log.e(TAG, "No dav_resource row in DB for " + Long.toString(resourceId));
-				mCursor.close();
-				return null;
-			}
-			resourceData = new ContentValues();
-			DatabaseUtils.cursorRowToContentValues(mCursor,resourceData);
-		}
-		catch (Exception e) {
-			// Error getting data
-			Log.e(TAG, "Error getting resource data from DB: " + e.getMessage());
-			Log.e(TAG, Log.getStackTraceString(e));
-			mCursor.close();
-			return null;
-		}
-		finally {
-			mCursor.close();
-		}
-		return resourceData;
-	}	
-
-	
 	/**
 	 * <p>
 	 * Writes the modified resource back to the database, creating, updating or deleting depending on the
