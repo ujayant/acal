@@ -111,6 +111,7 @@ CREATE TABLE dav_collection (
   is_writable BOOLEAN,
   is_visible BOOLEAN,
   needs_sync BOOLEAN,
+  sync_metadata BOOLEAN,
   UNIQUE(server_id,collection_path)
 );
      */
@@ -137,6 +138,7 @@ CREATE TABLE dav_collection (
 	public static final String MAX_SYNC_AGE_3G="max_sync_age_3g";
 	public static final String IS_WRITABLE="is_writable";
 	public static final String IS_VISIBLE="is_visible";
+	public static final String SYNC_METADATA="sync_metadata";
 
 	/*
 	 * 	(non-Javadoc)
