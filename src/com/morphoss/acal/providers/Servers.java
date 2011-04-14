@@ -309,7 +309,7 @@ public class Servers extends ContentProvider {
 		ContentValues serverData = null;
 		Cursor c = null;
 		try {
-			c = contentResolver.query(Uri.withAppendedPath(Servers.CONTENT_URI,Long.toString(serverId)),
+			c = contentResolver.query(Uri.withAppendedPath(CONTENT_URI,Long.toString(serverId)),
 						null, null, null, null);
 			if ( !c.moveToFirst() ) {
 				Log.e(TAG, "No dav_server row in DB for " + Long.toString(serverId));

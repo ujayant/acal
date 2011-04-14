@@ -352,7 +352,7 @@ CREATE TABLE dav_collection (
 		ContentValues collectionData = null;
 		Cursor c = null;
 		try {
-			c = contentResolver.query(Uri.withAppendedPath(DavCollections.CONTENT_URI,Long.toString(collectionId)),
+			c = contentResolver.query(Uri.withAppendedPath(CONTENT_URI,Long.toString(collectionId)),
 						null, null, null, null);
 			if ( !c.moveToFirst() ) {
 				Log.e(TAG, "No dav_collection row in DB for " + Long.toString(collectionId));
@@ -380,7 +380,7 @@ CREATE TABLE dav_collection (
 	 */
 	public static final boolean collectionEnabled(boolean enabled, int id, ContentResolver cr) {
 		if (Constants.LOG_DEBUG) Log.d(TAG,"Request to set collection id "+id+" active to "+enabled);
-		Uri uri = ContentUris.withAppendedId(DavCollections.CONTENT_URI, id);
+		Uri uri = ContentUris.withAppendedId(CONTENT_URI, id);
 		//get original contentvalues
 		Cursor mCursor = cr.query(uri, null, _ID+" = ?", new String[]{id+""}, null);
 		if (mCursor.getCount() != 1) return false;
@@ -389,10 +389,10 @@ CREATE TABLE dav_collection (
 		DatabaseUtils.cursorRowToContentValues(mCursor, toSync);
 		mCursor.close();
 		
-		toSync.put(DavCollections.ACTIVE_ADDRESSBOOK, (enabled ? 1 : 0));
-		toSync.put(DavCollections.ACTIVE_EVENTS, (enabled ? 1 : 0));
-		toSync.put(DavCollections.ACTIVE_TASKS, (enabled ? 1 : 0));
-		toSync.put(DavCollections.ACTIVE_JOURNAL, (enabled ? 1 : 0));
+		toSync.put(ACTIVE_ADDRESSBOOK, (enabled ? 1 : 0));
+		toSync.put(ACTIVE_EVENTS, (enabled ? 1 : 0));
+		toSync.put(ACTIVE_TASKS, (enabled ? 1 : 0));
+		toSync.put(ACTIVE_JOURNAL, (enabled ? 1 : 0));
 		int res = cr.update(uri,toSync, null, null);
 		if (res < 1 && Constants.LOG_DEBUG) Log.d(TAG, "Update failed!");
 		else if (res > 1) Log.e(TAG,"collectionEnabled() updates more than one row!!! "+res+" rows affected.");
