@@ -85,6 +85,18 @@ public class SyncChangesToServer extends ServiceJob {
 		this.cr = this.context.getContentResolver();
 		this.requestor = new AcalRequestor();
 		
+		if ( marshallCollectionsToSync() ) {
+			try {
+				ContentValues pendingChange;
+				while( (pendingChange = getChangeToSync()) != null ) {
+					updateCollectionProperties(pendingChange);
+				}
+			}
+			catch( Exception e ) {
+				Log.e(TAG,Log.getStackTraceString(e));
+			}
+		}
+
 		if ( !marshallChangesToSync() ) {
 			if (Constants.LOG_VERBOSE) Log.v(TAG, "No local changes to synchronise.");
 			return; // without rescheduling
@@ -113,18 +125,6 @@ public class SyncChangesToServer extends ServiceJob {
 				Log.e(TAG,Log.getStackTraceString(e));
 			}
 
-		}
-
-		if ( marshallCollectionsToSync() ) {
-			try {
-				ContentValues pendingChange;
-				while( (pendingChange = getChangeToSync()) != null ) {
-					updateCollectionProperties(pendingChange);
-				}
-			}
-			catch( Exception e ) {
-				Log.e(TAG,Log.getStackTraceString(e));
-			}
 		}
 
 		if ( updateSyncStatus() ) {
@@ -193,7 +193,7 @@ public class SyncChangesToServer extends ServiceJob {
 			cr.delete(Uri.withAppendedPath(DavCollections.CONTENT_URI,Long.toString(collectionId)), null, null);
 			return;
 		}
-		requestor.setFromServer(serverData);
+		requestor.applyFromServer(serverData);
 
 		String collectionPath = collectionData.getAsString(DavCollections.COLLECTION_PATH);
 		String newData = pending.getAsString(PendingChanges.NEW_DATA);
@@ -368,10 +368,10 @@ public class SyncChangesToServer extends ServiceJob {
 	
 	private boolean marshallCollectionsToSync() {
 		Cursor pendingCursor = cr.query(DavCollections.CONTENT_URI, null,
-					DavCollections.SYNC_METADATA+" AND ("+DavCollections.ACTIVE_EVENTS
-						+" OR "+DavCollections.ACTIVE_TASKS
-						+" OR "+DavCollections.ACTIVE_JOURNAL
-						+" OR "+DavCollections.ACTIVE_ADDRESSBOOK+") "
+					DavCollections.SYNC_METADATA+"=1 AND ("+DavCollections.ACTIVE_EVENTS
+						+"=1 OR "+DavCollections.ACTIVE_TASKS
+						+"=1 OR "+DavCollections.ACTIVE_JOURNAL
+						+"=1 OR "+DavCollections.ACTIVE_ADDRESSBOOK+"=1) "
 						,
 					null, null);
 		if ( pendingCursor.getCount() == 0 ) {
@@ -401,7 +401,7 @@ public class SyncChangesToServer extends ServiceJob {
 		"    xmlns:ACAL=\""+Constants.NS_ACAL+"\">\n"+
 		"<set>\n"+
 		"  <prop>\n"+
-		"  <ACAL:acal-colour>%s</ACAL:acal-colour>\n"+
+		"   <ACAL:collection-colour>%s</ACAL:collection-colour>\n"+
 		"  </prop>\n"+
 		" </set>\n"+
 		"</propertyupdate>\n";
@@ -414,9 +414,13 @@ public class SyncChangesToServer extends ServiceJob {
 		InputStream in = null;
 		try {
 			ContentValues serverData = Servers.getRow(collectionData.getAsInteger(DavCollections.SERVER_ID), cr);
-			requestor.applySettings(serverData);
-			in = requestor.doRequest("PROPPATCH", collectionData.getAsString(DavCollections.COLLECTION_PATH),
+			requestor.applyFromServer(serverData);
+			requestor.doRequest("PROPPATCH", collectionData.getAsString(DavCollections.COLLECTION_PATH),
 						proppatchHeaders, proppatchRequest);
+
+			collectionData.put(DavCollections.SYNC_METADATA, 0);
+			cr.update(Uri.withAppendedPath(DavCollections.CONTENT_URI, collectionData.getAsString(DavCollections._ID)),
+						collectionData, null, null);
 		}
 		catch (Exception e) {
 			Log.e(TAG,"Error with proppatch to "+requestor.fullUrl());
