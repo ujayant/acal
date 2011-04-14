@@ -118,12 +118,14 @@ public class AcalPreferences extends PreferenceActivity {
 				return;
 			}
 		}
-		String names[] = new String[count];
-		String uris[] = new String[count];
+		String names[] = new String[count+1];
+		String uris[] = new String[count+1];
+		names[0] = getString(R.string.DefaultAlarmTone);
+		uris[0] = "null";
 		cursor.moveToFirst();
 	    for (int i = 0; i < count; i++) {
-	    	names[i] = cursor.getString(titleColumn);
-	    	uris[i] = rm.getRingtoneUri(i).toString();
+	    	names[i+1] = cursor.getString(titleColumn);
+	    	uris[i+1] = rm.getRingtoneUri(i).toString();
 	    	cursor.moveToNext();
 	    }
     	defaultAlarm.setEntries(names);
