@@ -229,12 +229,14 @@ public class EventCache {
 	}
 
 	public synchronized AcalEvent getNthEventForDay(AcalDateTime day, int n) {
-		if (!cachedEvents.containsKey(getDateHash(day))) return null;
+		if ( !cachedEvents.containsKey(getDateHash(day)) || n >= cachedEvents.get(getDateHash(day)).size() )
+			return null;
 		return cachedEvents.get(getDateHash(day)).get(n);
 	}
 
 	public synchronized void deleteEvent(AcalDateTime day, int n) {
-		if (!cachedEvents.containsKey(getDateHash(day))) return;
+		if ( !cachedEvents.containsKey(getDateHash(day)) || n >= cachedEvents.get(getDateHash(day)).size() )
+			return;
 		cachedEvents.get(getDateHash(day)).remove(n);
 	}
 	
