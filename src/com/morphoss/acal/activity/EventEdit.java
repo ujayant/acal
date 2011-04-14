@@ -77,6 +77,7 @@ import com.morphoss.acal.davacal.AcalEventAction;
 import com.morphoss.acal.davacal.AcalAlarm.ActionType;
 import com.morphoss.acal.davacal.AcalEventAction.EVENT_FIELD;
 import com.morphoss.acal.providers.DavCollections;
+import com.morphoss.acal.providers.Servers;
 import com.morphoss.acal.service.aCalService;
 
 public class EventEdit extends Activity implements OnGestureListener, OnTouchListener, OnClickListener, OnCheckedChangeListener {
@@ -261,7 +262,8 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 	private ArrayList<ContentValues> getActiveCollections() {
 		ArrayList<ContentValues> ret = new ArrayList<ContentValues>();
 		Cursor cursor = getContentResolver().query( DavCollections.CONTENT_URI,
-				null, DavCollections.ACTIVE_EVENTS +"=1", null, DavCollections._ID );
+				null, DavCollections.ACTIVE_EVENTS +"=1 AND EXISTS (SELECT 1 FROM "+Servers.DATABASE_TABLE+" WHERE "+DavCollections.SERVER_ID+"="+Servers._ID+")",
+				null, DavCollections._ID );
 		if (cursor.getCount() < 1) {
 			//no active collections, abort!
 			Toast.makeText(this, "You have no active collections for creating events. Please add at least one active server before trying to create an event.", Toast.LENGTH_LONG);
