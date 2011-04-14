@@ -189,17 +189,31 @@ public class EventCache {
 	
 	/** Methods required by month view */
 	public synchronized ArrayList<AcalEvent> getEventsForDays(AcalDateRange range,DataRequest dr) {
+		//we need to start at 00:00 and end at 23:59:59 to ensure we include everything
 		AcalDateTime current = range.start.clone();
+		current.setDaySecond(0);
+		AcalDateTime end = range.end.clone();
+		end.addDays(1);
+		end.setDaySecond(0);
 		ArrayList<AcalEvent> ret = new ArrayList<AcalEvent>();
-		while ( current.before(range.end) ) {
+		while (!(current.after(range.end)) ) {
 			this.addDay(current, dr);
 			ArrayList<AcalEvent> curList = getEventsForDay(current);
 			for (AcalEvent e : curList) {
 				if (!ret.contains(e))ret.add(e);
 			}
 			current.addDays(1);
-			
 		}
+		
+		//we need to remove events that occured on same day as range.start but ended before range.start
+		//and visaversa for range.end
+		Iterator<AcalEvent> i = ret.iterator();
+		while (i.hasNext()) {
+			AcalEvent e = i.next();
+			AcalDateRange eventRange = new AcalDateRange(e.getStart(), e.getEnd());
+			if (!range.overlaps(eventRange)) i.remove();
+		}
+		
 		return ret;
 	}
 	

@@ -86,7 +86,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	public static boolean TIME_24_HOUR = false;
 	public static final float[] DASHED_LINE_PARAMS = new float[] {5,5};
 	public static final int START_HOUR = 8;
-	public static final int HEADER_ITEM_HEIGHT = 10;
+	public static final int HEADER_ITEM_HEIGHT = 20;
 	public static final int EVENT_BORDER = 2;
 	
 	//Image cache

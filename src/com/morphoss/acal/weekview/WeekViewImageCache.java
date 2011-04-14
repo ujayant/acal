@@ -170,8 +170,8 @@ public class WeekViewImageCache {
 		return sidebar;
 	}
 	
-	public Bitmap getEventBitmap(AcalEvent e, int width, int height) {
-		long hash = getEventHash(e,width,height);
+	public Bitmap getEventBitmap(long resourceId, String summary, int colour, int width, int height) {
+		long hash = getEventHash(resourceId,width,height);
 		if (eventMap.containsKey(hash)) {
 			eventQueue.remove(hash);
 			eventQueue.offer(hash);	//re prioritise
@@ -182,9 +182,9 @@ public class WeekViewImageCache {
 		LayoutInflater inflater = (LayoutInflater) c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		View v = (View) inflater.inflate(R.layout.week_view_assets, null);
 		TextView title = ((TextView) v.findViewById(R.id.WV_event_box));
-		title.setBackgroundColor((e.colour&0x00ffffff)|0xA0000000); //add some transparancy
+		title.setBackgroundColor((colour&0x00ffffff)|0xA0000000); //add some transparancy
 		title.setVisibility(View.VISIBLE);
-		title.setText(e.summary);
+		title.setText(summary);
 		title.measure(MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY));
 		title.layout(0, 0, width, height);
 		Bitmap returnedBitmap = Bitmap.createBitmap(width, height,Bitmap.Config.ARGB_8888);
@@ -201,7 +201,7 @@ public class WeekViewImageCache {
 		eventQueue.offer(hash);
 		return returnedBitmap;
 	}
-	public long getEventHash(AcalEvent e, int width, int height) {
-		return (long)width + (long)(dayWidth*height) + ((long)dayWidth*10000L * (long)e.resourceId);
+	public long getEventHash(long resourceId, int width, int height) {
+		return (long)width + (long)(dayWidth*height) + ((long)dayWidth*10000L * (long)resourceId);
 	}
 }
