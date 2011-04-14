@@ -91,7 +91,7 @@ public class HomeSetsUpdate extends ServiceJob {
 	public void run(aCalService context) {
 		this.context = context;
 		this.cr = context.getContentResolver();
-		ContentValues serverData = SynchronisationJobs.getServerData(serverId, cr);
+		ContentValues serverData = Servers.getRow(serverId, cr);
 		this.requestor = AcalRequestor.fromServerValues(serverData);
 
 		if (Constants.LOG_DEBUG) Log.d(TAG, "Refreshing DavCollections for server "+this.serverId);

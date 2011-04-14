@@ -30,6 +30,7 @@ import android.util.Log;
 
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.providers.PathSets;
+import com.morphoss.acal.providers.Servers;
 import com.morphoss.acal.service.connector.AcalRequestor;
 import com.morphoss.acal.xml.DavNode;
 
@@ -71,7 +72,7 @@ public class HomeSetDiscovery extends ServiceJob {
 		if (Constants.LOG_DEBUG) Log.d(TAG,"Beginning home set discovery on server "+this.serverId);
 		DavNode root = null;
 		try {
-			ContentValues serverData = SynchronisationJobs.getServerData(serverId, cr);
+			ContentValues serverData = Servers.getRow(serverId, cr);
 			requestor = AcalRequestor.fromServerValues(serverData);
 			root = requestor.doXmlRequest("PROPFIND", null, pHomeHeaders, pHomeData);
 		}
