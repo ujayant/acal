@@ -100,10 +100,9 @@ public class AlarmActivity extends Activity implements OnClickListener  {
 		wl.acquire();	
 
 		
-		getWindow().addFlags(
-					  WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+		getWindow().addFlags( WINDOW_FLAG_SHOW_WHEN_LOCKED
+//					| WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
 //					| WINDOW_FLAG_DISMISS_KEYGUARD
-					| WINDOW_FLAG_SHOW_WHEN_LOCKED
 					| WINDOW_FLAG_TURN_SCREEN_ON
 				);
 
@@ -189,19 +188,25 @@ public class AlarmActivity extends Activity implements OnClickListener  {
 	private void playAlarm() {
 		if (mp != null && mp.isPlaying()) return;
 		v.cancel();
-		String uri = prefs.getString(getString(R.string.DefaultAlarmTone_PrefKey), "null" );
-		if (uri.equals("null")) {
-			mp  = MediaPlayer.create(this, R.raw.assembly);
-		} else {
-			mp  = MediaPlayer.create(this, Uri.parse(uri));
-		}
 		
-		if (am.getRingerMode() == AudioManager.RINGER_MODE_SILENT) {
-			
+		if ( am.getRingerMode() == AudioManager.RINGER_MODE_SILENT ) {
 			long[] pattern = { 0,1000, 2000,1000, 2000,1000, 2000,1000, 2000,1000, 2000,1000, 2000,1000, 2000,1000, 2000,1000, 2000,1000, 2000};
 			v.vibrate(pattern, -1);
-		} else {
-			mp.start();
+		}
+		else {
+			String uri = prefs.getString(getString(R.string.DefaultAlarmTone_PrefKey), "null" );
+			if (uri.equals("null")) {
+				mp  = MediaPlayer.create(this, R.raw.assembly);
+			} else {
+				mp  = MediaPlayer.create(this, Uri.parse(uri));
+			}
+			if ( mp == null ) {
+				long[] pattern = { 0,1000, 2000,1000, 2000,1000, 2000,1000, 2000,1000, 2000,1000, 2000,1000, 2000,1000, 2000,1000, 2000,1000, 2000};
+				v.vibrate(pattern, -1);
+			}
+			else {
+				mp.start();
+			}
 		}
 	}
 
