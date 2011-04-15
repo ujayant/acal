@@ -235,7 +235,8 @@ public class CollectionConfiguration extends PreferenceActivity implements OnPre
 		res.putExtra("UpdateRequired",collectionData.getAsInteger(DavCollections._ID) );
 		this.setResult(RESULT_OK, res);
 
-		if ( collectionData.getAsInteger(DavCollections.SYNC_METADATA) == 1 )
+		if ( collectionData.getAsInteger(DavCollections.SYNC_METADATA) != null
+					&& collectionData.getAsInteger(DavCollections.SYNC_METADATA) == 1 )
 			WorkerClass.getExistingInstance().addJobAndWake(new SyncChangesToServer());
 	}
 	
