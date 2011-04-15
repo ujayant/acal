@@ -18,19 +18,14 @@
 
 package com.morphoss.acal.activity;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import android.content.ContentValues;
 import android.database.Cursor;
-import android.database.DatabaseUtils;
 import android.media.RingtoneManager;
 import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.PreferenceActivity;
 import android.provider.MediaStore;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.morphoss.acal.R;
 import com.morphoss.acal.providers.DavCollections;
@@ -57,13 +52,14 @@ public class AcalPreferences extends PreferenceActivity {
 	 * All preferences should be at least partly defined in the XML.
 	 */
 	private void addDefaultCollectionPreference() {
-		List<ContentValues> collections = getActiveCollections();
-		if (collections == null || collections.isEmpty()) return;
+		ContentValues[] collections = DavCollections.getCollections(getContentResolver(),
+																DavCollections.INCLUDE_EVENTS);
+		if ( collections.length == 0 ) return;
 	    ListPreference defaultCollection = (ListPreference)this.getPreferenceScreen().getPreferenceManager().findPreference(getString(R.string.DefaultCollection_PrefKey));
 	     
     	//auth
-		String names[] = new String[collections.size()];
-		String ids[] = new String[collections.size()];
+		String names[] = new String[collections.length];
+		String ids[] = new String[collections.length];
 		int count = 0;
 		for (ContentValues cv : collections) {
 			names[count] = cv.getAsString(DavCollections.DISPLAYNAME);
@@ -76,29 +72,6 @@ public class AcalPreferences extends PreferenceActivity {
    		defaultCollection.setEnabled(true);
 	}
 
-	
-	private ArrayList<ContentValues> getActiveCollections() {
-		ArrayList<ContentValues> ret = new ArrayList<ContentValues>();
-		Cursor cursor = getContentResolver().query( DavCollections.CONTENT_URI,
-				null, DavCollections.ACTIVE_EVENTS +"=1", null, DavCollections._ID );
-		if (cursor.getCount() < 1) {
-			//no active collections, abort!
-			Toast.makeText(this, "You have no active collections for creating events. Please add at least one active server before trying to create an event.", Toast.LENGTH_LONG);
-			this.finish();
-			cursor.close();
-			return null;
-		}
-		cursor.moveToFirst();
-		while (!cursor.isAfterLast()) {
-			ContentValues toAdd = new ContentValues();
-			DatabaseUtils.cursorRowToContentValues(cursor, toAdd);
-			ret.add(toAdd);
-			cursor.moveToNext();
-		}
-		cursor.close();
-		return ret;
-	
-	}
 	
 	//Alarm Tones
 	private void addDefaultAlarmTonePreference() {

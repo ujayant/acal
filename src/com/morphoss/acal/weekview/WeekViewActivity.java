@@ -51,6 +51,7 @@ import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.activity.EventEdit;
+import com.morphoss.acal.activity.MonthView;
 import com.morphoss.acal.dataservice.CalendarDataService;
 import com.morphoss.acal.dataservice.DataRequest;
 import com.morphoss.acal.dataservice.DataRequestCallBack;
@@ -78,6 +79,8 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	private WeekViewHeader 	header;
 	private WeekViewSideBar sidebar;
 	private WeekViewDays	days;
+
+	private SharedPreferences prefs = null; 
 
 	//Text Size - if you change this value, please change the values
 	//in week_view_styles.xml to be the same.
@@ -129,13 +132,17 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		super.onCreate(savedInstanceState);
 		gestureDetector = new GestureDetector(this);
 		this.selectedDate = this.getIntent().getExtras().getParcelable("StartDay");
+		
+		if ( selectedDate == null ) {
+			selectedDate = new AcalDateTime();
+		}
+		selectedDate.applyLocalTimeZone();
+		selectedDate.setDaySecond(0);
+
 		this.setContentView(R.layout.week_view);
 		header 	= (WeekViewHeader) 	this.findViewById(R.id.week_view_header);
 		sidebar = (WeekViewSideBar) this.findViewById(R.id.week_view_sidebar);
 		days 	= (WeekViewDays) 	this.findViewById(R.id.week_view_days);
-		
-		selectedDate.applyLocalTimeZone();
-		selectedDate.setHour(0); selectedDate.setMinute(0); selectedDate.setSecond(0);
 		
 		// Set up buttons
 		this.setupButton(R.id.year_today_button, TODAY);
@@ -150,7 +157,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	
 	private void loadPrefs() {
 		//Load Prefs
-		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+		prefs = PreferenceManager.getDefaultSharedPreferences(this);
 		TIME_24_HOUR = prefs.getBoolean(this.getString(R.string.prefTwelveTwentyfour), false);
 		try {
 			FIRST_DAY_OF_WEEK = Integer.parseInt(prefs.getString(getString(R.string.firstDayOfWeek), "0"));
@@ -518,6 +525,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	@Override
 	public void onClick(View clickedView) {
 		int button = (int) ((Integer) clickedView.getTag());
+		Bundle bundle = new Bundle();
 		switch (button) {
 		case TODAY:
 			this.selectedDate.setEpoch(new AcalDateTime().getEpoch());
@@ -527,17 +535,24 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 			this.refresh();
 			break;
 		case ADD:
-			Bundle bundle = new Bundle();
 			bundle.putParcelable("DATE", this.selectedDate);
 			Intent eventEditIntent = new Intent(this, EventEdit.class);
 			eventEditIntent.putExtras(bundle);
 			this.startActivity(eventEditIntent);
 			break;
 		case MONTH:
-			Intent res = new Intent();
-			res.putExtra("selectedDate", (Parcelable) selectedDate);
-			this.setResult(RESULT_OK, res);
-			this.finish();
+			if ( prefs.getBoolean(getString(R.string.prefDefaultView), false) ) {
+				Intent startIntent = null;
+				startIntent = new Intent(this, MonthView.class);
+				startIntent.putExtras(bundle);
+				this.startActivity(startIntent);
+			}
+			else {
+				Intent res = new Intent();
+				res.putExtra("selectedDate", (Parcelable) selectedDate);
+				this.setResult(RESULT_OK, res);
+				this.finish();
+			}
 			break;
 		default:
 			Log.w(TAG, "Unrecognised button was pushed in MonthView.");

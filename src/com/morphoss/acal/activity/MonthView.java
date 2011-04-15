@@ -32,11 +32,13 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.RemoteException;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
@@ -115,6 +117,8 @@ public class MonthView extends Activity implements OnGestureListener,
 	/** The file that we save state information to */
 	public static final String STATE_FILE = "/data/data/com.morphoss.acal/monthview.dat";
 
+	private SharedPreferences prefs = null; 
+	
 	/* Fields relating to the Month View: */
 
 	/** The flipper for the month view */
@@ -192,6 +196,8 @@ public class MonthView extends Activity implements OnGestureListener,
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		this.setContentView(R.layout.month_view);
+
+		prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
 		// make sure aCalService is running
 		this.startService(new Intent(this, aCalService.class));
@@ -979,42 +985,45 @@ public class MonthView extends Activity implements OnGestureListener,
 	public void onClick(View clickedView) {
 		int button = (int) ((Integer) clickedView.getTag());
 		switch (button) {
-		case TODAY:
-			AcalDateTime cal = new AcalDateTime();
+			case TODAY:
+				AcalDateTime cal = new AcalDateTime();
 
-			if (cal.getEpochDay() == this.selectedDate.getEpochDay()) {
-				this.gridViewFlipper.setAnimation(AnimationUtils.loadAnimation(
-						this, R.anim.shake));
-				this.listViewFlipper.setAnimation(AnimationUtils.loadAnimation(
-						this, R.anim.shake));
-			}
-			this.changeSelectedDate(cal);
-			this.changeDisplayedMonth(cal);
+				if (cal.getEpochDay() == this.selectedDate.getEpochDay()) {
+					this.gridViewFlipper.setAnimation(AnimationUtils.loadAnimation(this, R.anim.shake));
+					this.listViewFlipper.setAnimation(AnimationUtils.loadAnimation(this, R.anim.shake));
+				}
+				this.changeSelectedDate(cal);
+				this.changeDisplayedMonth(cal);
 
-			break;
-		case ADD:
-			Bundle bundle = new Bundle();
-			bundle.putParcelable("DATE", this.selectedDate);
-			Intent eventEditIntent = new Intent(this, EventEdit.class);
-			eventEditIntent.putExtras(bundle);
-			this.startActivity(eventEditIntent);
-			break;
-		case WEEK:
-			bundle = new Bundle();
-			bundle.putParcelable("StartDay", selectedDate);
-			Intent weekIntent = new Intent(this, WeekViewActivity.class);
-			weekIntent.putExtras(bundle);
-			this.startActivityForResult(weekIntent, PICK_DAY_FROM_WEEK_VIEW);
-			break;
-		case YEAR:
-			bundle = new Bundle();
-			bundle.putInt("StartYear", selectedDate.getYear());
-			Intent yearIntent = new Intent(this, YearView.class);
-			yearIntent.putExtras(bundle);
-			this.startActivityForResult(yearIntent, PICK_MONTH_FROM_YEAR_VIEW);
-			break;
-		default:
-			Log.w(TAG, "Unrecognised button was pushed in MonthView.");
+				break;
+			case ADD:
+				Bundle bundle = new Bundle();
+				bundle.putParcelable("DATE", this.selectedDate);
+				Intent eventEditIntent = new Intent(this, EventEdit.class);
+				eventEditIntent.putExtras(bundle);
+				this.startActivity(eventEditIntent);
+				break;
+			case WEEK:
+				if (prefs.getBoolean(getString(R.string.prefDefaultView), false)) {
+					this.finish();
+				}
+				else {
+					bundle = new Bundle();
+					bundle.putParcelable("StartDay", selectedDate);
+					Intent weekIntent = new Intent(this, WeekViewActivity.class);
+					weekIntent.putExtras(bundle);
+					this.startActivityForResult(weekIntent, PICK_DAY_FROM_WEEK_VIEW);
+				}
+				break;
+			case YEAR:
+				bundle = new Bundle();
+				bundle.putInt("StartYear", selectedDate.getYear());
+				Intent yearIntent = new Intent(this, YearView.class);
+				yearIntent.putExtras(bundle);
+				this.startActivityForResult(yearIntent, PICK_MONTH_FROM_YEAR_VIEW);
+				break;
+			default:
+				Log.w(TAG, "Unrecognised button was pushed in MonthView.");
 		}
 	}
 

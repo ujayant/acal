@@ -12,6 +12,17 @@
 		android:enabled="true" 
 		android:defaultValue="@string/Monday">
 	</ListPreference>
+	
+	<PreferenceScreen 
+		android:title="Moar Prefs" 
+		android:summary="Some chatty description of moar prefs">
+		<CheckBoxPreference
+			android:key="@string/prefDefaultView"
+			android:title="aCal Opens in Week View"
+			android:summaryOff="Month View"
+			android:summaryOn="Week View"
+			/>
+	</PreferenceScreen>
 
 	<ListPreference
 		android:key="@string/YearViewSize_PrefKey"
@@ -21,8 +32,8 @@
 		android:entries="@array/YearViewSize_PrefEntries"
 		android:entryValues="@array/YearViewSize_PrefEntries"
 		android:enabled="true"
-		android:defaultValue="6"
-	/>
+		android:defaultValue="6">
+	</ListPreference>
 	
 	<EditTextPreference
 	android:key="@string/Snooze_PrefKey"
@@ -44,15 +55,16 @@
 		android:title="@string/DefaultCollection_PrefTitle"
 		android:summary="@string/DefaultCollection_PrefSummary"
 		android:selectable="false"
-		android:enabled="false"
-	/>
+		android:enabled="false">
+	</ListPreference>
 	
 	<ListPreference
 		android:key="@string/DefaultAlarmTone_PrefKey"
 		android:title="@string/DefaultAlarmTone_PrefTitle"
 		android:summary="@string/DefaultAlarmTone_PrefSummary"
 		android:selectable="false"
-		android:enabled="false"/>
+		android:enabled="false">
+	</ListPreference>
 
 	<PreferenceCategory android:title="Week View Preferences">
 		<com.morphoss.acal.TimePickerPreference

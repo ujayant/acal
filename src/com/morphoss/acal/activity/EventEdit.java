@@ -198,6 +198,17 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 				if (Constants.LOG_DEBUG)Log.d(TAG, "Error getting data from caller: "+e.getMessage());
 			}
 		}
+		else if (b.containsKey("Copy")) {
+			// Duplicate the event into a new one.
+			try {
+				this.eventAction = (AcalEventAction)b.getParcelable("Copy");
+				collectionId = (Integer) eventAction.getField(AcalEventAction.EVENT_FIELD.collectionId);
+			}
+			catch (Exception e) {
+				if (Constants.LOG_DEBUG)Log.d(TAG, "Error getting data from caller: "+e.getMessage());
+			}
+			this.eventAction.setAction(AcalEventAction.ACTION_CREATE);
+		}
 		else {
 			AcalDateTime start; 
 			
@@ -244,6 +255,7 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 
 			this.eventAction = new AcalEventAction(defaults);
 			this.eventAction.setAction(AcalEventAction.ACTION_CREATE);
+
 		}
 		this.collectionsArray = new String[activeCollections.length];
 		int count = 0;

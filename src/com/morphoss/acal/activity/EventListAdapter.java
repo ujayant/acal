@@ -64,7 +64,10 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 	public static final String TAG = "aCal EventListAdapter";
 	private volatile boolean clickEnabled = true;
 	public static final int CONTEXT_EDIT = 0;
-	public static final int CONTEXT_DELETE = 1;
+	public static final int CONTEXT_DELETE_ALL = 0x10000;
+	public static final int CONTEXT_DELETE_JUSTTHIS = 0x20000;
+	public static final int CONTEXT_DELETE_FROMNOW = 0x30000;
+	public static final int CONTEXT_COPY = 0x40000;
 	
 	private SharedPreferences prefs;	
 
@@ -141,7 +144,8 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 		LinearLayout sideBar = (LinearLayout) rowLayout.findViewById(R.id.EventListItemColorBar);
 
 		AcalEvent event = context.getNthEventForDay(viewDate, position);
-		if (event.isPending) {
+		final boolean isPending = event.isPending;
+		if (isPending) {
 			sideBar.setBackgroundColor(event.getColour()|0xa0000000); title.setTextColor(event.getColour()|0xa0000000);
 			((LinearLayout) rowLayout.findViewById(R.id.EventListItemText)).setBackgroundColor(0x44000000);
 		}
@@ -156,7 +160,7 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 
 		time.setText(event.getTimeText(viewDate, viewDateEnd,
 					prefs.getBoolean(context.getString(R.string.prefTwelveTwentyfour), false))
-					+ (event.isPending ? " (saving)" : "") );
+					+ (isPending ? " (saving)" : "") );
 
 		if (event.getLocation() != null && !event.getLocation().equals("") )
 			location.setText(event.getLocation());
@@ -176,13 +180,15 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 			public void onCreateContextMenu(ContextMenu menu, View view,
 					ContextMenuInfo info) {
 				menu.setHeaderTitle("Event");
-				menu.add(0, position, 0, "Edit");
+				if ( !isPending ) menu.add(0, position, 0, "Edit");
+
+				menu.add(0, CONTEXT_COPY + position, 0, "Copy");
 				if (repeats) {
-					menu.add(0,1*getCount()+position,0, "Delete All Instances");
-					menu.add(0,2*getCount()+position, 0, "Delete This Instance");
-					menu.add(0,3*getCount()+position,0, "Delete This and Future");
+					menu.add(0,CONTEXT_DELETE_ALL+position,0, "Delete All Instances");
+					menu.add(0,CONTEXT_DELETE_JUSTTHIS+position, 0, "Delete This Instance");
+					menu.add(0,CONTEXT_DELETE_FROMNOW+position,0, "Delete This and Future");
 				} else {
-					menu.add(0,1*getCount()+position,0, "Delete");
+					menu.add(0,CONTEXT_DELETE_ALL+position,0, "Delete");
 				}
 			}
 		});
@@ -214,43 +220,39 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 	
 	public boolean contextClick(MenuItem item) {
 		try {
-			ContextMenu.ContextMenuInfo info = item
-					.getMenuInfo();
-			//AcalEvent event = (AcalEvent)this.getItem(info.position);
 			int id = item.getItemId();
-			if (id <getCount()) {
-				//start event activity
-				if (((AcalEvent)this.getItem(id)).isPending) {
-					Toast.makeText(context, "Only Delete option availble for pending events.", Toast.LENGTH_LONG);
+			int action = id & 0xf0000;
+			id = id & 0xffff;
+			String parcelKey = "Copy";
+			switch( action ) {
+				case CONTEXT_EDIT:
+					parcelKey = "Event";  // And then fall through
+					//start event activity
+				case CONTEXT_COPY:
+					Bundle bundle = new Bundle();
+					bundle.putParcelable(parcelKey, new AcalEventAction((AcalEvent)this.getItem(id)));
+					Intent eventViewIntent = new Intent(context, EventEdit.class);
+					eventViewIntent.putExtras(bundle);
+					context.startActivity(eventViewIntent);
 					return true;
-				}
-				Bundle bundle = new Bundle();
-				bundle.putParcelable("Event", new AcalEventAction((AcalEvent)this.getItem(id)));
-				Intent eventViewIntent = new Intent(context, EventEdit.class);
-				eventViewIntent.putExtras(bundle);
-				context.startActivity(eventViewIntent);
-				return true;	
-			} 
-			id-= getCount();
-			if (id <getCount()) {
-				this.context.deleteAllEvent(viewDate,id);
-				return true;
+				
+				case CONTEXT_DELETE_ALL:
+					this.context.deleteAllEvent(viewDate,id);
+					return true;
+
+				case CONTEXT_DELETE_JUSTTHIS:
+					this.context.deleteSingleEvent(viewDate,id);
+					return true;
+
+				case CONTEXT_DELETE_FROMNOW:
+					this.context.deleteFutureEvent(viewDate,id);
+					return true;
 			}
-			id-= getCount();
-			if (id <getCount()) {
-				this.context.deleteSingleEvent(viewDate,id);
-				return true;
-			}
-			id-= getCount();
-			if (id <getCount()) {
-				this.context.deleteFutureEvent(viewDate,id);
-				return true;
-			}
-			return false;
-		} catch (ClassCastException e) {
 			return false;
 		}
-
+		catch (ClassCastException e) {
+			return false;
+		}
 		
 	}
 
