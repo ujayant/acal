@@ -374,6 +374,52 @@ CREATE TABLE dav_collection (
 		}
 		return collectionData;
 	}	
+
+
+	public final static short INCLUDE_ALL_COLLECTIONS = 0x00;
+	public final static short INCLUDE_EVENTS = 0x01;
+	public final static short INCLUDE_TASKS = 0x02;
+	public final static short INCLUDE_JOURNAL = 0x04;
+	public final static short INCLUDE_ADDRESSBOOK = 0x08;
+	public final static short INCLUDE_ALL_ACTIVE = 0x0f;
+	public static ContentValues[] getCollections(ContentResolver cr, short includeFor ) {
+		StringBuilder includeSelection = new StringBuilder();
+		if ( includeFor != INCLUDE_ALL_COLLECTIONS ) {
+			includeSelection.append("(");
+			if ( (includeFor & INCLUDE_EVENTS) > 0 )
+				includeSelection.append(DavCollections.ACTIVE_EVENTS+"=1 ");
+			if ( (includeFor & INCLUDE_TASKS) > 0 ) {
+				if ( includeSelection.length() > 1 ) includeSelection.append(" OR ");
+				includeSelection.append(DavCollections.ACTIVE_TASKS+"=1 ");
+			}
+			if ( (includeFor & INCLUDE_JOURNAL) > 0 ) {
+				if ( includeSelection.length() > 1 ) includeSelection.append(" OR ");
+				includeSelection.append(DavCollections.ACTIVE_JOURNAL+"=1 ");
+			}
+			if ( (includeFor & INCLUDE_ADDRESSBOOK) > 0 ) {
+				if ( includeSelection.length() > 1 ) includeSelection.append(" OR ");
+				includeSelection.append(DavCollections.ACTIVE_ADDRESSBOOK+"=1");
+			}
+			includeSelection.append(")");
+		}
+		includeSelection.append(" AND EXISTS (SELECT 1 FROM "+Servers.DATABASE_TABLE
+					+" WHERE "+DavCollections.SERVER_ID+"="+Servers._ID+")");
+
+		Cursor cursor = cr.query( DavCollections.CONTENT_URI, null, includeSelection.toString(),
+										null, DavCollections._ID );
+
+		cursor.moveToFirst();
+		ContentValues[] ret = new ContentValues[cursor.getCount()];
+		while ( !cursor.isAfterLast() ) {
+			ContentValues toAdd = new ContentValues();
+			DatabaseUtils.cursorRowToContentValues(cursor, toAdd);
+			ret[cursor.getPosition()] = toAdd;
+			cursor.moveToNext();
+		}
+		cursor.close();
+		return ret;
+	}
+	
 	
 	/**
 	 * Disable a collection
