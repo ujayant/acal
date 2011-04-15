@@ -729,15 +729,15 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	 * @param newHour
 	 * @return true.
 	 */
-	public synchronized boolean setHour( int newHour ) {
+	public synchronized AcalDateTime setHour( int newHour ) {
 		if ( newHour < 0 || newHour > 23 ) throw new IllegalArgumentException();
 		if ( Constants.debugDateTime ) checkEpoch();
 		if ( year == YEAR_NOT_SET ) calculateDateTime();
-		if ( hour == newHour ) return true;
+		if ( hour == newHour ) return this;
 		if ( epoch != EPOCH_NOT_SET ) epoch += (newHour - hour) * SECONDS_IN_HOUR;
 		hour = (short) newHour;
 		if ( Constants.debugDateTime ) checkEpoch();
-		return true;
+		return this;
 	}
 
 
@@ -760,15 +760,15 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	 * @param newMinute
 	 * @return true.
 	 */
-	public synchronized boolean setMinute( int newMinute ) {
+	public synchronized AcalDateTime setMinute( int newMinute ) {
 		if ( newMinute < 0 || newMinute > 59 ) throw new IllegalArgumentException();
 		if ( Constants.debugDateTime ) checkEpoch();
 		if ( year == YEAR_NOT_SET ) calculateDateTime();
-		if ( minute == newMinute ) return true;
+		if ( minute == newMinute ) return this;
 		if ( epoch != EPOCH_NOT_SET ) epoch += (newMinute - minute) * SECONDS_IN_MINUTE;
 		minute = (short) newMinute;
 		if ( Constants.debugDateTime ) checkEpoch();
-		return true;
+		return this;
 	}
 
 
@@ -793,15 +793,15 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	 * @param newSecond
 	 * @return true, unless you try and set a leap second that doesn't exist.
 	 */
-	public synchronized boolean setSecond( int newSecond ) {
+	public synchronized AcalDateTime setSecond( int newSecond ) {
 		if ( newSecond < 0 || newSecond > 59 ) throw new IllegalArgumentException();
 		if ( Constants.debugDateTime ) checkEpoch();
 		if ( year == YEAR_NOT_SET ) calculateDateTime();
-		if ( second == newSecond ) return true;
+		if ( second == newSecond ) return this;
 		if ( epoch != EPOCH_NOT_SET ) epoch += newSecond - second;
 		second = (short) newSecond;
 		if ( Constants.debugDateTime ) checkEpoch();
-		return true;
+		return this;
 	}
 
 
@@ -825,14 +825,14 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	 * @param newSecond
 	 * @return true, unless you try and set a leap second that doesn't exist.
 	 */
-	public synchronized boolean setDaySecond( int newSecond ) {
+	public synchronized AcalDateTime setDaySecond( int newSecond ) {
 		if ( Constants.debugDateTime ) checkEpoch();
 		if ( newSecond < 0 || newSecond > SECONDS_IN_DAY ) throw new IllegalArgumentException();
 		if ( year == YEAR_NOT_SET ) calculateDateTime();
 		short newHour = (short) (newSecond / SECONDS_IN_HOUR);
 		short newMinute = (short) ((newSecond % SECONDS_IN_HOUR) / 60);
 		newSecond %= 60;
-		if ( hour == newHour && minute == newMinute && second == newSecond ) return true;
+		if ( hour == newHour && minute == newMinute && second == newSecond ) return this;
 		if ( epoch != EPOCH_NOT_SET ) {
 			epoch += ((newHour - hour) * SECONDS_IN_HOUR)
 					+ ((newMinute - minute) * SECONDS_IN_MINUTE)
@@ -842,7 +842,7 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 		minute = (short) newMinute;
 		second = (short) newSecond;
 		if ( Constants.debugDateTime ) checkEpoch();
-		return true;
+		return this;
 	}
 
 
@@ -873,14 +873,14 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	 * <p>
 	 * Set the timezone for this date, keeping the date & time constant.
 	 * </p>
-	 * @return true if the timezone was successfully set.
+	 * @return the current object, for chaining
 	 */
-	public synchronized boolean setTimeZone( String newTz ) {
-		if ( tzName == newTz || (tzName != null && tzName.equals(newTz)) ) return true;
+	public synchronized AcalDateTime setTimeZone( String newTz ) {
+		if ( tzName == newTz || (tzName != null && tzName.equals(newTz)) ) return this;
 		if ( year == YEAR_NOT_SET ) calculateDateTime();  // Because we're going to invalidate the epoch...
 		this.overwriteTimeZone(newTz);
 		epoch = EPOCH_NOT_SET;
-		return true;
+		return this;
 	}
 
 	
@@ -890,13 +890,13 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	 * </p>
 	 * @return true if the timezone was successfully set.
 	 */
-	public synchronized boolean shiftTimeZone( String newTz ) {
-		if ( tzName == newTz || (tzName != null && tzName.equals(newTz)) ) return true;
+	public synchronized AcalDateTime shiftTimeZone( String newTz ) {
+		if ( tzName == newTz || (tzName != null && tzName.equals(newTz)) ) return this;
 		if ( epoch == EPOCH_NOT_SET ) calculateEpoch();  // Because we're going to invalidate the date...
 		this.overwriteTimeZone(newTz);
 		year = YEAR_NOT_SET;
 		if ( Constants.debugDateTime ) calculateDateTime();
-		return true;
+		return this;
 	}
 
 	
@@ -908,7 +908,7 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	 * </p>
 	 * @return true if the timezone was successfully set.
 	 */
-	public synchronized boolean applyLocalTimeZone() {
+	public synchronized AcalDateTime applyLocalTimeZone() {
 		String newTimeZone = TimeZone.getDefault().getID();
 		if ( Constants.LOG_VERBOSE && Constants.debugDateTime )
 			Log.v(TAG,"Applying local ("+newTimeZone+") to date which is "+(tzName==null?"floating":tzName));
@@ -931,9 +931,11 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	/**
 	 * Set the flag that marks this as a date.  If it is marked as a date
 	 * it will print as a date via fmtIcal() and toPropertyString() methods.
+	 * @return this, for chaining.
 	 */
-	public void setAsDate(boolean newValue) {
+	public AcalDateTime setAsDate(boolean newValue) {
 		isDate = newValue;
+		return this;
 	}
 
 	
@@ -956,9 +958,11 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	 * for comatibility with the standard Java libraries which know not of these things.
 	 * </p>
 	 * @param milliSeconds
+	 * @return this, for chaining.
 	 */
-	public void setMillis( long milliSeconds ) {
+	public AcalDateTime setMillis( long milliSeconds ) {
 		setEpoch( Math.round(milliSeconds / 1000.0) );
+		return this;
 	}
 
 	
@@ -975,14 +979,16 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	/**
 	 * Set the current time to the given seconds from epoch, which we assume includes leap
 	 * seconds.
-	 * @param l
+	 * @param newEpoch, the new epoch time to set
+	 * @return this, for chaining
 	 */
-	public synchronized void setEpoch(long l) {
-		epoch = l;
+	public synchronized AcalDateTime setEpoch(long newEpoch) {
+		epoch = newEpoch;
 		if ( epoch > MAX_EPOCH_VALUE ) epoch = MAX_EPOCH_VALUE; 
 		if ( epoch < MIN_EPOCH_VALUE ) epoch = MIN_EPOCH_VALUE; 
 		year = YEAR_NOT_SET;
 		if ( Constants.debugDateTime ) calculateDateTime();
+		return this;
 	}
 
 
@@ -1041,10 +1047,10 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 			case MONTH_OF_YEAR: return setMonth((int) setTo);
 			case DAY_OF_MONTH: 	return setMonthDay((int) setTo);
 			case DAY_OF_YEAR: 	return setYearDay((int) setTo);
-			case HOUR: 			return setHour((int) setTo);
-			case MINUTE: 		return setMinute((int) setTo);
-			case SECOND: 		return setSecond((int) setTo);
-			case SECOND_OF_DAY:	return setDaySecond((int) setTo);
+			case HOUR: 			setHour((int) setTo); return true;
+			case MINUTE: 		setMinute((int) setTo); return true;
+			case SECOND: 		setSecond((int) setTo); return true;
+			case SECOND_OF_DAY:	setDaySecond((int) setTo); return true;
 			case WEEK_OF_YEAR: 	setYearWeek((short) setTo); return true;
 			case DAY_OF_WEEK: 	return setWeekDay((short) setTo);
 		}
@@ -1144,7 +1150,7 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	}
 
 	
-	public void checkEpoch() {
+	private void checkEpoch() {
 		if ( year != YEAR_NOT_SET && epoch != EPOCH_NOT_SET ) {
 			long saveEpoch = epoch;
 			calculateEpoch();
@@ -1585,9 +1591,10 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	}
 
 
-	public void setWeekStart(short wDay) {
+	public AcalDateTime setWeekStart(short wDay) {
 		if ( wDay < MONDAY || wDay > SUNDAY ) throw new IllegalArgumentException();
 		weekStart = wDay;
+		return this;
 	}
 
 	public static class AcalDateTimeSorter implements Comparator<AcalDateTime> {
