@@ -13,17 +13,6 @@
 		android:defaultValue="@string/Monday">
 	</ListPreference>
 	
-	<PreferenceScreen 
-		android:title="Moar Prefs" 
-		android:summary="Some chatty description of moar prefs">
-		<CheckBoxPreference
-			android:key="@string/prefDefaultView"
-			android:title="aCal Opens in Week View"
-			android:summaryOff="Month View"
-			android:summaryOn="Week View"
-			/>
-	</PreferenceScreen>
-
 	<ListPreference
 		android:key="@string/YearViewSize_PrefKey"
 		android:title="@string/YearViewSize_PrefTitle"
@@ -66,7 +55,14 @@
 		android:enabled="false">
 	</ListPreference>
 
-	<PreferenceCategory android:title="Week View Preferences">
+	<CheckBoxPreference
+		android:key="@string/prefDefaultView"
+		android:title="aCal Opens in Week View"
+		android:summaryOff="Month View"
+		android:summaryOn="Week View"
+		/>
+
+	<PreferenceScreen android:title="@string/WeekViewPreferences">
 		<com.morphoss.acal.TimePickerPreference
 			android:key="@string/prefWorkdayStart"
 			android:title="@string/prefWorkdayStart_Title"
@@ -98,6 +94,6 @@
 			android:selectable="true"
 			android:enabled="true"
 			android:defaultValue="70"/>
-	</PreferenceCategory>
+	</PreferenceScreen>
 
 </PreferenceScreen>
