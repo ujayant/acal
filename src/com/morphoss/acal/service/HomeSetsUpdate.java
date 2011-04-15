@@ -61,6 +61,7 @@ public class HomeSetsUpdate extends ServiceJob {
 "<propfind xmlns=\""+Constants.NS_DAV+"\""+
 "    xmlns:C=\""+Constants.NS_CALDAV+"\""+
 "    xmlns:ACAL=\""+Constants.NS_ACAL+"\""+
+"    xmlns:ICAL=\""+Constants.NS_ICAL+"\""+
 "    xmlns:CS=\""+Constants.NS_CALENDARSERVER+"\">\n"+
 " <prop>\n"+
 "  <displayname/>\n"+
@@ -71,7 +72,8 @@ public class HomeSetsUpdate extends ServiceJob {
 "  <CS:getctag/>\n"+
 "  <C:supported-calendar-component-set/>\n"+
 "  <C:calendar-timezone/>\n"+
-"  <ACAL:acal-colour/>\n"+
+"  <ACAL:collection-colour/>\n"+
+"  <ICAL:calendar-color/>\n"+
 " </prop>\n"+
 "</propfind>";				                  
 
@@ -91,7 +93,7 @@ public class HomeSetsUpdate extends ServiceJob {
 	public void run(aCalService context) {
 		this.context = context;
 		this.cr = context.getContentResolver();
-		ContentValues serverData = SynchronisationJobs.getServerData(serverId, cr);
+		ContentValues serverData = Servers.getRow(serverId, cr);
 		this.requestor = AcalRequestor.fromServerValues(serverData);
 
 		if (Constants.LOG_DEBUG) Log.d(TAG, "Refreshing DavCollections for server "+this.serverId);
@@ -305,7 +307,14 @@ public class HomeSetsUpdate extends ServiceJob {
 		cv.put(DavCollections.IS_WRITABLE, !propstat.getNodesFromPath("prop/current-user-privilege-set/privilege/write").isEmpty());
 
 		// colour
-		collectionColour = propstat.getFirstNodeText("prop/acal-colour");
+		collectionColour = propstat.getFirstNodeText("prop/collection-colour");
+		if ( collectionColour == null ) {
+			collectionColour = propstat.getFirstNodeText("prop/calendar-colour");
+			if ( collectionColour != null && collectionColour.length() > 7 ) {
+				// To make iCal RGBA fit Android ARGB spec we trim the alpha 
+				collectionColour = collectionColour.substring(0, 7);
+			}
+		}
 		
 		// default timezone
 		String tzid = null;	//Standard time offset in HH:mm format
@@ -373,7 +382,12 @@ public class HomeSetsUpdate extends ServiceJob {
 				}
 				cv.put(DavCollections.DISPLAYNAME, displayName);
 				
-				if ( collectionColour == null ) collectionColour = StaticHelpers.randomColorString();
+				boolean sync_meta = false;
+				if ( collectionColour == null ) {
+					collectionColour = StaticHelpers.randomColorString();
+					cv.put(DavCollections.SYNC_METADATA, 1);
+					sync_meta = true;
+				}
 				cv.put(DavCollections.COLOUR, collectionColour);
 				
 				//Create new record
@@ -383,6 +397,9 @@ public class HomeSetsUpdate extends ServiceJob {
 					DatabaseUtils.cursorRowToContentValues(mCursor, cv);
 				changeEvent = DatabaseChangedEvent.DATABASE_RECORD_INSERTED;
 				
+				if ( sync_meta )
+					WorkerClass.getExistingInstance().addJobAndWake(new SyncChangesToServer());
+
 				if ( Constants.LOG_DEBUG ) Log.d(TAG, "Scheduling InitialCollectionSync on new collection.");
 				job = new InitialCollectionSync( serverId, collectionPath);
 				aCalService.databaseDispatcher.dispatchEvent(new DatabaseChangedEvent(changeEvent, DavCollections.class, cv));

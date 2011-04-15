@@ -144,7 +144,7 @@ public class AcalRequestor {
 	 */
 	public static AcalRequestor fromServerValues( ContentValues cvServerData ) {
 		AcalRequestor result = new AcalRequestor();
-		result.setFromServer(cvServerData);
+		result.applyFromServer(cvServerData);
 		return result;
 	}
 
@@ -155,7 +155,7 @@ public class AcalRequestor {
 	 * so you may need to specify a different path on the actual request(s)
 	 * @param cvServerData
 	 */
-	public void setFromServer( ContentValues cvServerData ) {
+	public void applyFromServer( ContentValues cvServerData ) {
 		String hostName = cvServerData.getAsString(Servers.HOSTNAME);
 		if ( hostName == null || hostName.equals("") ) {
 			hostName = cvServerData.getAsString(Servers.SUPPLIED_DOMAIN);
@@ -207,7 +207,7 @@ public class AcalRequestor {
 	 * to be saved back in the database.  Used during the server discovery process.
 	 * @param cvServerData
 	 */
-	public void applySettings(ContentValues cvServerData) {
+	public void applyToServerSettings(ContentValues cvServerData) {
 		cvServerData.put(Servers.HOSTNAME, hostName);
 		cvServerData.put(Servers.USE_SSL, (protocol.equals("https")?1:0));
 		cvServerData.put(Servers.PORT, port);

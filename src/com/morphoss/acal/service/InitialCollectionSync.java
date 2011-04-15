@@ -112,14 +112,16 @@ public class InitialCollectionSync extends ServiceJob {
 		ContentValues serverData;
 		try {
 			// get serverData
-			serverData = SynchronisationJobs.getServerData(serverId, cr);
+			serverData = Servers.getRow(serverId, cr);
 			if (serverData == null) throw new Exception("No record for ID " + serverId);
 			requestor = AcalRequestor.fromServerValues(serverData);
 			requestor.setPath(collectionPath);
 		}
 		catch (Exception e) {
 			// Error getting data
-			Log.e(TAG, "Error getting server data from DB: " + e.getMessage());
+			Log.e(TAG, "Error getting server data: " + e.getMessage());
+			Log.e(TAG, "Deleting invalid collection Record.");
+			cr.delete(Uri.withAppendedPath(DavCollections.CONTENT_URI,Long.toString(collectionId)), null, null);
 			return;
 		}
 		

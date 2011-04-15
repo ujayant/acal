@@ -44,10 +44,12 @@ import android.util.Log;
 
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.DatabaseChangedEvent;
+import com.morphoss.acal.ResourceModification;
 import com.morphoss.acal.database.AcalDBHelper;
 import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.providers.DavResources;
 import com.morphoss.acal.providers.PendingChanges;
+import com.morphoss.acal.providers.Servers;
 import com.morphoss.acal.service.SynchronisationJobs.WriteActions;
 import com.morphoss.acal.service.connector.AcalRequestor;
 import com.morphoss.acal.service.connector.SendRequestFailedException;
@@ -83,6 +85,18 @@ public class SyncChangesToServer extends ServiceJob {
 		this.cr = this.context.getContentResolver();
 		this.requestor = new AcalRequestor();
 		
+		if ( marshallCollectionsToSync() ) {
+			try {
+				ContentValues pendingChange;
+				while( (pendingChange = getChangeToSync()) != null ) {
+					updateCollectionProperties(pendingChange);
+				}
+			}
+			catch( Exception e ) {
+				Log.e(TAG,Log.getStackTraceString(e));
+			}
+		}
+
 		if ( !marshallChangesToSync() ) {
 			if (Constants.LOG_VERBOSE) Log.v(TAG, "No local changes to synchronise.");
 			return; // without rescheduling
@@ -147,6 +161,7 @@ public class SyncChangesToServer extends ServiceJob {
 		}
 		
 		pendingCursor.close();
+		pendingPos = -1;
 		
 		return ( pendingChangesList.size() != 0 );
 	}
@@ -170,12 +185,15 @@ public class SyncChangesToServer extends ServiceJob {
 		}
 
 		int serverId = collectionData.getAsInteger(DavCollections.SERVER_ID);
-		ContentValues serverData = SynchronisationJobs.getServerData(serverId, cr);
-		if (collectionData == null) {
-			Log.e(TAG, "Error getting collection data from DB.");
+		ContentValues serverData = Servers.getRow(serverId, cr);
+		if (serverData == null) {
+			invalidPendingChange(pending.getAsInteger(PendingChanges._ID), 
+						"Error getting server data from DB - deleting invalid pending change record." );				
+			Log.e(TAG, "Deleting invalid collection Record.");
+			cr.delete(Uri.withAppendedPath(DavCollections.CONTENT_URI,Long.toString(collectionId)), null, null);
 			return;
 		}
-		requestor.setFromServer(serverData);
+		requestor.applyFromServer(serverData);
 
 		String collectionPath = collectionData.getAsString(DavCollections.COLLECTION_PATH);
 		String newData = pending.getAsString(PendingChanges.NEW_DATA);
@@ -201,7 +219,7 @@ public class SyncChangesToServer extends ServiceJob {
 			resourceData.put(DavResources.COLLECTION_ID, collectionId);
 		}
 		else {
-			resourceData = SynchronisationJobs.getResourceData(resourceId, cr);
+			resourceData = DavResources.getRow(resourceId, cr);
 			if (resourceData == null) {
 				invalidPendingChange(pendingId, 
 							"Error getting resource data from DB - deleting invalid pending change record." );				
@@ -258,27 +276,35 @@ public class SyncChangesToServer extends ServiceJob {
 						break;
 					}
 				}
+
+				if (Constants.LOG_DEBUG) Log.d(TAG, "Applying resource modification to local database");
+				ResourceModification changeUnit = new ResourceModification( action, resourceData, pendingId);
 				AcalDBHelper dbHelper = new AcalDBHelper(this.context);
 				SQLiteDatabase db = dbHelper.getWritableDatabase();
+				boolean completed =false;
 				try {
+					// Attempting to keep our transaction as narrow as possible.
 					db.beginTransaction();
-
-					SynchronisationJobs.writeResource(db,action,resourceData);
+					changeUnit.commit(db);
 					// We can retire this change now
 					db.delete(PendingChanges.DATABASE_TABLE,
 							  PendingChanges._ID+"=?",
 							  new String[] { Integer.toString(pendingId) });
-					if (Constants.LOG_DEBUG) Log.d(TAG, "Updated event data written to local database");
 					db.setTransactionSuccessful();
+					completed = true;
 				}
 				catch (Exception e) {
-					Log.e(TAG, action.toString()+": Exception applying resource to server: " + e.getMessage());
-					Log.e(TAG, Log.getStackTraceString(e));
+					Log.w(TAG, action.toString()+": Exception applying resource modification: " + e.getMessage());
+					Log.d(TAG, Log.getStackTraceString(e));
 				}
 				finally {
 					db.endTransaction();
 					db.close();
-					aCalService.databaseDispatcher.dispatchEvent(new DatabaseChangedEvent(DatabaseChangedEvent.DATABASE_RECORD_DELETED, PendingChanges.class, pending));
+					
+					if ( completed ) {
+						aCalService.databaseDispatcher.dispatchEvent(new DatabaseChangedEvent(DatabaseChangedEvent.DATABASE_RECORD_DELETED, PendingChanges.class, pending));
+						changeUnit.notifyChange();
+					}
 				}
 				break;
 
@@ -328,15 +354,82 @@ public class SyncChangesToServer extends ServiceJob {
 		 return "text/plain";
 	}
 
+	
 	private void invalidPendingChange(int pendingId, String msg) {
 		Log.e(TAG, msg );
 		cr.delete(Uri.withAppendedPath(PendingChanges.CONTENT_URI, Integer.toString(pendingId)), null, null);
 	}
 
+	
 	private boolean updateSyncStatus() {
 		return true;
 	}
 
+	
+	private boolean marshallCollectionsToSync() {
+		Cursor pendingCursor = cr.query(DavCollections.CONTENT_URI, null,
+					DavCollections.SYNC_METADATA+"=1 AND ("+DavCollections.ACTIVE_EVENTS
+						+"=1 OR "+DavCollections.ACTIVE_TASKS
+						+"=1 OR "+DavCollections.ACTIVE_JOURNAL
+						+"=1 OR "+DavCollections.ACTIVE_ADDRESSBOOK+"=1) "
+						,
+					null, null);
+		if ( pendingCursor.getCount() == 0 ) {
+			pendingCursor.close();
+			return false;
+		}
+
+		pendingChangesList = new ArrayList<ContentValues>();
+		while( pendingCursor.moveToNext() ) {
+			ContentValues cv = new ContentValues();
+			DatabaseUtils.cursorRowToContentValues(pendingCursor, cv);
+			pendingChangesList.add(cv);
+		}
+		
+		pendingCursor.close();
+		
+		return ( pendingChangesList.size() != 0 );
+	}
+
+	
+	final private static Header[] proppatchHeaders = new Header[] {
+		new BasicHeader("Content-Type","text/xml; encoding=UTF-8")
+	};
+
+	final static String baseProppatch = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>"+
+		"<propertyupdate xmlns=\""+Constants.NS_DAV+"\"\n"+
+		"    xmlns:ACAL=\""+Constants.NS_ACAL+"\">\n"+
+		"<set>\n"+
+		"  <prop>\n"+
+		"   <ACAL:collection-colour>%s</ACAL:collection-colour>\n"+
+		"  </prop>\n"+
+		" </set>\n"+
+		"</propertyupdate>\n";
+
+	private void updateCollectionProperties( ContentValues collectionData ) {
+		String proppatchRequest = String.format(baseProppatch,
+					collectionData.getAsString(DavCollections.COLOUR)
+				);
+
+		InputStream in = null;
+		try {
+			ContentValues serverData = Servers.getRow(collectionData.getAsInteger(DavCollections.SERVER_ID), cr);
+			requestor.applyFromServer(serverData);
+			requestor.doRequest("PROPPATCH", collectionData.getAsString(DavCollections.COLLECTION_PATH),
+						proppatchHeaders, proppatchRequest);
+
+			collectionData.put(DavCollections.SYNC_METADATA, 0);
+			cr.update(Uri.withAppendedPath(DavCollections.CONTENT_URI, collectionData.getAsString(DavCollections._ID)),
+						collectionData, null, null);
+		}
+		catch (Exception e) {
+			Log.e(TAG,"Error with proppatch to "+requestor.fullUrl());
+			Log.d(TAG,Log.getStackTraceString(e));
+		}
+
+	}
+
+	
 	@Override
 	public String getDescription() {
 		return "Syncing local changes back to the server.";

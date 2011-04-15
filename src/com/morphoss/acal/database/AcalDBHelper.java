@@ -46,7 +46,7 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 	/**
 	 * The version of this database. Used to determine if an upgrade is required.
 	 */
-	public static final int DB_VERSION = 9;
+	public static final int DB_VERSION = 10;
 	
 	/**
 	 * <p>The dav_server Table as stated in the specification.</p>
@@ -121,6 +121,7 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 				+",max_sync_age_3g INTEGER"
 				+",is_writable BOOLEAN"
 				+",is_visible BOOLEAN"
+				+",sync_metadata BOOLEAN"
 				+",UNIQUE(server_id,collection_path)"
 			+");";
 	
@@ -214,26 +215,38 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 	 * @author Morphoss Ltd
 	 */
 	@Override
-	public void onUpgrade(SQLiteDatabase db, int arg1, int arg2) {
+	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 		// We drop tables in the reverse order to avoid constraint issues
 		db.beginTransaction();
-		
-		try {
-			// Drop all the tables except the dav_server one.
-			db.execSQL("DROP TABLE dav_path_set");
-			db.execSQL("DROP TABLE dav_collection");
-			db.execSQL("DROP TABLE dav_resource");
-			db.execSQL("DROP TABLE pending_change");
-	
-			// Recreate the tables we just dropped.
-			db.execSQL(DAV_PATH_SET_TABLE_SQL);
-			db.execSQL(DAV_COLLECTION_TABLE_SQL);
-			db.execSQL(DAV_RESOURCE_TABLE_SQL);
-			db.execSQL(PENDING_CHANGE_TABLE_SQL);
-			db.setTransactionSuccessful();
+
+		if ( oldVersion == 9 ) {
+			db.execSQL("ALTER TABLE dav_collection ADD COLUMN sync_metadata BOOLEAN");
+			oldVersion++;
 		}
-		catch( Exception e ) {
-			Log.e(TAG, "Database error recreating database", e);
+
+		if ( oldVersion != newVersion ) {
+			// Fallback to try and drop all tables, except the server table and
+			// then recreate them.
+			try {
+				// Drop all the tables except the dav_server one.
+				db.execSQL("DROP TABLE dav_path_set");
+				db.execSQL("DROP TABLE dav_collection");
+				db.execSQL("DROP TABLE dav_resource");
+				db.execSQL("DROP TABLE pending_change");
+		
+				// Recreate the tables we just dropped.
+				db.execSQL(DAV_PATH_SET_TABLE_SQL);
+				db.execSQL(DAV_COLLECTION_TABLE_SQL);
+				db.execSQL(DAV_RESOURCE_TABLE_SQL);
+				db.execSQL(PENDING_CHANGE_TABLE_SQL);
+				db.setTransactionSuccessful();
+			}
+			catch( Exception e ) {
+				Log.e(TAG, "Database error recreating database", e);
+			}
+		}
+		else {
+			db.setTransactionSuccessful();
 		}
 
 		db.endTransaction();

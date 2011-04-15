@@ -19,11 +19,13 @@
 package com.morphoss.acal.providers;
 
 import android.content.ContentProvider;
+import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
@@ -324,5 +326,75 @@ CREATE TABLE dav_resource (
 		}       
 		getContext().getContentResolver().notifyChange(uri, null);
 		return count;
+	}
+
+	
+	/**
+	 * Static method to retrieve a particular database row for a given collectionId & resource name.
+	 * @param collectionId
+	 * @param name
+	 * @param contentResolver
+	 * @return A ContentValues which is the dav_resource row, or null
+	 */
+	public static ContentValues getResourceInCollection(long collectionId, String name, ContentResolver contentResolver) {
+		ContentValues resourceData = null;
+		Cursor c = null;
+		try {
+			c = contentResolver.query(Uri.withAppendedPath(CONTENT_URI,"collection/"+Long.toString(collectionId)),
+						null, RESOURCE_NAME+"=?", new String[] { name }, null);
+			if ( !c.moveToFirst() ) {
+				if ( Constants.LOG_DEBUG )
+					Log.d(TAG, "No dav_resource row for collection " + Long.toString(collectionId)+", "+name);
+				c.close();
+				return null;
+			}
+			resourceData = new ContentValues();
+			DatabaseUtils.cursorRowToContentValues(c,resourceData);
+		}
+		catch (Exception e) {
+			// Error getting data
+			Log.e(TAG, "Error getting server data from DB: " + e.getMessage());
+			Log.e(TAG, Log.getStackTraceString(e));
+			c.close();
+			return null;
+		}
+		finally {
+			c.close();
+		}
+		return resourceData;
+	}
+
+	/**
+	 * Static method to retrieve a particular database row for a given resource ID.
+	 * @param resourceId
+	 * @param contentResolver
+	 * @return A ContentValues which is the dav_resource row, or null
+	 */
+	public static ContentValues getRow(Long resourceId, ContentResolver contentResolver) {
+		ContentValues resourceData = null;
+		Cursor c = null;
+		try {
+			c = contentResolver.query(Uri.withAppendedPath(CONTENT_URI,Long.toString(resourceId)),
+						null, null, null, null);
+			if ( !c.moveToFirst() ) {
+				if ( Constants.LOG_DEBUG )
+					Log.d(TAG, "No dav_resource row for collection " + Long.toString(resourceId));
+				c.close();
+				return null;
+			}
+			resourceData = new ContentValues();
+			DatabaseUtils.cursorRowToContentValues(c,resourceData);
+		}
+		catch (Exception e) {
+			// Error getting data
+			Log.e(TAG, "Error getting server data from DB: " + e.getMessage());
+			Log.e(TAG, Log.getStackTraceString(e));
+			c.close();
+			return null;
+		}
+		finally {
+			c.close();
+		}
+		return resourceData;
 	}
 }

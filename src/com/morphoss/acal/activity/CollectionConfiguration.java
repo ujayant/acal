@@ -48,6 +48,8 @@ import com.morphoss.acal.DatabaseChangedEvent;
 import com.morphoss.acal.R;
 import com.morphoss.acal.ServiceManager;
 import com.morphoss.acal.providers.DavCollections;
+import com.morphoss.acal.service.SyncChangesToServer;
+import com.morphoss.acal.service.WorkerClass;
 import com.morphoss.acal.service.aCalService;
 
 /**
@@ -232,6 +234,9 @@ public class CollectionConfiguration extends PreferenceActivity implements OnPre
 		Intent res = new Intent();
 		res.putExtra("UpdateRequired",collectionData.getAsInteger(DavCollections._ID) );
 		this.setResult(RESULT_OK, res);
+
+		if ( collectionData.getAsInteger(DavCollections.SYNC_METADATA) == 1 )
+			WorkerClass.getExistingInstance().addJobAndWake(new SyncChangesToServer());
 	}
 	
 
@@ -460,10 +465,8 @@ public class CollectionConfiguration extends PreferenceActivity implements OnPre
 	
 	private boolean validateColor(Preference p, Object v) {
 			//we don't need to validate colour - but we do need to turn it into a string
-			Integer val = (Integer)v;
-			String hex = Integer.toHexString((int)val);
-			while (hex.length() < 6) hex = "0"+hex;
-			this.collectionData.put(DavCollections.COLOUR, "#"+hex);
+			this.collectionData.put(DavCollections.COLOUR, String.format("#%06x", (Integer)v));
+			this.collectionData.put(DavCollections.SYNC_METADATA, 1);
 			return true;
 	}
 

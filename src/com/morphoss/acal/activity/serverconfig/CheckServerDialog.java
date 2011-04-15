@@ -190,7 +190,7 @@ public class CheckServerDialog implements Runnable {
 			}
 			else {
 				successMessages.add(String.format(context.getString(R.string.foundPrincipalPath), requestor.fullUrl()));
-				requestor.applySettings(serverData);
+				requestor.applyToServerSettings(serverData);
 			}
 
 			if ( !has_calendar_access  && discovered ) {

@@ -26,6 +26,7 @@
 <string name="Collection_Options">Collection Options</string>
 <string name="Colour">Colour</string>
 <string name="Default_timezone">Default Timezone</string>
+<string name="DefaultAlarmTone">Default Alarm Tone</string>
 <string name="Server_Path">Server Path</string>
 <string name="Server_Port">Server Port</string>
 <string name="Summary">Summary</string>

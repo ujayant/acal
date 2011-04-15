@@ -19,6 +19,7 @@
 package com.morphoss.acal.service;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +34,6 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -44,6 +44,7 @@ import android.util.Log;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.DatabaseChangedEvent;
 import com.morphoss.acal.HashCodeUtil;
+import com.morphoss.acal.ResourceModification;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.database.AcalDBHelper;
 import com.morphoss.acal.providers.DavCollections;
@@ -213,14 +214,16 @@ public class SyncCollectionContents extends ServiceJob {
 
 		try {
 			// get serverData
-			serverData = SynchronisationJobs.getServerData(serverId, cr);
+			serverData = Servers.getRow(serverId, cr);
 			if (serverData == null) throw new Exception("No record for ID " + serverId);
 			requestor = AcalRequestor.fromServerValues(serverData);
 			requestor.setPath(collectionPath);
 		}
 		catch (Exception e) {
 			// Error getting data
-			Log.e(TAG, "Error getting server data from DB: " + e.getMessage());
+			Log.e(TAG, "Error getting server data: " + e.getMessage());
+			Log.e(TAG, "Deleting invalid collection Record.");
+			cr.delete(Uri.withAppendedPath(DavCollections.CONTENT_URI,Long.toString(collectionId)), null, null);
 			return false;
 		}
 
@@ -257,77 +260,78 @@ public class SyncCollectionContents extends ServiceJob {
 						+ " - no data from server.");
 			return false;
 		}
-		AcalDBHelper dbHelper = new AcalDBHelper(this.context);
-		SQLiteDatabase db = dbHelper.getWritableDatabase();
-		db.beginTransaction();
-		try {
-			if (Constants.LOG_VERBOSE) Log.v(TAG, "Start processing response");
-			long start2 = System.currentTimeMillis();
-			List<DavNode> responses = root.getNodesFromPath("multistatus/response");
 
-			for (DavNode response : responses) {
-				String name = response.segmentFromFirstHref("href");
-				WriteActions action = WriteActions.UPDATE;
+		ArrayList<ResourceModification> changeList = new ArrayList<ResourceModification>(); 
 
-				ContentValues cv = new ContentValues();
-				Cursor resourceCursor = null;
-				try {
-					resourceCursor = db.query(DavResources.DATABASE_TABLE, null,
-								DavResources.COLLECTION_ID+"=? AND "+DavResources.RESOURCE_NAME+"=?",
-								new String[] { Integer.toString(collectionId), name }, null, null, null); 
-					if ( resourceCursor.moveToFirst() ) {
-						DatabaseUtils.cursorRowToContentValues(resourceCursor,cv);
-					}
-					else {
-						cv.put(DavResources.COLLECTION_ID, collectionId);
-						cv.put(DavResources.RESOURCE_NAME, name);
-						action = WriteActions.INSERT;
-					}
-				}
-				catch ( Exception e ) {
-					Log.e(TAG, "Problem querying DB for existing resource.");
-					Log.e(TAG,Log.getStackTraceString(e));
-				}
-				finally {
-					if ( resourceCursor != null ) resourceCursor.close();
-				}
-				
-				List<DavNode> aNode = response.getNodesFromPath("status");
-				if ( aNode.isEmpty()
-							|| aNode.get(0).getText().equalsIgnoreCase("HTTP/1.1 201 Created")
-							|| aNode.get(0).getText().equalsIgnoreCase("HTTP/1.1 200 OK") ) {
+		if (Constants.LOG_VERBOSE) Log.v(TAG, "Start processing response");
+		long start2 = System.currentTimeMillis();
+		List<DavNode> responses = root.getNodesFromPath("multistatus/response");
 
-					Log.i(TAG,"Updating node "+name );
-					// We are dealing with an update or insert
-					if ( !parseResponseNode(response, cv) ) continue;
-					if ( cv.getAsBoolean(DavResources.NEEDS_SYNC) ) needSyncAfterwards = true; 
-				}
-				else if ( action == WriteActions.INSERT ) {
-					Log.i(TAG,"Ignoring delete sync on node '"+name+"' which is already deleted from our DB." );
-				}
-				else {
-					// We should be dealing with a DELETE, but maybe we should check...
-					Log.i(TAG,"Deleting node '"+name+"'with status: "+aNode.get(0).getText() );
-					action = WriteActions.DELETE;
-				}
+		for (DavNode response : responses) {
+			String name = response.segmentFromFirstHref("href");
+			WriteActions action = WriteActions.UPDATE;
 
-				writeResource(db, action, cv);
+			ContentValues cv = DavResources.getResourceInCollection( collectionId, name, cr);
+			if ( cv == null ) {
+				cv = new ContentValues();
+				cv.put(DavResources.COLLECTION_ID, collectionId);
+				cv.put(DavResources.RESOURCE_NAME, name);
+				action = WriteActions.INSERT;
+			}
+			
+			List<DavNode> aNode = response.getNodesFromPath("status");
+			if ( aNode.isEmpty()
+						|| aNode.get(0).getText().equalsIgnoreCase("HTTP/1.1 201 Created")
+						|| aNode.get(0).getText().equalsIgnoreCase("HTTP/1.1 200 OK") ) {
+
+				Log.i(TAG,"Updating node "+name );
+				// We are dealing with an update or insert
+				if ( !parseResponseNode(response, cv) ) continue;
+				if ( cv.getAsBoolean(DavResources.NEEDS_SYNC) ) needSyncAfterwards = true; 
+			}
+			else if ( action == WriteActions.INSERT ) {
+				Log.i(TAG,"Ignoring delete sync on node '"+name+"' which is already deleted from our DB." );
+			}
+			else {
+				// We should be dealing with a DELETE, but maybe we should check...
+				Log.i(TAG,"Deleting node '"+name+"'with status: "+aNode.get(0).getText() );
+				action = WriteActions.DELETE;
 			}
 
-			db.setTransactionSuccessful();
-			db.endTransaction();
-			db.close();
+			changeList.add( new ResourceModification(action, cv, null) );
 			
 			// Pull the syncToken we will update with.
 			syncToken = root.getFirstNodeText("multistatus/sync-token");
 
-			if (Constants.LOG_VERBOSE)	Log.v(TAG, "Completed processing in completed in " + (System.currentTimeMillis() - start2) + "ms");
+			if (Constants.LOG_VERBOSE)
+				Log.v(TAG, "Completed processing in completed in " + (System.currentTimeMillis() - start2) + "ms");
+		}
+
+		
+		AcalDBHelper dbHelper = new AcalDBHelper(this.context);
+		SQLiteDatabase db = dbHelper.getWritableDatabase();
+		db.beginTransaction();
+		boolean completed =false;
+		try {
+
+			for ( ResourceModification changeUnit : changeList ) {
+				changeUnit.commit(db);
+			}
+			db.setTransactionSuccessful();
+			completed = true;
 		}
 		catch (Exception e) {
 			Log.e(TAG, "Exception updating resources DB: " + e.getMessage());
 			Log.e(TAG, Log.getStackTraceString(e));
+		}
+		finally {
 			db.endTransaction();
 			db.close();
+			if ( completed ) {
+				for ( ResourceModification changeUnit : changeList ) {
+					changeUnit.notifyChange();
+				}
+			}
 		}
 
 		return needSyncAfterwards;
