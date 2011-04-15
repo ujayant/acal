@@ -70,7 +70,9 @@ public class CheckServerDialog implements Runnable {
 	
 	private static final int SHOW_FAIL_DIALOG = 0;
 	private static final int CHECK_COMPLETE = 1;
+	private static final int REFRESH_PROGRESS = 2;
 	private static final String MESSAGE = "MESSAGE";
+	private static final String REFRESH = "REFRESH";
 	private static final String TYPE = "TYPE";
 
 	private List<String> successMessages = new ArrayList<String>();
@@ -97,6 +99,11 @@ public class CheckServerDialog implements Runnable {
 			Bundle b = msg.getData();
 			int type = b.getInt(TYPE);
 			switch (type) {
+				case REFRESH_PROGRESS: 	
+					if (dialog != null)
+						dialog.setMessage(b.getString(REFRESH));
+					break;
+
 				case SHOW_FAIL_DIALOG: 	
 					if (dialog != null) {
 						dialog.dismiss();
@@ -128,7 +135,7 @@ public class CheckServerDialog implements Runnable {
 	}
 	
 	public void start() {
-		dialog = ProgressDialog.show(sc, "Validating server", "Connecting to server please wait....");
+		dialog = ProgressDialog.show(sc, context.getString(R.string.checkServer), context.getString(R.string.checkServer_Connecting));
 		dialog.setIndeterminate(true);
 		Thread t = new Thread(this);
 		t.start();
@@ -147,6 +154,7 @@ public class CheckServerDialog implements Runnable {
 	private void checkServer() {
 		try {
 			// Step 1, check for internet connectivity
+			updateProgress(context.getString(R.string.checkServer_Internet));
 			if ( !checkInternetConnected() ) {
 				throw new CheckServerFailedError(context.getString(R.string.internetNotAvailable));
 			}
@@ -161,11 +169,13 @@ public class CheckServerDialog implements Runnable {
 			boolean authOK		= false;
 			boolean authFailed	= false;
 			if ( serverData.getAsString(Servers.PRINCIPAL_PATH) != null ) {
+				updateProgress(context.getString(R.string.checkServer_SearchingPrincipal, serverData.getAsString(Servers.PRINCIPAL_PATH)));
 				discovered = doPropfindPrincipal(serverData.getAsString(Servers.PRINCIPAL_PATH));
 				if ( requestor.getStatusCode() < 300 ) authOK = true;
 				else if ( requestor.getStatusCode() == 401 ) authFailed = true;
 			}
 			if ( !discovered && serverData.getAsString(Servers.SUPPLIED_PATH) != null ) {
+				updateProgress(context.getString(R.string.checkServer_SearchingPrincipal, serverData.getAsString(Servers.SUPPLIED_PATH)));
 				discovered = doPropfindPrincipal(serverData.getAsString(Servers.SUPPLIED_PATH));
 				if ( requestor.getStatusCode() < 300 ) authOK = true; 
 				else if ( requestor.getStatusCode() == 401 ) authFailed = true;
@@ -177,6 +187,7 @@ public class CheckServerDialog implements Runnable {
 //								"/principals/users/" + URLEncoder.encode(serverData.getAsString(Servers.USERNAME),Constants.URLEncoding),
 						};
 				for (int i = 0; !discovered && i < tryForPaths.length; i++) {
+					updateProgress(context.getString(R.string.checkServer_SearchingPrincipal,tryForPaths[i]));
 					discovered = doPropfindPrincipal(tryForPaths[i]);
 					if ( requestor.getStatusCode() < 300 ) authOK = true; 
 					else if ( requestor.getStatusCode() == 401 ) authFailed = true;
@@ -194,6 +205,7 @@ public class CheckServerDialog implements Runnable {
 			}
 
 			if ( !has_calendar_access  && discovered ) {
+				updateProgress(context.getString(R.string.checkServer_CheckingCapabilities));
 				// Try an options request to see if we can get calendar-access
 				doOptions(requestor.getPath());
 			}
@@ -248,6 +260,19 @@ public class CheckServerDialog implements Runnable {
 			m.setData(b);
 			handler.sendMessage(m);
 		}
+	}
+
+	/**
+	 * Update the progress dialog with a friendly string.
+	 * @param newMessage
+	 */
+	private void updateProgress( String newMessage ) {
+		Message m = Message.obtain();
+		Bundle b = new Bundle();
+		b.putInt(TYPE, REFRESH_PROGRESS);
+		b.putString(REFRESH, newMessage);
+		m.setData(b);
+		handler.sendMessage(m);
 	}
 
 	private void showFailDialog(String msg) {
@@ -371,8 +396,8 @@ public class CheckServerDialog implements Runnable {
 	
 	/**
 	 * <p>
-	 * Nothing fancy here.  We just quickly try a bunch of ports, and if we manage a successful request
-	 * then we set that as our port / protocol starting point for the next stage.
+	 * Nothing fancy here.  We just quickly try a bunch of ports, and if we manage a response
+	 * other than an authentication failure then we will return true.
 	 * </p> 
 	 * @param port
 	 * @param protocol
@@ -382,15 +407,15 @@ public class CheckServerDialog implements Runnable {
 	private boolean tryPort( int port, int protocol, int timeOutMillis ) {
 		requestor.setTimeOuts(timeOutMillis,3000);
 		requestor.setPortProtocol( port, protocol );
+		updateProgress(context.getString(R.string.checkServer_ProbePorts, port, (protocol==0?"http":"https")));
 		Log.i(TAG, "Starting probe of "+requestor.fullUrl());
 		try {
 			requestor.doRequest("HEAD", null, null, null);
 
 			// No exception, so it worked?
-			if ( Constants.LOG_VERBOSE )
-				Log.i(TAG, "Probe "+requestor.fullUrl()+" success: status " + requestor.getStatusCode());
+			Log.i(TAG, "Probe "+requestor.fullUrl()+" : status " + requestor.getStatusCode());
 
-			return true;
+			return (requestor.getStatusCode() != 401 );
 		}
 		catch (Exception e) {
 			Log.d(TAG, "Probe "+requestor.fullUrl()+" failed: " + e.getMessage());
