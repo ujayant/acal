@@ -28,7 +28,6 @@ import org.apache.http.message.BasicHeader;
 import android.content.ContentQueryMap;
 import android.content.ContentResolver;
 import android.content.ContentValues;
-import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
@@ -37,7 +36,6 @@ import android.util.Log;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.DatabaseChangedEvent;
 import com.morphoss.acal.HashCodeUtil;
-import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.database.AcalDBHelper;
 import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.providers.DavResources;
@@ -298,60 +296,6 @@ public class InitialCollectionSync extends ServiceJob {
 		result = HashCodeUtil.hash( result, this.serverId );
 	    result = HashCodeUtil.hash( result, this.collectionPath );
 	    return result;
-	}
-	
-	//Create a sync job for ALL active collections
-	public static void initialiseAll(WorkerClass worker, Context c) {
-		ContentResolver cr = c.getContentResolver();
-		String lastSyncString;
-		AcalDateTime lastSync;
-		int collectionId;
-		long timeOfFirst = System.currentTimeMillis();
-		Cursor mCursor = cr.query(	DavCollections.CONTENT_URI,
-									new String[] { 
-											DavCollections._ID,
-											DavCollections.SERVER_ID, 
-											DavCollections.COLLECTION_PATH,
-											DavCollections.ACTIVE_ADDRESSBOOK,
-											DavCollections.ACTIVE_EVENTS,
-											DavCollections.ACTIVE_JOURNAL,
-											DavCollections.ACTIVE_TASKS,
-											DavCollections.LAST_SYNCHRONISED },
-									null, null, null);
-		mCursor.moveToFirst();
-		while (!mCursor.isAfterLast()) {
-			//Only add if there is at least ONE active componant
-			if (	mCursor.getInt(mCursor.getColumnIndex(DavCollections.ACTIVE_ADDRESSBOOK)) == 1 ||
-					mCursor.getInt(mCursor.getColumnIndex(DavCollections.ACTIVE_EVENTS)) == 1 ||
-					mCursor.getInt(mCursor.getColumnIndex(DavCollections.ACTIVE_JOURNAL)) == 1 ||
-					mCursor.getInt(mCursor.getColumnIndex(DavCollections.ACTIVE_TASKS)) == 1) {
-				collectionId = mCursor.getInt(mCursor.getColumnIndex(DavCollections._ID));
-				lastSyncString = mCursor.getString(mCursor.getColumnIndex(DavCollections.LAST_SYNCHRONISED));
-				if ( lastSyncString != null ) {
-					lastSync = AcalDateTime.fromString(lastSyncString);
-					if ( AcalDateTime.addDays(lastSync, 14).getMillis() > System.currentTimeMillis() ) {
-						// In this case we will schedule a normal sync on the collection
-						// which will hopefully be *much* lighter weight.
-						SyncCollectionContents job = new SyncCollectionContents(collectionId);
-						job.TIME_TO_EXECUTE = timeOfFirst;
-						worker.addJobAndWake(job);
-						timeOfFirst += 500;
-						mCursor.moveToNext();
-						continue;
-					}
-				}
-				InitialCollectionSync job = new InitialCollectionSync(
-						mCursor.getInt(mCursor.getColumnIndex(DavCollections._ID)),
-						mCursor.getInt(mCursor.getColumnIndex(DavCollections.SERVER_ID)),
-						mCursor.getString(mCursor.getColumnIndex(DavCollections.COLLECTION_PATH)));
-				job.TIME_TO_EXECUTE = timeOfFirst;
-				worker.addJobAndWake(job);
-				timeOfFirst += 500;
-			}
-			mCursor.moveToNext();
-		}
-		mCursor.close();
-		
 	}
 	
 	private void removeDuplicates(Map<String,ContentValues> db, Map<String,ContentValues> server) {

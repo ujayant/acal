@@ -37,8 +37,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
-import android.database.Cursor;
-import android.database.DatabaseUtils;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -77,7 +75,6 @@ import com.morphoss.acal.davacal.AcalEventAction;
 import com.morphoss.acal.davacal.AcalAlarm.ActionType;
 import com.morphoss.acal.davacal.AcalEventAction.EVENT_FIELD;
 import com.morphoss.acal.providers.DavCollections;
-import com.morphoss.acal.providers.Servers;
 import com.morphoss.acal.service.aCalService;
 
 public class EventEdit extends Activity implements OnGestureListener, OnTouchListener, OnClickListener, OnCheckedChangeListener {
@@ -139,7 +136,7 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 	private CheckBox allDayEvent;
 	
 	//Active collections for create mode
-	private ArrayList<ContentValues> activeCollections;
+	private ContentValues[] activeCollections;
 	private ContentValues currentCollection;	//currently selected collection
 	private String[] collectionsArray;
 
@@ -167,12 +164,12 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		this.setupButton(R.id.event_cancel_button, CANCEL);
 
 		//Get collection data
-		activeCollections = getActiveCollections();
+		activeCollections = DavCollections.getCollections( getContentResolver(), DavCollections.INCLUDE_EVENTS );
 		int collectionId = -1;
-		if ( activeCollections.size() > 0 )
-			collectionId = activeCollections.get(0).getAsInteger(DavCollections._ID);
+		if ( activeCollections.length > 0 )
+			collectionId = activeCollections[0].getAsInteger(DavCollections._ID);
 		else {
-			this.finish();	//cant work if no active collections
+			this.finish();	// can't work if no active collections
 			Toast.makeText(this, getString(R.string.errorMustHaveActiveCalendar), Toast.LENGTH_LONG);
 			return;
 		}
@@ -248,7 +245,7 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 			this.eventAction = new AcalEventAction(defaults);
 			this.eventAction.setAction(AcalEventAction.ACTION_CREATE);
 		}
-		this.collectionsArray = new String[activeCollections.size()];
+		this.collectionsArray = new String[activeCollections.length];
 		int count = 0;
 		for (ContentValues cv : activeCollections) {
 			if (cv.getAsInteger(DavCollections._ID) == collectionId) this.currentCollection = cv;
@@ -257,28 +254,6 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		this.populateLayout();
 		
 		
-	}
-	
-	private ArrayList<ContentValues> getActiveCollections() {
-		ArrayList<ContentValues> ret = new ArrayList<ContentValues>();
-		Cursor cursor = getContentResolver().query( DavCollections.CONTENT_URI,
-				null, DavCollections.ACTIVE_EVENTS +"=1 AND EXISTS (SELECT 1 FROM "+Servers.DATABASE_TABLE+" WHERE "+DavCollections.SERVER_ID+"="+Servers._ID+")",
-				null, DavCollections._ID );
-		if (cursor.getCount() < 1) {
-			//no active collections, abort!
-			Toast.makeText(this, "You have no active collections for creating events. Please add at least one active server before trying to create an event.", Toast.LENGTH_LONG);
-			this.finish();
-		}
-		cursor.moveToFirst();
-		while (!cursor.isAfterLast()) {
-			ContentValues toAdd = new ContentValues();
-			DatabaseUtils.cursorRowToContentValues(cursor, toAdd);
-			ret.add(toAdd);
-			cursor.moveToNext();
-		}
-		cursor.close();
-		return ret;
-	
 	}
 	
 	private void setSelectedCollection(String name) {
@@ -307,7 +282,7 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 
 		//Collection
 		this.collection = (Button) this.findViewById(R.id.EventEditCollectionButton);
-		if (this.activeCollections.size() < 2) {
+		if (this.activeCollections.length < 2) {
 			this.collection.setEnabled(false);
 			this.collection.setHeight(0);
 			this.collection.setPadding(0, 0, 0, 0);

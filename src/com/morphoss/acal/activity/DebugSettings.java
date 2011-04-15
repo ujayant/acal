@@ -134,15 +134,6 @@ public static final String TAG = "aCal Settings";
 	    			Toast.makeText(DebugSettings.this, "Request failed: "+re.getMessage(), Toast.LENGTH_SHORT).show();
 	    		}
 	    	}
-			else if (task.equals("Initial Collection Sync")) {
-	    		try {
-	    			DebugSettings.this.serviceManager.getServiceRequest().initialCollectionSyncAll();
-	    			return;
-	    		} catch (RemoteException re) {
-	    			Log.e(TAG, "Unable to send Sync All DavCollections request to server: "+re.getMessage());
-	    			Toast.makeText(DebugSettings.this, "Request failed: "+re.getMessage(), Toast.LENGTH_SHORT).show();
-	    		}
-	    	}
 		}
 	}
 }

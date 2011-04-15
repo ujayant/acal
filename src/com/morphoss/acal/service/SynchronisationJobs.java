@@ -18,20 +18,20 @@
 
 package com.morphoss.acal.service;
 
-import android.content.ContentResolver;
-import android.content.ContentUris;
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
-import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.DatabaseChangedEvent;
 import com.morphoss.acal.acaltime.AcalDateRange;
+import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
 import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VComponent;
+import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.providers.DavResources;
 import com.morphoss.acal.providers.Servers;
 
@@ -99,6 +99,48 @@ public class SynchronisationJobs extends ServiceJob {
 
 	}
 
+	/**
+	 * Creates a sync job for ALL active collections.  If the collection was
+	 * last synchronised less than 14 days ago we do a syncCollectionContents
+	 * otherwise we do an initialCollectionSync.  We try and do these sync
+	 * jobs with gaps between them.
+	 *  
+	 * @param worker
+	 * @param context
+	 */
+	public static void startCollectionSync(WorkerClass worker, Context context) {
+		ContentValues[] collectionsList = DavCollections.getCollections(context.getContentResolver(),
+					DavCollections.INCLUDE_ALL_ACTIVE);
+		String lastSyncString;
+		AcalDateTime lastSync;
+		int collectionId;
+		long timeOfFirst = System.currentTimeMillis() + 500;
+
+		for (ContentValues collectionValues : collectionsList) {
+			collectionId = collectionValues.getAsInteger(DavCollections._ID);
+			lastSyncString = collectionValues.getAsString(DavCollections.LAST_SYNCHRONISED);
+			if (lastSyncString != null) {
+				lastSync = AcalDateTime.fromString(lastSyncString);
+				if (lastSync.addDays(14).getMillis() > System.currentTimeMillis()) {
+					// In this case we will schedule a normal sync on the collection
+					// which will hopefully be *much* lighter weight.
+					SyncCollectionContents job = new SyncCollectionContents(collectionId);
+					job.TIME_TO_EXECUTE = timeOfFirst;
+					worker.addJobAndWake(job);
+					timeOfFirst += 5000;
+				}
+			}
+			else {
+				InitialCollectionSync job = new InitialCollectionSync(collectionId);
+				job.TIME_TO_EXECUTE = timeOfFirst;
+				worker.addJobAndWake(job);
+				timeOfFirst += 15000;
+			}
+		}
+
+	}
+	
+	
 	// The following overrides are to prevent duplication of these jobs in the queue
 	public boolean equals(Object o) {
 		if (!(o instanceof SynchronisationJobs)) return false;

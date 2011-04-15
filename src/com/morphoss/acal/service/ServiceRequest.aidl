@@ -6,7 +6,6 @@ interface ServiceRequest {
 	void fullResync();
 	void discoverHomeSets();
 	void updateCollectionsFromHomeSets();
-	void initialCollectionSyncAll();
 
 	void homeSetDiscovery(int server);
 	void syncCollectionNow(int collectionId);

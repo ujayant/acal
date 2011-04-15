@@ -36,7 +36,6 @@ public class aCalService extends Service {
 	
 	private ServiceRequest.Stub serviceRequest = new ServiceRequestHandler();
 	private WorkerClass worker;
-	private static final int NOTIFICATION_ID = 0;
 	private static Context serviceContext = null;
 	public static final String TAG = "aCalService";
 	public static String aCalVersion;
@@ -54,24 +53,6 @@ public class aCalService extends Service {
 		
 		Context context = getApplicationContext();
 
-		if ( Constants.LOG_DEBUG ) {
-			/**String ns = Context.NOTIFICATION_SERVICE;
-			NotificationManager notificationManager = (NotificationManager) getSystemService(ns);
-			
-			int icon = R.drawable.icon;
-			CharSequence tickerText = "aCal service started.";
-			long when = System.currentTimeMillis();
-			
-			Notification notification = new Notification(icon,tickerText,when);
-			
-			CharSequence contentTitle = "aCal Calendar Service";
-			CharSequence contentText = "The aCal Calendar service was started.";
-			Intent notificationIntent = new Intent(this, MonthView.class);
-			PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent,0);
-			notification.setLatestEventInfo(context,contentTitle,contentText,contentIntent);
-			notificationManager.notify(NOTIFICATION_ID, notification);*/
-		}
-
 		//start data service
 		Intent serviceIntent = new Intent();
 		serviceIntent.setAction("com.morphoss.acal.dataservice.CalendarDataService");
@@ -87,12 +68,12 @@ public class aCalService extends Service {
 			Log.e(TAG,Log.getStackTraceString(e));
 		}
 
-		//initial sync all active collections
-		InitialCollectionSync.initialiseAll(worker, this);
+		// Schedule immediate sync of any changes to the server
+		worker.addJobAndWake(new SyncChangesToServer());
 
-		//Schedule sync of changes to server also.
-		ServiceJob job = new SyncChangesToServer();
-		addWorkerJob(job);
+		// Start sync running for all active collections
+		SynchronisationJobs.startCollectionSync(worker, this);
+
 	}
 	
 
@@ -140,18 +121,13 @@ public class aCalService extends Service {
 		}
 
 		@Override
-		public void initialCollectionSyncAll() throws RemoteException {
-			InitialCollectionSync.initialiseAll(worker, aCalService.this);
-		}
-
-		@Override
 		public void fullResync() throws RemoteException {
 			databaseDispatcher.dispatchEvent(new DatabaseChangedEvent(DatabaseChangedEvent.DATABASE_INVALIDATED,null,null));
 			ServiceJob[] jobs = new ServiceJob[2];
 			jobs[0] = new SynchronisationJobs(SynchronisationJobs.HOME_SET_DISCOVERY);
 			jobs[1] = new SynchronisationJobs(SynchronisationJobs.HOME_SETS_UPDATE);
 			worker.addJobsAndWake(jobs);
-			InitialCollectionSync.initialiseAll(worker, aCalService.this);
+			SynchronisationJobs.startCollectionSync(worker, aCalService.this);
 		}
 
 		@Override
