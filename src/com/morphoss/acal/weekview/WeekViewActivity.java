@@ -35,6 +35,7 @@ import android.os.Parcelable;
 import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -45,6 +46,7 @@ import android.view.GestureDetector.OnGestureListener;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.widget.Button;
+import android.widget.TextView;
 
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
@@ -52,6 +54,7 @@ import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.activity.EventEdit;
 import com.morphoss.acal.activity.MonthView;
+import com.morphoss.acal.activity.YearView;
 import com.morphoss.acal.dataservice.CalendarDataService;
 import com.morphoss.acal.dataservice.DataRequest;
 import com.morphoss.acal.dataservice.DataRequestCallBack;
@@ -71,6 +74,7 @@ import com.morphoss.acal.widget.NumberSelectedListener;
 public class WeekViewActivity extends Activity implements OnGestureListener, OnTouchListener, NumberSelectedListener, OnClickListener {
 	/* Fields relating to buttons */
 	public static final int TODAY = 0;
+	public static final int YEAR = 1;
 	public static final int MONTH = 2;
 	public static final int ADD = 3;
 
@@ -82,12 +86,11 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 
 	private SharedPreferences prefs = null; 
 
-	//Text Size - if you change this value, please change the values
-	//in week_view_styles.xml to be the same.
-	private static final int TEXT_SIZE = 12;	//SP
+	//Text Size - some sizes differ, but are relative to this
+	public static final float TEXT_SIZE = 11f;	//SP
 	
 	//Magic Numbers / Configurable values 
-	public static final int MINIMUM_DAY_EVENT_HEIGHT = 20;
+	public static int MINIMUM_DAY_EVENT_HEIGHT;
 	public static final float[] DASHED_LINE_PARAMS = new float[] {5,5};
 	
 	public static final int EVENT_BORDER = 2;		//hard coded
@@ -97,13 +100,21 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	public static int HALF_HOUR_HEIGHT = 20;
 	public static int FIRST_DAY_OF_WEEK = 1;
 	public static boolean TIME_24_HOUR = false;
-	public static int HEADER_ITEM_HEIGHT = 20;  //1 row
+	public static int FULLDAY_ITEM_HEIGHT = 20;  //1 row
 	public static int START_HOUR = 9;
 	public static int START_MINUTE = 0;
 	public static int END_HOUR = 17;
 	public static int END_MINUTE = 0;
+	public static float PIXELS_PER_TEXT_ROW = 0f;
 
+	/* Text sizes */
+	public static final float TEXT_SIZE_SIDE = TEXT_SIZE * 0.9f;
+	public static final float TEXT_SIZE_EVENT = TEXT_SIZE;
 	
+	/* Fields relating to Intent Results */
+	public static final int PICK_MONTH_FROM_YEAR_VIEW = 0;
+	public static final int PICK_TODAY_FROM_EVENT_VIEW = 1;
+	public static final int PICK_DAY_FROM_MONTH_VIEW = 5;
 	
 	//Image cache
 	private WeekViewImageCache imageCache;
@@ -145,9 +156,10 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		days 	= (WeekViewDays) 	this.findViewById(R.id.week_view_days);
 		
 		// Set up buttons
-		this.setupButton(R.id.year_today_button, TODAY);
-		this.setupButton(R.id.year_month_button, MONTH);
-		this.setupButton(R.id.year_add_button, ADD);
+		this.setupButton(R.id.week_today_button, TODAY);
+		this.setupButton(R.id.week_year_button, YEAR);
+		this.setupButton(R.id.week_month_button, MONTH);
+		this.setupButton(R.id.week_add_button, ADD);
 		
 		loadPrefs();
 		
@@ -169,19 +181,28 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		
 		float SPscaler = this.getResources().getDisplayMetrics().scaledDensity;	//used for scaling our values to SP
 		float DPscaler = this.getResources().getDisplayMetrics().density;	//used for scaling our values to SP
-		
-		int lph = Integer.parseInt(prefs.getString(getString(R.string.prefWeekViewLinesPerHour), "2"));
+
+		PIXELS_PER_TEXT_ROW = TEXT_SIZE*SPscaler;
+		float lph = 2f;
+		try {
+			lph = Float.parseFloat(prefs.getString(getString(R.string.prefWeekViewLinesPerHour), "2"));
+		}
+		catch ( NumberFormatException e ) { }
 		if (lph <= 0) lph = 1;
-		if (lph >= 20) lph = 20;
-		HALF_HOUR_HEIGHT = (int)(((lph*TEXT_SIZE)/2)*SPscaler);
+		if (lph >= 10) lph = 10;
+		HALF_HOUR_HEIGHT = (int)((lph*PIXELS_PER_TEXT_ROW)/2f);
+		MINIMUM_DAY_EVENT_HEIGHT = 3 + (int) ((TEXT_SIZE_EVENT*SPscaler)*1.2f);  
+		FULLDAY_ITEM_HEIGHT = MINIMUM_DAY_EVENT_HEIGHT;
 		
-		int cpw = Integer.parseInt(prefs.getString(getString(R.string.prefWeekViewDayWidth), "70"));
+		int cpw = 70;
+		try {
+			cpw = (int) Float.parseFloat(prefs.getString(getString(R.string.prefWeekViewDayWidth), "70"));
+		}
+		catch ( NumberFormatException e ) { }
 		if (cpw <= 0) lph = 10;
 		if (cpw >= 1000) lph = 1000;
 		
 		DAY_WIDTH = (int)(cpw*DPscaler);
-		
-		HEADER_ITEM_HEIGHT = (int)(TEXT_SIZE*SPscaler);
 		
 		try {
 			String startDay =  prefs.getString(getString(R.string.prefWorkdayStart), "9:00");
@@ -540,6 +561,13 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 			eventEditIntent.putExtras(bundle);
 			this.startActivity(eventEditIntent);
 			break;
+		case YEAR:
+			bundle = new Bundle();
+			bundle.putInt("StartYear", selectedDate.getYear());
+			Intent yearIntent = new Intent(this, YearView.class);
+			yearIntent.putExtras(bundle);
+			this.startActivityForResult(yearIntent, PICK_MONTH_FROM_YEAR_VIEW);
+			break;
 		case MONTH:
 			if ( prefs.getBoolean(getString(R.string.prefDefaultView), false) ) {
 				Intent startIntent = null;
@@ -558,4 +586,39 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 			Log.w(TAG, "Unrecognised button was pushed in MonthView.");
 		}
 	}
+
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		if ( resultCode == RESULT_OK ) {
+			switch ( requestCode ) {
+			case PICK_DAY_FROM_MONTH_VIEW:
+				if (data.hasExtra("selectedDate")) {
+					try {
+						AcalDateTime day = (AcalDateTime) data.getParcelableExtra("selectedDate");
+						selectedDate = day;
+					} catch (Exception e) {
+						Log.w(TAG, "Error getting month back from year view: "+e);
+					}
+				}
+				break;
+				case PICK_MONTH_FROM_YEAR_VIEW:
+					if (data.hasExtra("selectedDate")) {
+						try {
+							AcalDateTime month = (AcalDateTime) data.getParcelableExtra("selectedDate");
+							selectedDate = month;
+						} catch (Exception e) {
+							Log.w(TAG, "Error getting month back from year view: "+e);
+						}
+					}
+					break;
+				case PICK_TODAY_FROM_EVENT_VIEW:
+					try {
+						AcalDateTime chosenDate = (AcalDateTime) data.getParcelableExtra("selectedDate");
+						selectedDate = chosenDate;
+					} catch (Exception e) {
+						Log.w(TAG, "Error getting month back from year view: "+e);
+					}
+			}
+		}
+	}
+
 }

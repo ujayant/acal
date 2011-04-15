@@ -3,13 +3,12 @@ package com.morphoss.acal.weekview;
 import java.text.SimpleDateFormat;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.preference.PreferenceManager;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
@@ -29,7 +28,8 @@ public class WeekViewHeader extends ImageView {
 		if (this.isInEditMode()) {
 			return;
 		}
-		if (!(context instanceof WeekViewActivity)) throw new IllegalStateException("Week View Started with invalid context.");
+		if (!(context instanceof WeekViewActivity))
+			throw new IllegalStateException("Week View Started with invalid context.");
 		this.context = (WeekViewActivity) context;
 		this.date = this.context.getCurrentDate();
 	}
@@ -40,7 +40,8 @@ public class WeekViewHeader extends ImageView {
 		if (this.isInEditMode()) {
 			return;
 		}
-		if (!(context instanceof WeekViewActivity)) throw new IllegalStateException("Week View Started with invalid context.");
+		if (!(context instanceof WeekViewActivity))
+			throw new IllegalStateException("Week View Started with invalid context.");
 		this.context = (WeekViewActivity) context;
 		this.date = this.context.getCurrentDate();
 	}
@@ -52,7 +53,8 @@ public class WeekViewHeader extends ImageView {
 		if (this.isInEditMode()) {
 			return;
 		}
-		if (!(context instanceof WeekViewActivity)) throw new IllegalStateException("Week View Started with invalid context.");
+		if (!(context instanceof WeekViewActivity)) 
+			throw new IllegalStateException("Week View Started with invalid context.");
 		this.context = (WeekViewActivity) context;
 		this.date = this.context.getCurrentDate();
 	}
@@ -64,7 +66,7 @@ public class WeekViewHeader extends ImageView {
 			Paint p = new Paint();
 			p.setStyle(Paint.Style.FILL);
 			p.setColor(Color.parseColor("#333333"));
-			canvas.drawRect(0, 0, canvas.getWidth(), canvas.getHeight(), p);
+			canvas.drawRect(0, 0, canvas.getWidth(), getHeight(), p);
 			return;
 		}
 		AcalDateTime startDate = date.clone();
@@ -76,7 +78,7 @@ public class WeekViewHeader extends ImageView {
 		int dayHeight = this.getHeight();
 		int totalWidth = this.getWidth();
 		while(x<(totalWidth+dayWidth)) {		//continue until we have draw one past screen edge
-			drawBox(x,y,dayWidth,dayHeight,canvas,startDate);
+			drawBox (x, y,dayWidth,dayHeight,canvas,startDate);
 			startDate.addDays(1);
 			x+=dayWidth;
 		}
@@ -101,6 +103,7 @@ public class WeekViewHeader extends ImageView {
 		}
 		SimpleDateFormat formatter = new SimpleDateFormat(formatString);
 		title.setText(formatter.format(day.toJavaDate()));
+
 		title.measure(MeasureSpec.makeMeasureSpec(w, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(h, MeasureSpec.EXACTLY));
 		title.layout(0, 0, w, h);
 		Bitmap returnedBitmap = Bitmap.createBitmap(w, h,Bitmap.Config.ARGB_8888);

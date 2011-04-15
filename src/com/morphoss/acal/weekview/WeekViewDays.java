@@ -69,7 +69,7 @@ public class WeekViewDays extends ImageView {
 	//Calculates how big the header will be. saves some data as this will usually be followed by a draw call.
 	public void calculateHeaderHeight() {
 
-		float itemHeight = WeekViewActivity.HEADER_ITEM_HEIGHT;
+		float itemHeight = WeekViewActivity.FULLDAY_ITEM_HEIGHT;
 		float totalWidth = this.getWidth();
 	
 		//some values important for calculating range etc.
@@ -97,17 +97,17 @@ public class WeekViewDays extends ImageView {
 		return this.headerHeight; 
 	}
 	
-	private void drawHeader(Canvas canvas) {
+	private void drawFulldayEvents(Canvas canvas) {
 		Paint p = new Paint();
 		float dayWidth = WeekViewActivity.DAY_WIDTH;
-		float itemHeight = WeekViewActivity.HEADER_ITEM_HEIGHT;
+		float itemHeight = WeekViewActivity.FULLDAY_ITEM_HEIGHT;
 		float totalWidth = this.getWidth();
 		float scrollx = context.getScrollX();
 		
 		//draw borders around each day
 		p.setStyle(Paint.Style.STROKE);
 		p.setColor(context.getResources().getColor(R.color.WeekViewMultiDayBorder));
-		for (float x =0+scrollx-dayWidth; (x<totalWidth+(dayWidth*2)); x+=dayWidth)
+		for (float x = 0+scrollx-dayWidth; (x<totalWidth+(dayWidth*2)); x+=dayWidth)
 		canvas.drawRect(x, 0, dayWidth+scrollx, headerHeight, p); 
 		
 		for (int i = 0; i<size;i++)  {
@@ -140,12 +140,12 @@ public class WeekViewDays extends ImageView {
 		//get the grid for each day
 		Bitmap weekDayGrid = context.getImageCache().getWeekDayBox((int)startHour,(int)(startHour+numHours),offset);
 		Bitmap weekEndGrid = context.getImageCache().getWeekEndDayBox((int)startHour,(int)(startHour+numHours),offset);
-		while (dayX<= w) {
+		while ( dayX <= w) {
 			if (currentDay.getWeekDay() == AcalDateTime.SATURDAY || currentDay.getWeekDay() == AcalDateTime.SUNDAY)
 				canvas.drawBitmap(weekEndGrid, dayX+x, y, p);
 			else 
 				canvas.drawBitmap(weekDayGrid, dayX+x, y, p);
-			dayX+=WeekViewActivity.DAY_WIDTH;
+			dayX += WeekViewActivity.DAY_WIDTH;
 			currentDay.addDays(1);
 		}
 	}
@@ -176,7 +176,6 @@ public class WeekViewDays extends ImageView {
 
 		float halfHourHeight = WeekViewActivity.HALF_HOUR_HEIGHT;
 		float hourHeight = halfHourHeight*2;  
-		float pixelsPerMinute = (hourHeight*24)/(24*60);
 		
 		//what is the visible range?
 		int startHour = (int) (scrolly/hourHeight);
@@ -233,7 +232,7 @@ public class WeekViewDays extends ImageView {
 		}
 		//now draw the header (if there is one)
 		if (headerHeight > 0) {
-			drawHeader(canvas);
+			drawFulldayEvents(canvas);
 		}
 		
 		

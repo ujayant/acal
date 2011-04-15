@@ -7,26 +7,38 @@
 	android:background="@drawable/morphossbg">
 
 	<LinearLayout 
+		android:orientation="horizontal" 
 		android:layout_width="fill_parent" 
-		android:layout_height="fill_parent"
-		android:layout_weight="5">
-			
+		android:layout_height="wrap_content">
+				
+		<LinearLayout 
+			android:orientation="vertical" 
+			android:layout_weight="10"
+			style="@style/WV_header_corner_box"
+			android:layout_width="fill_parent" 
+			android:layout_height="wrap_content">
 			<TextView
 				android:id="@+id/week_view_corner"
 				android:layout_width="fill_parent" 
 				android:layout_height="fill_parent"
-				android:layout_weight="10"
-				style="@style/WV_header_corner_box"/>
-		
-			<com.morphoss.acal.weekview.WeekViewHeader
-				android:id="@+id/week_view_header"
+				/>
+			<TextView
+				android:id="@+id/week_view_corner2"
 				android:layout_width="fill_parent" 
 				android:layout_height="fill_parent"
-				android:layout_weight="1"
-			/>
+				/>
+		</LinearLayout>
+				
+		<com.morphoss.acal.weekview.WeekViewHeader
+			android:id="@+id/week_view_header"
+			android:layout_width="fill_parent" 
+			android:layout_height="fill_parent"	
+			android:layout_weight="1"/>
 	</LinearLayout>
  
+  
  	<LinearLayout 
+		android:orientation="horizontal" 
 		android:layout_width="fill_parent" 
 		android:layout_height="fill_parent"
 		android:layout_weight="1">
@@ -47,51 +59,59 @@
 	<LinearLayout
 		android:id="@+id/button_layout" 
 		android:layout_width="fill_parent" 
-		android:gravity="bottom"
-		android:layout_height="50sp"
-		android:background="#50500000"
-		android:layout_gravity="bottom">
+		android:layout_height="40dp"
+		android:background="#50a0a030"
+		android:gravity="bottom">
 	
 		<LinearLayout
 			android:layout_width="fill_parent" 
-			android:layout_height="fill_parent"
-			android:layout_weight="1"
-			android:gravity="center" android:padding="0sp">
-			<Button android:id="@+id/year_today_button"
+			android:layout_height="fill_parent" android:layout_weight="1"
+			android:gravity="center">
+			<Button android:id="@+id/week_today_button"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
 				style="@style/bottom_button"
+				android:gravity="center"
 				android:text="@string/Today"
-				android:width="70sp"
-				android:layout_gravity="center" android:includeFontPadding="true" android:padding="0sp"/>
+				android:width="70dp"/>
+		</LinearLayout>
+		<LinearLayout
+			android:layout_width="fill_parent" 
+			android:layout_height="fill_parent" android:layout_weight="1"
+			android:gravity="center">
+			<Button android:id="@+id/week_year_button"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				style="@style/bottom_button"
+				android:gravity="center"
+				android:text="@string/Year"
+				android:width="70dp"/>
 		</LinearLayout>
 		<LinearLayout
 			android:layout_width="fill_parent" 
 			android:layout_height="fill_parent"
 			android:layout_weight="1"
-			android:gravity="center" android:padding="0sp">
-			<Button android:id="@+id/year_month_button"
+			android:gravity="center"
+			android:padding="0sp">
+			<Button android:id="@+id/week_month_button"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
-				android:layout_gravity="center"
+				android:gravity="center"
 				style="@style/bottom_button"
 				android:text="@string/Month"
-				android:width="70sp" 
-				android:includeFontPadding="true" 
-				android:padding="0sp"/>
+				android:width="70dp" android:includeFontPadding="true" android:padding="0sp"/>
 		</LinearLayout>
 		<LinearLayout
 			android:layout_width="fill_parent" 
 			android:layout_height="fill_parent"
 			android:layout_weight="1"
-			android:gravity="center" android:padding="0sp">
-			<Button android:id="@+id/year_add_button"
+			android:gravity="center">
+			<Button android:id="@+id/week_add_button"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
-				android:layout_gravity="center"
 				android:text="+"
-				android:width="70sp"
-				style="@style/bottom_add_button" android:includeFontPadding="true" android:padding="0sp" android:gravity="center_horizontal|center_vertical"/>
+				android:width="70dp"
+				style="@style/bottom_add_button" android:gravity="center"/>
 		</LinearLayout>
 	</LinearLayout>
 </LinearLayout>

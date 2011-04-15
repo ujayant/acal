@@ -1,20 +1,12 @@
 package com.morphoss.acal.weekview;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.util.AttributeSet;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.View.MeasureSpec;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import com.morphoss.acal.R;
-import com.morphoss.acal.acaltime.AcalDateTime;
 
 public class WeekViewSideBar extends ImageView {
 	
@@ -26,7 +18,8 @@ public class WeekViewSideBar extends ImageView {
 		if (this.isInEditMode()) {
 			return;
 		}
-		if (!(context instanceof WeekViewActivity)) throw new IllegalStateException("Week View Started with invalid context.");
+		if (!(context instanceof WeekViewActivity))
+			throw new IllegalStateException("Week View Started with invalid context.");
 		this.context = (WeekViewActivity) context;
 	}
 	
@@ -36,7 +29,8 @@ public class WeekViewSideBar extends ImageView {
 		if (this.isInEditMode()) {
 			return;
 		}
-		if (!(context instanceof WeekViewActivity)) throw new IllegalStateException("Week View Started with invalid context.");
+		if (!(context instanceof WeekViewActivity))
+			throw new IllegalStateException("Week View Started with invalid context.");
 		this.context = (WeekViewActivity) context;
 	}
 	
@@ -47,7 +41,8 @@ public class WeekViewSideBar extends ImageView {
 		if (this.isInEditMode()) {
 			return;
 		}
-		if (!(context instanceof WeekViewActivity)) throw new IllegalStateException("Week View Started with invalid context.");
+		if (!(context instanceof WeekViewActivity))
+			throw new IllegalStateException("Week View Started with invalid context.");
 		this.context = (WeekViewActivity) context;
 	}
 	

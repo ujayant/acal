@@ -9,6 +9,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.DashPathEffect;
 import android.graphics.Paint;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.MeasureSpec;
@@ -105,16 +106,19 @@ public class WeekViewImageCache {
 		if (width == sidebarWidth) return sidebar;
 		float y = 0;
 		boolean half = false;
+		boolean byHalves = (halfHeight > WeekViewActivity.PIXELS_PER_TEXT_ROW);
+		float rowHeight = halfHeight * (byHalves?1f:2f);
+		if ( !byHalves ) y -= ((5f * halfHeight) / 3f);
 		int hour = 0;
 		Bitmap master = Bitmap.createBitmap((int)width, (int)halfHeight*50,Bitmap.Config.ARGB_4444);
 		Canvas masterCanvas = new Canvas(master);
 		String am = c.getString(R.string.oneCharMorning);
 		String pm = c.getString(R.string.oneCharAfternoon);
-		while(hour<=24) {
+		while ( hour<=24 ) {
 			LayoutInflater inflater = (LayoutInflater) c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 			View v = (View) inflater.inflate(R.layout.week_view_assets, null);
 			TextView box;
-			if (!half) box= ((TextView) v.findViewById(R.id.WV_side_box));
+			if ( !half ) box= ((TextView) v.findViewById(R.id.WV_side_box));
 			else box= ((TextView) v.findViewById(R.id.WV_side_box_half));
 			box.setVisibility(View.VISIBLE);
 			String text = "";
@@ -131,16 +135,23 @@ public class WeekViewImageCache {
 					text=(int)hd+" "+(hour<12?am:pm);
 				}
 			}
+
+			y += rowHeight;
 			box.setText(text);
-			box.measure(MeasureSpec.makeMeasureSpec((int) width, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec((int) halfHeight, MeasureSpec.EXACTLY));
-			box.layout(0,0, (int)width, (int)halfHeight);
-			Bitmap returnedBitmap = Bitmap.createBitmap((int)width, (int)halfHeight,Bitmap.Config.ARGB_4444);
+			box.setTextSize(TypedValue.COMPLEX_UNIT_SP, WeekViewActivity.TEXT_SIZE_SIDE);
+			box.measure(MeasureSpec.makeMeasureSpec((int) width, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec((int) rowHeight, MeasureSpec.EXACTLY));
+			box.layout(0,0, (int)width, (int)rowHeight);
+			Bitmap returnedBitmap = Bitmap.createBitmap((int)width, (int)rowHeight,Bitmap.Config.ARGB_4444);
 			Canvas tempCanvas = new Canvas(returnedBitmap);
 			box.draw(tempCanvas);
-			half=!half;
-			if (!half) hour++;
-			y+=halfHeight;
-			masterCanvas.drawBitmap(returnedBitmap,0, y, new Paint());
+			masterCanvas.drawBitmap(returnedBitmap, 0, y, new Paint());
+
+			if ( byHalves ) {
+				half = !half;
+				if ( !half ) hour++;
+			}
+			else
+				hour++;
 		}
 		sidebar = master;
 		sidebarWidth=width;
@@ -164,11 +175,12 @@ public class WeekViewImageCache {
 		LayoutInflater inflater = (LayoutInflater) c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		View v = (View) inflater.inflate(R.layout.week_view_assets, null);
 		TextView title = ((TextView) v.findViewById(R.id.WV_event_box));
+		title.setTextSize(TypedValue.COMPLEX_UNIT_SP, WeekViewActivity.TEXT_SIZE_EVENT);
 		title.setBackgroundColor((colour&0x00ffffff)|0xA0000000); //add some transparancy
 		title.setVisibility(View.VISIBLE);
 		title.setText(summary);
-		title.measure(MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(maxHeight, MeasureSpec.EXACTLY));
-		title.layout(0, 0, width, maxHeight);
+		title.measure(MeasureSpec.makeMeasureSpec(maxWidth, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(maxHeight, MeasureSpec.EXACTLY));
+		title.layout(0, 0, maxWidth, maxHeight);
 		Bitmap returnedBitmap = Bitmap.createBitmap(maxWidth, maxHeight, Bitmap.Config.ARGB_8888);
 		Canvas tempCanvas = new Canvas(returnedBitmap);
 		title.draw(tempCanvas);
@@ -177,7 +189,7 @@ public class WeekViewImageCache {
 		p.setStyle(Paint.Style.STROKE);
 		p.setColor(colour|0xff000000);
 		for (int i = 0; i<WeekViewActivity.EVENT_BORDER; i++) {
-			tempCanvas.drawRect(i, i, width-i, maxHeight-i, p);
+			tempCanvas.drawRect(i, i, maxWidth-i, maxHeight-i, p);
 		}
 		eventMap.put(hash, returnedBitmap);
 		eventQueue.offer(hash);
