@@ -12,6 +12,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.widget.ImageView;
 
 import com.morphoss.acal.R;
@@ -265,7 +266,15 @@ public class WeekViewDays extends ImageView {
 		}
 	}
 
-	
+
+	/**
+	 * TODO: Refactor this class to simply use epoch seconds for start & end,
+	 * doing the conversion to epoch seconds with something like:
+	 * 	start = event.dtstart.applyLocalTimeZone().getEpoch()
+	 * much of the calculation can then be done in the initializer, such as
+	 * identifying the orientation of the event & perhaps even the pixel
+	 * scaling for top+left corner + maxWidth & maxHeight 
+	 */
 	public class SimpleEventObject implements Comparable<SimpleEventObject> {
 		private AcalDateTime start;
 		private AcalDateTime end;
@@ -292,17 +301,21 @@ public class WeekViewDays extends ImageView {
 		}
 		
 		public void drawVertical(Canvas canvas, float x, float y, float width, float screenHeight, float verticalOffset) {
-			if (startMinute == -1) {
-				startMinute =start.getDaySecond()/60;
-				endMinute = end.getDaySecond()/60;		
-			}
+			if ( width < 1f ) return;
 			float totalDayHeight = WeekViewActivity.HALF_HOUR_HEIGHT*48F;
 			float pixelsPerMinute = totalDayHeight/(24*60);
 			float yMinute = verticalOffset/pixelsPerMinute;
-			float endMinute = yMinute + (y+screenHeight)/pixelsPerMinute;
+
+			if (startMinute == -1) {
+				startMinute = start.getDaySecond()/60;
+				endMinute   = end.getDaySecond()/60;		
+			}
+			else {
+				endMinute = (int) (yMinute + (y+screenHeight)/pixelsPerMinute);
+			}
 			
 			if ((this.startMinute <= endMinute) && this.endMinute >= yMinute ){
-				//are we larger than screen height? if so draw to screen height
+				// So some part of us is on screen
 				Paint p = new Paint();
 				p.setStyle(Paint.Style.FILL);
 				p.setColor(0xff555555);
@@ -312,19 +325,27 @@ public class WeekViewDays extends ImageView {
 				float yEnd = yStart+((this.endMinute-this.startMinute)*pixelsPerMinute);
 				//dont draw above y
 				if (yStart < y) yStart = y;
+
+				//are we larger than screen height? if so draw to screen height
 				float height = Math.min(yEnd-yStart, screenHeight);
-				float maxHeight = yEnd-yStart;
-				height=Math.max(height, WeekViewActivity.MINIMUM_DAY_EVENT_HEIGHT);
-				if (((int)height) <= 0 || ((int)width) <= 0) return;
+				if ( height < 1f ) return;
+
+				//are we smaller than min event height? if so draw to that
+				height = Math.max(height, WeekViewActivity.MINIMUM_DAY_EVENT_HEIGHT);
 				
+				int maxHeight = 1 + (int) (pixelsPerMinute * (float) (endMinute - startMinute));
+
 				//canvas.drawRect(x, yStart, x+width,Math.min(yEnd, y+screenHeight) , p);
-				canvas.drawBitmap(context.getImageCache().getEventBitmap(resourceId,summary,colour, (int)width, (int)height,(int)maxHeight), x,(int)(yStart), new Paint());
+				canvas.drawBitmap(context.getImageCache().getEventBitmap(resourceId,summary,colour,
+							(int)width, (int)height,(int)width, maxHeight), x,(int)(yStart), new Paint());
 				//float offy = (startMinute-yMinute)*pixelsPerMinute;
 				
 			}
 		}
+
 		public void drawHorizontal(Canvas c, float x, float y, float width, float height, float scroll) {
-			//first we need to calulate the number of visible hours, and identify what epcoh hour starts at x=0
+			if ( height < 1f ) return;
+			//first we need to calulate the number of visible hours, and identify what epoch hour starts at x=0
 			float numSeconds = (width/WeekViewActivity.DAY_WIDTH)*24F*3600F;
 			float pixelsPerSecond = width/numSeconds;
 			AcalDateTime startTime = date.clone();
@@ -335,13 +356,15 @@ public class WeekViewDays extends ImageView {
 			
 			float startSecond = (start.getEpoch()-startTime.getEpoch());
 			float endSecond = (end.getEpoch()-startTime.getEpoch());
+			int maxWidth = 1 + (int) (numSeconds * pixelsPerSecond); 
 			if (startSecond < 0) startSecond = 0;
 			if (endSecond>numSeconds) endSecond = numSeconds;
 			if (endSecond-startSecond <=0) return; //we are not visible
 			float eventWidth = (endSecond-startSecond)*pixelsPerSecond;
 			float startX = x+ (startSecond*pixelsPerSecond);
-			if (((int)height) <= 0 || ((int)eventWidth) <= 0) return;
-			c.drawBitmap(context.getImageCache().getEventBitmap(resourceId,summary,colour, (int)eventWidth, (int)height,(int)height), (int)startX,y, new Paint());
+			if ( eventWidth < 1f ) return;
+			c.drawBitmap(context.getImageCache().getEventBitmap(resourceId,summary,colour,
+						(int)eventWidth, (int)height, maxWidth, (int)height), (int)startX,y, new Paint());
 		}
 		
 		@Override

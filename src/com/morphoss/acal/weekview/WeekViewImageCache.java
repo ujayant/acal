@@ -1,6 +1,5 @@
 package com.morphoss.acal.weekview;
 
-import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -8,7 +7,6 @@ import java.util.Queue;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.view.LayoutInflater;
@@ -17,8 +15,6 @@ import android.view.View.MeasureSpec;
 import android.widget.TextView;
 
 import com.morphoss.acal.R;
-import com.morphoss.acal.acaltime.AcalDateTime;
-import com.morphoss.acal.davacal.AcalEvent;
 
 public class WeekViewImageCache {
 	
@@ -151,8 +147,9 @@ public class WeekViewImageCache {
 		return sidebar;
 	}
 	
-	public Bitmap getEventBitmap(long resourceId, String summary, int colour, int width, int height, int maxHeight) {
-		long hash = getEventHash(resourceId,width,height);
+	public Bitmap getEventBitmap(long resourceId, String summary, int colour,
+							int width, int height, int maxWidth, int maxHeight) {
+		long hash = getEventHash(resourceId,maxWidth,maxHeight);
 		if (eventMap.containsKey(hash)) {
 			eventQueue.remove(hash);
 			eventQueue.offer(hash);	//re prioritise
@@ -162,6 +159,8 @@ public class WeekViewImageCache {
 		}
 		if (eventMap.size() > 100) eventQueue.poll(); //make space
 		//now construct the Bitmap
+		if ( height > maxHeight ) maxHeight = height;
+		if ( width > maxWidth ) maxWidth = width;
 		LayoutInflater inflater = (LayoutInflater) c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		View v = (View) inflater.inflate(R.layout.week_view_assets, null);
 		TextView title = ((TextView) v.findViewById(R.id.WV_event_box));
@@ -170,7 +169,7 @@ public class WeekViewImageCache {
 		title.setText(summary);
 		title.measure(MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(maxHeight, MeasureSpec.EXACTLY));
 		title.layout(0, 0, width, maxHeight);
-		Bitmap returnedBitmap = Bitmap.createBitmap(width, maxHeight,Bitmap.Config.ARGB_8888);
+		Bitmap returnedBitmap = Bitmap.createBitmap(maxWidth, maxHeight, Bitmap.Config.ARGB_8888);
 		Canvas tempCanvas = new Canvas(returnedBitmap);
 		title.draw(tempCanvas);
 		//draw a border
