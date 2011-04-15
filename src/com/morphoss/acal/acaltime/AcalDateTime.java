@@ -1425,7 +1425,7 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	 * could be negative, and that's OK too.
 	 * @param days
 	 */
-	public synchronized void addDays(int days) {
+	public synchronized AcalDateTime addDays(int days) {
 		if ( Constants.debugDateTime ) checkEpoch();
 		if ( year == YEAR_NOT_SET ) calculateDateTime();
 
@@ -1440,12 +1440,12 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 			}
 			this.day = (short) tmpInt;
 			if ( Constants.debugDateTime ) checkEpoch();
-			return;
+			return this;
 		}
 		tmpInt = this.getYearDay() + days;
 		if ( tmpInt > 0 && tmpInt <= (DAYS_IN_YEAR + leapDay(year)) ) {
 			setYearDay(tmpInt);
-			return;
+			return this;
 		}
 
 		if ( tz != null ) tmpInt = this.getDaySecond();
@@ -1463,6 +1463,7 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 			}
 		}
 		if ( Constants.debugDateTime ) checkEpoch();
+		return this;
 	}
 
 
@@ -1480,7 +1481,7 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	}
 
 
-	public void addMonths(int months) {
+	public AcalDateTime addMonths(int months) {
 		if ( Constants.debugDateTime ) checkEpoch();
 		if ( year == YEAR_NOT_SET ) calculateDateTime();
 		month--;
@@ -1491,6 +1492,7 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 		month++;
 		if ( day > monthDays(year,month) ) day = (short) monthDays(year,month);
 		epoch = EPOCH_NOT_SET;
+		return this;
 	}
 
 
@@ -1518,10 +1520,11 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	}
 
 
-	public void addDuration(AcalDuration relativeTime) {
+	public AcalDateTime addDuration(AcalDuration relativeTime) {
 		if ( Constants.debugDateTime ) checkEpoch();
 		if ( relativeTime.days != 0 ) this.addDays(relativeTime.days);
 		if ( relativeTime.seconds != 0 ) this.addSeconds(relativeTime.seconds);
+		return this;
 	}
 
 
