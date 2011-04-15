@@ -5,6 +5,7 @@
 <string name="cancelButton">cancelButton</string>
 
 <string name="appName">aCal</string>
+<string name="appActivityMonthView">aCal - Month View</string>
 <string name="appActivityYearView">aCal - Year View</string>
 <string name="appActivityWeekView">aCal - Week View</string>
 
