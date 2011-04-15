@@ -11,7 +11,7 @@ public class L10nUtil {
 		StringBuffer shinyNewString = new StringBuffer();
 		Matcher m = wordSplitter.matcher(boringString);
 		while( m.find() ) {
-			if ( m.group().matches("(de|von|to|for|of|vom|zu)") )
+			if ( m.group().matches("(de|von|in|to|for|of|vom|zu)") )
 				m.appendReplacement(shinyNewString, m.group());
 			else
 				m.appendReplacement(shinyNewString, m.group().substring(0,1).toUpperCase() + m.group().substring(1));
