@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="prefDefaultCalendar">prefDefaultCalendar</string>
+    <string name="prefDefaultView">prefDefaultView</string>
 	<string name="prefTwelveTwentyfour">prefTwelveTwentyfour</string>
 	<string name="YearViewSize_PrefKey">YearViewNumMonths</string>
 	<string name="Snooze_PrefKey">SnoozeTime</string>
