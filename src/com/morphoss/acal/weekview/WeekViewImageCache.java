@@ -151,12 +151,14 @@ public class WeekViewImageCache {
 		return sidebar;
 	}
 	
-	public Bitmap getEventBitmap(long resourceId, String summary, int colour, int width, int height) {
+	public Bitmap getEventBitmap(long resourceId, String summary, int colour, int width, int height, int maxHeight) {
 		long hash = getEventHash(resourceId,width,height);
 		if (eventMap.containsKey(hash)) {
 			eventQueue.remove(hash);
 			eventQueue.offer(hash);	//re prioritise
-			return eventMap.get(hash);
+			Bitmap base = eventMap.get(hash);
+			if (base.getHeight() < height) height = base.getHeight();
+			return Bitmap.createBitmap(base, 0, 0, width, height, null, false);
 		}
 		if (eventMap.size() > 100) eventQueue.poll(); //make space
 		//now construct the Bitmap
@@ -166,9 +168,9 @@ public class WeekViewImageCache {
 		title.setBackgroundColor((colour&0x00ffffff)|0xA0000000); //add some transparancy
 		title.setVisibility(View.VISIBLE);
 		title.setText(summary);
-		title.measure(MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY));
-		title.layout(0, 0, width, height);
-		Bitmap returnedBitmap = Bitmap.createBitmap(width, height,Bitmap.Config.ARGB_8888);
+		title.measure(MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(maxHeight, MeasureSpec.EXACTLY));
+		title.layout(0, 0, width, maxHeight);
+		Bitmap returnedBitmap = Bitmap.createBitmap(width, maxHeight,Bitmap.Config.ARGB_8888);
 		Canvas tempCanvas = new Canvas(returnedBitmap);
 		title.draw(tempCanvas);
 		//draw a border
@@ -176,13 +178,13 @@ public class WeekViewImageCache {
 		p.setStyle(Paint.Style.STROKE);
 		p.setColor(colour|0xff000000);
 		for (int i = 0; i<WeekViewActivity.EVENT_BORDER; i++) {
-			tempCanvas.drawRect(i, i, width-i, height-i, p);
+			tempCanvas.drawRect(i, i, width-i, maxHeight-i, p);
 		}
 		eventMap.put(hash, returnedBitmap);
 		eventQueue.offer(hash);
-		return returnedBitmap;
+		return Bitmap.createBitmap(returnedBitmap, 0, 0, width, height, null, false);
 	}
 	public long getEventHash(long resourceId, int width, int height) {
-		return (long)width + (long)(dayWidth*height) + ((long)dayWidth*10000L * (long)resourceId);
+		return (long)width + ((long)dayWidth * (long)resourceId);
 	}
 }

@@ -313,11 +313,12 @@ public class WeekViewDays extends ImageView {
 				//dont draw above y
 				if (yStart < y) yStart = y;
 				float height = Math.min(yEnd-yStart, screenHeight);
+				float maxHeight = yEnd-yStart;
 				height=Math.max(height, WeekViewActivity.MINIMUM_DAY_EVENT_HEIGHT);
 				if (((int)height) <= 0 || ((int)width) <= 0) return;
 				
 				//canvas.drawRect(x, yStart, x+width,Math.min(yEnd, y+screenHeight) , p);
-				canvas.drawBitmap(context.getImageCache().getEventBitmap(resourceId,summary,colour, (int)width, (int)height), x,(int)(yStart), new Paint());
+				canvas.drawBitmap(context.getImageCache().getEventBitmap(resourceId,summary,colour, (int)width, (int)height,(int)maxHeight), x,(int)(yStart), new Paint());
 				//float offy = (startMinute-yMinute)*pixelsPerMinute;
 				
 			}
@@ -340,7 +341,7 @@ public class WeekViewDays extends ImageView {
 			float eventWidth = (endSecond-startSecond)*pixelsPerSecond;
 			float startX = x+ (startSecond*pixelsPerSecond);
 			if (((int)height) <= 0 || ((int)eventWidth) <= 0) return;
-			c.drawBitmap(context.getImageCache().getEventBitmap(resourceId,summary,colour, (int)eventWidth, (int)height), (int)startX,y, new Paint());
+			c.drawBitmap(context.getImageCache().getEventBitmap(resourceId,summary,colour, (int)eventWidth, (int)height,(int)height), (int)startX,y, new Paint());
 		}
 		
 		@Override
