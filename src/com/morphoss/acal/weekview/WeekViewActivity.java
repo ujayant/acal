@@ -170,12 +170,12 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		float SPscaler = this.getResources().getDisplayMetrics().scaledDensity;	//used for scaling our values to SP
 		float DPscaler = this.getResources().getDisplayMetrics().density;	//used for scaling our values to SP
 		
-		int lph = Integer.parseInt(prefs.getString(getString(R.string.prefWeekViewLinesPerHour), "1"));
+		int lph = Integer.parseInt(prefs.getString(getString(R.string.prefWeekViewLinesPerHour), "2"));
 		if (lph <= 0) lph = 1;
 		if (lph >= 20) lph = 20;
 		HALF_HOUR_HEIGHT = (int)(((lph*TEXT_SIZE)/2)*SPscaler);
 		
-		int cpw = Integer.parseInt(prefs.getString(getString(R.string.prefWeekViewDayWidth), "10"));
+		int cpw = Integer.parseInt(prefs.getString(getString(R.string.prefWeekViewDayWidth), "70"));
 		if (cpw <= 0) lph = 10;
 		if (cpw >= 1000) lph = 1000;
 		
