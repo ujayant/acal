@@ -31,6 +31,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.os.Parcelable;
 import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -78,16 +79,28 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	private WeekViewSideBar sidebar;
 	private WeekViewDays	days;
 
-	//Magic Numbers / Configurable values / Prefs
-	public static final int DAY_WIDTH = 107;
-	public static final int HALF_HOUR_HEIGHT = 20;
+	//Text Size - if you change this value, please change the values
+	//in week_view_styles.xml to be the same.
+	private static final int TEXT_SIZE = 12;	//SP
+	
+	//Magic Numbers / Configurable values 
 	public static final int MINIMUM_DAY_EVENT_HEIGHT = 20;
+	public static final float[] DASHED_LINE_PARAMS = new float[] {5,5};
+	
+	public static final int EVENT_BORDER = 2;		//hard coded
+	
+	//Preference controlled values
+	public static int DAY_WIDTH = 100;
+	public static int HALF_HOUR_HEIGHT = 20;
 	public static int FIRST_DAY_OF_WEEK = 1;
 	public static boolean TIME_24_HOUR = false;
-	public static final float[] DASHED_LINE_PARAMS = new float[] {5,5};
-	public static final int START_HOUR = 8;
-	public static final int HEADER_ITEM_HEIGHT = 20;
-	public static final int EVENT_BORDER = 1;
+	public static int HEADER_ITEM_HEIGHT = 20;  //1 row
+	public static int START_HOUR = 9;
+	public static int START_MINUTE = 0;
+	public static int END_HOUR = 17;
+	public static int END_MINUTE = 0;
+
+	
 	
 	//Image cache
 	private WeekViewImageCache imageCache;
@@ -129,6 +142,13 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		this.setupButton(R.id.year_month_button, MONTH);
 		this.setupButton(R.id.year_add_button, ADD);
 		
+		loadPrefs();
+		
+		
+		scrolly+=(WeekViewActivity.START_HOUR)*(WeekViewActivity.HALF_HOUR_HEIGHT*2);
+	}
+	
+	private void loadPrefs() {
 		//Load Prefs
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 		TIME_24_HOUR = prefs.getBoolean(this.getString(R.string.prefTwelveTwentyfour), false);
@@ -140,7 +160,39 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 			FIRST_DAY_OF_WEEK = AcalDateTime.MONDAY; 
 		}
 		
-		scrolly+=(WeekViewActivity.START_HOUR)*(WeekViewActivity.HALF_HOUR_HEIGHT*2);
+		float SPscaler = this.getResources().getDisplayMetrics().scaledDensity;	//used for scaling our values to SP
+		float DPscaler = this.getResources().getDisplayMetrics().density;	//used for scaling our values to SP
+		
+		int lph = Integer.parseInt(prefs.getString(getString(R.string.prefWeekViewLinesPerHour), "1"));
+		if (lph <= 0) lph = 1;
+		if (lph >= 20) lph = 20;
+		HALF_HOUR_HEIGHT = (int)(((lph*TEXT_SIZE)/2)*SPscaler);
+		
+		int cpw = Integer.parseInt(prefs.getString(getString(R.string.prefWeekViewDayWidth), "10"));
+		if (cpw <= 0) lph = 10;
+		if (cpw >= 1000) lph = 1000;
+		
+		DAY_WIDTH = (int)(cpw*DPscaler);
+		
+		HEADER_ITEM_HEIGHT = (int)(TEXT_SIZE*SPscaler);
+		
+		try {
+			String startDay =  prefs.getString(getString(R.string.prefWorkdayStart), "9:00");
+			String endDay =  prefs.getString(getString(R.string.prefWorkdayFinish), "17:00");
+			int idx = startDay.indexOf(':');
+			START_HOUR = Integer.parseInt(startDay.substring(0,idx));
+			START_MINUTE = Integer.parseInt(startDay.substring(idx+1));
+			idx = endDay.indexOf(':');
+			END_HOUR = Integer.parseInt(endDay.substring(0,idx));
+			END_MINUTE = Integer.parseInt(endDay.substring(idx+1));
+		} catch (Exception e) {
+			if (Constants.LOG_DEBUG) {
+				Log.d(TAG,"Error parsing Work Day Prferences: "+e);
+			}
+		}
+		
+		//image cache may bow be invalid
+		imageCache = new WeekViewImageCache(this,DAY_WIDTH,HALF_HOUR_HEIGHT);
 	}
 	
 	//force all displays to update
@@ -246,6 +298,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		super.onResume();		
 		connectToService();
 		imageCache = new WeekViewImageCache(this,DAY_WIDTH,HALF_HOUR_HEIGHT);
+		loadPrefs();
 		refresh();
 	}
 	
@@ -467,6 +520,11 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		int button = (int) ((Integer) clickedView.getTag());
 		switch (button) {
 		case TODAY:
+			this.selectedDate.setEpoch(new AcalDateTime().getEpoch());
+			this.scrollx=0;
+			scrolly=(WeekViewActivity.START_HOUR)*(WeekViewActivity.HALF_HOUR_HEIGHT*2);
+			this.selectedDate.setDaySecond(0);
+			this.refresh();
 			break;
 		case ADD:
 			Bundle bundle = new Bundle();
@@ -476,6 +534,9 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 			this.startActivity(eventEditIntent);
 			break;
 		case MONTH:
+			Intent res = new Intent();
+			res.putExtra("selectedDate", (Parcelable) selectedDate);
+			this.setResult(RESULT_OK, res);
 			this.finish();
 			break;
 		default:

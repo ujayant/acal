@@ -55,7 +55,7 @@
 		android:enabled="false"/>
 
 	<PreferenceCategory android:title="Week View Preferences">
-		<EditTextPreference
+		<com.morphoss.acal.TimePickerPreference
 			android:key="@string/prefWorkdayStart"
 			android:title="@string/prefWorkdayStart_Title"
 			android:summary="@string/prefWorkdayStart_Summary"
@@ -63,13 +63,13 @@
 			android:enabled="true"
 			android:defaultValue="9:00"/>
 	
-		<EditTextPreference
+		<com.morphoss.acal.TimePickerPreference
 			android:key="@string/prefWorkdayFinish"
 			android:title="@string/prefWorkdayFinish_Title"
 			android:summary="@string/prefWorkdayFinish_Summary"
 			android:selectable="true"
 			android:enabled="true"
-			android:defaultValue="15:00"/>
+			android:defaultValue="17:00"/>
 	
 		<EditTextPreference
 			android:key="@string/prefWeekViewLinesPerHour"
@@ -80,12 +80,12 @@
 			android:defaultValue="2"/>
 	
 		<EditTextPreference
-			android:key="@string/prefWeekViewColumnsPerDay"
-			android:title="@string/prefWeekViewColumnsPerDay_Title"
-			android:summary="@string/prefWeekViewColumnsPerDay_Summary"
+			android:key="@string/prefWeekViewDayWidth"
+			android:title="@string/prefWeekViewDayWidth_Title"
+			android:summary="@string/prefWeekViewDayWidth_Summary"
 			android:selectable="true"
 			android:enabled="true"
-			android:defaultValue="20"/>
+			android:defaultValue="70"/>
 	</PreferenceCategory>
 
 </PreferenceScreen>

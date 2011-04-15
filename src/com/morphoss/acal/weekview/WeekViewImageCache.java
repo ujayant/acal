@@ -29,10 +29,7 @@ public class WeekViewImageCache {
 	private Bitmap sidebar;
 	private int sidebarWidth = -1;
 	
-	private int workDayStart = 9;
-	private int workDayEnd = 17;
 	private Bitmap daybox;
-	private Bitmap workbox;
 	
 	private HashMap<Long,Bitmap> eventMap = new HashMap<Long, Bitmap>();
 	private Queue<Long> eventQueue = new LinkedList<Long>();
@@ -61,54 +58,38 @@ public class WeekViewImageCache {
 		p.setPathEffect(dashes);
 		canvas.drawLine(0,halfHeight, dayWidth, halfHeight, p);
 		this.daybox = returnedBitmap;
-		
-		//now do yellow box;
-		returnedBitmap = Bitmap.createBitmap((int)dayWidth, (int)(halfHeight*2),Bitmap.Config.ARGB_8888);
-		canvas = new Canvas(returnedBitmap);
-		p.reset();
-		p.setStyle(Paint.Style.FILL);
-		p.setColor(c.getResources().getColor(R.color.WeekViewDayGridWorkTimeBG));
-		canvas.drawRect(0,0,dayWidth,hourHeight,p);
-		p.setStyle(Paint.Style.STROKE);
-		p.setColor(c.getResources().getColor(R.color.WeekViewDayGridBorder));
-		canvas.drawRect(0,0,dayWidth,hourHeight,p);
-		p.reset();
-		p.setStyle(Paint.Style.STROKE);
-		p.setColor(c.getResources().getColor(R.color.WeekViewDayGridBorder));
-		//draw dotted center line
-		p.setPathEffect(dashes);
-		canvas.drawLine(0,halfHeight, dayWidth, halfHeight, p);
-		this.workbox = returnedBitmap;
-
 	}
-	/**public Bitmap getDayBox(int startHour, int endHour) {
-		cacheDayBoxes();
-		int numHours = endHour - startHour;
-		Bitmap returnedBitmap = Bitmap.createBitmap((int)dayWidth, (int)((halfHeight*2)*numHours),Bitmap.Config.ARGB_4444);
-		Canvas canvas = new Canvas(returnedBitmap);
-		Paint p = new Paint();
-		for (int curHour = startHour; curHour<endHour; curHour++) {
-			float curY = (halfHeight*2)*(curHour-startHour);
-			if (curHour < workDayStart || curHour >= workDayEnd)
-				canvas.drawBitmap(daybox, 0, curY, p);
-			else
-				canvas.drawBitmap(workbox, 0, curY, p);
-		}
-		return returnedBitmap;
-	}*/
+	
 	public Bitmap getWeekDayBox(int startHour, int endHour, float offset) {
 		cacheDayBoxes();
 		int numHours = endHour - startHour;
 		Bitmap returnedBitmap = Bitmap.createBitmap((int)dayWidth, (int)((halfHeight*2)*numHours),Bitmap.Config.ARGB_4444);
 		Canvas canvas = new Canvas(returnedBitmap);
 		Paint p = new Paint();
+		
+		// add yellow for work day
+		float sizeofHour = halfHeight*2;
+		float wdStart = WeekViewActivity.START_HOUR;
+		if (WeekViewActivity.START_MINUTE != 0)wdStart+= (WeekViewActivity.START_MINUTE/60F);
+		float wdEnd = WeekViewActivity.END_HOUR;
+		if (WeekViewActivity.END_MINUTE != 0)wdEnd+= (WeekViewActivity.END_MINUTE/60F);
+		float startHr = startHour-(offset/sizeofHour);
+		float endHr = endHour-(offset/sizeofHour);
+		if (wdStart < endHr && wdEnd > startHr) {
+			p.setStyle(Paint.Style.FILL);
+			p.setColor(c.getResources().getColor(R.color.WeekViewDayGridWorkTimeBG));
+			float y = Math.max(wdStart-startHr,0)*sizeofHour;
+			float height = Math.min(wdEnd-startHr,endHr);
+			height = height*sizeofHour;
+			height = Math.max(height,0);
+			canvas.drawRect(0, y, dayWidth,y+height , p);
+		}
+		
 		for (int curHour = startHour-1; curHour<=endHour; curHour++) {
 			float curY = (halfHeight*2)*(curHour-startHour);
-			if (curHour < workDayStart || curHour >= workDayEnd)
-				canvas.drawBitmap(daybox, 0, curY+offset, p);
-			else
-				canvas.drawBitmap(workbox, 0, curY+offset, p);
+			canvas.drawBitmap(daybox, 0, curY+offset, p);
 		}
+		
 		return returnedBitmap;
 	}
 	public Bitmap getWeekEndDayBox(int startHour, int endHour, float offset) {
@@ -193,7 +174,7 @@ public class WeekViewImageCache {
 		//draw a border
 		Paint p = new Paint();
 		p.setStyle(Paint.Style.STROKE);
-		p.setColor(0xff333333);
+		p.setColor(colour|0xff000000);
 		for (int i = 0; i<WeekViewActivity.EVENT_BORDER; i++) {
 			tempCanvas.drawRect(i, i, width-i, height-i, p);
 		}

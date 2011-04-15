@@ -133,6 +133,8 @@ public class AcalPreferences extends PreferenceActivity {
    		defaultAlarm.setEnabled(true);
 	}
 	
+	
+	
 	@Override
 	public void onResume() {
 		super.onResume();

@@ -9,6 +9,6 @@
 	<string name="prefWorkdayStart">prefWorkdayStart</string>
 	<string name="prefWorkdayFinish">prefWorkdayFinish</string>
 	<string name="prefWeekViewLinesPerHour">prefWeekViewLinesPerHour</string>
-	<string name="prefWeekViewColumnsPerDay">prefWeekViewColumnsPerDay</string>
+	<string name="prefWeekViewDayWidth">prefWeekViewDayWidth</string>
 
 </resources>

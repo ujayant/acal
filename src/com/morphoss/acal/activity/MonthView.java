@@ -166,6 +166,7 @@ public class MonthView extends Activity implements OnGestureListener,
 	/* Fields relating to Intent Results */
 	public static final int PICK_MONTH_FROM_YEAR_VIEW = 0;
 	public static final int PICK_TODAY_FROM_EVENT_VIEW = 1;
+	public static final int PICK_DAY_FROM_WEEK_VIEW = 2;
 
 	// Animations
 	Animation leftIn = null;
@@ -1003,7 +1004,7 @@ public class MonthView extends Activity implements OnGestureListener,
 			bundle.putParcelable("StartDay", selectedDate);
 			Intent weekIntent = new Intent(this, WeekViewActivity.class);
 			weekIntent.putExtras(bundle);
-			this.startActivity(weekIntent);
+			this.startActivityForResult(weekIntent, PICK_DAY_FROM_WEEK_VIEW);
 			break;
 		case YEAR:
 			bundle = new Bundle();
@@ -1088,6 +1089,17 @@ public class MonthView extends Activity implements OnGestureListener,
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if ( resultCode == RESULT_OK ) {
 			switch ( requestCode ) {
+			case PICK_DAY_FROM_WEEK_VIEW:
+				if (data.hasExtra("selectedDate")) {
+					try {
+						AcalDateTime day = (AcalDateTime) data.getParcelableExtra("selectedDate");
+						this.changeSelectedDate(day);
+						this.changeDisplayedMonth(day);
+					} catch (Exception e) {
+						Log.w(TAG, "Error getting month back from year view: "+e);
+					}
+				}
+				break;
 				case PICK_MONTH_FROM_YEAR_VIEW:
 					if (data.hasExtra("selectedDate")) {
 						try {

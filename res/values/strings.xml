@@ -144,8 +144,8 @@
 <string name="prefWeekViewLinesPerHour_Title">Rows Height</string>
 <string name="prefWeekViewLinesPerHour_Summary">The height of each hour of the day in week view.</string>
 
-<string name="prefWeekViewColumnsPerDay_Title">Column Width</string>
-<string name="prefWeekViewColumnsPerDay_Summary">The width of each day column in the week view.</string>
+<string name="prefWeekViewDayWidth_Title">Column Width</string>
+<string name="prefWeekViewDayWidth_Summary">The width of each day column in the week view.</string>
 
 <string name="Today">Today</string>
 <string name="Year">Year</string>
