@@ -615,7 +615,6 @@ public abstract class AcalRepeatRuleParser {
 		debugDates = new String[currentSet.size()];
 		String dateList = "";
 		for( int i=0; i<debugDates.length; i++ ) {
-			currentSet.get(i).checkEpoch();
 			debugDates[i] = currentSet.get(i).fmtIcal();
 			if ( i > 0 ) dateList += ", ";
 			dateList += debugDates[i]; 
