@@ -81,19 +81,22 @@ public class DavXmlTreeBuilder {
 	public static DavNode buildTreeFromXml(InputStream in) {
 		long start = System.currentTimeMillis();
 
-		try {
+		if ( Constants.LOG_VERBOSE )
+			Log.v(TAG,"Building DOM from XML input stream");
 
+		try {
 			//Build XML Tree
 			DocumentBuilderFactory dof = DocumentBuilderFactory.newInstance();
 			DocumentBuilder dob = dof.newDocumentBuilder();
 			Document dom = dob.parse(in);
 			DavXmlTreeBuilder dxtb = new DavXmlTreeBuilder(dom);
 			DavNode root = dxtb.getRoot();
-			if (Constants.LOG_VERBOSE) Log.v(TAG,"Build DOM from XML completed in "+(System.currentTimeMillis()-start)+"ms");
+			if (Constants.LOG_VERBOSE)
+				Log.v(TAG,"Build DOM from XML completed in "+(System.currentTimeMillis()-start)+"ms");
 			return root;
 
 		} catch (Exception e) {
-
+			Log.d(TAG,Log.getStackTraceString(e));
 		}
 		return null;
 		
