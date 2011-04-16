@@ -76,7 +76,8 @@ public class CheckServerDialog implements Runnable {
 	private static final String TYPE = "TYPE";
 
 	private List<String> successMessages = new ArrayList<String>();
-	private boolean has_calendar_access = false;
+	private boolean hasCalendarAccess = false;
+	private boolean advancedMode = false;
 
 	private static final String pPathRequestData = "<?xml version=\"1.0\" encoding=\"utf-8\"?>"+
 													"<propfind xmlns=\"DAV:\">"+
@@ -124,6 +125,7 @@ public class CheckServerDialog implements Runnable {
 	
 	
 	public CheckServerDialog(ServerConfiguration serverConfiguration, ContentValues serverData, Context cx, ServiceManager sm) {
+		this.advancedMode = (serverConfiguration.iface == ServerConfiguration.INTERFACE_ADVANCED);
 		this.context = cx;
 		this.sc = serverConfiguration;
 		
@@ -159,9 +161,11 @@ public class CheckServerDialog implements Runnable {
 				throw new CheckServerFailedError(context.getString(R.string.internetNotAvailable));
 			}
 
-			// Step 2, check we can connect to the server on the given port
-			if ( !probeServerPorts() ) {
-				throw new CheckServerFailedError(context.getString(R.string.couldNotDiscoverPort));
+			if ( !advancedMode ) {
+				// Step 2, check we can connect to the server on the given port
+				if ( !probeServerPorts() ) {
+					throw new CheckServerFailedError(context.getString(R.string.couldNotDiscoverPort));
+				}
 			}
 
 			// Step 2, Try some PROPFIND requests to find a principal path
@@ -204,14 +208,14 @@ public class CheckServerDialog implements Runnable {
 				requestor.applyToServerSettings(serverData);
 			}
 
-			if ( !has_calendar_access  && discovered ) {
+			if ( !hasCalendarAccess  && discovered ) {
 				updateProgress(context.getString(R.string.checkServer_CheckingCapabilities));
 				// Try an options request to see if we can get calendar-access
 				doOptions(requestor.getPath());
 			}
 
 			// Step 5, Update serverData
-			if ( has_calendar_access ) {
+			if ( hasCalendarAccess ) {
 				serverData.put(Servers.HAS_CALDAV, 1);
 				successMessages.add(context.getString(R.string.serverSupportsCalDAV));
 			}
@@ -223,7 +227,7 @@ public class CheckServerDialog implements Runnable {
 			// Step 6, Exit with success message
 			Message m = Message.obtain();
 			Bundle b = new Bundle();
-			b.putInt(TYPE, (has_calendar_access && discovered ? CHECK_COMPLETE : SHOW_FAIL_DIALOG));
+			b.putInt(TYPE, (hasCalendarAccess && discovered ? CHECK_COMPLETE : SHOW_FAIL_DIALOG));
 
 			StringBuilder successMessage = new StringBuilder("");
 			for( String msg : successMessages ) {
@@ -488,7 +492,7 @@ public class CheckServerDialog implements Runnable {
 	 * <p>
 	 * Checks whether the calendar supports CalDAV by looking through the headers for a "DAV:" header which
 	 * includes "calendar-access". Appends to the successMessage we will return to the user, as well as
-	 * setting the has_calendar_access for later update to the DB.
+	 * setting the hasCalendarAccess for later update to the DB.
 	 * </p>
 	 * 
 	 * @param headers
@@ -500,7 +504,7 @@ public class CheckServerDialog implements Runnable {
 				if (h.getName().equalsIgnoreCase("DAV")) {
 					if (h.getValue().toLowerCase().contains("calendar-access")) {
 						Log.i(TAG, "Discovered server supports CalDAV on URL "+requestor.fullUrl());
-						has_calendar_access = true;
+						hasCalendarAccess = true;
 						return true;
 					}
 				}

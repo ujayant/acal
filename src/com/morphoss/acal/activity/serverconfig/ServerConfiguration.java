@@ -39,6 +39,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.Toast;
 
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
@@ -67,7 +68,7 @@ public class ServerConfiguration extends PreferenceActivity implements OnPrefere
 	//The data associated with the server we are configuring.
 	private ContentValues serverData;
 	private ContentValues originalServerData;	//Our snapshot of the original data. Used to detemine if content has changed
-	private int iface = INTERFACE_SIMPLE;
+	public int iface = INTERFACE_SIMPLE;
 
 	//The Key to be used in serverData for storing the mode value.
 	public static final String MODEKEY = "MODE";
@@ -305,6 +306,9 @@ public class ServerConfiguration extends PreferenceActivity implements OnPrefere
 					Log.v(TAG, "Error starting home set discovery: " + e.getMessage() + " "
 								+ Log.getStackTraceString(e));
 			}
+			catch ( Exception e ) {
+				Log.e(TAG,Log.getStackTraceString(e));
+			}
 		}
 
     }
@@ -326,6 +330,7 @@ public class ServerConfiguration extends PreferenceActivity implements OnPrefere
 		} catch (Exception e) {
 			//error updating
 			serverData.put(MODEKEY, MODE_CREATE);
+			Toast.makeText(this, getString(R.string.errorSavingServerConfig), Toast.LENGTH_LONG);
 		}
 	}
 	
