@@ -55,6 +55,7 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HTTP;
 
 import android.content.ContentValues;
+import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
 
@@ -240,6 +241,7 @@ public class AcalRequestor {
 	 * @param uriString
 	 */
 	public void interpretUriString(String uriString) {
+
 		// Match a URL, including an ipv6 address like http://[DEAD:BEEF:CAFE:F00D::]:8008/
 		final Pattern uriMatcher = Pattern.compile(
 					"^(?:(https?)://)?" + // Protocol
@@ -285,6 +287,17 @@ public class AcalRequestor {
 			if (m.find()) {
 				if ( Constants.LOG_VERBOSE ) Log.v(TAG,"Found simple redirect path '"+m.group(1)+"'");
 				setPath( m.group(1) );
+			}
+			else {
+				if ( Constants.LOG_DEBUG ) Log.d(TAG, "Using Uri class to process redirect...");
+				Uri newLocation = Uri.parse(uriString);
+				hostName = newLocation.getHost();
+				protocol = newLocation.getScheme();
+				port     = newLocation.getPort();
+				if ( port == -1 ) port = (protocol.equals("http") ? 80 : 443);
+				setPath( newLocation.getPath() );
+				if ( Constants.LOG_VERBOSE ) Log.v(TAG,"Found new location at '"+fullUrl()+"'");
+				
 			}
 		}
 	}
@@ -527,7 +540,7 @@ public class AcalRequestor {
 		params.setParameter(CoreProtocolPNames.PROTOCOL_VERSION, HttpVersion.HTTP_1_1);
 		params.setParameter(CoreProtocolPNames.HTTP_CONTENT_CHARSET, HTTP.UTF_8);
 		params.setParameter(CoreProtocolPNames.USER_AGENT, userAgent );
-		params.setParameter(CoreConnectionPNames.SOCKET_BUFFER_SIZE,4096);
+		params.setParameter(CoreConnectionPNames.SOCKET_BUFFER_SIZE,8192);
 		params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT, socketTimeOut);
 		params.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, connectionTimeOut);
 		params.setBooleanParameter(ClientPNames.HANDLE_REDIRECTS, false);
@@ -537,7 +550,7 @@ public class AcalRequestor {
 
 
 	
-	private InputStream sendRequest( Header[] headers, String entityString )
+	private synchronized InputStream sendRequest( Header[] headers, String entityString )
 									throws SendRequestFailedException, SSLException, AuthenticationFailure {
 		long down = 0;
 		long up = 0;
@@ -571,7 +584,7 @@ public class AcalRequestor {
 				requestPort = this.port;
 			}
 
-			if ( Constants.LOG_DEBUG && Constants.debugDavCommunication ) {
+			if ( Constants.LOG_DEBUG  ) {
 				Log.d(TAG, String.format("Method: %s, Protocol: %s, Hostname: %s, Port: %d, Path: %s",
 							method, requestProtocol, hostName, requestPort, path) );
 			}
@@ -620,10 +633,12 @@ public class AcalRequestor {
 			if ( Constants.LOG_DEBUG )
 				Log.d(TAG, "Response: "+statusCode+", Sent: "+up+", Received: "+down+", Took: "+timeTaken+" seconds");
 			
-			if ( Constants.LOG_VERBOSE && Constants.debugDavCommunication ) {
+			if ( Constants.LOG_VERBOSE ) {
 				for (Header h : responseHeaders) {
 					Log.v(TAG,"H<  "+h.getName()+": "+h.getValue() );
 				}
+			}
+			if ( Constants.LOG_VERBOSE && Constants.debugDavCommunication ) {
 				if (entity != null) {
 					if ( Constants.LOG_DEBUG && Constants.debugDavCommunication ) {
 						Log.v(TAG, "----------------------- vvv Response Body vvv -----------------------" );
@@ -651,10 +666,22 @@ public class AcalRequestor {
 					}
 				}
 			}
-			if (entity != null)
-				return entity.getContent();
+			if (entity != null) {
+				if ( entity.getContentLength() > 0 ) return entity.getContent();
 
-			return null;
+				// Kind of admitting defeat here, but I can't track down why we seem
+				// to end up in never-never land if we just return entity.getContent()
+				// directly when entity.getContentLength() is -1 ('unknown', apparently).
+				// Horribly inefficint too.
+				BufferedReader r = new BufferedReader(new InputStreamReader(entity.getContent()));
+				StringBuilder total = new StringBuilder();
+				String line;
+				while ( (line = r.readLine()) != null ) {
+				    total.append(line).append("\n");
+				}
+				return new ByteArrayInputStream( total.toString().getBytes() );
+			}
+
 		}
 		catch (SSLException e) {
 			if ( Constants.LOG_DEBUG && Constants.debugDavCommunication )
@@ -704,6 +731,8 @@ public class AcalRequestor {
 		this.method = method;
 		if ( path != null ) this.path = path;
 		try {
+			if ( Constants.LOG_DEBUG )
+				Log.d(TAG, String.format("%s request on %s", method, fullUrl()) );
 			result = sendRequest( headers, entity );
 		}
 		catch (SSLException e) 					{ throw e; }
@@ -712,7 +741,7 @@ public class AcalRequestor {
 			Log.e(TAG,Log.getStackTraceString(e));
 		}
 
-		if ( !authRequired && statusCode == 401 ) {
+		if ( statusCode == 401 ) {
 			// In this case we didn't send auth credentials the first time, so
 			// we need to try again after we interpret the auth request.
 			try {
