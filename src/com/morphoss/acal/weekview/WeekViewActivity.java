@@ -244,7 +244,8 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	public void move(float dx, float dy) {
 		this.scrolly+=dy;
 		if (scrolly < 0) scrolly = 0;
-		if (scrolly > (HALF_HOUR_HEIGHT*49-days.getHeight())) scrolly = WeekViewActivity.HALF_HOUR_HEIGHT*49-days.getHeight();
+		if (scrolly > (HALF_HOUR_HEIGHT*48-days.getHeight()+this.days.getHeaderHeight())) //maximum vertical scroll 
+			scrolly = WeekViewActivity.HALF_HOUR_HEIGHT*48-days.getHeight()+this.days.getHeaderHeight();
 		this.scrollx-=dx;
 		while (this.scrollx >= DAY_WIDTH) {
 			decrementCurrentDate();
