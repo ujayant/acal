@@ -225,6 +225,7 @@ public class MonthView extends Activity implements OnGestureListener,
 		leftOut = AnimationUtils.loadAnimation(this, R.anim.push_left_out);
 		rightIn = AnimationUtils.loadAnimation(this, R.anim.push_right_in);
 		rightOut = AnimationUtils.loadAnimation(this, R.anim.push_right_out);
+		
 	}
 
 	private void connectToService() {

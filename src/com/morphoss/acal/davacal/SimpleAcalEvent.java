@@ -29,6 +29,7 @@ public class SimpleAcalEvent implements Comparable<SimpleAcalEvent> {
 	
 	//Returns a simple representation of an AcalEvent
 	public static SimpleAcalEvent getSimpleEvent(AcalEvent event) {
+		event.dtstart.applyLocalTimeZone();
 		return new SimpleAcalEvent(event.getStart().getEpoch(), event.getEnd().getEpoch(), event.resourceId, event.summary, event .colour);
 	}
 	

@@ -57,9 +57,9 @@ public class WeekViewImageCache {
 		this.daybox = returnedBitmap;
 	}
 	
-	public Bitmap getWeekDayBox(int startHour, int endHour, float offset) {
+	public Bitmap getWeekDayBox(float startHour, float numHours, float offset) {
 		cacheDayBoxes();
-		int numHours = endHour - startHour;
+		float endHour = startHour+numHours;
 		Bitmap returnedBitmap = Bitmap.createBitmap((int)dayWidth, (int)((halfHeight*2)*numHours),Bitmap.Config.ARGB_4444);
 		Canvas canvas = new Canvas(returnedBitmap);
 		Paint p = new Paint();
@@ -82,20 +82,20 @@ public class WeekViewImageCache {
 			canvas.drawRect(0, y, dayWidth,y+height , p);
 		}
 		
-		for (int curHour = startHour-1; curHour<=endHour; curHour++) {
+		for (float curHour = startHour-1; curHour<=endHour; curHour++) {
 			float curY = (halfHeight*2)*(curHour-startHour);
 			canvas.drawBitmap(daybox, 0, curY+offset, p);
 		}
 		
 		return returnedBitmap;
 	}
-	public Bitmap getWeekEndDayBox(int startHour, int endHour, float offset) {
+	public Bitmap getWeekEndDayBox(float startHour, float numHours, float offset) {
 		cacheDayBoxes();
-		int numHours = endHour - startHour;
+		float endHour = startHour+numHours;
 		Bitmap returnedBitmap = Bitmap.createBitmap((int)dayWidth, (int)((halfHeight*2)*numHours),Bitmap.Config.ARGB_4444);
 		Canvas canvas = new Canvas(returnedBitmap);
 		Paint p = new Paint();
-		for (int curHour = startHour-1; curHour<endHour; curHour++) {
+		for (float curHour = startHour-1; curHour<endHour; curHour++) {
 			float curY = (halfHeight*2)*(curHour-startHour);
 			canvas.drawBitmap(daybox, 0, curY+offset, p);
 		}

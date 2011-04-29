@@ -131,8 +131,8 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	private boolean isBound = false;
 	
 	//Fields relating to scrolling
-	private float scrollx = 0;
-	private float scrolly = 0;
+	private int scrollx = 0;
+	private int scrolly = 0;
 	
 	
 	/**
@@ -230,10 +230,10 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		sidebar.invalidate();
 	}
 	
-	public float getScrollY() {
+	public int getScrollY() {
 		return this.scrolly;
 	}
-	public float getScrollX() {
+	public int getScrollX() {
 		return this.scrollx;
 	}
 	
@@ -245,7 +245,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		this.scrolly+=dy;
 		if (scrolly < 0) scrolly = 0;
 		if (scrolly > (HALF_HOUR_HEIGHT*48-days.getHeight()+this.days.getHeaderHeight())) //maximum vertical scroll 
-			scrolly = WeekViewActivity.HALF_HOUR_HEIGHT*48-days.getHeight()+this.days.getHeaderHeight();
+			scrolly = (int) (WeekViewActivity.HALF_HOUR_HEIGHT*48-days.getHeight()+this.days.getHeaderHeight());
 		this.scrollx-=dx;
 		while (this.scrollx >= DAY_WIDTH) {
 			decrementCurrentDate();
