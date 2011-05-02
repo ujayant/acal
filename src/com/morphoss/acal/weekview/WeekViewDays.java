@@ -144,32 +144,6 @@ public class WeekViewDays extends ImageView {
 		
 	}
 	
-	private void drawBackground(Canvas canvas, float x, float y,float w, float h) {
-		Paint p = new Paint();
-		p.setStyle(Paint.Style.FILL);
-		p.setColor(Color.parseColor("#AAf0f0f0"));
-		canvas.drawRect(x, y, w, h, p);
-	}
-	
-	public void drawGrid(Canvas canvas, Paint p) {
-		p.setStyle(Paint.Style.FILL);
-		int dayX = (int)(0-WeekViewActivity.DAY_WIDTH+context.getScrollX());
-		AcalDateTime currentDay = context.getCurrentDate().clone();
-		currentDay.addDays(-1);
-		
-		//get the grid for each day
-		Bitmap weekDayGrid = context.getImageCache().getWeekDayBox(startHour,numHours,hourOffset);
-		Bitmap weekEndGrid = context.getImageCache().getWeekEndDayBox(startHour,numHours,hourOffset);
-		while ( dayX <= width) {
-			if (currentDay.getWeekDay() == AcalDateTime.SATURDAY || currentDay.getWeekDay() == AcalDateTime.SUNDAY)
-				canvas.drawBitmap(weekEndGrid, dayX+x, y, p);
-			else 
-				canvas.drawBitmap(weekDayGrid, dayX+x, y, p);
-			dayX += WeekViewActivity.DAY_WIDTH;
-			currentDay.addDays(1);
-		}
-	}
-
 	@Override
 	public void draw(Canvas canvas) {
 		super.draw(canvas);
@@ -294,6 +268,34 @@ public class WeekViewDays extends ImageView {
 		}
 		*/
 	}
+	
+	private void drawBackground(Canvas canvas, float x, float y,float w, float h) {
+		Paint p = new Paint();
+		p.setStyle(Paint.Style.FILL);
+		p.setColor(Color.parseColor("#AAf0f0f0"));
+		canvas.drawRect(x, y, w, h, p);
+	}
+	
+	public void drawGrid(Canvas canvas, Paint p) {
+		p.setStyle(Paint.Style.FILL);
+		int dayX = (int)(0-WeekViewActivity.DAY_WIDTH+context.getScrollX());
+		AcalDateTime currentDay = context.getCurrentDate().clone();
+		currentDay.addDays(-1);
+		
+		//get the grid for each day
+		Bitmap weekDayGrid = context.getImageCache().getWeekDayBox(startHour,numHours,hourOffset);
+		Bitmap weekEndGrid = context.getImageCache().getWeekEndDayBox(startHour,numHours,hourOffset);
+		while ( dayX <= width) {
+			if (currentDay.getWeekDay() == AcalDateTime.SATURDAY || currentDay.getWeekDay() == AcalDateTime.SUNDAY)
+				canvas.drawBitmap(weekEndGrid, dayX+x, y, p);
+			else 
+				canvas.drawBitmap(weekDayGrid, dayX+x, y, p);
+			dayX += WeekViewActivity.DAY_WIDTH;
+			currentDay.addDays(1);
+		}
+	}
+
+	
 
 
 	public void drawVertical(SimpleAcalEvent event, Canvas canvas, float x, float y, float width, float screenHeight, float verticalOffset) {
@@ -333,6 +335,26 @@ public class WeekViewDays extends ImageView {
 		}
 	}
 
+	//for horizontal
+	private ArrayList<SimpleAcalEvent> getEventList(AcalDateTime day) {
+		ArrayList<AcalEvent> eventList = context.getEventsForDay(day);
+		ArrayList<SimpleAcalEvent> events = new ArrayList<SimpleAcalEvent>();
+		for (AcalEvent e : eventList) {
+			//only add events that cover less than one full calendar day
+			if (e.getDuration().getDurationMillis()/1000 >= 86400) continue;	//more than 24 hours, cant go in
+			AcalDateTime start = e.getStart().clone();
+			int startSec = start.getDaySecond();
+			if (startSec != 0) {
+				start.setHour(0); start.setMinute(0);start.setSecond(0); start.addDays(1);	//move forward to 00:00:00	
+			}
+			//start is now at the first 'midnight' of the event. Duration to end MUST be < 24hours for us to want this event
+			if(start.getDurationTo(e.getEnd()).getDurationMillis()/1000 >=86400) continue;
+			SimpleAcalEvent ret =SimpleAcalEvent.getSimpleEvent(e); 
+			events.add(ret);
+		}
+		return events;
+	}
+	
 	public void drawHorizontal(SimpleAcalEvent event, Canvas c, float x, float y, float width, float height, float scroll) {
 		/**if ( height < 1f ) return;
 		//first we need to calulate the number of visible hours, and identify what epoch hour starts at x=0
@@ -356,27 +378,6 @@ public class WeekViewDays extends ImageView {
 		c.drawBitmap(context.getImageCache().getEventBitmap(event.resourceId,event.summary,event.colour,
 					(int)eventWidth, (int)height, maxWidth, (int)height), (int)startX,y, new Paint());*/
 	}
-	
-	//for horizontal
-	private ArrayList<SimpleAcalEvent> getEventList(AcalDateTime day) {
-		ArrayList<AcalEvent> eventList = context.getEventsForDay(day);
-		ArrayList<SimpleAcalEvent> events = new ArrayList<SimpleAcalEvent>();
-		for (AcalEvent e : eventList) {
-			//only add events that cover less than one full calendar day
-			if (e.getDuration().getDurationMillis()/1000 >= 86400) continue;	//more than 24 hours, cant go in
-			AcalDateTime start = e.getStart().clone();
-			int startSec = start.getDaySecond();
-			if (startSec != 0) {
-				start.setHour(0); start.setMinute(0);start.setSecond(0); start.addDays(1);	//move forward to 00:00:00	
-			}
-			//start is now at the first 'midnight' of the event. Duration to end MUST be < 24hours for us to want this event
-			if(start.getDurationTo(e.getEnd()).getDurationMillis()/1000 >=86400) continue;
-			SimpleAcalEvent ret =SimpleAcalEvent.getSimpleEvent(e); 
-			events.add(ret);
-		}
-		return events;
-	}
-	
 	
 	//used for vertical
 	private static SimpleAcalEvent[][] getTimeTable(List<SimpleAcalEvent> events) {
