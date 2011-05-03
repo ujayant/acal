@@ -63,7 +63,7 @@ public class WeekViewSideBar extends ImageView {
 		p.setColor(context.getResources().getColor(R.color.WeekViewSidebarBG));
 		canvas.drawRect(0, 0, this.getWidth(), this.getHeight(), p);
 		
-		float offset = (context.getSideVerticalOffset()-(context.getScrollY()+(WeekViewActivity.HALF_HOUR_HEIGHT*1.5F)));
+		float offset = -context.getScrollY();
 		
 		canvas.drawBitmap(context.getImageCache().getSideBar(this.getWidth()), 0,offset, p);
 		p.setStyle(Paint.Style.STROKE);

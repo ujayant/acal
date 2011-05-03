@@ -18,103 +18,87 @@ import android.widget.TextView;
 import com.morphoss.acal.R;
 
 public class WeekViewImageCache {
-	
+
 	private float dayWidth;
-	private float halfHeight;
 	private Context c;
-	
+
 	private Bitmap sidebar;
 	private int sidebarWidth = -1;
-	
+
+	private Bitmap hourbox;
 	private Bitmap daybox;
-	
+	private int lastDaySPP = 0;
+	private int lastDayHeight = 0;
+
 	private HashMap<Long,Bitmap> eventMap = new HashMap<Long, Bitmap>();
 	private Queue<Long> eventQueue = new LinkedList<Long>();
-	
-	public WeekViewImageCache(Context c, float dayWidth, float halfHeight) {
+
+	public WeekViewImageCache(Context c) {
 		this.c=c;
-		this.dayWidth=dayWidth;
-		this.halfHeight=halfHeight;
+		this.dayWidth=WeekViewActivity.DAY_WIDTH;
 	}
-	public void cacheDayBoxes() {
-		if (daybox != null) return;
-		
-		//First do regular box
-		Bitmap returnedBitmap = Bitmap.createBitmap((int)dayWidth, (int)(halfHeight*2),Bitmap.Config.ARGB_4444);
-		Canvas canvas = new Canvas(returnedBitmap);
-		float hourHeight = halfHeight*2;
-		Paint p = new Paint();
-		p.setStyle(Paint.Style.STROKE);
-		p.setColor(c.getResources().getColor(R.color.WeekViewDayGridBorder));
-		canvas.drawRect(0,0,dayWidth,hourHeight,p);
-		
-		p.setStyle(Paint.Style.STROKE);
-		p.setColor(c.getResources().getColor(R.color.WeekViewDayGridBorder));
-		//draw dotted center line
-		DashPathEffect dashes = new DashPathEffect(WeekViewActivity.DASHED_LINE_PARAMS,0);
-		p.setPathEffect(dashes);
-		canvas.drawLine(0,halfHeight, dayWidth, halfHeight, p);
+
+	public void cacheDayBoxes(int minHeight) {
+		float halfHeight = 1800F/(float)WeekViewActivity.SECONDS_PER_PIXEL;
+
+		Bitmap returnedBitmap;
+		Canvas canvas;
+		Paint p;
+
+		if (hourbox == null) {
+			//First hour box
+			returnedBitmap = Bitmap.createBitmap((int)dayWidth, (int)(halfHeight*2),Bitmap.Config.ARGB_4444);
+			canvas = new Canvas(returnedBitmap);
+			p = new Paint();
+			p.setStyle(Paint.Style.STROKE);
+			p.setColor(c.getResources().getColor(R.color.WeekViewDayGridBorder));
+			canvas.drawRect(0,0,dayWidth,(int)(halfHeight*2),p);
+
+			p.setStyle(Paint.Style.STROKE);
+			p.setColor(c.getResources().getColor(R.color.WeekViewDayGridBorder));
+			//draw dotted center line
+			DashPathEffect dashes = new DashPathEffect(WeekViewActivity.DASHED_LINE_PARAMS,0);
+			p.setPathEffect(dashes);
+			canvas.drawLine(0,halfHeight, dayWidth, halfHeight, p);
+			this.hourbox = returnedBitmap;
+		}
+
+		//now do whole day
+		returnedBitmap = Bitmap.createBitmap((int)dayWidth,(int)( minHeight+halfHeight*2),Bitmap.Config.ARGB_4444);
+		canvas = new Canvas(returnedBitmap);
+		p = new Paint();
+		p.setStyle(Paint.Style.FILL);
+		for (float y = 0; y<= minHeight; y+=(halfHeight*2)) {
+			canvas.drawBitmap(hourbox, 0, y, p);
+		}
 		this.daybox = returnedBitmap;
+		this.lastDayHeight = minHeight;
+		this.lastDaySPP = WeekViewActivity.SECONDS_PER_PIXEL;
 	}
-	
-	public Bitmap getWeekDayBox(float startHour, float numHours, float offset) {
-		cacheDayBoxes();
-		float endHour = startHour+numHours;
-		Bitmap returnedBitmap = Bitmap.createBitmap((int)dayWidth, (int)((halfHeight*2)*numHours),Bitmap.Config.ARGB_4444);
-		Canvas canvas = new Canvas(returnedBitmap);
-		Paint p = new Paint();
-		
-		// add yellow for work day
-		float sizeofHour = halfHeight*2;
-		float wdStart = WeekViewActivity.START_HOUR;
-		if (WeekViewActivity.START_MINUTE != 0)wdStart+= (WeekViewActivity.START_MINUTE/60F);
-		float wdEnd = WeekViewActivity.END_HOUR;
-		if (WeekViewActivity.END_MINUTE != 0)wdEnd+= (WeekViewActivity.END_MINUTE/60F);
-		float startHr = startHour-(offset/sizeofHour);
-		float endHr = endHour-(offset/sizeofHour);
-		if (wdStart < endHr && wdEnd > startHr) {
-			p.setStyle(Paint.Style.FILL);
-			p.setColor(c.getResources().getColor(R.color.WeekViewDayGridWorkTimeBG));
-			float y = Math.max(wdStart-startHr,0)*sizeofHour;
-			float height = Math.min(wdEnd-startHr,endHr);
-			height = height*sizeofHour;
-			height = Math.max(height,0);
-			canvas.drawRect(0, y, dayWidth,y+height , p);
-		}
-		
-		for (float curHour = startHour-1; curHour<=endHour; curHour++) {
-			float curY = (halfHeight*2)*(curHour-startHour);
-			canvas.drawBitmap(daybox, 0, curY+offset, p);
-		}
-		
-		return returnedBitmap;
-	}
-	public Bitmap getWeekEndDayBox(float startHour, float numHours, float offset) {
-		cacheDayBoxes();
-		float endHour = startHour+numHours;
-		Bitmap returnedBitmap = Bitmap.createBitmap((int)dayWidth, (int)((halfHeight*2)*numHours),Bitmap.Config.ARGB_4444);
-		Canvas canvas = new Canvas(returnedBitmap);
-		Paint p = new Paint();
-		for (float curHour = startHour-1; curHour<endHour; curHour++) {
-			float curY = (halfHeight*2)*(curHour-startHour);
-			canvas.drawBitmap(daybox, 0, curY+offset, p);
-		}
-		return returnedBitmap;
+
+	public Bitmap getDayBox(int minHeight) {
+		if (WeekViewActivity.SECONDS_PER_PIXEL != lastDaySPP || minHeight > lastDayHeight)
+			cacheDayBoxes(minHeight);
+		return daybox;
 	}
 	
 	public Bitmap getSideBar(int width) {
-		if (width == sidebarWidth) return sidebar;
-		float y = 0;
+		if (width == sidebarWidth) return sidebar;	
+		float halfHeight = 1800F/(float)WeekViewActivity.SECONDS_PER_PIXEL;
+		float SPP = (float)WeekViewActivity.SECONDS_PER_PIXEL;
 		boolean half = false;
 		boolean byHalves = (halfHeight > WeekViewActivity.PIXELS_PER_TEXT_ROW);
 		float rowHeight = halfHeight * (byHalves?1f:2f);
-		if ( !byHalves ) y -= ((5f * halfHeight) / 3f);
+		float offset = -rowHeight/2;
 		int hour = 0;
-		Bitmap master = Bitmap.createBitmap((int)width, (int)halfHeight*50,Bitmap.Config.ARGB_4444);
+		Bitmap master = Bitmap.createBitmap((int)width, (86400/WeekViewActivity.SECONDS_PER_PIXEL),Bitmap.Config.ARGB_4444);
 		Canvas masterCanvas = new Canvas(master);
+		
 		String am = c.getString(R.string.oneCharMorning);
 		String pm = c.getString(R.string.oneCharAfternoon);
-		while ( hour<=24 ) {
+		
+		int currentSecond = 0;
+		while ( currentSecond<=86400 ) {
 			LayoutInflater inflater = (LayoutInflater) c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 			View v = (View) inflater.inflate(R.layout.week_view_assets, null);
 			TextView box;
@@ -122,7 +106,7 @@ public class WeekViewImageCache {
 			else box= ((TextView) v.findViewById(R.id.WV_side_box_half));
 			box.setVisibility(View.VISIBLE);
 			String text = "";
-			
+
 			if (WeekViewActivity.TIME_24_HOUR) {
 				if (half) text=":30";
 				else text = hour+"";
@@ -135,8 +119,7 @@ public class WeekViewImageCache {
 					text=(int)hd+" "+(hour<12?am:pm);
 				}
 			}
-
-			y += rowHeight;
+			
 			box.setText(text);
 			box.setTextSize(TypedValue.COMPLEX_UNIT_SP, WeekViewActivity.TEXT_SIZE_SIDE);
 			box.measure(MeasureSpec.makeMeasureSpec((int) width, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec((int) rowHeight, MeasureSpec.EXACTLY));
@@ -144,20 +127,23 @@ public class WeekViewImageCache {
 			Bitmap returnedBitmap = Bitmap.createBitmap((int)width, (int)rowHeight,Bitmap.Config.ARGB_4444);
 			Canvas tempCanvas = new Canvas(returnedBitmap);
 			box.draw(tempCanvas);
-			masterCanvas.drawBitmap(returnedBitmap, 0, y, new Paint());
+			masterCanvas.drawBitmap(returnedBitmap, 0, offset+(currentSecond/SPP), new Paint());
 
 			if ( byHalves ) {
 				half = !half;
 				if ( !half ) hour++;
+				currentSecond+=1800;
 			}
-			else
+			else {
 				hour++;
+				currentSecond+=3600;
+			}
 		}
 		sidebar = master;
 		sidebarWidth=width;
 		return sidebar;
 	}
-	
+/**
 	public Bitmap getEventBitmap(long resourceId, String summary, int colour,
 							int width, int height, int maxWidth, int maxHeight) {
 		long hash = getEventHash(resourceId,maxWidth,maxHeight);
@@ -198,4 +184,5 @@ public class WeekViewImageCache {
 	public long getEventHash(long resourceId, int width, int height) {
 		return (long)width + ((long)dayWidth * (long)resourceId);
 	}
+	 */
 }

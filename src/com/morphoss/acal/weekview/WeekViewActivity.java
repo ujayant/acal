@@ -97,7 +97,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	
 	//Preference controlled values
 	public static int DAY_WIDTH = 100;
-	public static int HALF_HOUR_HEIGHT = 20;
+	public static int SECONDS_PER_PIXEL = 1;
 	public static int FIRST_DAY_OF_WEEK = 1;
 	public static boolean TIME_24_HOUR = false;
 	public static int FULLDAY_ITEM_HEIGHT = 20;  //1 row
@@ -162,9 +162,6 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		this.setupButton(R.id.week_add_button, ADD);
 		
 		loadPrefs();
-		
-		
-		scrolly+=(WeekViewActivity.START_HOUR)*(WeekViewActivity.HALF_HOUR_HEIGHT*2);
 	}
 	
 	private void loadPrefs() {
@@ -190,7 +187,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		catch ( NumberFormatException e ) { }
 		if (lph <= 0) lph = 1;
 		if (lph >= 10) lph = 10;
-		HALF_HOUR_HEIGHT = (int)((lph*PIXELS_PER_TEXT_ROW)/2f);
+		SECONDS_PER_PIXEL = (int)(3600f/(lph*PIXELS_PER_TEXT_ROW));
 		MINIMUM_DAY_EVENT_HEIGHT = 3 + (int) ((TEXT_SIZE_EVENT*SPscaler)*1.2f);  
 		FULLDAY_ITEM_HEIGHT = MINIMUM_DAY_EVENT_HEIGHT;
 		
@@ -219,8 +216,12 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 			}
 		}
 		
+		//TODO start hout should be from pref
+		scrolly = (START_HOUR*3600)/SECONDS_PER_PIXEL;
+		
 		//image cache may bow be invalid
-		imageCache = new WeekViewImageCache(this,DAY_WIDTH,HALF_HOUR_HEIGHT);
+		imageCache = new WeekViewImageCache(this);
+		
 	}
 	
 	//force all displays to update
@@ -241,11 +242,9 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		return days.getHeaderHeight();
 	}
 	
-	public void move(float dx, float dy) {
+	public void move(float dx, float dy) {		
 		this.scrolly+=dy;
-		if (scrolly < 0) scrolly = 0;
-		if (scrolly > (HALF_HOUR_HEIGHT*48-days.getHeight()+this.days.getHeaderHeight())) //maximum vertical scroll 
-			scrolly = (int) (WeekViewActivity.HALF_HOUR_HEIGHT*48-days.getHeight()+this.days.getHeaderHeight());
+		this.scrolly=days.checkScrollY(this.scrolly);
 		this.scrollx-=dx;
 		while (this.scrollx >= DAY_WIDTH) {
 			decrementCurrentDate();
@@ -326,7 +325,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	public void onResume() {
 		super.onResume();		
 		connectToService();
-		imageCache = new WeekViewImageCache(this,DAY_WIDTH,HALF_HOUR_HEIGHT);
+		imageCache = new WeekViewImageCache(this);
 		loadPrefs();
 		refresh();
 	}
@@ -552,7 +551,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		case TODAY:
 			this.selectedDate.setEpoch(new AcalDateTime().getEpoch());
 			this.scrollx=0;
-			scrolly=(WeekViewActivity.START_HOUR)*(WeekViewActivity.HALF_HOUR_HEIGHT*2);
+			scrolly=(WeekViewActivity.START_HOUR*3600)/SECONDS_PER_PIXEL;
 			this.selectedDate.setDaySecond(0);
 			this.refresh();
 			break;
