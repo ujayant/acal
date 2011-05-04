@@ -140,10 +140,8 @@ public class WeekViewDays extends ImageView {
 		HST = this.currentEpoch - (scrollx*HSPP);
 		HET = HST+HNS;
 		
-		AcalDateTime startTime = AcalDateTime.fromMillis(HST*1000);
-		AcalDateTime endTime = AcalDateTime.fromMillis(HET*1000);
-		startTime.applyLocalTimeZone();
-		endTime.applyLocalTimeZone();
+		AcalDateTime startTime = new AcalDateTime().setEpoch(HST).applyLocalTimeZone();
+		AcalDateTime endTime = startTime.clone().setEpoch(HET);
 		AcalDateRange range = new AcalDateRange(startTime,endTime);
 		
 		//Get the current timetable
@@ -337,10 +335,13 @@ public class WeekViewDays extends ImageView {
 
 	public void drawVertical(SimpleAcalEvent event, Canvas canvas, int x,  int width) {
 		if ( width < 1f ) return;
-		int top = (int)((((event.start-currentEpoch)%86400)-t)/WeekViewActivity.SECONDS_PER_PIXEL)+PxH;
+		int top = (int) (event.start - currentEpoch);
+		if ( top < 0 ) top += 86400;
+		top = (int)(((top%86400)-t)/WeekViewActivity.SECONDS_PER_PIXEL)+PxH;
 		top = Math.max(top,PxH);
 		int maxHeight =(int)Math.min(TpX, (event.end-event.start)/WeekViewActivity.SECONDS_PER_PIXEL);
-		int height = (int)Math.min(maxHeight, (event.end%86400-t)/WeekViewActivity.SECONDS_PER_PIXEL);
+		maxHeight = Math.max(maxHeight, WeekViewActivity.MINIMUM_DAY_EVENT_HEIGHT );
+		int height = (int)Math.min(maxHeight, ((event.end-currentEpoch)%86400-t)/WeekViewActivity.SECONDS_PER_PIXEL);
 		Paint p = new Paint();
 		p.setStyle(Paint.Style.FILL);
 		p.setColor(0xff555555);
