@@ -232,7 +232,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	}
 	
 	public int getScrollY() {
-		return this.scrolly;
+		return days.checkScrollY(this.scrolly);
 	}
 	public int getScrollX() {
 		return this.scrollx;
@@ -329,6 +329,8 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		loadPrefs();
 		refresh();
 	}
+	
+	public boolean daysInitialized(){ return days.isInitialized(); }
 	
 	/**
 	 * <p>

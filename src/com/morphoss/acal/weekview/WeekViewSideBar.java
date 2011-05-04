@@ -49,7 +49,7 @@ public class WeekViewSideBar extends ImageView {
 	@Override
 	public void draw(Canvas canvas) {
 		super.draw(canvas);
-		if (this.isInEditMode()) {
+		if (this.isInEditMode() || !context.daysInitialized()) {
 			Paint p = new Paint();
 			p.setStyle(Paint.Style.FILL);
 			p.setColor(0x00ffffff);

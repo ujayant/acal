@@ -2,7 +2,9 @@ package com.morphoss.acal.weekview;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -25,7 +27,7 @@ public class WeekViewDays extends ImageView {
 	
 	private WeekViewActivity context; 
 	private AcalDateTime date;
-	private int headerHeight = 0;
+	
 	private SimpleAcalEvent[][] headerTimeTable;
 	
 
@@ -34,14 +36,27 @@ public class WeekViewDays extends ImageView {
 	private int width;				//The current screen width in pixels
 	private int TpX;				//The current Screen height in pixels
 	private int PxD;				//The current height of days section
+	private int PxH;				//The current height of the Header section
 	private int t;					//The first second of the day that is visible in main view
+	private int scrollx;			//The current (valid) horizontal scroll amount
+	private int scrolly;			//The current (valid) vertical scroll amount
+	private long currentEpoch;		//The UTC epoch time of 0:00 on the first Visible Day
+	private int HSPP;				//Horizontal Seconds per Pixel
+	private long HST;				//The UTC epoch time of the first visible horizontal second
+	private int HNS;				//the number of visible horizontal seconds
+	private long HET;				//The UTC epoch time of the last visible horizontal second
+	private int HIH;				//The height of a Horizontal event
+	private int HDepth;				//The number of horizontal rows
+	private int lastMaxX;
+	private ArrayList<AcalEvent> HList;  				//The last list of events for the header
+	private ArrayList<SimpleAcalEvent> HSimpleList;  	//The last list of (simple) events for the header
+	private SimpleAcalEvent[][] HTimetable;  			//The last timetable used for the header
 	
 	//These to vars define the top left drawing position of the main area (excluded header)
 	private int x = 0;			
 	private int y = 0;
 	
-	private int size;
-	private int lastMaxX=0;
+	private boolean isInitialized = false;	//Set to True once screen dimensions are calculated.
 	
 	/** Default Constructor */
 	public WeekViewDays(Context context, AttributeSet attrs, int defStyle) {
@@ -77,59 +92,84 @@ public class WeekViewDays extends ImageView {
 	}
 	
 	public float headerHeight() {
-		return this.headerHeight;
+		return this.PxH;
 	}
 	
 	float getHeaderHeight() {
-		return this.headerHeight; 
+		return this.PxH; 
 	}
 	
 	int checkScrollY(int y) {
-		int min = -headerHeight;
+		int min = -PxH;
 		int max = ((86400/WeekViewActivity.SECONDS_PER_PIXEL)-TpX)+1;
 		return (Math.min(max, Math.max(min, y)));
 		
 	}
 	
-	private void drawFulldayEvents(Canvas canvas, Paint p) {
-		headerHeight = 33;
-		//int itemHeight = WeekViewActivity.FULLDAY_ITEM_HEIGHT;
-	
-		//some values important for calculating range etc.
-		/*float numSeconds = (width/WeekViewActivity.DAY_WIDTH)*24F*3600F;
-		float pixelsPerSecond = width/numSeconds;
-		AcalDateTime startTime = date.clone();
-		float numSecondsOffset = context.getScrollX()/pixelsPerSecond;
-		startTime.addSeconds((int)(0-(numSecondsOffset)));	//represents 0 hour
-		AcalDateTime endTime = startTime.clone();
-		endTime.addSeconds((int)(numSeconds));		//represents end hour
+	private void drawHeader(Canvas canvas, Paint p) {
+		
+		//1 Calculate per frame vars
+		HST = this.currentEpoch-(scrollx*HSPP);
+		HET = HST+HNS;
+		
+		
+		
+		AcalDateTime startTime = AcalDateTime.fromMillis(HST*1000);
+		AcalDateTime endTime = AcalDateTime.fromMillis(HET*1000);
 		AcalDateRange range = new AcalDateRange(startTime,endTime);
 		
-		headerTimeTable = getTimeTable(getEventList(range));
-		if (headerTimeTable.length <=0) {	this.headerHeight =0; return; }
-		size = headerTimeTable.length;
+		//Get the current timetable
+		headerTimeTable = getTimeTable(getFullDayEventList(range));
+		if (headerTimeTable.length <=0) {	this.PxH =0; return; }
+		PxH = HDepth*HIH;
 		
-		int depth = 0;
-		for (int i = 0; i<size && headerTimeTable[i] != null && headerTimeTable[i].length>0 && headerTimeTable[i][0] != null;i++)  depth++;
-		this.headerHeight = depth*itemHeight;
-		float dayWidth = WeekViewActivity.DAY_WIDTH;
-		float scrollx = context.getScrollX();
-		
-		//draw borders around each day
+		//draw day boxes
 		p.setStyle(Paint.Style.STROKE);
-		p.setColor(context.getResources().getColor(R.color.WeekViewMultiDayBorder));
-		for (float x = 0+scrollx-dayWidth; (x<width+(dayWidth*2)); x+=dayWidth)
-		canvas.drawRect(x, 0, dayWidth+scrollx, headerHeight, p); 
+		p.setColor(context.getResources().getColor(R.color.WeekViewDayGridBorder));
+		canvas.drawRect(x, y, width, PxH, p);
+		for (int curx =0-(WeekViewActivity.DAY_WIDTH-scrollx); curx<=width; curx+= WeekViewActivity.DAY_WIDTH) {
+			canvas.drawRect(x+curx, y, x+curx+WeekViewActivity.DAY_WIDTH,y+PxH,p);
+		}
 		
-		for (int i = 0; i<size;i++)  {
+		
+		for (int i = 0; i<headerTimeTable.length;i++)  {
 			boolean hasEvent = false;
 			for(int j=0;j < headerTimeTable[i].length && headerTimeTable[i][j] != null;j++) {
 				SimpleAcalEvent event = headerTimeTable[i][j];
-					drawHorizontal(event, canvas, 0, (i*itemHeight), width, itemHeight, scrollx);
+					drawHorizontal(event, canvas,i);
 					hasEvent=true;
 			}
 			if (!hasEvent) break;
-		}*/
+		}
+		
+	}
+	
+	public boolean isInitialized() { return this.isInitialized; }
+	private void initialize() {
+		//Vars needed for drawing
+		width = this.getWidth();
+		TpX = this.getHeight();
+		x = 0;
+		y = 0;
+
+		//Seconds per pixel min/max values (MAX full day visible MIN 1 pixel per minute)
+		WeekViewActivity.SECONDS_PER_PIXEL = Math.max(WeekViewActivity.SECONDS_PER_PIXEL,60);
+		WeekViewActivity.SECONDS_PER_PIXEL = Math.min(WeekViewActivity.SECONDS_PER_PIXEL,(86400/TpX)+1);
+		
+		//Horizontal SecsPerPix and Horizontal Number Visible Seconds and Horizontal Item Height
+		HSPP = 86400/WeekViewActivity.DAY_WIDTH;
+		HNS = width*HSPP;
+		HIH = (int)WeekViewActivity.FULLDAY_ITEM_HEIGHT;
+		
+		//Scroll info
+		scrolly = context.getScrollY();
+		scrollx = context.getScrollX();
+		
+		
+		
+		this.isInitialized = true;
+		context.refresh();
+		
 	}
 	
 	@Override
@@ -141,42 +181,24 @@ public class WeekViewDays extends ImageView {
 		if (this.getHeight() == 0) return;
 		if (this.isInEditMode()) return;	//can't draw in edit mode
 		
+		if (!this.isInitialized) { this.initialize(); return; }
 		
-		//Vars needed for drawing
-		width = this.getWidth();
-		TpX = this.getHeight();
-		
-		x = 0;
-		y = 0;
+		//calculate variables that may change from frame to frame
+		scrolly = context.getScrollY();
+		scrollx = context.getScrollX();
+		this.currentEpoch = date.getEpoch();
 		
 		Paint p = new Paint();
+		drawBackground(canvas);
 		
 		//need to draw header first. Drawing the header also adjusts the y value and height.
-		this.drawFulldayEvents(canvas,p);
-		int PxH = this.headerHeight;
+		this.drawHeader(canvas,p);
 		PxD = TpX - PxH;
-		
-		
-		//re-calculate all variables that may change from frame to frame		
-		int scrolly = checkScrollY(context.getScrollY());
-		int scrollx = context.getScrollX();
-		
-		//Seconds per pixel min/max values (MAX full day visible MIN 1 pixel per minute)
-		WeekViewActivity.SECONDS_PER_PIXEL = Math.max(WeekViewActivity.SECONDS_PER_PIXEL,60);
-		WeekViewActivity.SECONDS_PER_PIXEL = Math.min(WeekViewActivity.SECONDS_PER_PIXEL,86400/TpX);
-		
-		long currentDate = date.getEpoch();
 		t = (scrolly+PxH)*WeekViewActivity.SECONDS_PER_PIXEL;
-		
-		
-		//main background
-		p.setStyle(Paint.Style.FILL);
-		p.setColor(Color.parseColor("#AAf0f0f0"));
-		canvas.drawRect(x, y, x+width, y+TpX, p);
-		
+
 		drawGrid(canvas,p);
 		
-		/**float dayX = (int)(0-WeekViewActivity.DAY_WIDTH+context.getScrollX());
+		float dayX = (int)(0-WeekViewActivity.DAY_WIDTH+context.getScrollX());
 		float dayWidth = WeekViewActivity.DAY_WIDTH;
 		p = new Paint();
 
@@ -211,7 +233,7 @@ public class WeekViewDays extends ImageView {
 						for (int k = j; k<=lastMaxX && (timeTable[i][k] == null || timeTable[i][k] == timeTable[i][j]); k++) depth++;
 						float singleWidth = (dayWidth/(lastMaxX+1))*(depth);	
 						SimpleAcalEvent event = timeTable[i][j];
-						drawVertical(event, canvas, dayX+curX, y, singleWidth, height,  scrolly);
+						drawVertical(event, canvas, (int)dayX+curX, (int)singleWidth);
 						event.setLastWidth((int)singleWidth);
 						curX+=singleWidth;
 					}
@@ -220,20 +242,15 @@ public class WeekViewDays extends ImageView {
 			currentDay.addDays(1);
 			dayX+=dayWidth;
 		}
-		//now draw the header (if there is one)
-		if (headerHeight > 0) {
-			drawFulldayEvents(canvas);
-		}
-		
 		
 		//border
 		p.reset();
 		p.setStyle(Paint.Style.STROKE);
 		p.setColor(0xff333333);
-		canvas.drawRect(x, y, x+width, y+height, p);
+		canvas.drawRect(x, y, x+width, y+PxH, p);
 		//draw uber-cool shading effect
-		if (headerHeight != 0 ) {
-			int hhh = WeekViewActivity.HALF_HOUR_HEIGHT/2;
+		if (PxH != 0 ) {
+			int hhh = 1800/WeekViewActivity.SECONDS_PER_PIXEL;
 		 
 			int base = 0x333333;
 			int current = 0xc0;
@@ -242,7 +259,7 @@ public class WeekViewDays extends ImageView {
 			int color = (current << 24)+base; 
 			p.setColor(color);
 			for (int i = 0; i < 3; i++) {
-				canvas.drawLine(x, y+i, x+width, y+i, p);
+				canvas.drawLine(x, y+PxH+i, x+width, y+PxH+i, p);
 			}
 		
 		
@@ -250,28 +267,29 @@ public class WeekViewDays extends ImageView {
 				current-=decrement;
 				color = (current << 24)+base; 
 				p.setColor(color);
-				canvas.drawLine(x, y+i, x+width, y+i, p);
+				canvas.drawLine(x, y+i+PxH, x+width, y+i+PxH, p);
 			}
 		}
-		*/
+		
+
 	}
 	
-	private void drawBackground(Canvas canvas, float x, float y,float w, float h) {
+	private void drawBackground(Canvas canvas) {
 		Paint p = new Paint();
 		p.setStyle(Paint.Style.FILL);
 		p.setColor(Color.parseColor("#AAf0f0f0"));
-		canvas.drawRect(x, y, w, h, p);
+		canvas.drawRect(x, y, width, TpX, p);
 	}
 	
 	public void drawGrid(Canvas canvas, Paint p) {
 		p.setStyle(Paint.Style.FILL);
-		int dayX = (int)(0-WeekViewActivity.DAY_WIDTH+context.getScrollX());
+		int dayX = (int)(0-WeekViewActivity.DAY_WIDTH+scrollx);
 		AcalDateTime currentDay = context.getCurrentDate().clone();
 		currentDay.addDays(-1);
 		
 		//get the grid for each day
 		Bitmap dayGrid = context.getImageCache().getDayBox(TpX+(3600/WeekViewActivity.SECONDS_PER_PIXEL));
-		int y = headerHeight;
+		int y = PxH;
 		int offset = (t%3600)/WeekViewActivity.SECONDS_PER_PIXEL;
 		//dayGrid = Bitmap.createBitmap(dayGrid, 0, offset, dayGrid.getWidth(), PxD);
 		Rect src = new Rect(0,offset,dayGrid.getWidth(),offset+PxD);
@@ -290,41 +308,19 @@ public class WeekViewDays extends ImageView {
 	
 
 
-	public void drawVertical(SimpleAcalEvent event, Canvas canvas, float x, float y, float width, float screenHeight, float verticalOffset) {
+	public void drawVertical(SimpleAcalEvent event, Canvas canvas, int x,  int width) {
 		if ( width < 1f ) return;
-		//float totalDayHeight = WeekViewActivity.HALF_HOUR_HEIGHT*48F;
-		//float pixelsPerSecond = totalDayHeight/(24*60*60);
-		//float ySecond = verticalOffset/pixelsPerSecond;
-		//float endSecond = ySecond+(screenHeight/pixelsPerSecond);
-		float eventStart = (event.start%86400);
-		float eventEnd = (event.end%86400);
+		int top = (int)((event.start%86400-t)/WeekViewActivity.SECONDS_PER_PIXEL)+PxH;
+		top = Math.max(top,PxH);
+		int maxHeight =(int)Math.min(TpX, (event.end-event.start)/WeekViewActivity.SECONDS_PER_PIXEL);
+		int height = (int)Math.min(maxHeight, (event.end%86400-t)/WeekViewActivity.SECONDS_PER_PIXEL);
+		Paint p = new Paint();
+		p.setStyle(Paint.Style.FILL);
+		p.setColor(0xff555555);
+		if (height <= 0 || width <= 0) return;
+		canvas.drawBitmap(context.getImageCache().getEventBitmap(event.resourceId,event.summary,event.colour,
+						width, height,width, maxHeight), x,top, new Paint());
 		
-		
-			
-		//if ((eventStart <= endSecond) && eventEnd >= ySecond ){
-			// So some part of us is on screen
-			Paint p = new Paint();
-			p.setStyle(Paint.Style.FILL);
-			p.setColor(0xff555555);
-			//calulate our y point
-			//float yStart = y+((eventStart-ySecond)*pixelsPerSecond);
-			//calulate our end point
-			//float yEnd = yStart+((eventEnd-eventStart)*pixelsPerSecond);
-			//dont draw above y
-		//	if (yStart < y) yStart = y;
-				//are we larger than screen height? if so draw to screen height
-		//	float height = Math.min(yEnd-yStart, screenHeight);
-		//	if ( height < 1f ) return;
-				//are we smaller than min event height? if so draw to that
-		//	height = Math.max(height, WeekViewActivity.MINIMUM_DAY_EVENT_HEIGHT);
-			
-		//	int maxHeight = 1 + (int) (pixelsPerSecond * (float) (eventEnd - eventStart));
-				//canvas.drawRect(x, yStart, x+width,Math.min(yEnd, y+screenHeight) , p);
-		//	canvas.drawBitmap(context.getImageCache().getEventBitmap(event.resourceId,event.summary,event.colour,
-		//				(int)width, (int)height,(int)width, maxHeight), x,(int)(yStart), new Paint());
-			//float offy = (startMinute-yMinute)*pixelsPerMinute;
-				
-		//}
 	}
 
 	//for horizontal
@@ -347,32 +343,23 @@ public class WeekViewDays extends ImageView {
 		return events;
 	}
 	
-	public void drawHorizontal(SimpleAcalEvent event, Canvas c, float x, float y, float width, float height, float scroll) {
-		/**if ( height < 1f ) return;
-		//first we need to calulate the number of visible hours, and identify what epoch hour starts at x=0
-		float numSeconds = (width/WeekViewActivity.DAY_WIDTH)*24F*3600F;
-		float pixelsPerSecond = width/numSeconds;
-		AcalDateTime startTime = date.clone();
-		float numSecondsOffset = scroll/pixelsPerSecond;
-		startTime.addSeconds((int)(0-(numSecondsOffset)));	//represents 0 hour
-		AcalDateTime endTime = startTime.clone();
-		endTime.addSeconds((int)(numSeconds));		//represents end hour
-		
-		float startSecond = (event.start-startTime.getEpoch());
-		float endSecond = (event.end-startTime.getEpoch());
-		int maxWidth = 1 + (int) (numSeconds * pixelsPerSecond); 
-		if (startSecond < 0) startSecond = 0;
-		if (endSecond>numSeconds) endSecond = numSeconds;
-		if (endSecond-startSecond <=0) return; //we are not visible
-		float eventWidth = (endSecond-startSecond)*pixelsPerSecond;
-		float startX = x+ (startSecond*pixelsPerSecond);
-		if ( eventWidth < 1f ) return;
+	public void drawHorizontal(SimpleAcalEvent event, Canvas c, int depth) {
+		event.calulateMaxWidth(width, HSPP);
+		int x = Math.max((int)(event.start-HST)/HSPP,0);
+		int y = HIH*depth;
+		int maxWidth = event.getMaxWidth();
+		int actualWidth = (int)Math.min(Math.min(event.getActualWidth(), width-x),(event.end-HST)/HSPP); 
+		int height = HIH;
+		if (height <= 0 || actualWidth<=0 || maxWidth<=0) return;
 		c.drawBitmap(context.getImageCache().getEventBitmap(event.resourceId,event.summary,event.colour,
-					(int)eventWidth, (int)height, maxWidth, (int)height), (int)startX,y, new Paint());*/
+					actualWidth, height, maxWidth, height), x,y, new Paint());
 	}
 	
 	//used for vertical
-	private static SimpleAcalEvent[][] getTimeTable(List<SimpleAcalEvent> events) {
+	private SimpleAcalEvent[][] getTimeTable(List<SimpleAcalEvent> events) {
+		if (HTimetable != null && HSimpleList != null) {
+			if (events.containsAll(HSimpleList) && events.size() == HSimpleList.size()) return HTimetable;
+		}
 		Collections.sort(events);
 		SimpleAcalEvent[][] timetable = new SimpleAcalEvent[events.size()][events.size()]; //maximum possible
 		for (int x = 0; x<events.size(); x++) {
@@ -387,8 +374,10 @@ public class WeekViewDays extends ImageView {
 					else break;
 				}
 				i++;
+				HDepth = i;
 			}
 		}
+		HTimetable = timetable;
 		return timetable;
 	}
 	
@@ -415,9 +404,14 @@ public class WeekViewDays extends ImageView {
 		return timetable;
 	}
 	
-	private ArrayList<SimpleAcalEvent> getEventList(AcalDateRange range) {
+	private ArrayList<SimpleAcalEvent> getFullDayEventList(AcalDateRange range) {
 		ArrayList<AcalEvent> eventList = context.getEventsForDays(range);
+		if (HList != null && HSimpleList != null && eventList.containsAll(HList) && eventList.size() == HList.size()) {
+			return this.HSimpleList;
+		}
+		HList = eventList;
 		ArrayList<SimpleAcalEvent> events = new ArrayList<SimpleAcalEvent>();
+		
 		for (AcalEvent e : eventList) {
 			e.dtstart.applyLocalTimeZone();
 			//only add events that cover at least one full calendar day
@@ -429,7 +423,8 @@ public class WeekViewDays extends ImageView {
 			}
 			//start is now at the first 'midnight' of the event. Duration to end MUST be > 24hours for us to want this event
 			if(start.getDurationTo(e.getEnd()).getDurationMillis()/1000 <86400) continue;
-			events.add(SimpleAcalEvent.getSimpleEvent(e));
+			SimpleAcalEvent seo = SimpleAcalEvent.getSimpleEvent(e);
+			events.add(seo);
 		}
 		return events;
 	}

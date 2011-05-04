@@ -87,9 +87,10 @@ public class WeekViewImageCache {
 		float halfHeight = 1800F/(float)WeekViewActivity.SECONDS_PER_PIXEL;
 		float SPP = (float)WeekViewActivity.SECONDS_PER_PIXEL;
 		boolean half = false;
-		boolean byHalves = (halfHeight > WeekViewActivity.PIXELS_PER_TEXT_ROW);
+		boolean byHalves = (halfHeight > WeekViewActivity.PIXELS_PER_TEXT_ROW+3);
 		float rowHeight = halfHeight * (byHalves?1f:2f);
 		float offset = -rowHeight/2;
+		if (!byHalves) offset=-(rowHeight/4f);
 		int hour = 0;
 		Bitmap master = Bitmap.createBitmap((int)width, (86400/WeekViewActivity.SECONDS_PER_PIXEL),Bitmap.Config.ARGB_4444);
 		Canvas masterCanvas = new Canvas(master);
@@ -143,7 +144,7 @@ public class WeekViewImageCache {
 		sidebarWidth=width;
 		return sidebar;
 	}
-/**
+
 	public Bitmap getEventBitmap(long resourceId, String summary, int colour,
 							int width, int height, int maxWidth, int maxHeight) {
 		long hash = getEventHash(resourceId,maxWidth,maxHeight);
@@ -184,5 +185,5 @@ public class WeekViewImageCache {
 	public long getEventHash(long resourceId, int width, int height) {
 		return (long)width + ((long)dayWidth * (long)resourceId);
 	}
-	 */
+	 
 }
