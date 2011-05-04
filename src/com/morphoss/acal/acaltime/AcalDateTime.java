@@ -820,14 +820,14 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	/**
 	 * <p>
 	 * Try to set the second for this date.  Will throw an exception if it's outside the
-	 * range 0 - 86401. Returns false when newSecond is 86401 but this is not a leap second.
+	 * range 0 - 86399.
 	 * </p>
 	 * @param newSecond
-	 * @return true, unless you try and set a leap second that doesn't exist.
+	 * @return this, for chaining
 	 */
 	public synchronized AcalDateTime setDaySecond( int newSecond ) {
 		if ( Constants.debugDateTime ) checkEpoch();
-		if ( newSecond < 0 || newSecond > SECONDS_IN_DAY ) throw new IllegalArgumentException();
+		if ( newSecond < 0 || newSecond >= SECONDS_IN_DAY ) throw new IllegalArgumentException();
 		if ( year == YEAR_NOT_SET ) calculateDateTime();
 		short newHour = (short) (newSecond / SECONDS_IN_HOUR);
 		short newMinute = (short) ((newSecond % SECONDS_IN_HOUR) / 60);
@@ -873,7 +873,7 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	 * <p>
 	 * Set the timezone for this date, keeping the date & time constant.
 	 * </p>
-	 * @return the current object, for chaining
+	 * @return this, for chaining.
 	 */
 	public synchronized AcalDateTime setTimeZone( String newTz ) {
 		if ( tzName == newTz || (tzName != null && tzName.equals(newTz)) ) return this;
@@ -888,7 +888,7 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	 * <p>
 	 * Set the timezone for this date, shifting the clock time to keep the UTC epoch constant.
 	 * </p>
-	 * @return true if the timezone was successfully set.
+	 * @return this, for chaining.
 	 */
 	public synchronized AcalDateTime shiftTimeZone( String newTz ) {
 		if ( tzName == newTz || (tzName != null && tzName.equals(newTz)) ) return this;
@@ -906,7 +906,7 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	 * use setTimeZone to keep the clock time constant, otherwise we will call shiftTimeZone
 	 * to keep the epoch constant.
 	 * </p>
-	 * @return true if the timezone was successfully set.
+	 * @return this, for chaining.
 	 */
 	public synchronized AcalDateTime applyLocalTimeZone() {
 		String newTimeZone = TimeZone.getDefault().getID();
