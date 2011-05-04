@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.TreeMap;
 
 import android.os.RemoteException;
@@ -53,9 +54,12 @@ public class EventCache {
 	
 	//A queue of requested dates, lets us know which dates to remove (oldest first);
 	static final LinkedList<Integer> dateQueue = new LinkedList<Integer>();
-		
+
+	static final String currentTimeZoneName = TimeZone.getDefault().getID();
+	
 	//Converts a datetime to a day hash
 	static private int getDateHash(AcalDateTime day) {
+		day.applyLocalTimeZone();
 		return day.getMonthDay() + (day.getMonth()*32) + (day.getYear()*32*13);
 	}
 	
@@ -80,6 +84,7 @@ public class EventCache {
 		ensureSize();
 		//we want to get the largest 'chunk' possible. We will start with a 1 month range, but will reduce it until we get a first and last date that we haven't got.
 		AcalDateTime workingDate = day.clone();
+		workingDate.applyLocalTimeZone();
 		int first = 1;
 		int month = day.getMonth();
 		int year = day.getYear();
@@ -88,7 +93,8 @@ public class EventCache {
 		while (first<last) if (cachedEvents.containsKey(getDateHash(last,month,year))) last--; else break;
 		if (first > last) return;	//This should be impossible
 		int originalFirst = first;
-		AcalDateRange rangeToFetch = new AcalDateRange(new AcalDateTime(year,month,first,0,0,0,null), new AcalDateTime(year,month,last,23,59,59,null));
+		
+		AcalDateRange rangeToFetch = new AcalDateRange(new AcalDateTime(year,month,first,0,0,0,currentTimeZoneName), new AcalDateTime(year,month,last,23,59,59,currentTimeZoneName));
 		
 		//We need to convert a list with several days worth of events to a set of lists each with exactly one days events.
 		try {
@@ -154,7 +160,7 @@ public class EventCache {
 			}
 			//put blanks in for days where there was no events
 			for (int i = originalFirst; i<= last; i++) {
-				int hash = this.getDateHash(i, month, year);
+				int hash = EventCache.getDateHash(i, month, year);
 				if (!cachedEvents.containsKey(hash)) cachedEvents.put(hash, new ArrayList<AcalEvent>());
 			}
 			
@@ -190,11 +196,9 @@ public class EventCache {
 	/** Methods required by month view */
 	public synchronized ArrayList<AcalEvent> getEventsForDays(AcalDateRange range,DataRequest dr) {
 		//we need to start at 00:00 and end at 23:59:59 to ensure we include everything
-		AcalDateTime current = range.start.clone();
-		current.setDaySecond(0);
-		AcalDateTime end = range.end.clone();
-		end.addDays(1);
-		end.setDaySecond(0);
+		AcalDateTime current = range.start.clone().applyLocalTimeZone().setDaySecond(0);
+		AcalDateTime end = range.end.clone().applyLocalTimeZone().setDaySecond(0).addDays(1);
+
 		ArrayList<AcalEvent> ret = new ArrayList<AcalEvent>();
 		while (!(current.after(range.end)) ) {
 			this.addDay(current, dr);
