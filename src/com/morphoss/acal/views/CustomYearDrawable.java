@@ -185,6 +185,7 @@ public class CustomYearDrawable extends ImageView  {
 	}
 	
 	public void moveY(float amnt) {
+		if ( childViews == null ) return;  // Can sometimes happen if called during initialisation
 		this.y-=amnt;
 		if (y< 0-compWidth) {
 			//recalculate start month
@@ -193,7 +194,7 @@ public class CustomYearDrawable extends ImageView  {
 				startMonth-=12; startYear++;
 			}
 			//remove 2 at front, add 2 to bottom
-			y+=childViews.removeFirstRow(NUM_COLS);
+			y += childViews.removeFirstRow(NUM_COLS);
 			childViews.addRowToEnd(NUM_COLS, this.context, 0, imageGenerator, compWidth);
 		} else if (y>compWidth) {
 			//recalculate start month
