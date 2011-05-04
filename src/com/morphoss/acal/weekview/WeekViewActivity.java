@@ -35,7 +35,6 @@ import android.os.Parcelable;
 import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -46,7 +45,6 @@ import android.view.GestureDetector.OnGestureListener;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.widget.Button;
-import android.widget.TextView;
 
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
@@ -154,7 +152,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		header 	= (WeekViewHeader) 	this.findViewById(R.id.week_view_header);
 		sidebar = (WeekViewSideBar) this.findViewById(R.id.week_view_sidebar);
 		days 	= (WeekViewDays) 	this.findViewById(R.id.week_view_days);
-		
+
 		// Set up buttons
 		this.setupButton(R.id.week_today_button, TODAY);
 		this.setupButton(R.id.week_year_button, YEAR);
@@ -202,24 +200,25 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		DAY_WIDTH = (int)(cpw*DPscaler);
 		
 		try {
-			String startDay =  prefs.getString(getString(R.string.prefWorkdayStart), "9:00");
-			String endDay =  prefs.getString(getString(R.string.prefWorkdayFinish), "17:00");
-			int idx = startDay.indexOf(':');
-			START_HOUR = Integer.parseInt(startDay.substring(0,idx));
-			START_MINUTE = Integer.parseInt(startDay.substring(idx+1));
-			idx = endDay.indexOf(':');
-			END_HOUR = Integer.parseInt(endDay.substring(0,idx));
-			END_MINUTE = Integer.parseInt(endDay.substring(idx+1));
-		} catch (Exception e) {
+			String startOfDay =  prefs.getString(getString(R.string.prefWorkdayStart), "9:00");
+			String endOfDay =  prefs.getString(getString(R.string.prefWorkdayFinish), "17:00");
+			int idx = startOfDay.indexOf(':');
+			START_HOUR = Integer.parseInt(startOfDay.substring(0,idx));
+			START_MINUTE = Integer.parseInt(startOfDay.substring(idx+1));
+			idx = endOfDay.indexOf(':');
+			END_HOUR = Integer.parseInt(endOfDay.substring(0,idx));
+			END_MINUTE = Integer.parseInt(endOfDay.substring(idx+1));
+		}
+		catch (Exception e) {
 			if (Constants.LOG_DEBUG) {
 				Log.d(TAG,"Error parsing Work Day Prferences: "+e);
 			}
 		}
 		
-		//TODO start hout should be from pref
+		//TODO start hour should be from pref
 		scrolly = (START_HOUR*3600)/SECONDS_PER_PIXEL;
 		
-		//image cache may bow be invalid
+		//image cache may now be invalid
 		imageCache = new WeekViewImageCache(this);
 		
 	}
@@ -492,7 +491,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	public boolean onTouch(View view, MotionEvent touch) {
 		return this.gestureDetector.onTouchEvent(touch);
 	}
-	
+
 	@Override
 	public boolean onDown(MotionEvent arg0) {
 		return false;
@@ -528,6 +527,8 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	@Override 
 	public void onNumberSelected(int number) {
 		selectedDate = new AcalDateTime(number,1,1,0,0,0,null);
+		selectedDate.applyLocalTimeZone();
+		this.selectedDate.setDaySecond(0);
 		this.dateChanged();
 	}
 	
@@ -551,7 +552,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		Bundle bundle = new Bundle();
 		switch (button) {
 		case TODAY:
-			this.selectedDate.setEpoch(new AcalDateTime().getEpoch());
+			this.selectedDate.setEpoch(System.currentTimeMillis()/1000);
 			this.scrollx=0;
 			scrolly=(WeekViewActivity.START_HOUR*3600)/SECONDS_PER_PIXEL;
 			this.selectedDate.setDaySecond(0);
@@ -597,6 +598,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 					try {
 						AcalDateTime day = (AcalDateTime) data.getParcelableExtra("selectedDate");
 						selectedDate = day;
+
 					} catch (Exception e) {
 						Log.w(TAG, "Error getting month back from year view: "+e);
 					}
@@ -620,6 +622,8 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 						Log.w(TAG, "Error getting month back from year view: "+e);
 					}
 			}
+			selectedDate.applyLocalTimeZone();
+			this.selectedDate.setDaySecond(0);
 		}
 	}
 
