@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2011 Morphoss Ltd
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
 package com.morphoss.acal.weekview;
 
 import java.util.ArrayList;
@@ -33,19 +51,23 @@ public class WeekViewDays extends ImageView {
 
 	//Drawing vars - easier to set these as class fields than to send them as parmaeters
 	//All these vars are used in drawing and are recaculated each time draw() is called and co-ordinates have changed
+	
+	// These need only be calculated once 
 	private int width;				//The current screen width in pixels
 	private int TpX;				//The current Screen height in pixels
+	private int HSPP;				//Horizontal Seconds per Pixel
+	private int HNS;				//the number of visible horizontal seconds
+	private int HIH;				//The height of a Horizontal event
+
+	// These ones do change as things move around
 	private int PxD;				//The current height of days section
 	private int PxH;				//The current height of the Header section
 	private int t;					//The first second of the day that is visible in main view
 	private int scrollx;			//The current (valid) horizontal scroll amount
 	private int scrolly;			//The current (valid) vertical scroll amount
 	private long currentEpoch;		//The UTC epoch time of 0:00 on the first Visible Day
-	private int HSPP;				//Horizontal Seconds per Pixel
 	private long HST;				//The UTC epoch time of the first visible horizontal second
-	private int HNS;				//the number of visible horizontal seconds
 	private long HET;				//The UTC epoch time of the last visible horizontal second
-	private int HIH;				//The height of a Horizontal event
 	private int HDepth;				//The number of horizontal rows
 	private int lastMaxX;
 	private ArrayList<AcalEvent> HList;  				//The last list of events for the header
@@ -98,7 +120,13 @@ public class WeekViewDays extends ImageView {
 	float getHeaderHeight() {
 		return this.PxH; 
 	}
-	
+
+	/**
+	 * Return the nearest valid 'y' to the one given, ensuring we don't scroll above / below the day.
+	 *  
+	 * @param y A position we are attempting to scroll to
+	 * @return The position closest to that which is reasonable.
+	 */
 	int checkScrollY(int y) {
 		int min = -PxH;
 		int max = ((86400/WeekViewActivity.SECONDS_PER_PIXEL)-TpX)+1;
@@ -109,13 +137,13 @@ public class WeekViewDays extends ImageView {
 	private void drawHeader(Canvas canvas, Paint p) {
 		
 		//1 Calculate per frame vars
-		HST = this.currentEpoch-(scrollx*HSPP);
+		HST = this.currentEpoch - (scrollx*HSPP);
 		HET = HST+HNS;
-		
-		
 		
 		AcalDateTime startTime = AcalDateTime.fromMillis(HST*1000);
 		AcalDateTime endTime = AcalDateTime.fromMillis(HET*1000);
+		startTime.applyLocalTimeZone();
+		endTime.applyLocalTimeZone();
 		AcalDateRange range = new AcalDateRange(startTime,endTime);
 		
 		//Get the current timetable
@@ -165,8 +193,7 @@ public class WeekViewDays extends ImageView {
 		scrolly = context.getScrollY();
 		scrollx = context.getScrollX();
 		
-		
-		
+
 		this.isInitialized = true;
 		context.refresh();
 		
@@ -310,7 +337,7 @@ public class WeekViewDays extends ImageView {
 
 	public void drawVertical(SimpleAcalEvent event, Canvas canvas, int x,  int width) {
 		if ( width < 1f ) return;
-		int top = (int)((event.start%86400-t)/WeekViewActivity.SECONDS_PER_PIXEL)+PxH;
+		int top = (int)((((event.start-currentEpoch)%86400)-t)/WeekViewActivity.SECONDS_PER_PIXEL)+PxH;
 		top = Math.max(top,PxH);
 		int maxHeight =(int)Math.min(TpX, (event.end-event.start)/WeekViewActivity.SECONDS_PER_PIXEL);
 		int height = (int)Math.min(maxHeight, (event.end%86400-t)/WeekViewActivity.SECONDS_PER_PIXEL);
@@ -342,6 +369,7 @@ public class WeekViewDays extends ImageView {
 		}
 		return events;
 	}
+
 	
 	public void drawHorizontal(SimpleAcalEvent event, Canvas c, int depth) {
 		event.calulateMaxWidth(width, HSPP);
@@ -355,14 +383,20 @@ public class WeekViewDays extends ImageView {
 					actualWidth, height, maxWidth, height), x,y, new Paint());
 	}
 	
-	//used for vertical
+	/**
+	 * Calculates a timetable of rows to place horizontal (multi-day) events in order
+	 * that the events do not overlap one other.
+	 * @param events A one-dimensional array of events
+	 * @return A two-dimensional array of events
+	 */
 	private SimpleAcalEvent[][] getTimeTable(List<SimpleAcalEvent> events) {
 		if (HTimetable != null && HSimpleList != null) {
 			if (events.containsAll(HSimpleList) && events.size() == HSimpleList.size()) return HTimetable;
 		}
 		Collections.sort(events);
 		SimpleAcalEvent[][] timetable = new SimpleAcalEvent[events.size()][events.size()]; //maximum possible
-		for (int x = 0; x<events.size(); x++) {
+		int depth = 0;
+		for (int x = 0; x < events.size(); x++) {
 			int i = 0;
 			boolean go = true;
 			while(go) {
@@ -370,13 +404,14 @@ public class WeekViewDays extends ImageView {
 				int j=0;
 				while(true) {
 					if (row[j] == null) { row[j] = events.get(x); go=false; break; }
-					else if (!(row[j].end >=(events.get(x).start))) {j++; continue; }
+					else if (!(row[j].end > (events.get(x).start))) {j++; continue; }
 					else break;
 				}
 				i++;
-				HDepth = i;
 			}
+			depth = Math.max(depth,i);
 		}
+		HDepth = depth;
 		HTimetable = timetable;
 		return timetable;
 	}
