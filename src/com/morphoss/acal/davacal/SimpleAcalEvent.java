@@ -1,9 +1,30 @@
+/*
+ * Copyright (C) 2011 Morphoss Ltd
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
 package com.morphoss.acal.davacal;
 
-import java.util.TimeZone;
+import com.morphoss.acal.acaltime.AcalDateTime;
 
 
-
+/**
+ * 
+ * @author Morphoss Ltd
+ *
+ */
 public class SimpleAcalEvent implements Comparable<SimpleAcalEvent> {
 	//Start and end times are in UTC
 	public final long start;
@@ -15,8 +36,8 @@ public class SimpleAcalEvent implements Comparable<SimpleAcalEvent> {
 	public SimpleAcalEvent(long start, long end, long resourceId, String summary, int colour) {
 		long st = start;
 		long en = end;
-		st+= (TimeZone.getDefault().getRawOffset()/1000f);
-		en+= (TimeZone.getDefault().getRawOffset()/1000f);		//make sure we store time in 'floating time'
+//		st+= (TimeZone.getDefault().getRawOffset()/1000f);
+//		en+= (TimeZone.getDefault().getRawOffset()/1000f);		//make sure we store time in 'floating time'
 		this.start = st;
 		this.end = en;
 		this.resourceId = resourceId;
@@ -24,15 +45,31 @@ public class SimpleAcalEvent implements Comparable<SimpleAcalEvent> {
 		this.colour = colour;
 	}
 	
-	//Returns a simple representation of an AcalEvent
+	/**
+	 * Factory method to generate a SimpleAcalEvent from a real AcalEvent.  Since we don't have to worry
+	 * about repetition from here on in, we ensure the events are localised to the user's current
+	 * timezone before we go any further.
+	 * 
+	 * @param event The AcalEvent to be finely ground
+	 * @return Essence of SimpleAcalEvent which we have ground from the AcalEvent.
+	 */
 	public static SimpleAcalEvent getSimpleEvent(AcalEvent event) {
-		event.dtstart.applyLocalTimeZone();
-		return new SimpleAcalEvent(event.getStart().getEpoch(), event.getEnd().getEpoch(), event.resourceId, event.summary, event .colour);
+		AcalDateTime start = event.getStart(); 
+		start.applyLocalTimeZone();
+		return new SimpleAcalEvent(start.getEpoch(), start.getEpoch()+(event.getDuration().getDurationMillis()/1000),
+					event.resourceId, event.summary, event.colour);
 	}
-	
-	//Returns true iff this event overlaps the one given
+
+	/**
+	 * Identifies whether this event overlaps another.  In this case "Overlap" is defined
+	 * in accordance with the spirit of RFC5545 et al, in that the event does *not* include
+	 * the end time.
+	 * 
+	 * @param e Another event we might overlap.
+	 * @return true iff this event overlaps the one given, otherwise false
+	 */
 	public boolean overlaps(SimpleAcalEvent e) {
-		return this.end>=e.start && this.start<=e.end;
+		return this.end > e.start && this.start < e.end;
 	}
 	
 	
@@ -60,6 +97,7 @@ public class SimpleAcalEvent implements Comparable<SimpleAcalEvent> {
 	public int getLastWidth() {
 		return this.lastWidth;
 	}
+
 	public void setLastWidth(int w) {
 		this.lastWidth = w;
 	}
