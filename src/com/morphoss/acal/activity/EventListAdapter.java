@@ -144,6 +144,8 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 		LinearLayout sideBar = (LinearLayout) rowLayout.findViewById(R.id.EventListItemColorBar);
 
 		AcalEvent event = context.getNthEventForDay(viewDate, position);
+		if ( event == null ) return rowLayout;
+
 		final boolean isPending = event.isPending;
 		if (isPending) {
 			sideBar.setBackgroundColor(event.getColour()|0xa0000000); title.setTextColor(event.getColour()|0xa0000000);
