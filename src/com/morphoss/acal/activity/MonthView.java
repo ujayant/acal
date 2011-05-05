@@ -977,6 +977,38 @@ public class MonthView extends Activity implements OnGestureListener,
 		return false;
 	}
 
+	@Override
+	public boolean onTrackballEvent(MotionEvent motion) {
+		switch (motion.getAction()) {
+			case (MotionEvent.ACTION_MOVE): {
+	            int dx = (int) (motion.getX() * motion.getXPrecision() );
+				int dy = (int) (motion.getY() * motion.getYPrecision() );
+//				if ( Constants.LOG_VERBOSE )
+//					Log.v(TAG,"Trackball event of size "+motion.getHistorySize()+" x/y"+motion.getX()+"/"+motion.getY()
+//								+ " - precision: " + motion.getXPrecision() +"/" + motion.getYPrecision());
+				if ( dx > 0 )
+					swipe(eventList, true);
+				else if ( dx < 0 )
+					swipe(eventList, false);
+				else if ( dy > 0 )
+					changeSelectedDate(selectedDate.addDays(7));
+				else if ( dy < 0 )
+					changeSelectedDate(selectedDate.addDays(-7));
+
+				break;
+			}
+			case (MotionEvent.ACTION_DOWN): {
+				// logic for ACTION_DOWN motion event here
+				break;
+			}
+			case (MotionEvent.ACTION_UP): {
+				// logic for ACTION_UP motion event here
+				break;
+			}
+		}
+		return true;
+	}
+
 	/**
 	 * <p>
 	 * Handles button Clicks
