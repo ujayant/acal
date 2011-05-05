@@ -85,7 +85,8 @@
 			android:summary="@string/prefWeekViewLinesPerHour_Summary"
 			android:selectable="true"
 			android:enabled="true"
-			android:defaultValue="2"/>
+			android:inputType="numberDecimal"
+			android:defaultValue="1.7"/>
 	
 		<EditTextPreference
 			android:key="@string/prefWeekViewDayWidth"
@@ -93,6 +94,7 @@
 			android:summary="@string/prefWeekViewDayWidth_Summary"
 			android:selectable="true"
 			android:enabled="true"
+			android:inputType="number"
 			android:defaultValue="70"/>
 	</PreferenceScreen>
 
