@@ -31,10 +31,8 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.widget.ImageView;
 
-import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
@@ -172,6 +170,7 @@ public class WeekViewDays extends ImageView {
 		
 	}
 	
+	public void dimensionsChanged() { this.isInitialized = false; }
 	public boolean isInitialized() { return this.isInitialized; }
 	private void initialize() {
 		//Vars needed for drawing
@@ -347,10 +346,8 @@ public class WeekViewDays extends ImageView {
 		int height = (int) (event.end - currentEpoch); 
 
 		height = ((weekSecEnd-tSec)/WeekViewActivity.SECONDS_PER_PIXEL)-top;
-		if ( height < 0 ) {
-			height = maxHeight;   // Runs past end of day
-		}
-		height = Math.max(height, WeekViewActivity.MINIMUM_DAY_EVENT_HEIGHT);
+		if ( height > 0 )
+			height = Math.max(height, WeekViewActivity.MINIMUM_DAY_EVENT_HEIGHT);
 		Paint p = new Paint();
 		p.setStyle(Paint.Style.FILL);
 		p.setColor(0xff555555);
