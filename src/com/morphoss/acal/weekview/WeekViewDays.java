@@ -354,8 +354,8 @@ public class WeekViewDays extends ImageView {
 		Paint p = new Paint();
 		p.setStyle(Paint.Style.FILL);
 		p.setColor(0xff555555);
-		if ( Constants.LOG_VERBOSE )
-			Log.v(TAG,"Drawing event '"+event.summary+"' at "+x+","+top+" for "+width+","+height);
+//		if ( Constants.LOG_VERBOSE )
+//			Log.v(TAG,"Drawing event '"+event.summary+"' at "+x+","+top+" for "+width+","+height);
 		int maxWidth = width;
 		if ( x < 0 ) {
 			width = width + x;
