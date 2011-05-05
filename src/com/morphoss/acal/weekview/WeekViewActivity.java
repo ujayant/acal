@@ -122,7 +122,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	
 	/* Fields Relating to Gesture Detection */
 	private GestureDetector gestureDetector;
-	private AcalDateTime selectedDate = new AcalDateTime();
+	private static AcalDateTime selectedDate = new AcalDateTime();
 	
 	/* Fields relating to calendar data */
 	private DataRequest dataRequest = null;
@@ -140,7 +140,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		gestureDetector = new GestureDetector(this);
-		this.selectedDate = this.getIntent().getExtras().getParcelable("StartDay");
+		WeekViewActivity.selectedDate = this.getIntent().getExtras().getParcelable("StartDay");
 		
 		if ( selectedDate == null ) {
 			selectedDate = new AcalDateTime();
@@ -262,15 +262,15 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	}
 	
 	public AcalDateTime getCurrentDate() {
-		return this.selectedDate;
+		return WeekViewActivity.selectedDate;
 	}
 	
 	public void incrementCurrentDate() {
-		this.selectedDate.addDays(1);
+		WeekViewActivity.selectedDate.addDays(1);
 	}
 	
 	public void decrementCurrentDate() {
-		this.selectedDate.addDays(-1);
+		WeekViewActivity.selectedDate.addDays(-1);
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -326,6 +326,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		connectToService();
 		imageCache = new WeekViewImageCache(this);
 		loadPrefs();
+		days.dimensionsChanged();  // User may have been in the preferences screen, maybe indirectly.
 		refresh();
 	}
 	
@@ -493,6 +494,31 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	}
 
 	@Override
+	public boolean onTrackballEvent(MotionEvent motion) {
+		switch (motion.getAction()) {
+			case (MotionEvent.ACTION_MOVE): {
+	            int dx = (int) (motion.getX() * motion.getXPrecision() * DAY_WIDTH);
+				int dy = (int) (motion.getY() * motion.getYPrecision() * FULLDAY_ITEM_HEIGHT );
+//				if ( Constants.LOG_VERBOSE )
+//					Log.v(TAG,"Trackball event of size "+motion.getHistorySize()+" x/y"+motion.getX()+"/"+motion.getY()
+//								+ " - precision: " + motion.getXPrecision() +"/" + motion.getYPrecision());
+				if (Math.abs(dx)>Math.abs(dy)) move(dx,0);
+				else move(0,dy);
+				break;
+			}
+			case (MotionEvent.ACTION_DOWN): {
+				// logic for ACTION_DOWN motion event here
+				break;
+			}
+			case (MotionEvent.ACTION_UP): {
+				// logic for ACTION_UP motion event here
+				break;
+			}
+		}
+		return true;
+	}
+
+	@Override
 	public boolean onDown(MotionEvent arg0) {
 		return false;
 	}
@@ -528,7 +554,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	public void onNumberSelected(int number) {
 		selectedDate = new AcalDateTime(number,1,1,0,0,0,null);
 		selectedDate.applyLocalTimeZone();
-		this.selectedDate.setDaySecond(0);
+		WeekViewActivity.selectedDate.setDaySecond(0);
 		this.dateChanged();
 	}
 	
@@ -552,14 +578,14 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		Bundle bundle = new Bundle();
 		switch (button) {
 		case TODAY:
-			this.selectedDate.setEpoch(System.currentTimeMillis()/1000);
+			WeekViewActivity.selectedDate.setEpoch(System.currentTimeMillis()/1000);
 			this.scrollx=0;
 			scrolly=(WeekViewActivity.START_HOUR*3600)/SECONDS_PER_PIXEL;
-			this.selectedDate.setDaySecond(0);
+			WeekViewActivity.selectedDate.setDaySecond(0);
 			this.refresh();
 			break;
 		case ADD:
-			bundle.putParcelable("DATE", this.selectedDate);
+			bundle.putParcelable("DATE", WeekViewActivity.selectedDate);
 			Intent eventEditIntent = new Intent(this, EventEdit.class);
 			eventEditIntent.putExtras(bundle);
 			this.startActivity(eventEditIntent);
@@ -623,7 +649,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 					}
 			}
 			selectedDate.applyLocalTimeZone();
-			this.selectedDate.setDaySecond(0);
+			WeekViewActivity.selectedDate.setDaySecond(0);
 		}
 	}
 
