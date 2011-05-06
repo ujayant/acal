@@ -221,6 +221,9 @@
 <string name="ManualServerConfigurationBlurb">Manually enter the server information</string>
 <string name="SavedServerConfigurationBlurb">A saved server configuration</string>
 
+<string name="AllDaysInPeriod">All day, from %1$s to %2$s</string>
+<string name="ForTheWholeDay">All day</string>
+
 <string name="alarmAtEventTime">At Event Time</string>
 <string name="alarm10MinutesPrior">10 minutes before</string>
 <string name="alarm30MinutesPrior">30 minutes before</string>
