@@ -45,7 +45,11 @@ import android.util.Log;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.DatabaseChangedEvent;
 import com.morphoss.acal.ResourceModification;
+import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.database.AcalDBHelper;
+import com.morphoss.acal.davacal.VCalendar;
+import com.morphoss.acal.davacal.VCard;
+import com.morphoss.acal.davacal.VComponent;
 import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.providers.DavResources;
 import com.morphoss.acal.providers.PendingChanges;
@@ -208,12 +212,36 @@ public class SyncChangesToServer extends ServiceJob {
 		BasicHeader eTagHeader = null;
 		BasicHeader contentHeader = new BasicHeader("Content-type", getContentType(newData) );
 
-		Long resourceId = pending.getAsLong(PendingChanges.RESOURCE_ID);
+		Integer resourceId = pending.getAsInteger(PendingChanges.RESOURCE_ID);
 		Integer pendingId = pending.getAsInteger(PendingChanges._ID);
 		if ( resourceId == null || resourceId < 1 ) {
 			action = WriteActions.INSERT;
 			eTagHeader = new BasicHeader("If-None-Match", "*" );
-			resourcePath = UUID.randomUUID().toString() + ".ics";
+			resourcePath = null;
+			String contentExtension = getContentType(newData);
+			if ( contentExtension.length() > 14 && contentExtension.substring(0,13).equals("text/calendar") )
+				contentExtension = ".ics";
+			else if ( contentExtension.substring(0,10).equals("text/vcard") )
+				contentExtension = ".vcf";
+			else
+				contentExtension = ".txt";
+			
+			try {
+				VComponent vc = VComponent.createComponentFromBlob(newData, -1, null);
+				if ( vc instanceof VCard )
+					resourcePath = StaticHelpers.rTrim(vc.getProperty("UID").getValue()) + ".vcf";
+				else if ( vc instanceof VCalendar )
+					resourcePath = StaticHelpers.rTrim(((VCalendar) vc).getMasterChild().getProperty("UID").getValue()) + ".ics";
+			}
+			catch ( Exception e ) {
+				if ( Constants.LOG_DEBUG )
+					Log.d(TAG,"Unable to get UID from resource");
+				if ( Constants.LOG_VERBOSE )
+					Log.v(TAG,Log.getStackTraceString(e));
+			};
+			if ( resourcePath == null ) {
+					resourcePath = UUID.randomUUID().toString() + ".ics";
+			}
 			resourceData = new ContentValues();
 			resourceData.put(DavResources.RESOURCE_NAME, resourcePath);
 			resourceData.put(DavResources.COLLECTION_ID, collectionId);

@@ -121,9 +121,31 @@ public final class StaticHelpers {
 		return hex.toString();
 	}
 
+	
 	public static void copyContentValue(ContentValues cloned, ContentValues serverData, String columnName) {
 		String aValue = serverData.getAsString(columnName);
 		if ( aValue != null ) cloned.put(columnName, aValue);
 	}
-	
+
+
+	/**
+	 * Trim spaces, newlines & carriage-returns from the RHS of the string.
+	 * 
+	 * @param toTrim
+	 * @param toStrip
+	 * @return the trimmed string.
+	 */
+	public static String rTrim( String toTrim ) {
+		int pos = toTrim.length();
+		
+		while( pos >= 0 ) {
+			char ch = toTrim.charAt(pos-1);
+			if ( ch == '\n' || ch == '\r' || ch == ' ' ) {
+				pos--;
+				continue;
+			}
+			break;
+		}
+		return toTrim.substring(0,pos);
+	}
 }
