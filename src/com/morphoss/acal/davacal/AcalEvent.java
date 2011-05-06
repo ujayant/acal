@@ -28,6 +28,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
 
+import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.davacal.AcalEventAction.EVENT_FIELD;
@@ -278,11 +279,23 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 		}
 		return timeText;
 	}
-	
+
+	public boolean overlaps( AcalDateRange range ) {
+		return range.overlaps(dtstart, dtstart.addDuration(duration));
+	}
+
+	/**
+	 * Get the value from the SUMMARY field.
+	 * @return
+	 */
 	public String getSummary() {
 		return this.summary;
 	}
 
+	/**
+	 * Ascertain whether the event has alarms.
+	 * @return true, if the event has alarms
+	 */
 	public boolean hasAlarms() {
 		return this.hasAlarms;
 	}
