@@ -79,6 +79,10 @@ public class WeekViewDays extends ImageView {
 	private int y = 0;
 	
 	private boolean isInitialized = false;	//Set to True once screen dimensions are calculated.
+
+	private Paint	workPaint;
+	private int	workStart;
+	private int	workFinish;
 	
 	/** Default Constructor */
 	public WeekViewDays(Context context, AttributeSet attrs, int defStyle) {
@@ -192,7 +196,13 @@ public class WeekViewDays extends ImageView {
 		scrolly = context.getScrollY();
 		scrollx = context.getScrollX();
 		
+		workPaint = new Paint();
+		workPaint.setStyle(Paint.Style.FILL);
+		workPaint.setColor(context.getResources().getColor(R.color.WeekViewDayGridWorkTimeBG));
 
+		workStart  = context.getTimePref(R.string.prefWorkdayStart, 9*3600);
+		workFinish = context.getTimePref(R.string.prefWorkdayFinish, 17*3600);
+		
 		this.isInitialized = true;
 		context.refresh();
 		
@@ -317,18 +327,26 @@ public class WeekViewDays extends ImageView {
 		Bitmap dayGrid = context.getImageCache().getDayBox(TpX+(3600/WeekViewActivity.SECONDS_PER_PIXEL));
 		int y = PxH;
 		int offset = PxH + ((tSec%3600)/WeekViewActivity.SECONDS_PER_PIXEL);
+
+		// The location of the work part of the day
+		int workTop = (workStart - tSec) / WeekViewActivity.SECONDS_PER_PIXEL;
+		int workBot = (workFinish- tSec) / WeekViewActivity.SECONDS_PER_PIXEL;
+		if ( workTop < PxH ) workTop = PxH;
+		
 		//dayGrid = Bitmap.createBitmap(dayGrid, 0, offset, dayGrid.getWidth(), PxD);
 		Rect src = new Rect(0,offset,dayGrid.getWidth(),offset+PxD);
 		while ( dayX <= width) {
-			//canvas.drawBitmap(dayGrid, dayX+x, y,p);
+			if (!(currentDay.getWeekDay() == AcalDateTime.SATURDAY || currentDay.getWeekDay() == AcalDateTime.SUNDAY)) {
+				//add a yellow background around to the work hours
+				canvas.drawRect(dayX, workTop, dayX+WeekViewActivity.DAY_WIDTH, workBot, workPaint);
+			}
+
 			Rect dst = new Rect(dayX+x,y,dayX+x+dayGrid.getWidth(),y+PxD);
 			canvas.drawBitmap(dayGrid, src, dst, p);
-			if (!(currentDay.getWeekDay() == AcalDateTime.SATURDAY || currentDay.getWeekDay() == AcalDateTime.SUNDAY)) {
-				//draw a yellow box around work hours
-			}
 			dayX += WeekViewActivity.DAY_WIDTH;
 			currentDay.addDays(1);
 		}
+		
 	}
 
 	
