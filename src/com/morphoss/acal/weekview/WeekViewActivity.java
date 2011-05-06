@@ -185,7 +185,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		catch ( NumberFormatException e ) { }
 		if (lph <= 0) lph = 1;
 		if (lph >= 10) lph = 10;
-		SECONDS_PER_PIXEL = (int)(3600f/(lph*PIXELS_PER_TEXT_ROW));
+		SECONDS_PER_PIXEL = (int)(((float) AcalDateTime.SECONDS_IN_HOUR)/(lph*PIXELS_PER_TEXT_ROW));
 		MINIMUM_DAY_EVENT_HEIGHT = 3 + (int) ((TEXT_SIZE_EVENT*SPscaler)*1.2f);  
 		FULLDAY_ITEM_HEIGHT = MINIMUM_DAY_EVENT_HEIGHT;
 		
@@ -216,7 +216,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		}
 		
 		//TODO start hour should be from pref
-		scrolly = (START_HOUR*3600)/SECONDS_PER_PIXEL;
+		scrolly = (START_HOUR*AcalDateTime.SECONDS_IN_HOUR)/SECONDS_PER_PIXEL;
 		
 		//image cache may now be invalid
 		imageCache = new WeekViewImageCache(this);
@@ -580,7 +580,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		case TODAY:
 			WeekViewActivity.selectedDate.setEpoch(System.currentTimeMillis()/1000);
 			this.scrollx=0;
-			scrolly=(WeekViewActivity.START_HOUR*3600)/SECONDS_PER_PIXEL;
+			scrolly=(WeekViewActivity.START_HOUR*AcalDateTime.SECONDS_IN_HOUR)/SECONDS_PER_PIXEL;
 			WeekViewActivity.selectedDate.setDaySecond(0);
 			this.refresh();
 			break;
@@ -653,4 +653,19 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		}
 	}
 
+	public String getStringPref(int resId, String defaultValue) {
+		return prefs.getString(getString(resId), defaultValue);
+	}
+	
+	public int getIntegerPref(int resId, int defaultValue) {
+		return Integer.parseInt(prefs.getString(getString(resId), Integer.toString(defaultValue)));
+	}
+	
+	public int getTimePref(int resId, int defaultValue) {
+		String time = getStringPref(resId,(defaultValue/AcalDateTime.SECONDS_IN_HOUR)+":"+(defaultValue%AcalDateTime.SECONDS_IN_HOUR)/60);
+		String[] hm = time.split(":");
+		if ( hm.length < 2 ) return defaultValue;
+		return Integer.parseInt(hm[0])*3600 + Integer.parseInt(hm[1])*60 ;
+	}
+	
 }
