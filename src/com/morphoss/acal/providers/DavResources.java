@@ -370,7 +370,7 @@ CREATE TABLE dav_resource (
 	 * @param contentResolver
 	 * @return A ContentValues which is the dav_resource row, or null
 	 */
-	public static ContentValues getRow(Long resourceId, ContentResolver contentResolver) {
+	public static ContentValues getRow(Integer resourceId, ContentResolver contentResolver) {
 		ContentValues resourceData = null;
 		Cursor c = null;
 		try {
