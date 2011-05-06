@@ -324,7 +324,28 @@ public abstract class VComponent {
 		return contentString.toString(); 
 	}
 
+	
+	/**
+	 * Will always return a string, in response to a request for the value of a property. That
+	 * will be the empty string if the property does not exist, or the like. 
+	 * @param propertyName
+	 * @return A string which is the value of the property, or empty, if the property is not set.
+	 */
+	public String safePropertyValue( String propertyName ) {
+		String propertyValue = null;
+		try {
+			propertyValue = this.getProperty(propertyName).getValue();
+		}
+		catch (Exception e) {
+		}
+		if (propertyValue == null) propertyValue = "";
+		return propertyValue;
+	}
 
+	
+	/**
+	 * Populates the array of children
+	 */
 	protected synchronized void populateChildren() {
 		if (this.childrenSet) return;
 		this.children = new ArrayList<VComponent>(this.content.partInfo.size());
