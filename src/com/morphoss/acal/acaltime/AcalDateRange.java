@@ -80,21 +80,38 @@ public class AcalDateRange implements Parcelable, Cloneable {
 		
 	}
 
+	/**
+	 * Test whether this range overlaps the test range
+	 * @param start
+	 * @param finish
+	 * @return true, if the ranges overlap.
+	 */
 	public boolean overlaps( AcalDateRange dTest ) {
 		if ( dTest == null ) return false;
+		return overlaps(dTest.start,dTest.end);
+	}
+
+	/**
+	 * Test whether this range overlaps the period from start (inclusive) to end (non-inclusive)
+	 * @param start
+	 * @param finish
+	 * @return true, if the ranges overlap.
+	 */
+	public boolean overlaps( AcalDateTime start, AcalDateTime finish ) {
+		if ( start == null && finish == null) return false;
 		boolean answer;
 		if ( end == null ) {
-			answer = (!dTest.start.before(start) && (dTest.end == null || dTest.end.after(start) ) );
+			answer = (!start.before(start) && (finish == null || finish.after(start) ) );
 		}
-		else if ( dTest.end == null ) {
-			answer = dTest.start.before(end);
+		else if ( finish == null ) {
+			answer = start.before(end);
 		}
 		else {
-			answer = ( !dTest.end.before(start) && dTest.start.before(end) );
+			answer = ( !finish.before(start) && start.before(end) );
 		}
 		if ( Constants.debugDateTime && Constants.LOG_VERBOSE )
 			Log.v(TAG,"Overlap of ("+start.fmtIcal()+","+(end==null?"null":end.fmtIcal())+") & ("
-						+ dTest.start.fmtIcal()+","+(dTest.end==null?"null":dTest.end.fmtIcal())+") is: "
+						+ start.fmtIcal()+","+(finish==null?"null":finish.fmtIcal())+") is: "
 						+ (answer? "yes":"no")
 					);
 		return answer;
