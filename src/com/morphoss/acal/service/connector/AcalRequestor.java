@@ -326,28 +326,31 @@ public class AcalRequestor {
 		for( HeaderElement he : authRequestHeader.getElements() ) {
 			if ( Constants.LOG_VERBOSE )
 				Log.v(TAG,"Interpreting Element: '"+he.toString()+"' ("+he.getName()+":"+he.getValue()+")");
-			if ( he.getName().equals("Digest realm") ) { 
+			if ( he.getName().equalsIgnoreCase("Digest realm") ) { 
 				authType = Servers.AUTH_DIGEST;
 				authRealm = he.getValue();
+				if ( Constants.LOG_VERBOSE ) Log.v(TAG,"Found 'Digest' auth, realm: "+authRealm);
 			}
-			else if ( he.getName().equals("Basic realm") ) { 
+			else if ( he.getName().equalsIgnoreCase("Basic realm") ) { 
 				authType = Servers.AUTH_BASIC;
 				authRealm = he.getValue();
+				if ( Constants.LOG_VERBOSE ) Log.v(TAG,"Found 'Basic' auth, realm: "+authRealm);
 			}
-			else if ( he.getName().equals("qop") ) {
+			else if ( he.getName().equalsIgnoreCase("qop") ) {
 				qop = "auth";
 			}
-			else if ( he.getName().equals("nonce") ) {
+			else if ( he.getName().equalsIgnoreCase("nonce") ) {
 				nonce = he.getValue();
 			}
-			else if ( he.getName().equals("opaque") ) {
+			else if ( he.getName().equalsIgnoreCase("opaque") ) {
 				opaque = he.getValue();
 			}
-			else if ( he.getName().equals("algorithm") ) {
+			else if ( he.getName().equalsIgnoreCase("algorithm") ) {
 				algorithm = "MD5";
 			}
 			
 		}
+
 		authRequired = true;
 	}
 
@@ -373,6 +376,8 @@ public class AcalRequestor {
 		switch( authType ) {
 			case Servers.AUTH_BASIC:
 				authValue = String.format("Basic %s", Base64Coder.encodeString(username+":"+password));
+				if ( Constants.LOG_VERBOSE )
+					Log.v(TAG, "BasicAuthDebugging: '"+authValue+"'" );
 				break;
 			case Servers.AUTH_DIGEST:
 				String A1 = md5( username + ":" + authRealm + ":" + password);
@@ -590,7 +595,7 @@ public class AcalRequestor {
 			}
 			HttpHost host = new HttpHost(this.hostName, requestPort, requestProtocol);
 
-			if ( Constants.LOG_VERBOSE && Constants.debugDavCommunication ) {
+			if ( Constants.LOG_VERBOSE  ) { // && Constants.debugDavCommunication ) {
 				Log.v(TAG, method+" "+this.fullUrl());
 
 				for ( Header h : request.getAllHeaders() ) {
