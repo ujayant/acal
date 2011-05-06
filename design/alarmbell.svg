@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="128"
+   height="128"
+   id="svg3821"
+   version="1.1"
+   inkscape:version="0.48.1 r9760"
+   inkscape:export-filename="/home/karora/projects/acal/res/drawable/alarmbell.png"
+   inkscape:export-xdpi="45"
+   inkscape:export-ydpi="45"
+   sodipodi:docname="New document 4">
+  <defs
+     id="defs3823" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="6.421875"
+     inkscape:cx="63.844282"
+     inkscape:cy="64"
+     inkscape:current-layer="layer1"
+     showgrid="true"
+     inkscape:document-units="px"
+     inkscape:grid-bbox="true"
+     inkscape:window-width="1427"
+     inkscape:window-height="982"
+     inkscape:window-x="64"
+     inkscape:window-y="0"
+     inkscape:window-maximized="0" />
+  <metadata
+     id="metadata3826">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     id="layer1"
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     transform="translate(0,64)">
+    <path
+       style="fill:none;stroke:#000000;stroke-width:10.13691044;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       d="M 25.05933,8.4512775 C 39.409302,-3.2080753 41.403108,-6.1059932 46.046164,-12.894305 c 3.402615,-4.974745 12.459503,-24.282352 20.80746,-30.673066 7.242981,-5.544809 15.885849,-5.957843 24.753702,-1.255623 7.836171,4.155165 11.735204,12.783729 11.300604,20.089961 -0.59577,10.015755 -9.865024,26.5461701 -13.4531,34.798681 C 85.866754,18.31816 85.278261,24.377329 83.176716,38.048095 72.483379,32.903376 62.279569,27.509834 62.279569,27.509834 c 0,0 -2.611807,5.931512 -2.95968,9.103266 -0.340539,3.104878 3.612861,5.612853 0.896872,9.327478 -1.626806,2.224959 -4.120112,2.586732 -5.919363,1.614372 -2.046058,-1.105741 -2.81649,-4.407932 -2.152495,-6.636854 0.78913,-2.648982 4.831827,-2.966451 6.457487,-5.20187 1.773993,-2.439376 3.228743,-8.453032 3.228743,-8.453032 z"
+       id="path3829"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="csssszccasaaacc" />
+  </g>
+</svg>

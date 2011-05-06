@@ -21,15 +21,38 @@
 		android:background="#FFFFFFFF"
 		android:orientation="vertical">
 	
-		<TextView 
-			android:id="@+id/EventListItemTitle" 
-			android:layout_height="wrap_content" 
+		<RelativeLayout
 			android:layout_width="fill_parent" 
-			android:text="Flu vaccination" 
-			android:textColor="#0000FF" 
-			android:textSize="24sp" 
-			android:paddingLeft="10sp"/>
-
+			android:layout_height="wrap_content"
+			android:layout_gravity="right"
+			android:gravity="right"> 
+			<ImageView
+				android:id="@+id/EventListItemAlarmBell"
+				android:layout_height="26sp"
+				android:layout_width="26sp"
+				android:layout_alignParentRight="true"
+				android:visibility="gone"
+				android:src="@drawable/alarmbell"
+				/>
+			<ImageView
+				android:id="@+id/EventListItemRepeating"
+				android:layout_height="26sp"
+				android:layout_width="26sp"
+				android:layout_gravity="right"
+				android:layout_toLeftOf="@id/EventListItemAlarmBell"
+				android:visibility="gone"
+				android:src="@drawable/repeating"/>
+			<TextView 
+				android:id="@+id/EventListItemTitle" 
+				android:layout_height="wrap_content" 
+				android:text="Flu vaccination" 
+				android:textColor="#0000FF" 
+				android:textSize="24sp" 
+				android:paddingLeft="10sp"
+				android:layout_width="fill_parent"
+				android:layout_toLeftOf="@id/EventListItemRepeating"
+				android:layout_weight="1"/>
+			</RelativeLayout>
 
 		<TextView 
 			android:id="@+id/EventListItemTime" 
