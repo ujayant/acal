@@ -19,17 +19,13 @@
 package com.morphoss.acal.activity;
 
 
-import java.util.HashMap;
-
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
-import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.view.View.OnClickListener;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
@@ -54,7 +50,6 @@ public class MonthAdapter extends BaseAdapter {
 	private int daysInThisMonth;
 	private int firstOffset;
 	private int firstCol;
-	private HashMap<Integer,View> views;
 
 	public MonthAdapter(MonthView monthview, AcalDateTime displayDate, AcalDateTime selectedDate) {
 		this.displayDate = displayDate;
@@ -196,6 +191,7 @@ public class MonthAdapter extends BaseAdapter {
 			mDayBox = (MonthDayBox) v.findViewById(R.id.DayBoxHighlightDay);
 			mDayBox.setEvents(context.getEventsForDay(bDate));
 			textScaleFactor = 0.6f;
+			mDayBox.setSelected();
 		} else if ( inMonth ) {
 			mDayBox = (MonthDayBox) v.findViewById(R.id.DayBoxInMonth);
 			mDayBox.setEvents(context.getEventsForDay(bDate));
@@ -204,6 +200,7 @@ public class MonthAdapter extends BaseAdapter {
 				(bDate.get(AcalDateTime.YEAR) == this.selectedDate.get(AcalDateTime.YEAR))) {
 			mDayBox = (MonthDayBox) v.findViewById(R.id.DayBoxOutMonthHighlighted);
 			textScaleFactor = 0.55f;
+			mDayBox.setSelected();
 		} else {
 			mDayBox = (MonthDayBox) v.findViewById(R.id.DayBoxOutMonth);
 			textScaleFactor = 0.5f;
