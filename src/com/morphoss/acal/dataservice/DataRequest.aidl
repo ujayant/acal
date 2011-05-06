@@ -9,6 +9,7 @@ import com.morphoss.acal.davacal.AcalEvent;
 
 
 interface DataRequest {
+	void resetCache();
 	List getEventsForDateRange(in AcalDateRange dateRange);
 	boolean isInitialising();
 	boolean isProcessing();

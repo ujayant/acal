@@ -110,7 +110,6 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 	private Queue<ContentValues> resourcesPending = new ConcurrentLinkedQueue<ContentValues>();		//requests to add resources
 	private Map<Integer,VCalendar> calendars = new ConcurrentHashMap<Integer,VCalendar>();
 	private Map<Integer,AcalCollection> collections = new ConcurrentHashMap<Integer,AcalCollection>();	//Keeps the state of collection information
-	private Map<Integer,VCalendar> changedResources = new ConcurrentHashMap<Integer,VCalendar>(); 		//i=rid VCal data that is pending server write
 	private Map<Integer,VCalendar> newResources = new ConcurrentHashMap<Integer,VCalendar>();			//i=prid resources that have been added but not written to server
 
 	private ConditionVariable threadHolder = new ConditionVariable(true);
@@ -132,8 +131,6 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 	public static final int BIND_ALARM_TRIGGER = 1;
 
 
-	//Alarm management variables
-	private static final AcalDuration TIME_BETWEEN_ALARM_CHECKS = new AcalDuration("PT5M");	//every 5 mins
 	private static final AcalDateTime MIN_ALARM_AGE = AcalDateTime.addDuration(new AcalDateTime(), new AcalDuration("-PT24H"));	// now -1 Day
 
 	private PriorityQueue<AcalAlarm> alarmQueue = new PriorityQueue<AcalAlarm>();
@@ -750,9 +747,11 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 		}
 		else if (changeEvent.getEventType() == DatabaseChangedEvent.DATABASE_INVALIDATED) {
 			if (Constants.LOG_DEBUG) Log.d(TAG,"Database invalidated message received. Clearing memory.");
-			resourcesPending = new ConcurrentLinkedQueue<ContentValues>();							//requests to add resources
+			resourcesPending = new ConcurrentLinkedQueue<ContentValues>();
 			calendars = new ConcurrentHashMap<Integer,VCalendar>();
 			collections = new ConcurrentHashMap<Integer,AcalCollection>();
+			newResources = new ConcurrentHashMap<Integer,VCalendar>();
+			setupCollections();
 			resetWorker();
 			if (callback != null) {
 				try {
@@ -892,15 +891,30 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 
 		//EventCache methods
 		@SuppressWarnings("unchecked")
-		public synchronized List getEventsForDay(AcalDateTime day) { eventCache.addDay(day,this); return eventCache.getEventsForDay(day); }
-		public synchronized List getEventsForDays(AcalDateRange range) { return eventCache.getEventsForDays(range,this); }
-		public synchronized int getNumberEventsForDay(AcalDateTime day) {eventCache.addDay(day,this); return eventCache.getNumberEventsForDay(day); }
+		public synchronized List<AcalEvent> getEventsForDay(AcalDateTime day) {
+			eventCache.addDay(day,this);
+			return eventCache.getEventsForDay(day); 
+		}
+		public synchronized List<AcalEvent> getEventsForDays(AcalDateRange range) {
+			return eventCache.getEventsForDays(range,this); 
+		}
+		public synchronized int getNumberEventsForDay(AcalDateTime day) {
+			eventCache.addDay(day,this);
+			return eventCache.getNumberEventsForDay(day); 
+		}
 		public synchronized AcalEvent getNthEventForDay(AcalDateTime day, int n) {eventCache.addDay(day,this); return eventCache.getNthEventForDay(day, n); }
 		public synchronized void deleteEvent(AcalDateTime day, int n) {eventCache.addDay(day,this); eventCache.deleteEvent(day, n); }
 		public synchronized void flushCache() {eventCache.flushCache();}
 		
 		
-		
+		@Override
+		public void resetCache() {
+			resourcesPending = new ConcurrentLinkedQueue<ContentValues>();
+			calendars = new ConcurrentHashMap<Integer,VCalendar>();
+			collections = new ConcurrentHashMap<Integer,AcalCollection>();
+			newResources = new ConcurrentHashMap<Integer,VCalendar>();
+			setupCollections();
+		}
 		
 		
 		@Override
