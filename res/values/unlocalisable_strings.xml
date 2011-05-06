@@ -15,9 +15,12 @@
 
 <color name="MonthDayOutMonthBG">#80AAAAAA</color>
 
-<color name="MonthDayHighlightFG">#C00000</color>
+<color name="MonthDayHighlightFG">#FFC00000</color>
 <color name="MonthDayHighlightBG">#00FFFFFF</color>
 <dimen name="MonthDayHighlightTextSize">18sp</dimen>
+
+<color name="MonthDayHighlightBox">#FFE77720</color>
+<color name="MonthDayTodayBox">#FF10D747</color>
 
 <color name="DayEventFG">#103090</color>
 <color name="DayEventBG">#50FFFFFF</color>
@@ -28,5 +31,5 @@
 <color name="WeekViewSidebarBG">#F0F0F0</color>
 <color name="WeekViewSidebarBorder">#333333</color>
 <color name="WeekViewDayGridBorder">#AAAAAA</color>
-<color name="WeekViewDayGridWorkTimeBG">#F0F6F6D0</color>
+<color name="WeekViewDayGridWorkTimeBG">#90F6F6D0</color>
 </resources>
