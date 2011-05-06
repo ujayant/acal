@@ -26,6 +26,7 @@ import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.widget.TextView;
 
+import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.davacal.AcalEvent;
 
@@ -33,6 +34,7 @@ public class MonthDayBox extends TextView {
 
 	private List<AcalEvent> events;
 	private boolean isToday = false;
+	private boolean isSelectedDay = false;
 	private Context context;
 	
 	public MonthDayBox(Context context) {
@@ -62,14 +64,18 @@ public class MonthDayBox extends TextView {
 		float height = getHeight();
 		int x = 0;
 		int y = 0;
-		if ( isToday ) {
+		if ( isToday || isSelectedDay ) {
 			x = (int) (width/16f);
 			y = (int) (height/16f);
 			if ( x < 1 ) x =1;
 			if ( y < 1 ) y =1;
 			if ( x < y ) x =y;
 			if ( y < x ) y =x;
-			p.setColor(0xffe77720);
+			p.setColor( ( isSelectedDay
+						? context.getResources().getColor(R.color.MonthDayHighlightBox)
+						: context.getResources().getColor(R.color.MonthDayTodayBox)
+					));
+			
 			arg0.drawRect(0, 0, width, y, p);
 			arg0.drawRect(0, 0, x, height, p);
 			arg0.drawRect(width-x, 0, width, height, p);
@@ -119,6 +125,10 @@ public class MonthDayBox extends TextView {
 
 	public void setToday() {
 		isToday = true;
+	}
+
+	public void setSelected() {
+		isSelectedDay = true;
 	}
 
 	
