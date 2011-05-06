@@ -32,15 +32,16 @@ import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View.OnClickListener;
 import android.view.View.OnCreateContextMenuListener;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.davacal.AcalEvent;
 import com.morphoss.acal.davacal.AcalEventAction;
+import com.morphoss.acal.davacal.SimpleAcalEvent;
 
 /**
  * <p>
@@ -140,39 +141,49 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 		title = (TextView) rowLayout.findViewById(R.id.EventListItemTitle);
 		time = (TextView) rowLayout.findViewById(R.id.EventListItemTime);
 		location = (TextView) rowLayout.findViewById(R.id.EventListItemLocation);
-
+		
 		LinearLayout sideBar = (LinearLayout) rowLayout.findViewById(R.id.EventListItemColorBar);
 
-		AcalEvent event = context.getNthEventForDay(viewDate, position);
+		SimpleAcalEvent event = SimpleAcalEvent.getSimpleEvent(context.getNthEventForDay(viewDate, position));
 		if ( event == null ) return rowLayout;
 
+		if ( event.hasRepeat ) {
+			ImageView repeating = (ImageView) rowLayout.findViewById(R.id.EventListItemRepeating);
+			repeating.setVisibility(View.VISIBLE);
+		}
+		if ( event.hasAlarm ) {
+			ImageView alarmed = (ImageView) rowLayout.findViewById(R.id.EventListItemAlarmBell);
+			alarmed.setVisibility(View.VISIBLE);
+		}
+
+		
 		final boolean isPending = event.isPending;
 		if (isPending) {
-			sideBar.setBackgroundColor(event.getColour()|0xa0000000); title.setTextColor(event.getColour()|0xa0000000);
+			sideBar.setBackgroundColor(event.colour|0xa0000000); title.setTextColor(event.colour|0xa0000000);
 			((LinearLayout) rowLayout.findViewById(R.id.EventListItemText)).setBackgroundColor(0x44000000);
 		}
 		else {
-			sideBar.setBackgroundColor(event.getColour()); 
-			title.setTextColor(event.getColour());
+			sideBar.setBackgroundColor(event.colour); 
+			title.setTextColor(event.colour);
 		}
-		if (event.getSummary()!=null)
-			title.setText(event.getSummary());
+		if (event.summary != null)
+			title.setText(event.summary);
 		else
 			title.setText("Untitled");
 
-		time.setText(event.getTimeText(viewDate, viewDateEnd,
+		time.setText(event.getTimeText(context, viewDate.getEpoch(), viewDateEnd.getEpoch(),
 					prefs.getBoolean(context.getString(R.string.prefTwelveTwentyfour), false))
 					+ (isPending ? " (saving)" : "") );
 
-		if (event.getLocation() != null && !event.getLocation().equals("") )
-			location.setText(event.getLocation());
+		if (event.location != null && !event.location.equals("") )
+			location.setText(event.location);
 		else
 			location.setHeight(2);
 
 		rowLayout.setTag(event);
 		rowLayout.setOnTouchListener(this.context);
 		rowLayout.setOnClickListener(this);
-		final boolean repeats = (event.repetition != null && !event.repetition.equals(""));
+		final boolean repeats = event.hasRepeat;
 		//add context menu
 		this.context.registerForContextMenu(rowLayout);
 		rowLayout.setOnCreateContextMenuListener(new OnCreateContextMenuListener() {
