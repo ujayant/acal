@@ -47,7 +47,7 @@ public class aCalService extends Service {
 		startService();
 	}
 
-	private void startService() {
+	private synchronized void startService() {
 
 		worker = WorkerClass.getInstance(this);
 		
@@ -94,6 +94,7 @@ public class aCalService extends Service {
 	}
 	
 	public void addWorkerJob(ServiceJob s) {
+		if ( worker == null ) startService();
 		this.worker.addJobAndWake(s);
 	}
 
