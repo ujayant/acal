@@ -50,18 +50,6 @@
 		</LinearLayout>
 		<LinearLayout
 			android:layout_width="fill_parent" 
-			android:layout_height="fill_parent" android:layout_weight="1"
-			android:gravity="center">
-			<Button android:id="@+id/month_week_button"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				style="@style/bottom_button"
-				android:gravity="center"
-				android:text="@string/Week"
-				android:width="70dp"/>
-		</LinearLayout>
-		<LinearLayout
-			android:layout_width="fill_parent" 
 			android:layout_height="fill_parent"
 			android:layout_weight="1"
 			android:gravity="center"
@@ -73,6 +61,18 @@
 				style="@style/bottom_button"
 				android:text="@string/Year"
 				android:width="70dp" android:includeFontPadding="true" android:padding="0sp"/>
+		</LinearLayout>
+		<LinearLayout
+			android:layout_width="fill_parent" 
+			android:layout_height="fill_parent" android:layout_weight="1"
+			android:gravity="center">
+			<Button android:id="@+id/month_week_button"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				style="@style/bottom_button"
+				android:gravity="center"
+				android:text="@string/Week"
+				android:width="70dp"/>
 		</LinearLayout>
 		<LinearLayout
 			android:layout_width="fill_parent" 
