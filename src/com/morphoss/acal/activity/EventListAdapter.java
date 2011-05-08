@@ -23,6 +23,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -97,7 +98,6 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 	@Override
 	public int getCount() {
 		return context.getNumberEventsForDay(viewDate);
-		//return 0;
 	}
 
 	/**
@@ -109,7 +109,6 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 	@Override
 	public Object getItem(int position) {
 		return context.getNthEventForDay(viewDate, position);
-		//return null;
 	}
 
 	/**
@@ -125,7 +124,8 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 
 
 	/**
-	 * <p>Returns the view asscoiated with the event at the specified position. Currently, views do not respond to any events.</p> 
+	 * <p>Returns the view associated with the event at the specified position. Currently, views
+	 * do not respond to any events.</p> 
 	 * 
 	 * (non-Javadoc)
 	 * @see android.widget.Adapter#getView(int, android.view.View, android.view.ViewGroup)
@@ -135,27 +135,16 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 		LinearLayout rowLayout;
 
 		LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-		TextView title = null, time = null, location = null;
 		rowLayout = (LinearLayout) inflater.inflate(R.layout.event_list_item, parent, false);
 
-		title = (TextView) rowLayout.findViewById(R.id.EventListItemTitle);
-		time = (TextView) rowLayout.findViewById(R.id.EventListItemTime);
-		location = (TextView) rowLayout.findViewById(R.id.EventListItemLocation);
+		TextView title = (TextView) rowLayout.findViewById(R.id.EventListItemTitle);
+		TextView time = (TextView) rowLayout.findViewById(R.id.EventListItemTime);
+		TextView location = (TextView) rowLayout.findViewById(R.id.EventListItemLocation);
 		
 		LinearLayout sideBar = (LinearLayout) rowLayout.findViewById(R.id.EventListItemColorBar);
 
 		SimpleAcalEvent event = SimpleAcalEvent.getSimpleEvent(context.getNthEventForDay(viewDate, position));
 		if ( event == null ) return rowLayout;
-
-		if ( event.hasRepeat ) {
-			ImageView repeating = (ImageView) rowLayout.findViewById(R.id.EventListItemRepeating);
-			repeating.setVisibility(View.VISIBLE);
-		}
-		if ( event.hasAlarm ) {
-			ImageView alarmed = (ImageView) rowLayout.findViewById(R.id.EventListItemAlarmBell);
-			alarmed.setVisibility(View.VISIBLE);
-		}
-
 		
 		final boolean isPending = event.isPending;
 		if (isPending) {
@@ -163,19 +152,27 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 			((LinearLayout) rowLayout.findViewById(R.id.EventListItemText)).setBackgroundColor(0x44000000);
 		}
 		else {
+			rowLayout.findViewById(R.id.EventListItemIcons).setBackgroundColor(event.colour);
 			sideBar.setBackgroundColor(event.colour); 
 			title.setTextColor(event.colour);
 		}
-		if (event.summary != null)
-			title.setText(event.summary);
-		else
-			title.setText("Untitled");
 
+		title.setText((event.summary == null  || event.summary.length() <= 0 ) ? "Untitled" : event.summary);
+
+		if ( event.hasAlarm ) {
+			ImageView alarmed = (ImageView) rowLayout.findViewById(R.id.EventListItemAlarmBell);
+			alarmed.setVisibility(View.VISIBLE);
+		}
+		if ( event.hasRepeat ) {
+			ImageView repeating = (ImageView) rowLayout.findViewById(R.id.EventListItemRepeating);
+			repeating.setVisibility(View.VISIBLE);
+		}
+		
 		time.setText(event.getTimeText(context, viewDate.getEpoch(), viewDateEnd.getEpoch(),
 					prefs.getBoolean(context.getString(R.string.prefTwelveTwentyfour), false))
 					+ (isPending ? " (saving)" : "") );
 
-		if (event.location != null && !event.location.equals("") )
+		if (event.location != null && event.location.length() > 0 )
 			location.setText(event.location);
 		else
 			location.setHeight(2);
@@ -183,7 +180,10 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 		rowLayout.setTag(event);
 		rowLayout.setOnTouchListener(this.context);
 		rowLayout.setOnClickListener(this);
+
+		// 'final' so we can refer to it below
 		final boolean repeats = event.hasRepeat;
+
 		//add context menu
 		this.context.registerForContextMenu(rowLayout);
 		rowLayout.setOnCreateContextMenuListener(new OnCreateContextMenuListener() {
