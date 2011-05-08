@@ -31,8 +31,10 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.widget.ImageView;
 
+import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
@@ -44,7 +46,7 @@ public class WeekViewDays extends ImageView {
 	public static final String TAG = "aCal - WeekViewDays";
 	
 	private WeekViewActivity context; 
-	private AcalDateTime date;
+	private AcalDateTime firstVisibleDay;
 	
 	private SimpleAcalEvent[][] headerTimeTable;
 	
@@ -62,7 +64,7 @@ public class WeekViewDays extends ImageView {
 	// These ones do change as things move around
 	private int PxD;				//The current height of days section
 	private int PxH;				//The current height of the Header section
-	private int tSec;				//The first second of the day that is visible in main view
+	private int topSec;				//The first second of the day that is visible in main view
 	private int scrollx;			//The current (valid) horizontal scroll amount
 	private int scrolly;			//The current (valid) vertical scroll amount
 	private long currentEpoch;		//The UTC epoch time of 0:00 on the first Visible Day
@@ -74,15 +76,9 @@ public class WeekViewDays extends ImageView {
 	private ArrayList<SimpleAcalEvent> HSimpleList;  	//The last list of (simple) events for the header
 	private SimpleAcalEvent[][] HTimetable;  			//The last timetable used for the header
 	
-	//These to vars define the top left drawing position of the main area (excluded header)
-	private int x = 0;			
-	private int y = 0;
-	
 	private boolean isInitialized = false;	//Set to True once screen dimensions are calculated.
 
 	private Paint	workPaint;
-	private int	workStart;
-	private int	workFinish;
 	
 	/** Default Constructor */
 	public WeekViewDays(Context context, AttributeSet attrs, int defStyle) {
@@ -92,7 +88,7 @@ public class WeekViewDays extends ImageView {
 		}
 		if (!(context instanceof WeekViewActivity)) throw new IllegalStateException("Week View Started with invalid context.");
 		this.context = (WeekViewActivity) context;
-		this.date = this.context.getCurrentDate();
+		this.firstVisibleDay = this.context.getCurrentDate();
 	}
 	
 	/** Default Constructor */
@@ -103,7 +99,7 @@ public class WeekViewDays extends ImageView {
 		}
 		if (!(context instanceof WeekViewActivity)) throw new IllegalStateException("Week View Started with invalid context.");
 		this.context = (WeekViewActivity) context;
-		this.date = this.context.getCurrentDate();
+		this.firstVisibleDay = this.context.getCurrentDate();
 	} 
 	
 	/** Default Constructor */
@@ -114,14 +110,11 @@ public class WeekViewDays extends ImageView {
 		}
 		if (!(context instanceof WeekViewActivity)) throw new IllegalStateException("Week View Started with invalid context.");
 		this.context = (WeekViewActivity) context;
-		this.date = this.context.getCurrentDate();
+		this.firstVisibleDay = this.context.getCurrentDate();
 	}
 	
-	public float headerHeight() {
-		return this.PxH;
-	}
-	
-	float getHeaderHeight() {
+
+	public int getHeaderHeight() {
 		return this.PxH; 
 	}
 
@@ -132,11 +125,12 @@ public class WeekViewDays extends ImageView {
 	 * @return The position closest to that which is reasonable.
 	 */
 	int checkScrollY(int y) {
-		int min = -PxH;
-		int max = ((86400/WeekViewActivity.SECONDS_PER_PIXEL)-TpX)+1;
-		return (Math.min(max, Math.max(min, y)));
-		
+		if ( y < -PxH ) return -PxH;
+		int max = ((AcalDateTime.SECONDS_IN_DAY/WeekViewActivity.SECONDS_PER_PIXEL) - TpX)+5;
+		if ( y > max ) return max;
+		return y;
 	}
+
 	
 	private void drawHeader(Canvas canvas, Paint p) {
 		
@@ -149,16 +143,16 @@ public class WeekViewDays extends ImageView {
 		AcalDateRange range = new AcalDateRange(startTime,endTime);
 		
 		//Get the current timetable
-		headerTimeTable = getMultiDayTimeTable(getFullDayEventList(range));
+		headerTimeTable = getMultiDayTimeTable(getEventsForHeader(range));
 		if (headerTimeTable.length <=0) {	this.PxH =0; return; }
 		PxH = HDepth*HIH;
 		
 		//draw day boxes
 		p.setStyle(Paint.Style.STROKE);
 		p.setColor(context.getResources().getColor(R.color.WeekViewDayGridBorder));
-		canvas.drawRect(x, y, width, PxH, p);
+		canvas.drawRect(0, 0, width, PxH, p);
 		for (int curx =0-(WeekViewActivity.DAY_WIDTH-scrollx); curx<=width; curx+= WeekViewActivity.DAY_WIDTH) {
-			canvas.drawRect(x+curx, y, x+curx+WeekViewActivity.DAY_WIDTH,y+PxH,p);
+			canvas.drawRect(curx, 0, curx+WeekViewActivity.DAY_WIDTH,PxH,p);
 		}
 		
 		
@@ -174,14 +168,17 @@ public class WeekViewDays extends ImageView {
 		
 	}
 	
-	public void dimensionsChanged() { this.isInitialized = false; }
+	public void dimensionsChanged() {
+		if ( Constants.LOG_DEBUG )
+			Log.d(TAG,"Dimensions may have changed, recalculating...");
+		this.isInitialized = false;
+	}
+
 	public boolean isInitialized() { return this.isInitialized; }
 	private void initialize() {
 		//Vars needed for drawing
 		width = this.getWidth();
 		TpX = this.getHeight();
-		x = 0;
-		y = 0;
 
 		//Seconds per pixel min/max values (MAX full day visible MIN 1 pixel per minute)
 		WeekViewActivity.SECONDS_PER_PIXEL = Math.max(WeekViewActivity.SECONDS_PER_PIXEL,60);
@@ -200,9 +197,6 @@ public class WeekViewDays extends ImageView {
 		workPaint.setStyle(Paint.Style.FILL);
 		workPaint.setColor(context.getResources().getColor(R.color.WeekViewDayGridWorkTimeBG));
 
-		workStart  = context.getTimePref(R.string.prefWorkdayStart, 9*3600);
-		workFinish = context.getTimePref(R.string.prefWorkdayFinish, 17*3600);
-		
 		this.isInitialized = true;
 		context.refresh();
 		
@@ -222,7 +216,7 @@ public class WeekViewDays extends ImageView {
 		//calculate variables that may change from frame to frame
 		scrolly = context.getScrollY();
 		scrollx = context.getScrollX();
-		this.currentEpoch = date.getEpoch();
+		this.currentEpoch = firstVisibleDay.getEpoch();
 		
 		Paint p = new Paint();
 		drawBackground(canvas);
@@ -230,48 +224,56 @@ public class WeekViewDays extends ImageView {
 		//need to draw header first. Drawing the header also adjusts the y value and height.
 		this.drawHeader(canvas,p);
 		PxD = TpX - PxH;
-		tSec = scrolly * WeekViewActivity.SECONDS_PER_PIXEL;
+		topSec = scrolly * WeekViewActivity.SECONDS_PER_PIXEL;
 
 		drawGrid(canvas,p);
 		
-		float dayX = (int)(0-WeekViewActivity.DAY_WIDTH+context.getScrollX());
-		float dayWidth = WeekViewActivity.DAY_WIDTH;
+		int dayX = (int)(0-WeekViewActivity.DAY_WIDTH+context.getScrollX());
+		int dayWidth = WeekViewActivity.DAY_WIDTH;
 		p = new Paint();
 
-		AcalDateTime currentDay = this.date.clone();
+		AcalDateTime currentDay = this.firstVisibleDay.clone().applyLocalTimeZone();
 		currentDay.addDays(-1);
 		//draw events
 		while (dayX<= width) {
+			
+			if ( Constants.LOG_DEBUG && Constants.debugWeekView )
+				Log.d(TAG,"Starting new day "+AcalDateTime.fmtDayMonthYear(currentDay)+
+							" epoch="+currentDay.getEpoch()+" dayX="+dayX);
 		
-			SimpleAcalEvent[][] timeTable = getInDayTimeTable(getEventList(currentDay));
+			SimpleAcalEvent[][] timeTable = getInDayTimeTable(getEventsForDay(currentDay));
+
 			//draw visible events
-			if (timeTable.length  <=0) {
-				currentDay.addDays(1);
-				dayX+=dayWidth;
-				continue;
-			}
-			p.reset();
-			p.setStyle(Paint.Style.FILL);
-			int size = timeTable.length;
-			Set<SimpleAcalEvent> drawn = new HashSet<SimpleAcalEvent>(); //events can show up several times in the timetable, keep a record of whats already drawn
-			for (int i = 0; i<size;i++)  {
-				int curX = 0;
-				for(int j=0;j < timeTable[i].length;j++) {
-					if (timeTable[i][j] != null) {
-						if (drawn.contains(timeTable[i][j])) {
-							curX+=timeTable[i][j].getLastWidth();
-							continue;
+			if ( timeTable.length > 0) {
+				p.reset();
+				p.setStyle(Paint.Style.FILL);
+				long thisDayEpoch = currentDay.getEpoch();
+
+				//events can show up several times in the timetable, keep a record of what's already drawn
+				Set<SimpleAcalEvent> drawn = new HashSet<SimpleAcalEvent>();
+
+				for (int i = 0; i < timeTable.length; i++)  {
+					int curX = 0;
+					for(int j=0; j < timeTable[i].length; j++) {
+						if (timeTable[i][j] != null) {
+							if (drawn.contains(timeTable[i][j])) {
+								curX+=timeTable[i][j].getLastWidth();
+								continue;
+							}
+							drawn.add(timeTable[i][j]);
+							
+							//calculate width
+							int depth  = 0;
+							for ( int k = j;
+									k<=lastMaxX && (timeTable[i][k] == null || timeTable[i][k] == timeTable[i][j]);
+									k++)
+								depth++;
+							float singleWidth = (dayWidth/(lastMaxX+1)) * depth;	
+							SimpleAcalEvent event = timeTable[i][j];
+							drawVertical(event, canvas, (int)dayX+curX, (int)singleWidth, thisDayEpoch);
+							event.setLastWidth((int)singleWidth);
+							curX+=singleWidth;
 						}
-						drawn.add(timeTable[i][j]);
-						
-						//calculate width
-						int depth  = 0;
-						for (int k = j; k<=lastMaxX && (timeTable[i][k] == null || timeTable[i][k] == timeTable[i][j]); k++) depth++;
-						float singleWidth = (dayWidth/(lastMaxX+1))*(depth);	
-						SimpleAcalEvent event = timeTable[i][j];
-						drawVertical(event, canvas, (int)dayX+curX, (int)singleWidth, currentDay.getEpoch());
-						event.setLastWidth((int)singleWidth);
-						curX+=singleWidth;
 					}
 				}
 			}
@@ -283,27 +285,26 @@ public class WeekViewDays extends ImageView {
 		p.reset();
 		p.setStyle(Paint.Style.STROKE);
 		p.setColor(0xff333333);
-		canvas.drawRect(x, y, x+width, y+PxH, p);
-		//draw uber-cool shading effect
+		canvas.drawRect(0, 0, width, PxH, p);
+
+		//draw shading effect below header
 		if (PxH != 0 ) {
-			int hhh = 1800/WeekViewActivity.SECONDS_PER_PIXEL;
+			int hhh = 1200/WeekViewActivity.SECONDS_PER_PIXEL;
 		 
-			int base = 0x333333;
+			int base = 0x444444;
 			int current = 0xc0;
-			int decrement = current/(hhh-3);
+			int decrement = current/hhh;
+			hhh += PxH;
 		
 			int color = (current << 24)+base; 
 			p.setColor(color);
-			for (int i = 0; i < 3; i++) {
-				canvas.drawLine(x, y+PxH+i, x+width, y+PxH+i, p);
-			}
-		
-		
-			for (int i=3; i<hhh;i++) {
+			canvas.drawLine(0, PxH, width, PxH, p);
+
+			for (int i=PxH; i<hhh; i++) {
 				current-=decrement;
 				color = (current << 24)+base; 
 				p.setColor(color);
-				canvas.drawLine(x, y+i+PxH, x+width, y+i+PxH, p);
+				canvas.drawLine(0, i, width, i, p);
 			}
 		}
 		
@@ -314,8 +315,9 @@ public class WeekViewDays extends ImageView {
 		Paint p = new Paint();
 		p.setStyle(Paint.Style.FILL);
 		p.setColor(Color.parseColor("#AAf0f0f0"));
-		canvas.drawRect(x, y, width, TpX, p);
+		canvas.drawRect(0, 0, width, TpX, p);
 	}
+
 	
 	public void drawGrid(Canvas canvas, Paint p) {
 		p.setStyle(Paint.Style.FILL);
@@ -326,11 +328,11 @@ public class WeekViewDays extends ImageView {
 		//get the grid for each day
 		Bitmap dayGrid = context.getImageCache().getDayBox(TpX+(3600/WeekViewActivity.SECONDS_PER_PIXEL));
 		int y = PxH;
-		int offset = PxH + ((tSec%3600)/WeekViewActivity.SECONDS_PER_PIXEL);
+		int offset = PxH + ((topSec%3600)/WeekViewActivity.SECONDS_PER_PIXEL);
 
 		// The location of the work part of the day
-		int workTop = (workStart - tSec) / WeekViewActivity.SECONDS_PER_PIXEL;
-		int workBot = (workFinish- tSec) / WeekViewActivity.SECONDS_PER_PIXEL;
+		int workTop = (context.WORK_START_SECONDS - topSec) / WeekViewActivity.SECONDS_PER_PIXEL;
+		int workBot = (context.WORK_FINISH_SECONDS- topSec) / WeekViewActivity.SECONDS_PER_PIXEL;
 		if ( workTop < PxH ) workTop = PxH;
 		
 		//dayGrid = Bitmap.createBitmap(dayGrid, 0, offset, dayGrid.getWidth(), PxD);
@@ -341,7 +343,7 @@ public class WeekViewDays extends ImageView {
 				canvas.drawRect(dayX, workTop, dayX+WeekViewActivity.DAY_WIDTH, workBot, workPaint);
 			}
 
-			Rect dst = new Rect(dayX+x,y,dayX+x+dayGrid.getWidth(),y+PxD);
+			Rect dst = new Rect(dayX,y,dayX+dayGrid.getWidth(),y+PxD);
 			canvas.drawBitmap(dayGrid, src, dst, p);
 			dayX += WeekViewActivity.DAY_WIDTH;
 			currentDay.addDays(1);
@@ -351,53 +353,82 @@ public class WeekViewDays extends ImageView {
 
 	
 
-
+	/**
+	 * Draw the event in the main part of the day.
+	 *  
+	 * @param event to be drawn
+	 * @param canvas to draw on
+	 * @param x position from left, in pixels
+	 * @param width of the event to draw, in pixels
+	 * @param dayStart in seconds from epoch
+	 */
 	public void drawVertical(SimpleAcalEvent event, Canvas canvas, int x,  int width, long dayStart) {
-		if ( width < 1f ) return;
-		int weekSecStart = (int) (event.start - dayStart);
-		int weekSecEnd   = (int) (event.end - dayStart);
 
-		int top = ((weekSecStart-tSec)/WeekViewActivity.SECONDS_PER_PIXEL);
-		top = Math.max(top,PxH);
-		int maxHeight =(int)Math.min(TpX, (event.end-event.start)/WeekViewActivity.SECONDS_PER_PIXEL);
-		maxHeight = Math.max(maxHeight, WeekViewActivity.MINIMUM_DAY_EVENT_HEIGHT );
-		int height = (int) (event.end - currentEpoch); 
-
-		height = ((weekSecEnd-tSec)/WeekViewActivity.SECONDS_PER_PIXEL)-top;
-		if ( height > 0 )
-			height = Math.max(height, WeekViewActivity.MINIMUM_DAY_EVENT_HEIGHT);
-		Paint p = new Paint();
-		p.setStyle(Paint.Style.FILL);
-		p.setColor(0xff555555);
-//		if ( Constants.LOG_VERBOSE )
-//			Log.v(TAG,"Drawing event '"+event.summary+"' at "+x+","+top+" for "+width+","+height);
+		long topStart = dayStart + topSec;
+		if ( Constants.LOG_VERBOSE && Constants.debugWeekView ) {
+			Log.v(TAG,"Drawing event "+event.getTimeText(context, dayStart, dayStart, true)+
+						": '"+event.summary+"' at "+x+" for "+width+" ~ "+
+						event.start+","+event.end+" ~ "+dayStart+", topSec: "+topSec);
+			Log.v(TAG,"Top="+(event.start - topStart)+
+						", Bottom="+(event.end - topStart) );
+		}
+		
 		int maxWidth = width;
 		if ( x < 0 ) {
 			width = width + x;
 			x = 0;
 		}
-		if (height <= 0 || width <= 0) return;
+
+		if ( width < 1f ) {
+			if ( Constants.LOG_VERBOSE ) Log.v(TAG,"Event is width "+ width);
+			return;
+		}
+		
+		int bottom = (int) ((event.end - topStart)/WeekViewActivity.SECONDS_PER_PIXEL);
+		if ( bottom < PxH )  {  // Event is off top
+			if ( Constants.LOG_VERBOSE ) Log.v(TAG,"Event is off top by "+ bottom + " vs. " + PxH);
+			return;
+		}
+
+		int top = (int) ((event.start - topStart)/WeekViewActivity.SECONDS_PER_PIXEL);
+		if ( top > TpX ) { // Event is off bottom
+			if ( Constants.LOG_VERBOSE ) Log.v(TAG,"Event is off bottom by "+ top + " vs. " + TpX);
+			return;
+		}
+
+		int maxHeight = Math.max((bottom - top), WeekViewActivity.MINIMUM_DAY_EVENT_HEIGHT );
+		int height = maxHeight;
+
+		if ( top < PxH ) {
+			height -= (PxH-top);
+			top = PxH;
+		}
+		if ( bottom > TpX ) bottom = TpX;
+		if ( height < 1 ) return;
+
+		// Paint a gray border
+		Paint p = new Paint();
+		p.setStyle(Paint.Style.FILL);
+		p.setColor(0xff555555);
+
+		if ( Constants.LOG_VERBOSE && Constants.debugWeekView )
+			Log.v(TAG,"Drawing event "+event.getTimeText(context, dayStart, dayStart, true)+
+						": '"+event.summary+"' at "+x+","+top+" for "+width+","+height+
+						" ("+maxWidth+","+maxHeight+")"+
+						" - "+event.start+","+event.end);
+
 		canvas.drawBitmap(context.getImageCache().getEventBitmap(event.resourceId,event.summary,event.colour,
 						width, height, maxWidth, maxHeight), x, top, new Paint());
 		
 	}
 
-	//for horizontal
-	private ArrayList<SimpleAcalEvent> getEventList(AcalDateTime day) {
+	//for events in the main panel
+	private ArrayList<SimpleAcalEvent> getEventsForDay(AcalDateTime day) {
 		ArrayList<AcalEvent> eventList = context.getEventsForDay(day);
 		ArrayList<SimpleAcalEvent> events = new ArrayList<SimpleAcalEvent>();
 		for (AcalEvent e : eventList) {
-			//only add events that cover less than one full calendar day
-			if (e.getDuration().getDurationMillis()/1000 >= 86400) continue;	//more than 24 hours, cant go in
-			AcalDateTime start = e.getStart().clone();
-			int startSec = start.getDaySecond();
-			if (startSec != 0) {
-				start.setHour(0); start.setMinute(0);start.setSecond(0); start.addDays(1);	//move forward to 00:00:00	
-			}
-			//start is now at the first 'midnight' of the event. Duration to end MUST be < 24hours for us to want this event
-			if(start.getDurationTo(e.getEnd()).getDurationMillis()/1000 >=86400) continue;
-			SimpleAcalEvent ret =SimpleAcalEvent.getSimpleEvent(e); 
-			events.add(ret);
+			SimpleAcalEvent sae = SimpleAcalEvent.getSimpleEvent(e);
+			if ( !sae.isAllDay ) events.add(sae);
 		}
 		return events;
 	}
@@ -405,7 +436,8 @@ public class WeekViewDays extends ImageView {
 	
 	public void drawHorizontal(SimpleAcalEvent event, Canvas c, int depth) {
 		event.calulateMaxWidth(width, HSPP);
-		int x = Math.max((int)(event.start-HST)/HSPP,0);
+		int x = (int)(event.start-HST)/HSPP;
+		if ( x < 0 ) x = 0;
 		int y = HIH*depth;
 		int maxWidth = event.getMaxWidth();
 		int actualWidth = (int)Math.min(Math.min(event.getActualWidth(), width-x),(event.end-HST)/HSPP); 
@@ -472,8 +504,10 @@ public class WeekViewDays extends ImageView {
 		lastMaxX = maxX;
 		return timetable;
 	}
+
+
 	
-	private ArrayList<SimpleAcalEvent> getFullDayEventList(AcalDateRange range) {
+	private ArrayList<SimpleAcalEvent> getEventsForHeader(AcalDateRange range) {
 		ArrayList<AcalEvent> eventList = context.getEventsForDays(range);
 		if (HList != null && HSimpleList != null && eventList.containsAll(HList) && eventList.size() == HList.size()) {
 			return this.HSimpleList;
@@ -482,18 +516,8 @@ public class WeekViewDays extends ImageView {
 		ArrayList<SimpleAcalEvent> events = new ArrayList<SimpleAcalEvent>();
 		
 		for (AcalEvent e : eventList) {
-			e.dtstart.applyLocalTimeZone();
-			//only add events that cover at least one full calendar day
-			if (e.getDuration().getDurationMillis()/1000 < 86400) continue;	//less than 24 hours, cant go in
-			AcalDateTime start = e.getStart().clone();
-			int startSec = start.getDaySecond();
-			if (startSec != 0) {
-				start.setHour(0); start.setMinute(0);start.setSecond(0); start.addDays(1);	//move forward to 00:00:00	
-			}
-			//start is now at the first 'midnight' of the event. Duration to end MUST be > 24hours for us to want this event
-			if(start.getDurationTo(e.getEnd()).getDurationMillis()/1000 <86400) continue;
-			SimpleAcalEvent seo = SimpleAcalEvent.getSimpleEvent(e);
-			events.add(seo);
+			SimpleAcalEvent sae = SimpleAcalEvent.getSimpleEvent(e);
+			if ( sae.isAllDay ) events.add(sae);
 		}
 		return events;
 	}

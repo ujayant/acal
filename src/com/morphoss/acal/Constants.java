@@ -52,6 +52,7 @@ public class Constants {
 	public static final boolean	debugSyncCollectionContents		= false;
 	public static final boolean	debugCalendarDataService		= false;
 	public static final boolean	debugMonthView					= false;
+	public static final boolean	debugWeekView					= false;
 	public static final boolean	debugVComponent					= false;
 	public static final boolean	debugDateTime					= false;
 	public static final boolean	debugDavCommunication			= false;

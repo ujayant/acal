@@ -122,7 +122,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	
 	/* Fields Relating to Gesture Detection */
 	private GestureDetector gestureDetector;
-	private static AcalDateTime selectedDate = new AcalDateTime();
+	private AcalDateTime selectedDate = new AcalDateTime();
 	
 	/* Fields relating to calendar data */
 	private DataRequest dataRequest = null;
@@ -131,6 +131,8 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	//Fields relating to scrolling
 	private int scrollx = 0;
 	private int scrolly = 0;
+	int	WORK_START_SECONDS;
+	int	WORK_FINISH_SECONDS;
 	
 	
 	/**
@@ -140,13 +142,12 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		gestureDetector = new GestureDetector(this);
-		WeekViewActivity.selectedDate = this.getIntent().getExtras().getParcelable("StartDay");
+		selectedDate = this.getIntent().getExtras().getParcelable("StartDay");
 		
 		if ( selectedDate == null ) {
 			selectedDate = new AcalDateTime();
 		}
-		selectedDate.applyLocalTimeZone();
-		selectedDate.setDaySecond(0);
+		selectedDate.applyLocalTimeZone().setDaySecond(0);
 
 		this.setContentView(R.layout.week_view);
 		header 	= (WeekViewHeader) 	this.findViewById(R.id.week_view_header);
@@ -186,8 +187,8 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		if (lph <= 0) lph = 1;
 		if (lph >= 10) lph = 10;
 		SECONDS_PER_PIXEL = (int)(((float) AcalDateTime.SECONDS_IN_HOUR)/(lph*PIXELS_PER_TEXT_ROW));
-		MINIMUM_DAY_EVENT_HEIGHT = 3 + (int) ((TEXT_SIZE_EVENT*SPscaler)*1.2f);  
-		FULLDAY_ITEM_HEIGHT = MINIMUM_DAY_EVENT_HEIGHT;
+		MINIMUM_DAY_EVENT_HEIGHT = (int) ((TEXT_SIZE_EVENT*SPscaler)*1.1f);  
+		FULLDAY_ITEM_HEIGHT = (int)((float)(MINIMUM_DAY_EVENT_HEIGHT + 3) * 1.2f);
 		
 		int cpw = 70;
 		try {
@@ -198,25 +199,11 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		if (cpw >= 1000) lph = 1000;
 		
 		DAY_WIDTH = (int)(cpw*DPscaler);
+
+		WORK_START_SECONDS  = getTimePref(R.string.prefWorkdayStart, 9*3600);
+		WORK_FINISH_SECONDS = getTimePref(R.string.prefWorkdayFinish, 17*3600);
 		
-		try {
-			String startOfDay =  prefs.getString(getString(R.string.prefWorkdayStart), "9:00");
-			String endOfDay =  prefs.getString(getString(R.string.prefWorkdayFinish), "17:00");
-			int idx = startOfDay.indexOf(':');
-			START_HOUR = Integer.parseInt(startOfDay.substring(0,idx));
-			START_MINUTE = Integer.parseInt(startOfDay.substring(idx+1));
-			idx = endOfDay.indexOf(':');
-			END_HOUR = Integer.parseInt(endOfDay.substring(0,idx));
-			END_MINUTE = Integer.parseInt(endOfDay.substring(idx+1));
-		}
-		catch (Exception e) {
-			if (Constants.LOG_DEBUG) {
-				Log.d(TAG,"Error parsing Work Day Prferences: "+e);
-			}
-		}
-		
-		//TODO start hour should be from pref
-		scrolly = (START_HOUR*AcalDateTime.SECONDS_IN_HOUR)/SECONDS_PER_PIXEL;
+		scrolly = days.checkScrollY( WORK_START_SECONDS / SECONDS_PER_PIXEL + days.getHeaderHeight() );
 		
 		//image cache may now be invalid
 		imageCache = new WeekViewImageCache(this);
@@ -242,8 +229,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	}
 	
 	public void move(float dx, float dy) {		
-		this.scrolly+=dy;
-		this.scrolly=days.checkScrollY(this.scrolly);
+		this.scrolly = days.checkScrollY(this.scrolly + (int) dy);
 		this.scrollx-=dx;
 		while (this.scrollx >= DAY_WIDTH) {
 			decrementCurrentDate();
@@ -262,15 +248,15 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	}
 	
 	public AcalDateTime getCurrentDate() {
-		return WeekViewActivity.selectedDate;
+		return selectedDate;
 	}
 	
 	public void incrementCurrentDate() {
-		WeekViewActivity.selectedDate.addDays(1);
+		selectedDate.addDays(1);
 	}
 	
 	public void decrementCurrentDate() {
-		WeekViewActivity.selectedDate.addDays(-1);
+		selectedDate.addDays(-1);
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -552,9 +538,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	
 	@Override 
 	public void onNumberSelected(int number) {
-		selectedDate = new AcalDateTime(number,1,1,0,0,0,null);
-		selectedDate.applyLocalTimeZone();
-		WeekViewActivity.selectedDate.setDaySecond(0);
+		selectedDate = new AcalDateTime(number,1,1,0,0,0,null).applyLocalTimeZone().setDaySecond(0);
 		this.dateChanged();
 	}
 	
@@ -578,14 +562,14 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		Bundle bundle = new Bundle();
 		switch (button) {
 		case TODAY:
-			WeekViewActivity.selectedDate.setEpoch(System.currentTimeMillis()/1000);
+			selectedDate.setEpoch(System.currentTimeMillis()/1000);
 			this.scrollx=0;
-			scrolly=(WeekViewActivity.START_HOUR*AcalDateTime.SECONDS_IN_HOUR)/SECONDS_PER_PIXEL;
-			WeekViewActivity.selectedDate.setDaySecond(0);
+			scrolly = days.checkScrollY((WeekViewActivity.START_HOUR*AcalDateTime.SECONDS_IN_HOUR)/SECONDS_PER_PIXEL);
+			selectedDate.setDaySecond(0);
 			this.refresh();
 			break;
 		case ADD:
-			bundle.putParcelable("DATE", WeekViewActivity.selectedDate);
+			bundle.putParcelable("DATE", selectedDate);
 			Intent eventEditIntent = new Intent(this, EventEdit.class);
 			eventEditIntent.putExtras(bundle);
 			this.startActivity(eventEditIntent);
@@ -648,8 +632,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 						Log.w(TAG, "Error getting month back from year view: "+e);
 					}
 			}
-			selectedDate.applyLocalTimeZone();
-			WeekViewActivity.selectedDate.setDaySecond(0);
+			selectedDate.applyLocalTimeZone().setDaySecond(0);
 		}
 	}
 
