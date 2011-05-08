@@ -65,6 +65,7 @@ import com.morphoss.acal.davacal.AcalAlarm;
 import com.morphoss.acal.davacal.AcalCollection;
 import com.morphoss.acal.davacal.AcalEvent;
 import com.morphoss.acal.davacal.AcalEventAction;
+import com.morphoss.acal.davacal.SimpleAcalEvent;
 import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VComponent;
 import com.morphoss.acal.davacal.VComponentCreationException;
@@ -223,11 +224,13 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 		}
 		if (lat != null && lat instanceof AcalDateTime) {
 			lastTriggeredAlarmTime = (AcalDateTime)lat;
-			if (Constants.debugCalendarDataService && Constants.LOG_DEBUG)Log.d(TAG,"Read last triggered alarm time as "+lastTriggeredAlarmTime);
+			if (Constants.debugCalendarDataService && Constants.LOG_DEBUG)
+				Log.d(TAG,"Read last triggered alarm time as "+lastTriggeredAlarmTime);
 		}
 		if (sq != null && sq instanceof PriorityQueue<?>) {
 			this.snoozeQueue = (PriorityQueue<AcalAlarm>) sq;
-			if (Constants.debugCalendarDataService && Constants.LOG_DEBUG)Log.d(TAG,"Loaded snooze queue with "+snoozeQueue.size()+" elements.");
+			if (Constants.debugCalendarDataService && Constants.LOG_DEBUG)
+				Log.d(TAG,"Loaded snooze queue with "+snoozeQueue.size()+" elements.");
 		}
 
 	}
@@ -888,22 +891,27 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 		
 		private EventCache eventCache = new EventCache();
 		
-
 		//EventCache methods
 		@SuppressWarnings("unchecked")
-		public synchronized List<AcalEvent> getEventsForDay(AcalDateTime day) {
+		public synchronized List<SimpleAcalEvent> getEventsForDay(AcalDateTime day) {
 			eventCache.addDay(day,this);
 			return eventCache.getEventsForDay(day); 
 		}
-		public synchronized List<AcalEvent> getEventsForDays(AcalDateRange range) {
+		public synchronized List<SimpleAcalEvent> getEventsForDays(AcalDateRange range) {
 			return eventCache.getEventsForDays(range,this); 
 		}
 		public synchronized int getNumberEventsForDay(AcalDateTime day) {
 			eventCache.addDay(day,this);
 			return eventCache.getNumberEventsForDay(day); 
 		}
-		public synchronized AcalEvent getNthEventForDay(AcalDateTime day, int n) {eventCache.addDay(day,this); return eventCache.getNthEventForDay(day, n); }
-		public synchronized void deleteEvent(AcalDateTime day, int n) {eventCache.addDay(day,this); eventCache.deleteEvent(day, n); }
+		public synchronized SimpleAcalEvent getNthEventForDay(AcalDateTime day, int n) {
+			eventCache.addDay(day,this);
+			return eventCache.getNthEventForDay(day, n); 
+		}
+		public synchronized void deleteEvent(AcalDateTime day, int n) {
+			eventCache.addDay(day,this);
+			eventCache.deleteEvent(day, n); 
+		}
 		public synchronized void flushCache() {eventCache.flushCache();}
 		
 		

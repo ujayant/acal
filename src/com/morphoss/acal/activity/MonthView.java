@@ -64,6 +64,7 @@ import com.morphoss.acal.dataservice.DataRequest;
 import com.morphoss.acal.dataservice.DataRequestCallBack;
 import com.morphoss.acal.davacal.AcalEvent;
 import com.morphoss.acal.davacal.AcalEventAction;
+import com.morphoss.acal.davacal.SimpleAcalEvent;
 import com.morphoss.acal.service.aCalService;
 import com.morphoss.acal.weekview.WeekViewActivity;
 import com.morphoss.acal.widget.AcalViewFlipper;
@@ -741,13 +742,13 @@ public class MonthView extends Activity implements OnGestureListener,
 	 * Methods for managing event structure
 	 */
 	@SuppressWarnings("unchecked")
-	public ArrayList<AcalEvent> getEventsForDay(AcalDateTime day) {
-		if (dataRequest == null) return new ArrayList<AcalEvent>();
+	public ArrayList<SimpleAcalEvent> getEventsForDay(AcalDateTime day) {
+		if (dataRequest == null) return new ArrayList<SimpleAcalEvent>();
 		try {
-			return (ArrayList<AcalEvent>) dataRequest.getEventsForDay(day);
+			return (ArrayList<SimpleAcalEvent>) dataRequest.getEventsForDay(day);
 		} catch (RemoteException e) {
 			if (Constants.LOG_DEBUG) Log.d(TAG,"Remote Exception accessing eventcache: "+e);
-			return new ArrayList<AcalEvent>();
+			return new ArrayList<SimpleAcalEvent>();
 		}
 	}
 
@@ -761,7 +762,7 @@ public class MonthView extends Activity implements OnGestureListener,
 		}
 	}
 
-	public AcalEvent getNthEventForDay(AcalDateTime day, int n) {
+	public SimpleAcalEvent getNthEventForDay(AcalDateTime day, int n) {
 		if (dataRequest == null) return null;
 		try {
 			return dataRequest.getNthEventForDay(day, n);
@@ -774,7 +775,8 @@ public class MonthView extends Activity implements OnGestureListener,
 	public void deleteSingleEvent(AcalDateTime day, int n) {
 		if (dataRequest == null) return;
 		try {
-			AcalEvent ae = dataRequest.getNthEventForDay(day, n);
+			SimpleAcalEvent sae = dataRequest.getNthEventForDay(day, n);
+			AcalEvent ae = AcalEvent.fromDatabase(this, sae.resourceId, new AcalDateTime().setEpoch(sae.start));
 			AcalEventAction action = new AcalEventAction(ae);
 			action.setAction(AcalEventAction.ACTION_DELETE_SINGLE);
 			this.dataRequest.eventChanged(action);
@@ -784,10 +786,12 @@ public class MonthView extends Activity implements OnGestureListener,
 		}
 		this.changeSelectedDate(this.selectedDate);
 	}
+
 	public void deleteAllEvent(AcalDateTime day, int n) {
 		if (dataRequest == null) return;
 		try {
-			AcalEvent ae = dataRequest.getNthEventForDay(day, n);
+			SimpleAcalEvent sae = dataRequest.getNthEventForDay(day, n);
+			AcalEvent ae = AcalEvent.fromDatabase(this, sae.resourceId, new AcalDateTime().setEpoch(sae.start));
 			AcalEventAction action = new AcalEventAction(ae);
 			action.setAction(AcalEventAction.ACTION_DELETE_ALL);
 			this.dataRequest.eventChanged(action);
@@ -797,10 +801,12 @@ public class MonthView extends Activity implements OnGestureListener,
 		}
 		this.changeSelectedDate(this.selectedDate);
 	}
+	
 	public void deleteFutureEvent(AcalDateTime day, int n) {
 		if (dataRequest == null) return;
 		try {
-			AcalEvent ae = dataRequest.getNthEventForDay(day, n);
+			SimpleAcalEvent sae = dataRequest.getNthEventForDay(day, n);
+			AcalEvent ae = AcalEvent.fromDatabase(this, sae.resourceId, new AcalDateTime().setEpoch(sae.start));
 			AcalEventAction action = new AcalEventAction(ae);
 			action.setAction(AcalEventAction.ACTION_DELETE_ALL_FUTURE);
 			this.dataRequest.eventChanged(action);

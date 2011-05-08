@@ -36,8 +36,12 @@ public class aCal extends Activity {
 		// make sure aCalService is running
 		this.startService(new Intent(this, aCalService.class));
 
-		// Read our preference for which view should be default
+		// Read our preference for which view should be the default
 		prefs = PreferenceManager.getDefaultSharedPreferences(this);
+
+		// Set all default preferences to reasonable values
+		PreferenceManager.setDefaultValues(this, R.xml.main_preferences, false);
+		
 		Bundle bundle = new Bundle();
 		Intent startIntent = null;
 		if ( prefs.getBoolean(getString(R.string.prefDefaultView), false) ) {

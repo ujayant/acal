@@ -6,11 +6,11 @@ import com.morphoss.acal.davacal.AcalEventAction;
 import com.morphoss.acal.davacal.AcalAlarm;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.davacal.AcalEvent;
-
+import com.morphoss.acal.davacal.SimpleAcalEvent;
 
 interface DataRequest {
 	void resetCache();
-	List getEventsForDateRange(in AcalDateRange dateRange);
+	List<AcalEvent> getEventsForDateRange(in AcalDateRange dateRange);
 	boolean isInitialising();
 	boolean isProcessing();
 	void registerCallback(DataRequestCallBack cb);
@@ -19,10 +19,10 @@ interface DataRequest {
 	void dismissAlarm(in AcalAlarm alarm);
 	void snoozeAlarm(in AcalAlarm alarm);
 	void eventChanged(in AcalEventAction action);
-	List getEventsForDay(in AcalDateTime day);
-	List getEventsForDays(in AcalDateRange days);
+	List<SimpleAcalEvent> getEventsForDay(in AcalDateTime day);
+	List<SimpleAcalEvent> getEventsForDays(in AcalDateRange days);
 	int getNumberEventsForDay(in AcalDateTime day);
-	AcalEvent getNthEventForDay(in AcalDateTime day, int n);
+	SimpleAcalEvent getNthEventForDay(in AcalDateTime day, int n);
 	void deleteEvent(in AcalDateTime day, int n);
 	void flushCache();
 }

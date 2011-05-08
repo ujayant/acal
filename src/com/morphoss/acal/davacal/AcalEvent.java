@@ -23,6 +23,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.content.ContentValues;
+import android.content.Context;
 import android.graphics.Color;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -32,6 +34,7 @@ import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.davacal.AcalEventAction.EVENT_FIELD;
+import com.morphoss.acal.providers.DavResources;
 
 /**
  * 
@@ -58,19 +61,50 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 	
 
 	public static final Parcelable.Creator<AcalEvent> CREATOR = new Parcelable.Creator<AcalEvent>() {
-	        public AcalEvent createFromParcel(Parcel in) {
-	            return getInstanceFromParcel(in);
-	        }
-	
-	        public AcalEvent[] newArray(int size) {
-	            return new AcalEvent[size];
-	        }
-	    };
+        public AcalEvent createFromParcel(Parcel in) {
+            return getInstanceFromParcel(in);
+        }
+
+        public AcalEvent[] newArray(int size) {
+            return new AcalEvent[size];
+        }
+    };
 
 	public static AcalEvent getInstanceFromParcel(Parcel in) {
 		AcalEvent event = null;
 		event = new AcalEvent(in); 
 		return event;
+	}
+
+	
+	/**
+	 * Construct an AcalEvent from a row from the database.  In case it is 
+	 * @param context
+	 * @param resourceId
+	 * @return
+	 */
+	public static AcalEvent fromDatabase( Context context, int resourceId, AcalDateTime dtStart ) {
+		ContentValues resourceValues = DavResources.getRow(resourceId, context.getContentResolver());
+		VComponent vc;
+		try {
+			vc = VComponent.createComponentFromResource(resourceValues,
+						AcalCollection.fromDatabase(context, resourceValues.getAsLong(DavResources.COLLECTION_ID)));
+		}
+		catch (VComponentCreationException e) {
+			Log.e(TAG,Log.getStackTraceString(e));
+			return null;
+		}
+		if ( ! (vc instanceof VCalendar) ) {
+			Log.w(TAG,"Trying to build AcalEvent but resource "+resourceId+" is not a VCalendar");
+			return null;
+		}
+		Masterable event = ((VCalendar) vc).getMasterChild();
+		if ( ! (event instanceof VEvent) ) {
+			Log.w(TAG,"Trying to build AcalEvent but resource contained in "+resourceId+" is not a VEvent");
+			return null;
+		}
+		if ( dtStart == null ) dtStart = AcalDateTime.fromAcalProperty(event.getProperty("DTSTART"));
+		return new AcalEvent( event, dtStart, event.getDuration(), false );
 	}
 
 	@Override
@@ -162,17 +196,12 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 		String repeatInstances = safeEventPropertyValue(event,"RDATE");
 		repetition = repeatRule + (repeatInstances.equals("")?"":"\n"+repeatInstances);
 
-		String alarmString = "";
 		List<AcalAlarm> theseAlarms = new ArrayList<AcalAlarm>();
 		for( VComponent child : event.getChildren() ) {
 			if ( child instanceof VAlarm ) {
-				VAlarm alarm = (VAlarm) child;
 				theseAlarms.add(new AcalAlarm((VAlarm) child, (Masterable) event, dtstart.clone(), AcalDateTime.addDuration(dtstart, duration)));
-		//		if ( !alarmString.equals("") ) alarmString += "\n";
-		//		alarmString += alarm.toPrettyString();
 			}
 		}
-		//alarms = alarmString;
 		
 		alarmList.addAll(theseAlarms);
 		hasAlarms = alarmList.size() > 0;

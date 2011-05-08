@@ -22,9 +22,10 @@ import java.util.Date;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Log;
 
-import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDuration;
@@ -35,14 +36,19 @@ import com.morphoss.acal.acaltime.AcalDuration;
  * @author Morphoss Ltd
  *
  */
-public class SimpleAcalEvent implements Comparable<SimpleAcalEvent> {
+public class SimpleAcalEvent implements Parcelable, Comparable<SimpleAcalEvent> {
+
+	/**
+	 * 
+	 */
+	private static final long	serialVersionUID	= 1L;
 
 	private static final String TAG = "SimpleAcalEvent"; 
 
 	//Start and end times are in UTC
 	public final long start;
 	public final long end;
-	public final long resourceId;
+	public final int resourceId;
 	public final String summary;
 	public final int colour;
 	public final String location;
@@ -50,6 +56,8 @@ public class SimpleAcalEvent implements Comparable<SimpleAcalEvent> {
 	public final boolean hasAlarm;
 	public final boolean isAllDay;
 	public final boolean isPending;
+	public final int startDateHash;
+	public final int endDateHash;
 
 	final private static SimpleDateFormat fmtDebugDate = new SimpleDateFormat("MMM d HH:mm");
 	
@@ -66,7 +74,7 @@ public class SimpleAcalEvent implements Comparable<SimpleAcalEvent> {
 	 * @param allDayEvent
 	 * @param isPending
 	 */
-	public SimpleAcalEvent(long start, long end, long resourceId, String summary, String location, int colour,
+	public SimpleAcalEvent(long start, long end, int resourceId, String summary, String location, int colour,
 				boolean isAlarming, boolean isRepetitive, boolean allDayEvent, boolean isPending ) {
 		this.start = start;
 		this.end = end;
@@ -78,6 +86,8 @@ public class SimpleAcalEvent implements Comparable<SimpleAcalEvent> {
 		this.hasRepeat = isRepetitive;
 		this.isAllDay = allDayEvent;
 		this.isPending = isPending;
+		this.startDateHash = getDateHash(start);
+		this.endDateHash = getDateHash(end - 1);
 
 //		if ( Constants.LOG_VERBOSE ) {
 //			Log.v(TAG,"Event at " + fmtDebugDate.format(new Date(this.start*1000)) + " ("+this.start+")" +
@@ -96,6 +106,15 @@ public class SimpleAcalEvent implements Comparable<SimpleAcalEvent> {
 
 	}
 
+	private int getDateHash(long epochSecs) {
+		Date d = new Date(epochSecs*1000);
+		return getDateHash(d.getDate(), d.getMonth() + 1,d.getYear()+1900);
+	}
+
+	static public int getDateHash(int day, int month, int year) {
+		return day + (month*32) + (year*32*13);
+	}
+	
 	/**
 	 * Factory method to generate a SimpleAcalEvent from a real AcalEvent.  Since we don't have to worry
 	 * about repetition from here on in, we ensure the events are localised to the user's current
@@ -146,8 +165,9 @@ public class SimpleAcalEvent implements Comparable<SimpleAcalEvent> {
 
 		boolean allDayEvent = startDate.isDate();
 		boolean floating = startDate.isFloating();
-		start = startDate.applyLocalTimeZone().getEpoch();
-
+		startDate.applyLocalTimeZone();
+		startDateHash = getDateHash( startDate.getMonthDay(), startDate.getMonth(), startDate.getYear() );
+		start = startDate.getEpoch();
 		
 		long en = start - 1; // illegal value to test for...
 		if ( duration != null ) {
@@ -169,6 +189,7 @@ public class SimpleAcalEvent implements Comparable<SimpleAcalEvent> {
 				en = start;
 		}
 		end = en;
+		endDateHash = getDateHash(end);
 
 		summary = event.safePropertyValue("SUMMARY");
 		location = event.safePropertyValue("LOCATION");
@@ -238,10 +259,6 @@ public class SimpleAcalEvent implements Comparable<SimpleAcalEvent> {
 		this.lastWidth = w;
 	}
 	
-	@Override
-	public int compareTo(SimpleAcalEvent seo) {
-		return (int)(this.end - this.start);
-	}
 
 	/**
 	 * Return a pretty string indicating the time period of the event.  If the start or end
@@ -285,4 +302,64 @@ public class SimpleAcalEvent implements Comparable<SimpleAcalEvent> {
 		return timeText;
 	}
 
+	
+	/**
+	 * Compare this SimpleAcalEvent to another.  If this is earlier than the other return a negative
+	 * integer and if this is after return a positive integer.  If they are the same return 0.
+	 * @param another
+	 * @return -1, 1 or 0
+	 */
+	public int compareTo( SimpleAcalEvent another ) {
+		if ( this == another ) return 0;
+		if ( this.start < another.start ) return -1;
+		if ( this.start > another.start ) return 1;
+		return ( this.end < another.end ? -1 : (this.end > another.end ? 1 : 0));
+	}
+
+	
+	
+	@Override
+	public int describeContents() {
+		return 0;
+	}
+
+	@Override
+	public void writeToParcel(Parcel dest, int flags) {
+		dest.writeLong(start);
+		dest.writeLong(end);
+		dest.writeInt(resourceId);
+		dest.writeString(summary);
+		dest.writeString(location);
+		dest.writeInt(colour);
+		dest.writeByte( (byte) ((hasAlarm?0x08:0) | (hasRepeat?0x04:0) | (isAllDay?0x02:0) | (isPending?0x01:0)) );
+		dest.writeInt(startDateHash);
+		dest.writeInt(endDateHash);
+	}
+
+	SimpleAcalEvent(Parcel src) {
+		start = src.readLong();
+		end = src.readLong();
+		resourceId = src.readInt();
+		summary = src.readString();
+		location = src.readString();
+		colour = src.readInt();
+		byte b = src.readByte();
+		hasAlarm  = ((b & 0x08) == 0x08);
+		hasRepeat = ((b & 0x04) == 0x04);
+		isAllDay  = ((b & 0x02) == 0x02);
+		isPending = ((b & 0x01) == 0x01);
+		startDateHash = src.readInt();
+		endDateHash = src.readInt();
+	}
+
+	public static final Parcelable.Creator<SimpleAcalEvent> CREATOR = new Parcelable.Creator<SimpleAcalEvent>() {
+		public SimpleAcalEvent createFromParcel(Parcel in) {
+			return new SimpleAcalEvent(in);
+		}
+
+		public SimpleAcalEvent[] newArray(int size) {
+			return new SimpleAcalEvent[size];
+		}
+	};
+	
 }

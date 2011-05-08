@@ -18,7 +18,6 @@
 
 package com.morphoss.acal.weekview;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -38,7 +37,7 @@ import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
-import com.morphoss.acal.davacal.AcalEvent;
+import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.davacal.SimpleAcalEvent;
 
 public class WeekViewDays extends ImageView {
@@ -72,8 +71,7 @@ public class WeekViewDays extends ImageView {
 	private long HET;				//The UTC epoch time of the last visible horizontal second
 	private int HDepth;				//The number of horizontal rows
 	private int lastMaxX;
-	private ArrayList<AcalEvent> HList;  				//The last list of events for the header
-	private ArrayList<SimpleAcalEvent> HSimpleList;  	//The last list of (simple) events for the header
+	private List<SimpleAcalEvent> HSimpleList;  	//The last list of (simple) events for the header
 	private SimpleAcalEvent[][] HTimetable;  			//The last timetable used for the header
 	
 	private boolean isInitialized = false;	//Set to True once screen dimensions are calculated.
@@ -143,7 +141,7 @@ public class WeekViewDays extends ImageView {
 		AcalDateRange range = new AcalDateRange(startTime,endTime);
 		
 		//Get the current timetable
-		headerTimeTable = getMultiDayTimeTable(getEventsForHeader(range));
+		headerTimeTable = getMultiDayTimeTable(range);
 		if (headerTimeTable.length <=0) {	this.PxH =0; return; }
 		PxH = HDepth*HIH;
 		
@@ -241,7 +239,7 @@ public class WeekViewDays extends ImageView {
 				Log.d(TAG,"Starting new day "+AcalDateTime.fmtDayMonthYear(currentDay)+
 							" epoch="+currentDay.getEpoch()+" dayX="+dayX);
 		
-			SimpleAcalEvent[][] timeTable = getInDayTimeTable(getEventsForDay(currentDay));
+			SimpleAcalEvent[][] timeTable = getInDayTimeTable(currentDay);
 
 			//draw visible events
 			if ( timeTable.length > 0) {
@@ -422,18 +420,6 @@ public class WeekViewDays extends ImageView {
 		
 	}
 
-	//for events in the main panel
-	private ArrayList<SimpleAcalEvent> getEventsForDay(AcalDateTime day) {
-		ArrayList<AcalEvent> eventList = context.getEventsForDay(day);
-		ArrayList<SimpleAcalEvent> events = new ArrayList<SimpleAcalEvent>();
-		for (AcalEvent e : eventList) {
-			SimpleAcalEvent sae = SimpleAcalEvent.getSimpleEvent(e);
-			if ( !sae.isAllDay ) events.add(sae);
-		}
-		return events;
-	}
-
-	
 	public void drawHorizontal(SimpleAcalEvent event, Canvas c, int depth) {
 		event.calulateMaxWidth(width, HSPP);
 		int x = (int)(event.start-HST)/HSPP;
@@ -450,18 +436,20 @@ public class WeekViewDays extends ImageView {
 	/**
 	 * Calculates a timetable of rows to place horizontal (multi-day) events in order
 	 * that the events do not overlap one other.
-	 * @param events A one-dimensional array of events
+	 * @param range A one-dimensional array of events
 	 * @return A two-dimensional array of events
 	 */
-	private SimpleAcalEvent[][] getMultiDayTimeTable(List<SimpleAcalEvent> events) {
+	private SimpleAcalEvent[][] getMultiDayTimeTable(AcalDateRange range) {
+		List<SimpleAcalEvent> events = context.getEventsForDays(range, WeekViewActivity.INCLUDE_ALL_DAY_EVENTS );
 		if (HTimetable != null && HSimpleList != null) {
-			if (events.containsAll(HSimpleList) && events.size() == HSimpleList.size()) return HTimetable;
+			if (HSimpleList.containsAll(events) && events.size() == HSimpleList.size()) return HTimetable;
 		}
-		Collections.sort(events);
-		SimpleAcalEvent[][] timetable = new SimpleAcalEvent[events.size()][events.size()]; //maximum possible
+		HSimpleList = events;
+		Collections.sort(HSimpleList);
+		SimpleAcalEvent[][] timetable = new SimpleAcalEvent[HSimpleList.size()][HSimpleList.size()]; //maximum possible
 		int depth = 0;
-		for (int x = 0; x < events.size(); x++) {
-			SimpleAcalEvent ev = events.get(x);
+		for (int x = 0; x < HSimpleList.size(); x++) {
+			SimpleAcalEvent ev = HSimpleList.get(x);
 			if ( ev.start >= this.HET || ev.end <= this.HST ) continue;  // Discard any events out of range.
 			int i = 0;
 			boolean go = true;
@@ -482,7 +470,9 @@ public class WeekViewDays extends ImageView {
 		return timetable;
 	}
 	
-	private SimpleAcalEvent[][] getInDayTimeTable(List<SimpleAcalEvent> events) {
+	private SimpleAcalEvent[][] getInDayTimeTable(AcalDateTime day) {
+		List<SimpleAcalEvent> events = context.getEventsForDays(new AcalDateRange(day,day.clone().addDays(1)),
+					WeekViewActivity.INCLUDE_IN_DAY_EVENTS );
 		Collections.sort(events);
 		SimpleAcalEvent[][] timetable = new SimpleAcalEvent[events.size()][events.size()]; //maximum possible
 		int maxX = 0;
@@ -503,23 +493,6 @@ public class WeekViewDays extends ImageView {
 		}
 		lastMaxX = maxX;
 		return timetable;
-	}
-
-
-	
-	private ArrayList<SimpleAcalEvent> getEventsForHeader(AcalDateRange range) {
-		ArrayList<AcalEvent> eventList = context.getEventsForDays(range);
-		if (HList != null && HSimpleList != null && eventList.containsAll(HList) && eventList.size() == HList.size()) {
-			return this.HSimpleList;
-		}
-		HList = eventList;
-		ArrayList<SimpleAcalEvent> events = new ArrayList<SimpleAcalEvent>();
-		
-		for (AcalEvent e : eventList) {
-			SimpleAcalEvent sae = SimpleAcalEvent.getSimpleEvent(e);
-			if ( sae.isAllDay ) events.add(sae);
-		}
-		return events;
 	}
 
 }

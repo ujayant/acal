@@ -19,6 +19,7 @@
 package com.morphoss.acal.weekview;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import android.app.Activity;
 import android.app.Dialog;
@@ -56,7 +57,7 @@ import com.morphoss.acal.activity.YearView;
 import com.morphoss.acal.dataservice.CalendarDataService;
 import com.morphoss.acal.dataservice.DataRequest;
 import com.morphoss.acal.dataservice.DataRequestCallBack;
-import com.morphoss.acal.davacal.AcalEvent;
+import com.morphoss.acal.davacal.SimpleAcalEvent;
 import com.morphoss.acal.widget.NumberPickerDialog;
 import com.morphoss.acal.widget.NumberSelectedListener;
 
@@ -259,18 +260,6 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		selectedDate.addDays(-1);
 	}
 	
-	@SuppressWarnings("unchecked")
-	public ArrayList<AcalEvent> getEventsForDays(AcalDateRange range) {
-		if (isBound && dataRequest != null) {
-			try {
-				return (ArrayList<AcalEvent>) this.dataRequest.getEventsForDays(range);
-			} catch (RemoteException e) {
-				// TODO Auto-generated catch block
-			}
-		}
-		return new ArrayList<AcalEvent>();
-	}
-	
 	/** Connect to CDS - needed to get event information for views. */
 	private void connectToService() {
 		try {
@@ -333,15 +322,26 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	
 	/**
 	 * Methods for managing event structure
+	 * @param typesToInclude 
 	 */
-	@SuppressWarnings("unchecked")
-	public ArrayList<AcalEvent> getEventsForDay(AcalDateTime day) {
-		if (dataRequest == null) return new ArrayList<AcalEvent>();
+	public List<SimpleAcalEvent> getEventsForDays(AcalDateRange range, int typesToInclude) {
+		if (dataRequest == null) return new ArrayList<SimpleAcalEvent>();
 		try {
-			return (ArrayList<AcalEvent>) dataRequest.getEventsForDay(day);
+			List<SimpleAcalEvent> supplied = dataRequest.getEventsForDays(range);
+			if ( typesToInclude == (INCLUDE_ALL_DAY_EVENTS | INCLUDE_IN_DAY_EVENTS) ) return supplied; 
+			List<SimpleAcalEvent> filtered = new ArrayList<SimpleAcalEvent>(supplied.size());
+			for( SimpleAcalEvent e : supplied ) {
+				if ( (typesToInclude & INCLUDE_ALL_DAY_EVENTS) != 0 ) {
+					if ( e.isAllDay ) filtered.add(e);
+				}
+				else {
+					if ( !e.isAllDay ) filtered.add(e);
+				}
+			}
+			return filtered;
 		} catch (RemoteException e) {
 			if (Constants.LOG_DEBUG) Log.d(TAG,"Remote Exception accessing eventcache: "+e);
-			return new ArrayList<AcalEvent>();
+			return new ArrayList<SimpleAcalEvent>();
 		}
 	}
 
@@ -355,7 +355,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		}
 	}
 
-	public AcalEvent getNthEventForDay(AcalDateTime day, int n) {
+	public SimpleAcalEvent getNthEventForDay(AcalDateTime day, int n) {
 		if (dataRequest == null) return null;
 		try {
 			return dataRequest.getNthEventForDay(day, n);
@@ -443,6 +443,9 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 
 	private static final int BUMP_MSG = 1;
 
+	public static final int	INCLUDE_IN_DAY_EVENTS	= 0x02;
+	public static final int	INCLUDE_ALL_DAY_EVENTS	= 0x04;
+
 	private Handler mHandler = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {
@@ -509,15 +512,13 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		return false;
 	}
 	@Override
-	public boolean onFling(MotionEvent arg0, MotionEvent arg1, float arg2,
-			float arg3) {
+	public boolean onFling(MotionEvent arg0, MotionEvent arg1, float arg2, float arg3) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 	@Override
 	public void onLongPress(MotionEvent arg0) {
-		// TODO Auto-generated method stub
-		//showDialog(DATE_PICKER);
+		showDialog(DATE_PICKER);
 	}
 	@Override
 	public boolean onScroll(MotionEvent start, MotionEvent current, float dx, float dy) {

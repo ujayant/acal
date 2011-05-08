@@ -19,6 +19,7 @@
 package com.morphoss.acal.davacal;
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.graphics.Color;
 import android.util.Log;
 
@@ -37,6 +38,12 @@ public class AcalCollection {
 		collectionId = cv.getAsInteger(DavCollections._ID);
 	}
 
+	public static AcalCollection fromDatabase( Context context, long collectionId ) {
+		ContentValues collectionRow = DavCollections.getRow(collectionId, context.getContentResolver());
+		if ( collectionRow == null ) return null;
+		return new AcalCollection(collectionRow);
+	}
+	
 
 	public void updateCollectionRow( ContentValues collectionRow ) {
 		if ( cv.getAsInteger(DavCollections._ID) != collectionId ) {

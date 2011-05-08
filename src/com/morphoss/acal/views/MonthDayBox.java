@@ -28,14 +28,16 @@ import android.widget.TextView;
 
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateTime;
-import com.morphoss.acal.davacal.AcalEvent;
+import com.morphoss.acal.davacal.SimpleAcalEvent;
 
 public class MonthDayBox extends TextView {
 
-	private List<AcalEvent> events;
+	private List<SimpleAcalEvent> events;
 	private boolean isToday = false;
 	private boolean isSelectedDay = false;
 	private Context context;
+
+	private static int minBarHeight = -1;
 	
 	public MonthDayBox(Context context) {
 		super(context);
@@ -51,7 +53,7 @@ public class MonthDayBox extends TextView {
 		this.context = context;
 	}	
 	
-	public void setEvents(List<AcalEvent> events) {
+	public void setEvents(List<SimpleAcalEvent> events) {
 		this.events = events;
 	}
 	
@@ -62,6 +64,9 @@ public class MonthDayBox extends TextView {
 		p.setStyle(Paint.Style.FILL);
 		float width = getWidth();
 		float height = getHeight();
+
+		if ( minBarHeight < 0 ) minBarHeight = (int) (height / 8f) + 1;
+
 		int x = 0;
 		int y = 0;
 		if ( isToday || isSelectedDay ) {
@@ -82,42 +87,38 @@ public class MonthDayBox extends TextView {
 			arg0.drawRect(0, height-y, width, height, p);
 		}
 		if (events != null && !events.isEmpty()) {
+			long dayEpoch = (new AcalDateTime()).setEpoch(events.get(0).start)
+										.applyLocalTimeZone().setDaySecond(0).getEpoch(); 
 			//Get the range of hours for todays events (min = 9am -> 5pm)
-			int startHour = 9;	int endHour = 17;
-			for (AcalEvent e : events) {
-				if (e.dtstart.isDate()) continue;
-				int eh = AcalDateTime.addDuration(e.dtstart, e.duration).getHour();
-				int sh = e.dtstart.getHour();
-				if (eh == 0) eh = 24;
-				if (eh > endHour) endHour = eh;
-				if (sh < startHour) startHour = sh;
+			int dayStart  = 8 * AcalDateTime.SECONDS_IN_HOUR;
+			int dayFinish = 20 * AcalDateTime.SECONDS_IN_HOUR;
+			int eStart, eFinish;
+			for (SimpleAcalEvent e : events) {
+				if ( e.isAllDay ) continue;
+				eStart = (int) (e.start - dayEpoch);
+				eFinish = (int) (e.end - dayEpoch);
+				if (eStart < dayStart) dayStart = eStart;
+				if (eFinish > dayFinish) dayFinish = eFinish + AcalDateTime.SECONDS_IN_HOUR;
 			}
-			int numHours = endHour-startHour;
+			if ( dayFinish > AcalDateTime.SECONDS_IN_DAY ) dayFinish = AcalDateTime.SECONDS_IN_DAY;
+			int displaySecs = dayFinish - dayStart;
 			
 			int barWidth = (int) (width/5f);
-			float hourHeight = (height - (2*y))/numHours;
-			for (AcalEvent e : events) {
-				float stHour = e.dtstart.getHour();
-				float finHour = AcalDateTime.addDuration(e.dtstart, e.duration).getHour();
-				
-				if (e.dtstart.isDate()) {
-					stHour = 0;
-					finHour = endHour-stHour;
-				} else {
-					//Ensure that startHour and EndHour are different and fix end hour of 0 to 24
-					if (finHour >24 || finHour == 0) finHour = 24;
-					if (stHour == finHour)
-						if (stHour == 24) stHour--;
-						else finHour++;
-				
-					//Shift down
-					stHour-=startHour;
-					finHour-=startHour;
+			int secsPerPixel = (int) ((displaySecs / height) + 1);
+			for (SimpleAcalEvent e : events) {
+				if ( e.isAllDay ) {
+					eStart = 0;
+					eFinish = dayFinish - dayStart;
 				}
+				else {
+					eStart = (int) (e.end - dayEpoch) - dayStart;
+					eFinish = (int) (e.start - dayEpoch) - dayStart;
+				}
+				if ( eFinish < (eStart + (secsPerPixel * minBarHeight)) )
+					eFinish = eStart + (minBarHeight * secsPerPixel);
 				//draw
 				p.setColor((e.colour|0xff000000)-0x77000000);
-				arg0.drawRect(x,y+(stHour*hourHeight), x+barWidth, y+(finHour*hourHeight), p);
-				
+				arg0.drawRect(x,y+(eStart/secsPerPixel), x+barWidth, y+(eFinish/secsPerPixel), p);
 			}
 			
 		}
