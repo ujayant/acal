@@ -24,6 +24,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.util.Log;
 
+import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDuration;
@@ -49,13 +50,26 @@ public class SimpleAcalEvent implements Comparable<SimpleAcalEvent> {
 	public final boolean hasAlarm;
 	public final boolean isAllDay;
 	public final boolean isPending;
+
+	final private static SimpleDateFormat fmtDebugDate = new SimpleDateFormat("MMM d HH:mm");
 	
-	private SimpleAcalEvent(long start, long end, long resourceId, String summary, String location, int colour,
+	/**
+	 * Construct a new SimpleAcalEvent from all of the parameters
+	 * @param start
+	 * @param end
+	 * @param resourceId
+	 * @param summary
+	 * @param location
+	 * @param colour
+	 * @param isAlarming
+	 * @param isRepetitive
+	 * @param allDayEvent
+	 * @param isPending
+	 */
+	public SimpleAcalEvent(long start, long end, long resourceId, String summary, String location, int colour,
 				boolean isAlarming, boolean isRepetitive, boolean allDayEvent, boolean isPending ) {
-		long st = start;
-		long en = end;
-		this.start = st;
-		this.end = en;
+		this.start = start;
+		this.end = end;
 		this.resourceId = resourceId;
 		this.summary = summary;
 		this.location = location;
@@ -64,6 +78,57 @@ public class SimpleAcalEvent implements Comparable<SimpleAcalEvent> {
 		this.hasRepeat = isRepetitive;
 		this.isAllDay = allDayEvent;
 		this.isPending = isPending;
+
+//		if ( Constants.LOG_VERBOSE ) {
+//			Log.v(TAG,"Event at " + fmtDebugDate.format(new Date(this.start*1000)) + " ("+this.start+")" +
+//						" to " + fmtDebugDate.format(new Date(this.end*1000)) + " ("+this.end+")" +
+//						" for: " + this.summary
+//						);
+/*
+			try {
+				throw new Exception("debug");
+			}
+			catch ( Exception e ) {
+				Log.v(TAG,Log.getStackTraceString(e));
+			}
+*/
+//		}
+
+	}
+
+	/**
+	 * Factory method to generate a SimpleAcalEvent from a real AcalEvent.  Since we don't have to worry
+	 * about repetition from here on in, we ensure the events are localised to the user's current
+	 * timezone before we go any further.
+	 * 
+	 * @param event The AcalEvent to be finely ground
+	 * @return Essence of SimpleAcalEvent which we have ground from the AcalEvent.
+	 */
+	public static SimpleAcalEvent getSimpleEvent(AcalEvent event) {
+		if ( event == null ) return null;
+		AcalDateTime start = event.getStart();
+//		if ( Constants.LOG_VERBOSE )
+//			Log.v(TAG,"AcalEvent at " + start + " to " + event.getEnd() + " for: " + event.summary );
+
+		boolean allDayEvent = start.isDate() ||	(start.isFloating()
+														&& event.getDuration().getTimeMillis() == 0
+																	&& event.getDuration().getDays() > 0);
+/*
+ * The logic in WeekViewDays had it something like this, but I think the above is better. Maybe...
+ * 
+		//only add events that cover less than one full calendar day
+		if (e.getDuration().getDays() > 0 ) continue;	// more than 1 day, so can't go in
+
+		AcalDateTime start = e.getStart().clone().applyLocalTimeZone().setDaySecond(0).addDays(1);
+		//start is now at the first 'midnight' of the event. Duration to end MUST be < 24hours for us to want this event
+		if ( start.getDurationTo(e.getEnd()).getDays() > 0 ) continue;
+*/
+
+		start.applyLocalTimeZone();
+		long finish = event.getEnd().applyLocalTimeZone().getEpoch();
+		return new SimpleAcalEvent(start.getEpoch(), finish, event.resourceId, event.summary,
+					event.location, event.colour, 
+					event.hasAlarms(), event.getRepetition().length() > 0, allDayEvent, event.isPending);
 	}
 
 	
@@ -131,27 +196,6 @@ public class SimpleAcalEvent implements Comparable<SimpleAcalEvent> {
 	}
 
 	
-	
-	/**
-	 * Factory method to generate a SimpleAcalEvent from a real AcalEvent.  Since we don't have to worry
-	 * about repetition from here on in, we ensure the events are localised to the user's current
-	 * timezone before we go any further.
-	 * 
-	 * @param event The AcalEvent to be finely ground
-	 * @return Essence of SimpleAcalEvent which we have ground from the AcalEvent.
-	 */
-	public static SimpleAcalEvent getSimpleEvent(AcalEvent event) {
-		AcalDateTime start = event.getStart(); 
-		boolean allDayEvent = start.isDate() ||	(start.isFloating()
-														&& event.getDuration().getTimeMillis() == 0
-																	&& event.getDuration().getDays() > 0);
-		start.applyLocalTimeZone();
-		return new SimpleAcalEvent(start.getEpoch(), event.getDuration().getEndDate(start).getEpoch(),
-					event.resourceId, event.summary, event.location, event.colour,
-					event.hasAlarms(), event.getRepetition().length() > 0, allDayEvent,
-					event.isPending);
-	}
-
 	/**
 	 * Identifies whether this event overlaps another.  In this case "Overlap" is defined
 	 * in accordance with the spirit of RFC5545 et al, in that the event does *not* include
