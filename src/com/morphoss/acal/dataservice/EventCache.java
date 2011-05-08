@@ -200,7 +200,7 @@ public class EventCache {
 		AcalDateTime end = range.end.clone().applyLocalTimeZone().setDaySecond(0).addDays(1);
 
 		ArrayList<AcalEvent> ret = new ArrayList<AcalEvent>();
-		while (!(current.after(range.end)) ) {
+		while ( current.before(end) ) {
 			this.addDay(current, dr);
 			ArrayList<AcalEvent> curList = getEventsForDay(current);
 			for (AcalEvent e : curList) {
