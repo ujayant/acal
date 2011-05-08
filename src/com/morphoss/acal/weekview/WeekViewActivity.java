@@ -28,6 +28,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -42,10 +43,12 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.Window;
 import android.view.GestureDetector.OnGestureListener;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.widget.Button;
+import android.widget.LinearLayout;
 
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
@@ -134,6 +137,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	private int scrolly = 0;
 	int	WORK_START_SECONDS;
 	int	WORK_FINISH_SECONDS;
+	private Object	entireView;
 	
 	
 	/**
@@ -151,6 +155,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		selectedDate.applyLocalTimeZone().setDaySecond(0);
 
 		this.setContentView(R.layout.week_view);
+		entireView = (LinearLayout) this.findViewById(R.id.week_view_entire);
 		header 	= (WeekViewHeader) 	this.findViewById(R.id.week_view_header);
 		sidebar = (WeekViewSideBar) this.findViewById(R.id.week_view_sidebar);
 		days 	= (WeekViewDays) 	this.findViewById(R.id.week_view_days);
@@ -271,6 +276,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 					CalendarDataService.BIND_DATA_REQUEST);
 			intent.putExtras(b);
 			this.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+			this.isBound = true;
 		} catch (Exception e) {
 			Log.e(TAG, "Error connecting to service: " + e.getMessage());
 		}
@@ -517,8 +523,26 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		return false;
 	}
 	@Override
-	public void onLongPress(MotionEvent arg0) {
-		showDialog(DATE_PICKER);
+	public void onLongPress(MotionEvent me) {
+
+		// Hack to calculate the status bar height 
+		Rect rectgle= new Rect();
+		Window window= getWindow();
+		window.getDecorView().getWindowVisibleDisplayFrame(rectgle);
+		int StatusBarHeight= rectgle.top;
+
+		if ( Constants.LOG_DEBUG ) {
+			float hwY = me.getYPrecision() * me.getY();
+			float hwX = me.getYPrecision() * me.getY();
+			Log.v(TAG,"Long click at "+(int)me.getRawX()+","+(int)me.getRawY()+
+						" or "+(int)me.getX()+","+(int)me.getY()+
+						" or "+(int)hwX+","+(int)hwY+
+						" ~~ sbWidth: "+sidebar.getWidth()+" or "+sidebar.getRight()+
+						", hdrHeight:"+header.getHeight()+" or "+header.getBottom()+
+						", statusHeight: "+StatusBarHeight );
+		}
+		days.whatWasUnderneath(me.getRawX() - sidebar.getWidth(), me.getRawY() - (header.getHeight()+StatusBarHeight) );
+		// showDialog(DATE_PICKER);
 	}
 	@Override
 	public boolean onScroll(MotionEvent start, MotionEvent current, float dx, float dy) {

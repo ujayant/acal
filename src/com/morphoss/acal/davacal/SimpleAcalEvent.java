@@ -238,9 +238,10 @@ public class SimpleAcalEvent implements Parcelable, Comparable<SimpleAcalEvent> 
 	private int actualWidth;
 	private int lastWidth;
 	
-	public void calulateMaxWidth(int screenWidth, int HSPP) {
+	public int calulateMaxWidth(int screenWidth, int HSPP) {
 		this.actualWidth = (int)(end-start)/HSPP;
-		maxWidth = (int) Math.min(actualWidth,screenWidth);
+		maxWidth = (actualWidth>screenWidth ? screenWidth : actualWidth);
+		return maxWidth;
 	}
 	
 	public int getMaxWidth() {
