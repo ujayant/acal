@@ -239,6 +239,7 @@ public class MonthView extends Activity implements OnGestureListener,
 					CalendarDataService.BIND_DATA_REQUEST);
 			intent.putExtras(b);
 			this.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+			this.isBound = true;
 		} catch (Exception e) {
 			Log.e(TAG, "Error connecting to service: " + e.getMessage());
 		}

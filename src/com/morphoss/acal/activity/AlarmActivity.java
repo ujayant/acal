@@ -237,6 +237,7 @@ public class AlarmActivity extends Activity implements OnClickListener  {
 			//			b.putInt(CalendarDataService.BIND_KEY, CalendarDataService.BIND_ALARM_TRIGGER);
 			//			intent.putExtras(b);
 			this.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+			this.isBound = true;
 		} catch (Exception e) {
 			Log.e(TAG, "Error connecting to service: "+e.getMessage());
 		}
