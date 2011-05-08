@@ -21,13 +21,12 @@
 // Please note this must be the package if you want to use XML-based preferences
 package com.morphoss.acal;
  
-import com.morphoss.acal.R;
-
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.DialogPreference;
 import android.preference.PreferenceManager;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.widget.TimePicker;
  
@@ -53,7 +52,7 @@ public class TimePickerPreference extends DialogPreference implements
 	 */
 	public TimePickerPreference(Context context, AttributeSet attrs) {
 		super(context, attrs);
-		initialize();
+		initialize(context);
 	}
  
 	/**
@@ -61,17 +60,18 @@ public class TimePickerPreference extends DialogPreference implements
 	 * @param attrs
 	 * @param defStyle
 	 */
-	public TimePickerPreference(Context context, AttributeSet attrs,
-			int defStyle) {
+	public TimePickerPreference(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
-		initialize();
+		initialize(context);
 	}
  
 	/**
 	 * Initialize this preference
 	 */
-	private void initialize() {
+	private void initialize( Context context) {
 		setPersistent(true);
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+		defaultValue = prefs.getString(getKey(), "12:00");
 	}
  
 	/*
@@ -88,12 +88,11 @@ public class TimePickerPreference extends DialogPreference implements
 		tp.setIs24HourView(is24Hour);
 		tp.setOnTimeChangedListener(this);
  
+		Log.d("TimePicker","Current default ="+getPersistedString(this.defaultValue));
 		int h = getHour();
 		int m = getMinute();
-		if (h >= 0 && m >= 0) {
-			tp.setCurrentHour(h);
-			tp.setCurrentMinute(m);
-		}
+		if (h >= 0 && h < 24)  tp.setCurrentHour(h);
+		if ( m >= 0 && m < 60) tp.setCurrentMinute(m);
  
 		return tp;
 	}
