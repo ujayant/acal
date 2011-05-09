@@ -256,4 +256,10 @@
 <string name="checkServer_SearchingPrincipal">Searching for principal path at &quot;%s&quot;</string>
 <string name="checkServer_CheckingCapabilities">Checking server capabilities</string>
 
+<string name="newEventFromThis">Copy to New Event</string>
+<string name="Delete">Delete</string>
+<string name="deleteAllInstances">Delete all instances</string>
+<string name="deleteThisInstance">Delete this instance</string>
+<string name="deleteThisAndFuture">Delete this and future</string>
+
 </resources>
