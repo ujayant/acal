@@ -726,7 +726,6 @@ public class MonthView extends Activity implements OnGestureListener,
 	 * calendar.
 	 * </p>
 	 */
-	@SuppressWarnings("unchecked")
 	public void changeSelectedDate(AcalDateTime c) {
 
 		this.selectedDate = c.applyLocalTimeZone();
@@ -747,7 +746,6 @@ public class MonthView extends Activity implements OnGestureListener,
 	/**
 	 * Methods for managing event structure
 	 */
-	@SuppressWarnings("unchecked")
 	public ArrayList<SimpleAcalEvent> getEventsForDay(AcalDateTime day) {
 		if (dataRequest == null) return new ArrayList<SimpleAcalEvent>();
 		try {
