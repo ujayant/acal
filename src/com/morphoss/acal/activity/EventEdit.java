@@ -21,7 +21,6 @@ package com.morphoss.acal.activity;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,6 +71,7 @@ import com.morphoss.acal.acaltime.AcalRepeatRule;
 import com.morphoss.acal.dataservice.CalendarDataService;
 import com.morphoss.acal.dataservice.DataRequest;
 import com.morphoss.acal.davacal.AcalAlarm;
+import com.morphoss.acal.davacal.AcalEvent;
 import com.morphoss.acal.davacal.AcalEventAction;
 import com.morphoss.acal.davacal.SimpleAcalEvent;
 import com.morphoss.acal.davacal.AcalAlarm.ActionType;
@@ -180,6 +180,7 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		if ( b.containsKey("SimpleAcalEvent") ) {
 			SimpleAcalEvent sae = ((SimpleAcalEvent) b.getParcelable("SimpleAcalEvent"));
 			operation = sae.operation;
+			this.eventAction = new AcalEventAction(AcalEvent.fromDatabase(this, sae.resourceId, new AcalDateTime().setEpoch(sae.start)));
 		}
 		else if ( b.containsKey("Event") ) {
 			this.eventAction = (AcalEventAction)b.getParcelable("Event");
