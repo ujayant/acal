@@ -188,7 +188,6 @@ public class AlarmActivity extends Activity implements OnClickListener  {
 			playAlarm();
 		}
 		catch ( Exception e ) {
-			// TODO This needs fixing!
 			Log.e(TAG,"!!!ERROR UPDATING ALARM VIEW!!! - "+e.getMessage() );
 			Log.e(TAG,Log.getStackTraceString(e));
 		}
@@ -198,7 +197,8 @@ public class AlarmActivity extends Activity implements OnClickListener  {
 		if (mp != null && mp.isPlaying()) return;
 		v.cancel();
 		
-		if ( am.getRingerMode() == AudioManager.RINGER_MODE_SILENT ) {
+		if ( am.getRingerMode() == AudioManager.RINGER_MODE_SILENT 
+					|| am.getRingerMode() == AudioManager.RINGER_MODE_VIBRATE ) {
 			long[] pattern = { 0,1000, 2000,1000, 2000,1000, 2000,1000, 2000,1000, 2000,1000, 2000,1000, 2000,1000, 2000,1000, 2000,1000, 2000};
 			v.vibrate(pattern, -1);
 		}
