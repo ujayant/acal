@@ -195,8 +195,7 @@ public class EventCache {
 
 		ArrayList<SimpleAcalEvent> ret = new ArrayList<SimpleAcalEvent>();
 		while ( current.before(end) ) {
-			this.addDay(current, dr);
-			ArrayList<SimpleAcalEvent> curList = getEventsForDay(current);
+			ArrayList<SimpleAcalEvent> curList = getEventsForDay(current,dr);
 			for (SimpleAcalEvent e : curList) {
 				if (!ret.contains(e))ret.add(e);
 			}
@@ -215,7 +214,8 @@ public class EventCache {
 	}
 	
 	/** Methods required by month view */
-	public synchronized ArrayList<SimpleAcalEvent> getEventsForDay(AcalDateTime day) {
+	public synchronized ArrayList<SimpleAcalEvent> getEventsForDay(AcalDateTime day,DataRequest dr) {
+		this.addDay(day, dr);
 		if (!cachedEvents.containsKey(getDateHash(day))) return null;
 		return cachedEvents.get(getDateHash(day));
 	}
@@ -235,6 +235,12 @@ public class EventCache {
 		if ( !cachedEvents.containsKey(getDateHash(day)) || n >= cachedEvents.get(getDateHash(day)).size() )
 			return;
 		cachedEvents.get(getDateHash(day)).remove(n);
+	}
+
+
+	public void flushDay(AcalDateTime day, DataRequest dr ) {
+		cachedEvents.remove(getDateHash(day));
+		addDay(day,dr);
 	}
 	
 }

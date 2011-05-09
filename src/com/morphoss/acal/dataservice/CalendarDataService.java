@@ -75,6 +75,7 @@ import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.providers.DavResources;
 import com.morphoss.acal.providers.PendingChanges;
 import com.morphoss.acal.providers.Servers;
+import com.morphoss.acal.service.ServiceJob;
 import com.morphoss.acal.service.SyncChangesToServer;
 import com.morphoss.acal.service.WorkerClass;
 import com.morphoss.acal.service.aCalService;
@@ -739,7 +740,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 	 * React to database change notifications.
 	 */
 	@Override
-	public void databaseChanged(DatabaseChangedEvent changeEvent) {
+	public synchronized void databaseChanged(DatabaseChangedEvent changeEvent) {
 		ContentValues cv = changeEvent.getContentValues();
 		if (changeEvent.getEventType() == DatabaseChangedEvent.DATABASE_BEGIN_RESOURCE_CHANGES) {
 			this.inResourceTx = System.currentTimeMillis() + MAX_TX_AGE;
@@ -756,14 +757,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 			newResources = new ConcurrentHashMap<Integer,VCalendar>();
 			setupCollections();
 			resetWorker();
-			if (callback != null) {
-				try {
-					dataRequest.flushCache();
-					callback.statusChanged(UPDATE, false);
-				} catch (RemoteException e) {
 
-				}
-			}
 			this.inResourceTx = 0;
 		}
 		else if  (changeEvent.getTable() == DavResources.class) { 
@@ -781,7 +775,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 					break;
 			}
 		}
-		else if  (changeEvent.getTable() == DavCollections.class) {
+		else if ( changeEvent.getTable() == DavCollections.class ) {
 			if ( Constants.debugCalendarDataService && Constants.LOG_VERBOSE)
 				Log.v(TAG, "Received notification of Collections Table change.");
 			
@@ -799,31 +793,21 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 			}
 			exists = (id != -1) && this.collections.containsKey(id);
 			
-			
-			
 			switch (changeEvent.getEventType()) {
-			case DatabaseChangedEvent.DATABASE_RECORD_DELETED :
-				if (exists)	this.collectionDeleted(cv.getAsInteger(DavResources._ID));
-				break;
-			case DatabaseChangedEvent.DATABASE_RECORD_UPDATED :
-				if (!exists && active) collectionCreated(cv);
-				else if (exists && !active) collectionDeleted(id);
-				else if (exists) this.collectionUpdated(cv);
-				break;
-			case DatabaseChangedEvent.DATABASE_RECORD_INSERTED:
-				if (!exists) this.collectionCreated(cv);
-				else this.collectionUpdated(cv);
-				break;
-			default:
-				throw new IllegalArgumentException();
-			}
-			if (callback != null) {
-				try {
-					dataRequest.flushCache();
-					callback.statusChanged(UPDATE, false);
-				} catch (RemoteException e) {
-
-				}
+				case DatabaseChangedEvent.DATABASE_RECORD_DELETED:
+					if (exists) this.collectionDeleted(cv.getAsInteger(DavResources._ID));
+					break;
+				case DatabaseChangedEvent.DATABASE_RECORD_UPDATED:
+					if (!exists && active) collectionCreated(cv);
+					else if (exists && !active) collectionDeleted(id);
+					else if (exists) this.collectionUpdated(cv);
+					break;
+				case DatabaseChangedEvent.DATABASE_RECORD_INSERTED:
+					if (!exists) this.collectionCreated(cv);
+					else this.collectionUpdated(cv);
+					break;
+				default:
+					throw new IllegalArgumentException();
 			}
 
 		}
@@ -836,7 +820,18 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 			}
 
 		}
+
+		// Always flush the cache if stuff has changed.
+		try {
+			dataRequest.flushCache();
+			if (callback != null) callback.statusChanged(UPDATE, false);
+		}
+		catch (RemoteException e) {
+			Log.d(TAG,Log.getStackTraceString(e));
+		}
+
 		this.openUnlessInTx();
+
 	}
 
 	/**
@@ -892,10 +887,9 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 		private EventCache eventCache = new EventCache();
 		
 		//EventCache methods
-		@SuppressWarnings("unchecked")
 		public synchronized List<SimpleAcalEvent> getEventsForDay(AcalDateTime day) {
 			eventCache.addDay(day,this);
-			return eventCache.getEventsForDay(day); 
+			return eventCache.getEventsForDay(day,this); 
 		}
 		public synchronized List<SimpleAcalEvent> getEventsForDays(AcalDateRange range) {
 			return eventCache.getEventsForDays(range,this); 
@@ -912,7 +906,12 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 			eventCache.addDay(day,this);
 			eventCache.deleteEvent(day, n); 
 		}
-		public synchronized void flushCache() {eventCache.flushCache();}
+		public synchronized void flushCache() {
+			eventCache.flushCache();
+		}
+		public synchronized void flushDay( AcalDateTime day ) {
+			eventCache.flushDay(day,this);
+		}
 		
 		
 		@Override
@@ -1090,10 +1089,12 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 			}
 
 			try {
-				WorkerClass.getExistingInstance().addJobAndWake(new SyncChangesToServer());
+				ServiceJob sj = new SyncChangesToServer();
+				sj.TIME_TO_EXECUTE = 1;
+				WorkerClass.getExistingInstance().addJobAndWake(sj);
 			}
 			catch (Exception e) {
-				Log.e(TAG, "Error starting sync job for event deletion.");
+				Log.e(TAG, "Error starting sync job for event modification.");
 			}
 		}
 

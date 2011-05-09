@@ -19,10 +19,11 @@ interface DataRequest {
 	void dismissAlarm(in AcalAlarm alarm);
 	void snoozeAlarm(in AcalAlarm alarm);
 	void eventChanged(in AcalEventAction action);
-	List<SimpleAcalEvent> getEventsForDay(in AcalDateTime day);
 	List<SimpleAcalEvent> getEventsForDays(in AcalDateRange days);
+	List<SimpleAcalEvent> getEventsForDay(in AcalDateTime day);
 	int getNumberEventsForDay(in AcalDateTime day);
 	SimpleAcalEvent getNthEventForDay(in AcalDateTime day, int n);
 	void deleteEvent(in AcalDateTime day, int n);
 	void flushCache();
+	void flushDay(in AcalDateTime day);
 }
