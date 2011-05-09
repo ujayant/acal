@@ -59,6 +59,14 @@ public class SimpleAcalEvent implements Parcelable, Comparable<SimpleAcalEvent> 
 	public final int startDateHash;
 	public final int endDateHash;
 
+	final public static int  EVENT_OPERATION_NONE = 0;
+	final public static int  EVENT_OPERATION_VIEW = 1;
+	final public static int  EVENT_OPERATION_EDIT = 2;
+	final public static int  EVENT_OPERATION_COPY = 3;
+	final public static int  EVENT_OPERATION_MOVE = 4;
+	
+	public int operation = EVENT_OPERATION_NONE;
+	
 	final private static SimpleDateFormat fmtDebugDate = new SimpleDateFormat("MMM d HH:mm");
 	
 	/**
@@ -335,6 +343,7 @@ public class SimpleAcalEvent implements Parcelable, Comparable<SimpleAcalEvent> 
 		dest.writeByte( (byte) ((hasAlarm?0x08:0) | (hasRepeat?0x04:0) | (isAllDay?0x02:0) | (isPending?0x01:0)) );
 		dest.writeInt(startDateHash);
 		dest.writeInt(endDateHash);
+		dest.writeInt(operation);
 	}
 
 	SimpleAcalEvent(Parcel src) {
@@ -351,6 +360,7 @@ public class SimpleAcalEvent implements Parcelable, Comparable<SimpleAcalEvent> 
 		isPending = ((b & 0x01) == 0x01);
 		startDateHash = src.readInt();
 		endDateHash = src.readInt();
+		operation = src.readInt();
 	}
 
 	public static final Parcelable.Creator<SimpleAcalEvent> CREATOR = new Parcelable.Creator<SimpleAcalEvent>() {

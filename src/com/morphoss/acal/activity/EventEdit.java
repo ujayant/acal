@@ -21,6 +21,7 @@ package com.morphoss.acal.activity;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,6 +73,7 @@ import com.morphoss.acal.dataservice.CalendarDataService;
 import com.morphoss.acal.dataservice.DataRequest;
 import com.morphoss.acal.davacal.AcalAlarm;
 import com.morphoss.acal.davacal.AcalEventAction;
+import com.morphoss.acal.davacal.SimpleAcalEvent;
 import com.morphoss.acal.davacal.AcalAlarm.ActionType;
 import com.morphoss.acal.davacal.AcalEventAction.EVENT_FIELD;
 import com.morphoss.acal.providers.DavCollections;
@@ -114,7 +116,6 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 	private String[] repeatRulesValues;
 	
 	private DataRequest dataRequest = null;
-	private boolean isBound = false;
 
 	//GUI Components
 	private TextView fromLabel;
@@ -150,7 +151,8 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		this.setContentView(R.layout.event_edit);
 
 		//Ensure service is actually running
-		this.startService(new Intent(this, aCalService.class));
+		startService(new Intent(this, aCalService.class));
+		connectToService();
 
 		// Get time display preference
 		prefs = PreferenceManager.getDefaultSharedPreferences(this);
@@ -163,6 +165,30 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		this.setupButton(R.id.event_apply_button, APPLY);
 		this.setupButton(R.id.event_cancel_button, CANCEL);
 
+		Bundle b = this.getIntent().getExtras();
+		getEventAction(b);
+		if ( this.eventAction == null ) {
+			Log.d(TAG,"Unable to create AcalEventAction object");
+			return;
+		}
+		this.populateLayout();
+	}
+
+	
+	private AcalEventAction getEventAction(Bundle b) {
+		int operation = SimpleAcalEvent.EVENT_OPERATION_EDIT;
+		if ( b.containsKey("SimpleAcalEvent") ) {
+			SimpleAcalEvent sae = ((SimpleAcalEvent) b.getParcelable("SimpleAcalEvent"));
+			operation = sae.operation;
+		}
+		else if ( b.containsKey("Event") ) {
+			this.eventAction = (AcalEventAction)b.getParcelable("Event");
+		}
+		else if ( b.containsKey("Copy") ) {
+			this.eventAction = (AcalEventAction)b.getParcelable("Event");
+			operation = SimpleAcalEvent.EVENT_OPERATION_COPY;
+		}
+
 		//Get collection data
 		activeCollections = DavCollections.getCollections( getContentResolver(), DavCollections.INCLUDE_EVENTS );
 		int collectionId = -1;
@@ -171,13 +197,11 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		else {
 			this.finish();	// can't work if no active collections
 			Toast.makeText(this, getString(R.string.errorMustHaveActiveCalendar), Toast.LENGTH_LONG);
-			return;
+			return null;
 		}
 		
-		Bundle b = this.getIntent().getExtras();
-		if (b.containsKey("Event")) {
+		if ( operation == SimpleAcalEvent.EVENT_OPERATION_EDIT ) {
 			try {
-				this.eventAction = (AcalEventAction)b.getParcelable("Event");
 				collectionId = (Integer) this.eventAction.getField(AcalEventAction.EVENT_FIELD.collectionId);
 				this.eventAction.setAction(AcalEventAction.ACTION_MODIFY_ALL);
 				if ( eventAction.isModifyAction() ) {
@@ -198,10 +222,9 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 				if (Constants.LOG_DEBUG)Log.d(TAG, "Error getting data from caller: "+e.getMessage());
 			}
 		}
-		else if (b.containsKey("Copy")) {
+		else if ( operation == SimpleAcalEvent.EVENT_OPERATION_COPY ) {
 			// Duplicate the event into a new one.
 			try {
-				this.eventAction = (AcalEventAction)b.getParcelable("Copy");
 				collectionId = (Integer) eventAction.getField(AcalEventAction.EVENT_FIELD.collectionId);
 			}
 			catch (Exception e) {
@@ -209,15 +232,16 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 			}
 			this.eventAction.setAction(AcalEventAction.ACTION_CREATE);
 		}
-		else {
+
+		if ( this.eventAction == null ) {
 			AcalDateTime start; 
 			
 			try {
 				start = (AcalDateTime) b.getParcelable("DATE");
 			} catch (Exception e) {
-				start = new AcalDateTime();
+				start = new AcalDateTime().applyLocalTimeZone();
 			}
-			AcalDateTime now = new AcalDateTime();
+			AcalDateTime now = new AcalDateTime().applyLocalTimeZone();
 			start.setHour(now.getHour());
 			start.setSecond(0);
 			start.setMinute(0);
@@ -263,10 +287,10 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 			if (cv.getAsInteger(DavCollections._ID) == collectionId) this.currentCollection = cv;
 			collectionsArray[count++] = cv.getAsString(DavCollections.DISPLAYNAME);
 		}
-		this.populateLayout();
 		
-		
+		return eventAction;
 	}
+
 	
 	private void setSelectedCollection(String name) {
 		for (ContentValues cv : activeCollections) {
@@ -534,20 +558,24 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		}
 		
 		if (eventAction.getAction() == AcalEventAction.ACTION_CREATE ||
-				eventAction.getAction() == AcalEventAction.ACTION_MODIFY_ALL) { this.saveChanges(); return; }
+				eventAction.getAction() == AcalEventAction.ACTION_MODIFY_ALL) {
+			if ( !this.saveChanges() ){
+				Toast.makeText(this, "Save failed: retrying!", Toast.LENGTH_LONG).show();
+				this.saveChanges();
+			}
+			return; 
+		}
 		
 		//ask the user which instance(s) to apply to
 		this.showDialog(WHICH_EVENT_DIALOG);
 
 	}
 
-	private void saveChanges() {
+	private boolean saveChanges() {
 		
-		while (!isBound) {
-			this.connectToService();
-			try { Thread.sleep(100); } catch (Exception e) { }
-		}
 		try {
+			this.dataRequest.eventChanged(eventAction);
+
 			Log.i(TAG,"Saving event with action " + eventAction.getAction() );
 			if (eventAction.getAction() == AcalEventAction.ACTION_CREATE)
 				Toast.makeText(this, getString(R.string.EventSaved), Toast.LENGTH_LONG).show();
@@ -558,7 +586,6 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 			else if (eventAction.getAction() == AcalEventAction.ACTION_MODIFY_ALL_FUTURE)
 				Toast.makeText(this, getString(R.string.ModifiedThisAndFuture), Toast.LENGTH_LONG).show();
 
-			this.dataRequest.eventChanged(eventAction);
 			Intent ret = new Intent();
 			ret.putExtra("changedEvent", eventAction);
 			this.setResult(RESULT_OK, ret);
@@ -570,6 +597,7 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 			if (Constants.LOG_DEBUG)Log.d(TAG,Log.getStackTraceString(e));
 			Toast.makeText(this, getString(R.string.ErrorSavingEvent), Toast.LENGTH_LONG).show();
 		}
+		return true;
 	}
 
 	private void setupButton(int id, int val) {
@@ -680,7 +708,6 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 			builder.setItems(alarmRelativeTimeStrings, new DialogInterface.OnClickListener() {
 			    public void onClick(DialogInterface dialog, int item) {
 			    	//translate item to equal alarmValue index 
-			    	if (item == 5) return;
 			    	alarmList.add(
 			    			new AcalAlarm(
 			    					true, 
@@ -806,27 +833,40 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 	};
 	private void connectToService() {
 		try {
-			if (this.isBound) return;
 			Intent intent = new Intent(this, CalendarDataService.class);
 			Bundle b  = new Bundle();
 			b.putInt(CalendarDataService.BIND_KEY, CalendarDataService.BIND_DATA_REQUEST);
 			intent.putExtras(b);
 			this.bindService(intent,mConnection,Context.BIND_AUTO_CREATE);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			Log.e(TAG, "Error connecting to service: "+e.getMessage());
 		}
 	}
+
+	private synchronized void serviceIsConnected() {
+	}
+
+	private synchronized void serviceIsDisconnected() {
+		this.dataRequest = null;
+	}
+
+
+
 	@Override
 	public void onResume() {
 		super.onResume();
 		connectToService();
 	}
+
 	@Override
 	public void onPause() {
 		super.onPause();
-		if (isBound) {
+		try {
 			this.unbindService(mConnection);
-			this.isBound = false;
+		}
+		catch (IllegalArgumentException re) { }
+		finally {
 			dataRequest = null;
 		}
 	}
@@ -866,13 +906,11 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
             // service through an IDL interface, so get a client-side
             // representation of that from the raw service object.
             dataRequest = DataRequest.Stub.asInterface(service);
-            isBound = true;
-        }
-
-        public void onServiceDisconnected(ComponentName className) {
-        	dataRequest = null;
-        	isBound=false;
-        }
+			serviceIsConnected();
+		}
+		public void onServiceDisconnected(ComponentName className) {
+			serviceIsDisconnected();
+		}
 	};
 
 

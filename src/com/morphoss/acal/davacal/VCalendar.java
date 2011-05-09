@@ -180,19 +180,7 @@ public class VCalendar extends VComponent {
 			if ( rrule != null && !rrule.equals(""))
 				mast.addProperty(new AcalProperty("RRULE",rrule));
 
-
-			@SuppressWarnings("unchecked")
-			List<AcalAlarm> alarmlist = (List<AcalAlarm>) action.getField(EVENT_FIELD.alarmList);
-			if ( alarmlist != null && alarmlist.size() > 0 ) {
-				List<VComponent> children = mast.getChildren();
-				for( VComponent child : children ) {
-					if ( child instanceof VAlarm ) mast.removeChild(child);
-				}
-				for( AcalAlarm alarm : alarmlist ) {
-					VAlarm vAlarm = alarm.getVAlarm(mast);
-					mast.addChild(vAlarm);
-				}
-			}
+			mast.updateAlarmComponents( (List<?>) action.getField(EVENT_FIELD.alarmList) );
 		}
 	}
 

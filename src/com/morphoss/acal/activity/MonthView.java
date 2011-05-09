@@ -166,7 +166,6 @@ public class MonthView extends Activity implements OnGestureListener,
 
 	/* Fields relating to calendar data */
 	private DataRequest dataRequest = null;
-	private boolean isBound = false;
 
 	/* Fields relating to Intent Results */
 	public static final int PICK_MONTH_FROM_YEAR_VIEW = 0;
@@ -231,18 +230,26 @@ public class MonthView extends Activity implements OnGestureListener,
 
 	private void connectToService() {
 		try {
-			if (this.isBound)
-				return;
+			Log.v(TAG,TAG + " - Connecting to service with dataRequest ="+(dataRequest == null? "null" : "non-null"));
 			Intent intent = new Intent(this, CalendarDataService.class);
 			Bundle b = new Bundle();
 			b.putInt(CalendarDataService.BIND_KEY,
 					CalendarDataService.BIND_DATA_REQUEST);
 			intent.putExtras(b);
 			this.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-			this.isBound = true;
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			Log.e(TAG, "Error connecting to service: " + e.getMessage());
 		}
+	}
+
+	
+	private synchronized void serviceIsConnected() {
+		changeSelectedDate(selectedDate);
+	}
+
+	private synchronized void serviceIsDisconnected() {
+		this.dataRequest = null;
 	}
 
 	/**
@@ -257,6 +264,7 @@ public class MonthView extends Activity implements OnGestureListener,
 	@Override
 	public void onResume() {
 		super.onResume();
+		Log.v(TAG,TAG + " - onResume");
 		loadState();
 		connectToService();
 	}
@@ -294,6 +302,20 @@ public class MonthView extends Activity implements OnGestureListener,
 	@Override
 	public void onPause() {
 		super.onPause();
+
+		try {
+			if (dataRequest != null) {
+				dataRequest.flushCache();
+				dataRequest.unregisterCallback(mCallback);
+			}
+			this.unbindService(mConnection);
+		}
+		catch (RemoteException re) { }
+		catch (IllegalArgumentException e) { }
+		finally {
+			dataRequest = null;
+		}
+
 		// Save state
 		if (Constants.LOG_DEBUG)	Log.d(TAG, "Writing month view state to file.");
 		ObjectOutputStream outputStream = null;
@@ -323,19 +345,6 @@ public class MonthView extends Activity implements OnGestureListener,
 								+ ex.getMessage());
 			}
 		}
-		if (isBound) {
-			try {
-				if (dataRequest != null) {
-					dataRequest.flushCache();
-					dataRequest.unregisterCallback(mCallback);
-				}
-				this.unbindService(mConnection);
-				this.isBound = false;
-				dataRequest = null;
-			} catch (RemoteException re) {
-
-			}
-		}
 	}
 
 	/****************************************************
@@ -351,10 +360,10 @@ public class MonthView extends Activity implements OnGestureListener,
 	private void setupButton(int id, int val, String buttonLabel) {
 		Button myButton = (Button) this.findViewById(id);
 		if (myButton == null) {
-			Log.e(TAG, "Cannot find button '" + id + "' by ID, to set value '"
-					+ val + "'");
+			Log.e(TAG, "Cannot find button '" + id + "' by ID, to set value '" + val + "'");
 			Log.i(TAG, Log.getStackTraceString(new Exception()));
-		} else {
+		}
+		else {
 			myButton.setText(buttonLabel);
 			myButton.setOnClickListener(this);
 			myButton.setTag(val);
@@ -450,7 +459,7 @@ public class MonthView extends Activity implements OnGestureListener,
 	 * </p>
 	 */
 	private void loadState() {
-		if (Constants.LOG_DEBUG) Log.d(TAG, "Loading month view state to file.");
+		if (Constants.LOG_DEBUG) Log.d(TAG, "Loading month view state from file.");
 		ObjectInputStream inputStream = null;
 		Object sd = null;
 		Object dm = null;
@@ -702,14 +711,12 @@ public class MonthView extends Activity implements OnGestureListener,
 	 * </p>
 	 */
 	public void changeDisplayedMonth(AcalDateTime calendar) {
-		this.displayedMonth = calendar;
+		this.displayedMonth = calendar.applyLocalTimeZone();
 		this.monthTitle.setText(AcalDateTime.fmtMonthYear(calendar));
 		if (AcalDateTime.isWithinMonth(selectedDate, displayedMonth))
-			this.gridView.setAdapter(new MonthAdapter(this, selectedDate,
-					selectedDate));
+			this.gridView.setAdapter(new MonthAdapter(this, selectedDate, selectedDate));
 		else
-			this.gridView.setAdapter(new MonthAdapter(this, displayedMonth,
-					selectedDate));
+			this.gridView.setAdapter(new MonthAdapter(this, displayedMonth, selectedDate));
 		this.gridView.refreshDrawableState();
 	}
 
@@ -722,15 +729,13 @@ public class MonthView extends Activity implements OnGestureListener,
 	@SuppressWarnings("unchecked")
 	public void changeSelectedDate(AcalDateTime c) {
 
-		this.selectedDate = c;
+		this.selectedDate = c.applyLocalTimeZone();
 		this.eventListTitle.setText(AcalDateTime.fmtDayMonthYear(c));
-		this.eventListAdapter = new EventListAdapter(this,
-				selectedDate.clone());
+		this.eventListAdapter = new EventListAdapter(this, selectedDate.clone());
 		this.eventList.setAdapter(eventListAdapter);
 		this.eventList.refreshDrawableState();
 		if (AcalDateTime.isWithinMonth(selectedDate, displayedMonth)) {
-			this.gridView.setAdapter(new MonthAdapter(this, displayedMonth
-					.clone(), selectedDate.clone()));
+			this.gridView.setAdapter(new MonthAdapter(this, displayedMonth.clone(), selectedDate.clone()));
 			this.gridView.refreshDrawableState();
 		} else {
 			((MonthAdapter) this.gridView.getAdapter())
@@ -1083,15 +1088,13 @@ public class MonthView extends Activity implements OnGestureListener,
 				dataRequest.registerCallback(mCallback);
 				
 			} catch (RemoteException re) {
-
+				Log.d(TAG,Log.getStackTraceString(re));
 			}
-			isBound = true;
-			changeSelectedDate(selectedDate);
+			serviceIsConnected();
 		}
 
 		public void onServiceDisconnected(ComponentName className) {
-			dataRequest = null;
-			isBound = false;
+			serviceIsDisconnected();
 		}
 	};
 

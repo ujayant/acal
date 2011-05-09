@@ -48,13 +48,13 @@ import android.view.GestureDetector.OnGestureListener;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.widget.Button;
-import android.widget.LinearLayout;
 
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.activity.EventEdit;
+import com.morphoss.acal.activity.EventView;
 import com.morphoss.acal.activity.MonthView;
 import com.morphoss.acal.activity.YearView;
 import com.morphoss.acal.dataservice.CalendarDataService;
@@ -130,14 +130,15 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	
 	/* Fields relating to calendar data */
 	private DataRequest dataRequest = null;
-	private boolean isBound = false;
 	
 	//Fields relating to scrolling
 	private int scrollx = 0;
 	private int scrolly = 0;
 	int	WORK_START_SECONDS;
 	int	WORK_FINISH_SECONDS;
-	private Object	entireView;
+
+	private int	StatusBarHeight;
+	private float	SPscaler;
 	
 	
 	/**
@@ -154,8 +155,14 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		}
 		selectedDate.applyLocalTimeZone().setDaySecond(0);
 
+		// Hack to calculate the status bar height 
+		Rect rectgle= new Rect();
+		Window window= getWindow();
+		window.getDecorView().getWindowVisibleDisplayFrame(rectgle);
+		StatusBarHeight= rectgle.top;
+
+
 		this.setContentView(R.layout.week_view);
-		entireView = (LinearLayout) this.findViewById(R.id.week_view_entire);
 		header 	= (WeekViewHeader) 	this.findViewById(R.id.week_view_header);
 		sidebar = (WeekViewSideBar) this.findViewById(R.id.week_view_sidebar);
 		days 	= (WeekViewDays) 	this.findViewById(R.id.week_view_days);
@@ -181,8 +188,8 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 			FIRST_DAY_OF_WEEK = AcalDateTime.MONDAY; 
 		}
 		
-		float SPscaler = this.getResources().getDisplayMetrics().scaledDensity;	//used for scaling our values to SP
-		float DPscaler = this.getResources().getDisplayMetrics().density;	//used for scaling our values to SP
+		SPscaler = this.getResources().getDisplayMetrics().scaledDensity;	//used for scaling our values to SP
+		float DPscaler = this.getResources().getDisplayMetrics().density;		//used for scaling our values to SP
 
 		PIXELS_PER_TEXT_ROW = TEXT_SIZE*SPscaler;
 		float lph = 2f;
@@ -268,36 +275,41 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	/** Connect to CDS - needed to get event information for views. */
 	private void connectToService() {
 		try {
-			if (this.isBound)
-				return;
 			Intent intent = new Intent(this, CalendarDataService.class);
 			Bundle b = new Bundle();
 			b.putInt(CalendarDataService.BIND_KEY,
 					CalendarDataService.BIND_DATA_REQUEST);
 			intent.putExtras(b);
 			this.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-			this.isBound = true;
 		} catch (Exception e) {
 			Log.e(TAG, "Error connecting to service: " + e.getMessage());
 		}
 	}
+
+	private synchronized void serviceIsConnected() {
+		refresh();
+	}
+
+	private synchronized void serviceIsDisconnected() {
+		this.dataRequest = null;
+	}
+
 	
 	
 	@Override 
 	public void onPause() {
 		super.onPause();
-		if (isBound) {
-			try {
-				if (dataRequest != null) {
-					dataRequest.flushCache();
-					dataRequest.unregisterCallback(mCallback);
-				}
-				this.unbindService(mConnection);
-				this.isBound = false;
-				dataRequest = null;
-			} catch (RemoteException re) {
-
+		try {
+			if (dataRequest != null) {
+				dataRequest.flushCache();
+				dataRequest.unregisterCallback(mCallback);
 			}
+			this.unbindService(mConnection);
+		}
+		catch (RemoteException re) { }
+		catch (IllegalArgumentException re) { }
+		finally {
+			dataRequest = null;
 		}
 	}
 	
@@ -418,15 +430,13 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 				dataRequest.registerCallback(mCallback);
 				
 			} catch (RemoteException re) {
-
+				Log.d(TAG,Log.getStackTraceString(re));
 			}
-			isBound = true;
-			refresh();
+			serviceIsConnected();
 		}
 
 		public void onServiceDisconnected(ComponentName className) {
-			dataRequest = null;
-			isBound = false;
+			serviceIsDisconnected();
 		}
 	};
 
@@ -524,23 +534,6 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	}
 	@Override
 	public void onLongPress(MotionEvent me) {
-
-		// Hack to calculate the status bar height 
-		Rect rectgle= new Rect();
-		Window window= getWindow();
-		window.getDecorView().getWindowVisibleDisplayFrame(rectgle);
-		int StatusBarHeight= rectgle.top;
-
-		if ( Constants.LOG_DEBUG ) {
-			float hwY = me.getYPrecision() * me.getY();
-			float hwX = me.getYPrecision() * me.getY();
-			Log.v(TAG,"Long click at "+(int)me.getRawX()+","+(int)me.getRawY()+
-						" or "+(int)me.getX()+","+(int)me.getY()+
-						" or "+(int)hwX+","+(int)hwY+
-						" ~~ sbWidth: "+sidebar.getWidth()+" or "+sidebar.getRight()+
-						", hdrHeight:"+header.getHeight()+" or "+header.getBottom()+
-						", statusHeight: "+StatusBarHeight );
-		}
 		days.whatWasUnderneath(me.getRawX() - sidebar.getWidth(), me.getRawY() - (header.getHeight()+StatusBarHeight) );
 		// showDialog(DATE_PICKER);
 	}
@@ -555,8 +548,43 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		// TODO Auto-generated method stub
 		
 	}
+
+	MotionEvent lastClickMe = null;
 	@Override
-	public boolean onSingleTapUp(MotionEvent arg0) {
+	public boolean onSingleTapUp(MotionEvent me) {
+		if ( lastClickMe == null ) {
+			lastClickMe = me;
+			return false;
+		}
+		if ( Math.abs(lastClickMe.getX() - me.getX()) < (10 * SPscaler) 
+					&& Math.abs(lastClickMe.getX() - me.getX()) < (10 * SPscaler)
+					&& (me.getEventTime() - lastClickMe.getEventTime()) < 1000
+				) { 
+			List<Object> under = days.whatWasUnderneath(me.getRawX() - sidebar.getWidth(),
+											me.getRawY() - (header.getHeight()+StatusBarHeight) );
+			
+			if ( under.size() > 2 ) {
+				// There's at least one event under the double-click
+				if ( under.size() == 3 ) {
+					// There's only one event under the tap, so we'll view it directly
+					Bundle bundle = new Bundle();
+					SimpleAcalEvent sae = ((SimpleAcalEvent) under.get(2));
+					sae.operation = SimpleAcalEvent.EVENT_OPERATION_VIEW;
+//					AcalEvent ae = AcalEvent.fromDatabase(this, sae.resourceId, new AcalDateTime().setEpoch(sae.start));
+//					bundle.putParcelable("Event", new AcalEventAction(ae));
+					bundle.putParcelable("SimpleAcalEvent", sae);
+					Intent eventViewIntent = new Intent(this, EventView.class);
+					eventViewIntent.putExtras(bundle);
+					this.startActivity(eventViewIntent);
+				}
+				else {
+					// There's more than one, so we need to show a context menu
+				}
+			}
+			lastClickMe = null;
+			return true;
+		}
+		lastClickMe = me;
 		return false;
 	}
 	

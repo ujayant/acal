@@ -44,7 +44,9 @@ import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
 import com.morphoss.acal.davacal.AcalAlarm;
+import com.morphoss.acal.davacal.AcalEvent;
 import com.morphoss.acal.davacal.AcalEventAction;
+import com.morphoss.acal.davacal.SimpleAcalEvent;
 import com.morphoss.acal.davacal.AcalEventAction.EVENT_FIELD;
 import com.morphoss.acal.service.aCalService;
 
@@ -84,9 +86,17 @@ public class EventView extends Activity implements OnGestureListener, OnTouchLis
 		
 		Bundle b = this.getIntent().getExtras();
 		try {
-			this.event = ((AcalEventAction) b.getParcelable("Event"));
+			if (b.containsKey("Event")) {
+				this.event = ((AcalEventAction) b.getParcelable("Event"));
+			}
+			else if ( b.containsKey("SimpleAcalEvent") ) {
+				SimpleAcalEvent sae = ((SimpleAcalEvent) b.getParcelable("SimpleAcalEvent"));
+				AcalEvent ae = AcalEvent.fromDatabase(this, sae.resourceId, new AcalDateTime().setEpoch(sae.start));
+				this.event = new AcalEventAction(ae);
+			}
 			this.populateLayout();
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			if (Constants.LOG_DEBUG)Log.d(TAG, "Error getting data from caller: "+e.getMessage());
 		}
 		

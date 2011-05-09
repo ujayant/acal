@@ -190,18 +190,17 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 		
 
 			@Override
-			public void onCreateContextMenu(ContextMenu menu, View view,
-					ContextMenuInfo info) {
+			public void onCreateContextMenu(ContextMenu menu, View view, ContextMenuInfo info) {
 				menu.setHeaderTitle("Event");
-				if ( !isPending ) menu.add(0, position, 0, "Edit");
+				if ( !isPending ) menu.add(0, position, 0, context.getString(R.string.Edit));
 
-				menu.add(0, CONTEXT_COPY + position, 0, "Copy");
+				menu.add(0, CONTEXT_COPY + position, 0, context.getString(R.string.newEventFromThis));
 				if (repeats) {
-					menu.add(0,CONTEXT_DELETE_ALL+position,0, "Delete All Instances");
-					menu.add(0,CONTEXT_DELETE_JUSTTHIS+position, 0, "Delete This Instance");
-					menu.add(0,CONTEXT_DELETE_FROMNOW+position,0, "Delete This and Future");
+					menu.add(0,CONTEXT_DELETE_ALL+position,0, context.getString(R.string.deleteAllInstances));
+					menu.add(0,CONTEXT_DELETE_JUSTTHIS+position, 0, context.getString(R.string.deleteThisInstance));
+					menu.add(0,CONTEXT_DELETE_FROMNOW+position,0, context.getString(R.string.deleteThisAndFuture));
 				} else {
-					menu.add(0,CONTEXT_DELETE_ALL+position,0, "Delete");
+					menu.add(0,CONTEXT_DELETE_ALL+position,0, context.getString(R.string.Delete));
 				}
 			}
 		});
@@ -217,10 +216,10 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 	public void onClick(View arg0) {
 		if (clickEnabled) {
 			Object tag = arg0.getTag();
-			if (tag instanceof AcalEvent) {
+			if (tag instanceof SimpleAcalEvent) {
 				//start event activity
 				Bundle bundle = new Bundle();
-				bundle.putParcelable("Event", new AcalEventAction((AcalEvent)tag));
+				bundle.putParcelable("SimpleAcalEvent", (SimpleAcalEvent)tag);
 				Intent eventViewIntent = new Intent(context, EventView.class);
 				eventViewIntent.putExtras(bundle);
 				context.startActivityForResult(eventViewIntent, MonthView.PICK_TODAY_FROM_EVENT_VIEW);
@@ -236,14 +235,16 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 			int id = item.getItemId();
 			int action = id & 0xf0000;
 			id = id & 0xffff;
-			String parcelKey = "Copy";
+
+			SimpleAcalEvent sae = (SimpleAcalEvent)this.getItem(id);
+			sae.operation = SimpleAcalEvent.EVENT_OPERATION_EDIT;
 			switch( action ) {
-				case CONTEXT_EDIT:
-					parcelKey = "Event";  // And then fall through
-					//start event activity
 				case CONTEXT_COPY:
+					sae.operation = SimpleAcalEvent.EVENT_OPERATION_COPY;
+				case CONTEXT_EDIT:
+					//start EventEdit activity
 					Bundle bundle = new Bundle();
-					bundle.putParcelable(parcelKey, new AcalEventAction((AcalEvent)this.getItem(id)));
+					bundle.putParcelable("SimpleAcalEvent", sae);
 					Intent eventViewIntent = new Intent(context, EventEdit.class);
 					eventViewIntent.putExtras(bundle);
 					context.startActivity(eventViewIntent);

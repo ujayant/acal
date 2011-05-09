@@ -18,6 +18,8 @@
 
 package com.morphoss.acal.davacal;
 
+import java.util.ConcurrentModificationException;
+import java.util.Iterator;
 import java.util.List;
 
 import android.util.Log;
@@ -64,7 +66,7 @@ public abstract class Masterable extends VComponent {
 			if ( dProp != null ) {
 				ret = dtstart.getDurationTo(AcalDateTime.fromIcalendar(dProp.getValue(),
 							dProp.getParam("VALUE"), dProp.getParam("TZID")));
-				if ( Constants.debugRepeatRule && Constants.LOG_VERBOSE )Log.v(AcalRepeatRule.TAG,"Event Duration from DTEND/DUE is " + ret.toString() );
+				if ( Constants.debugRepeatRule && Constants.LOG_VERBOSE ) Log.v(AcalRepeatRule.TAG,"Event Duration from DTEND/DUE is " + ret.toString() );
 			}
 			else {
 				ret = new AcalDuration();
@@ -73,5 +75,35 @@ public abstract class Masterable extends VComponent {
 		}
 
 		return ret;
+	}
+
+
+	/**
+	 * Given a List of AcalAlarm's, make this Masterable have those as child components.
+	 * @param alarmList the list of alarms.
+	 */
+	public void updateAlarmComponents( List<?> alarmList ) {
+		if ( alarmList != null && alarmList.size() > 0 ) {
+			try {
+				this.setPersistentOn();
+			}
+			catch (YouMustSurroundThisMethodInTryCatchOrIllEatYouException e) {
+				// What a silly name.  We're ignoring it because we are actually
+				// modifying the event here, presumably ultimately to save it,
+				// but regardless, we will never decrement that persistence counter,
+				// so there, mister!
+			}
+			populateChildren();
+			List<VComponent> children = getChildren();
+			Iterator<VComponent> it = children.iterator();
+			while( it.hasNext() ) {
+				VComponent child = it.next();
+				if ( child instanceof VAlarm ) it.remove();
+			}
+			for( Object alarm : alarmList ) {
+				if ( alarm instanceof AcalAlarm )
+					addChild(((AcalAlarm) alarm).getVAlarm(this));
+			}
+		}
 	}
 }

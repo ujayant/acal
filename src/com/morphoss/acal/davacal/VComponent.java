@@ -173,10 +173,15 @@ public abstract class VComponent {
 	
 	public synchronized List<VComponent> getChildren() {
 		this.populateChildren();
-		List<VComponent> ret = Collections.unmodifiableList(this.children);
-		if (this.persistenceCount == 0) this.destroyChildren();
-		return ret;
+		if ( persistenceCount == 0 ) {
+			List<VComponent> ret = Collections.unmodifiableList(this.children);
+			if (this.persistenceCount == 0) this.destroyChildren();
+			return ret;
+		}
+		persistenceCount++;
+		return children;
 	}
+
 	
 	public synchronized VComponent getTopParent() {
 		VComponent cur = this;

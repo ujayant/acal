@@ -38,7 +38,6 @@ import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
-import android.view.WindowManager;
 import android.view.View.OnClickListener;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -56,7 +55,7 @@ public class AlarmActivity extends Activity implements OnClickListener  {
 	public static final String TAG = "aCal AlarmActivity";
 	private AcalAlarm currentAlarm;
 	private PowerManager.WakeLock wl;
-	private boolean isBound = false;
+
 	private DataRequest dataRequest;
 
 	//GUI Components
@@ -108,8 +107,6 @@ public class AlarmActivity extends Activity implements OnClickListener  {
 
 		this.setContentView(R.layout.alarm_activity);
 		
-		
-		connectToService();
 		ns = Context.NOTIFICATION_SERVICE;
 		am = (AudioManager)this.getSystemService(Context.AUDIO_SERVICE);
 		v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
@@ -126,23 +123,34 @@ public class AlarmActivity extends Activity implements OnClickListener  {
 		snoozeButton = (ImageView) this.findViewById(R.id.snooze_button);
 		dismissButton = (ImageView) this.findViewById(R.id.dismiss_button);
 
+		connectToService();
+		
 	}
 
+	
 	@Override
 	public void onNewIntent(Intent i) {
 		super.onNewIntent(i);
 	}
+
 	
-	private void serviceConnected() {
-		isBound = true;
+	private synchronized void serviceIsConnected() {
 		setupButton(mapButton, MAP);
 		setupButton(snoozeButton, SNOOZE);
 		setupButton(dismissButton, DIMISS);
 		showNextAlarm();
 	}
 
+	private synchronized void serviceIsDisconnected() {
+		this.dataRequest = null;
+	}
+
+
 	private void showNextAlarm() {
 		if (Constants.LOG_DEBUG)Log.d(TAG, "Showing next alarm....");
+		if ( dataRequest == null ) {
+			this.finish();
+		}
 		try {
 			this.currentAlarm = dataRequest.getCurrentAlarm();
 			if (this.currentAlarm == null) {
@@ -152,7 +160,8 @@ public class AlarmActivity extends Activity implements OnClickListener  {
 				return;
 			}
 			this.updateAlarmView();
-		} catch (RemoteException e) {
+		}
+		catch (RemoteException e) {
 			Log.e(TAG, " Error retrieving alarm data from dataRequest.");
 			this.finish();
 		}
@@ -231,13 +240,8 @@ public class AlarmActivity extends Activity implements OnClickListener  {
 	
 	private void connectToService() {
 		try {
-			if (this.isBound) return;
 			Intent intent = new Intent(this, CalendarDataService.class);
-			//			Bundle b  = new Bundle();
-			//			b.putInt(CalendarDataService.BIND_KEY, CalendarDataService.BIND_ALARM_TRIGGER);
-			//			intent.putExtras(b);
 			this.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-			this.isBound = true;
 		} catch (Exception e) {
 			Log.e(TAG, "Error connecting to service: "+e.getMessage());
 		}
@@ -255,12 +259,16 @@ public class AlarmActivity extends Activity implements OnClickListener  {
 		super.onPause();
 		if (mp != null && mp.isPlaying()) mp.stop();
 		v.cancel();
-		if (isBound)
+
+		try {
 			this.unbindService(mConnection);
-		this.isBound = false;
-		dataRequest = null;
-		if (wl.isHeld())
-			wl.release();
+		}
+		catch (IllegalArgumentException e) { }
+		finally {
+			dataRequest = null;
+		}
+
+		if (wl.isHeld()) wl.release();
 	}
 
 	@Override
@@ -316,11 +324,10 @@ public class AlarmActivity extends Activity implements OnClickListener  {
 			// service through an IDL interface, so get a client-side
 			// representation of that from the raw service object.
 			dataRequest = DataRequest.Stub.asInterface(service);
-			serviceConnected();
+			serviceIsConnected();
 		}
 		public void onServiceDisconnected(ComponentName className) {
-			dataRequest = null;
-			isBound=false;
+			serviceIsDisconnected();
 		}
 	};
 }
