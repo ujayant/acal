@@ -220,8 +220,10 @@ public class CheckServerDialog implements Runnable {
 				successMessages.add(context.getString(R.string.serverSupportsCalDAV));
 			}
 			else {
-				serverData.put(Servers.HAS_CALDAV, 0);
-				successMessages.add(context.getString(R.string.serverLacksCalDAV));
+				if ( authOK || !authFailed ) {
+					serverData.put(Servers.HAS_CALDAV, 0);
+					successMessages.add(context.getString(R.string.serverLacksCalDAV));
+				}
 			}
 
 			// Step 6, Exit with success message
