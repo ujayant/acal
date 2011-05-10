@@ -16,13 +16,17 @@ my $resources_dir = "../res";
 my $strings_filename = "strings";
 my $messages_filename = "messages.pot";
 
-if ( $ARGV[0] eq "extract" ) {
+if ( defined($ARGV[0]) && $ARGV[0] eq "extract" ) {
   # Update/extract the strings for the messages.po file
   extract_po_file($resources_dir ."/values/". $strings_filename . ".xml", $messages_filename);
 }
-elsif ( $ARGV[0] eq "build" ) {
+elsif ( defined($ARGV[0]) && $ARGV[0] eq "build" ) {
   # From the language po files build the various strings files.
   build_strings_files($messages_filename, $strings_filename );
+}
+else {
+  print "You must specify either 'extract' or 'build'\n";
+  exit 0
 }
 
 
