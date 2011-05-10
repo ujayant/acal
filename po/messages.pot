@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-04-13 20:49+1200\n"
+"POT-Creation-Date: 2011-05-10 12:04+1200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -86,6 +86,9 @@ msgstr "Colour"
 
 msgid "Default_timezone"
 msgstr "Default Timezone"
+
+msgid "DefaultAlarmTone"
+msgstr "Default Alarm Tone"
 
 msgid "Server_Path"
 msgstr "Server Path"
@@ -394,10 +397,10 @@ msgstr "Rows Height"
 msgid "prefWeekViewLinesPerHour_Summary"
 msgstr "The height of each hour of the day in week view."
 
-msgid "prefWeekViewColumnsPerDay_Title"
+msgid "prefWeekViewDayWidth_Title"
 msgstr "Column Width"
 
-msgid "prefWeekViewColumnsPerDay_Summary"
+msgid "prefWeekViewDayWidth_Summary"
 msgstr "The width of each day column in the week view."
 
 msgid "Today"
@@ -565,8 +568,11 @@ msgstr "Add Alarm"
 msgid "errorMustHaveActiveCalendar"
 msgstr "Cannot edit event without an active calendar."
 
+msgid "errorSavingServerConfig"
+msgstr "Error saving server configuration"
+
 msgid "errorSavingFile"
-msgstr "Error Saving File"
+msgstr "Error saving to file"
 
 msgid "ServerDataSaved"
 msgstr "Server data written. Filename: "
@@ -579,6 +585,12 @@ msgstr "Manually enter the server information"
 
 msgid "SavedServerConfigurationBlurb"
 msgstr "A saved server configuration"
+
+msgid "AllDaysInPeriod"
+msgstr "All day, from %1$s to %2$s"
+
+msgid "ForTheWholeDay"
+msgstr "All day"
 
 msgid "alarmAtEventTime"
 msgstr "At Event Time"
@@ -642,3 +654,39 @@ msgstr "Server validation was successful."
 
 msgid "authenticationFailed"
 msgstr "Unable to authenticate with server."
+
+msgid "WeekViewPreferences"
+msgstr "Week View settings"
+
+msgid "checkServer"
+msgstr "Validating server"
+
+msgid "checkServer_Connecting"
+msgstr "Connecting to server please wait..."
+
+msgid "checkServer_Internet"
+msgstr "Checking internet connectivity"
+
+msgid "checkServer_ProbePorts"
+msgstr "Probing server on port %1$d using %2$s protocol"
+
+msgid "checkServer_SearchingPrincipal"
+msgstr "Searching for principal path at &quot;%s&quot;"
+
+msgid "checkServer_CheckingCapabilities"
+msgstr "Checking server capabilities"
+
+msgid "newEventFromThis"
+msgstr "Copy to New Event"
+
+msgid "Delete"
+msgstr "Delete"
+
+msgid "deleteAllInstances"
+msgstr "Delete all instances"
+
+msgid "deleteThisInstance"
+msgstr "Delete this instance"
+
+msgid "deleteThisAndFuture"
+msgstr "Delete this and future"
