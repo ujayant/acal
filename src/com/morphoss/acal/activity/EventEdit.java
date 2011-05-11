@@ -180,7 +180,7 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		if ( b.containsKey("SimpleAcalEvent") ) {
 			SimpleAcalEvent sae = ((SimpleAcalEvent) b.getParcelable("SimpleAcalEvent"));
 			operation = sae.operation;
-			this.eventAction = new AcalEventAction(AcalEvent.fromDatabase(this, sae.resourceId, new AcalDateTime().setEpoch(sae.start)));
+			this.eventAction = new AcalEventAction(this,sae);
 		}
 		else if ( b.containsKey("Event") ) {
 			this.eventAction = (AcalEventAction)b.getParcelable("Event");

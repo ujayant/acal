@@ -21,6 +21,7 @@ package com.morphoss.acal.activity;
 import java.util.List;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -44,7 +45,6 @@ import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
 import com.morphoss.acal.davacal.AcalAlarm;
-import com.morphoss.acal.davacal.AcalEvent;
 import com.morphoss.acal.davacal.AcalEventAction;
 import com.morphoss.acal.davacal.SimpleAcalEvent;
 import com.morphoss.acal.davacal.AcalEventAction.EVENT_FIELD;
@@ -90,9 +90,7 @@ public class EventView extends Activity implements OnGestureListener, OnTouchLis
 				this.event = ((AcalEventAction) b.getParcelable("Event"));
 			}
 			else if ( b.containsKey("SimpleAcalEvent") ) {
-				SimpleAcalEvent sae = ((SimpleAcalEvent) b.getParcelable("SimpleAcalEvent"));
-				AcalEvent ae = AcalEvent.fromDatabase(this, sae.resourceId, new AcalDateTime().setEpoch(sae.start));
-				this.event = new AcalEventAction(ae);
+				this.event = new AcalEventAction(this,(SimpleAcalEvent) b.getParcelable("SimpleAcalEvent"));
 			}
 			this.populateLayout();
 		}

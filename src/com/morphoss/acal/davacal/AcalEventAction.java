@@ -22,12 +22,13 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Map;
 
-import com.morphoss.acal.acaltime.AcalDateTime;
-import com.morphoss.acal.acaltime.AcalDuration;
-
 import android.R;
+import android.content.Context;
 import android.os.Parcel;
 import android.os.Parcelable;
+
+import com.morphoss.acal.acaltime.AcalDateTime;
+import com.morphoss.acal.acaltime.AcalDuration;
 
 public class AcalEventAction implements Parcelable {
 
@@ -76,6 +77,12 @@ public class AcalEventAction implements Parcelable {
 	
 	public AcalEventAction(AcalEvent originalEvent) {
 		this.event = originalEvent;
+		this.action = ACTION_MODIFY_ALL;
+	}
+
+	public AcalEventAction(Context c, SimpleAcalEvent sae) {
+		this.event = AcalEvent.fromDatabase(c, sae.resourceId,
+					new AcalDateTime().applyLocalTimeZone().setEpoch(sae.start));
 		this.action = ACTION_MODIFY_ALL;
 	}
 	
