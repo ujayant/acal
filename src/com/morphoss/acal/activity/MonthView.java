@@ -127,7 +127,7 @@ public class MonthView extends Activity implements OnGestureListener,
 	/** The root view containing the GridView Object for the Month View */
 	private View gridRoot;
 	/** The GridView object that displays the month */
-	private GridView gridView;
+	private GridView gridView = null;
 	/** The TextView that displays which month we are looking at */
 	private TextView monthTitle;
 
@@ -138,7 +138,7 @@ public class MonthView extends Activity implements OnGestureListener,
 	/** The root view containing the GridView Object for the Event View */
 	private View listRoot;
 	/** The GridView object that displays the Event View */
-	private GridView eventList;
+	private GridView eventList = null;
 	/** The TextView that displays which day we are looking at */
 	private TextView eventListTitle;
 	/** The current event list adapter */
@@ -204,28 +204,21 @@ public class MonthView extends Activity implements OnGestureListener,
 
 		gestureDetector = new GestureDetector(this);
 
-		// Create Grid Views
-		createGridView(true);
-		createListView(true);
-
 		// Set up buttons
 		this.setupButton(R.id.month_today_button, TODAY, getString(R.string.Today));
 		this.setupButton(R.id.month_week_button, WEEK, getString(R.string.Week));
 		this.setupButton(R.id.month_year_button, YEAR, getString(R.string.Year));
 		this.setupButton(R.id.month_add_button, ADD, "+");
 
-		AcalDateTime currentDate = new AcalDateTime();
-		selectedDate = currentDate;
+		AcalDateTime currentDate = new AcalDateTime().applyLocalTimeZone();
+		selectedDate = currentDate.clone();
 		displayedMonth = currentDate;
-		changeSelectedDate(currentDate);
-		changeDisplayedMonth(currentDate);
 
-		listViewFlipper.setAnimationCacheEnabled(true);
 		leftIn = AnimationUtils.loadAnimation(this, R.anim.push_left_in);
 		leftOut = AnimationUtils.loadAnimation(this, R.anim.push_left_out);
 		rightIn = AnimationUtils.loadAnimation(this, R.anim.push_right_in);
 		rightOut = AnimationUtils.loadAnimation(this, R.anim.push_right_out);
-		
+
 	}
 
 	private void connectToService() {
@@ -245,7 +238,11 @@ public class MonthView extends Activity implements OnGestureListener,
 
 	
 	private synchronized void serviceIsConnected() {
+		if ( this.gridView == null ) createGridView(true);
+		if ( this.eventList == null ) createListView(true);
+
 		changeSelectedDate(selectedDate);
+		changeDisplayedMonth(displayedMonth);
 	}
 
 	private synchronized void serviceIsDisconnected() {
@@ -318,12 +315,13 @@ public class MonthView extends Activity implements OnGestureListener,
 
 		// Save state
 		if (Constants.LOG_DEBUG)	Log.d(TAG, "Writing month view state to file.");
+		AcalDateTime now = new AcalDateTime().applyLocalTimeZone();
 		ObjectOutputStream outputStream = null;
 		try {
-			outputStream = new ObjectOutputStream(new FileOutputStream(
-					STATE_FILE));
+			outputStream = new ObjectOutputStream(new FileOutputStream(STATE_FILE));
 			outputStream.writeObject(this.selectedDate);
 			outputStream.writeObject(this.displayedMonth);
+			outputStream.writeObject(now);
 		} catch (FileNotFoundException ex) {
 			Log.w(TAG,
 					"Error saving MonthView State - File Not Found: "
@@ -424,8 +422,7 @@ public class MonthView extends Activity implements OnGestureListener,
 	 */
 	private void createListView(boolean addParent) {
 		try {
-			LayoutInflater inflater = (LayoutInflater) this
-					.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+			LayoutInflater inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
 			// Get List Flipper and add list
 			listViewFlipper = (AcalViewFlipper) findViewById(R.id.month_list_flipper);
@@ -439,11 +436,10 @@ public class MonthView extends Activity implements OnGestureListener,
 				listRoot = inflater.inflate(R.layout.month_list_view, null);
 
 			// Title
-			eventListTitle = (TextView) listRoot
-					.findViewById(R.id.month_list_title);
+			eventListTitle = (TextView) listRoot.findViewById(R.id.month_list_title);
+
 			// List
-			eventList = (GridView) listRoot
-					.findViewById(R.id.month_default_list);
+			eventList = (GridView) listRoot.findViewById(R.id.month_default_list);
 			eventList.setSelector(R.drawable.no_border);
 			eventList.setOnTouchListener(this);
 
@@ -463,6 +459,7 @@ public class MonthView extends Activity implements OnGestureListener,
 		ObjectInputStream inputStream = null;
 		Object sd = null;
 		Object dm = null;
+		Object writtenOut = null;
 		try {
 			File f = new File(STATE_FILE);
 			if (!f.exists()) {
@@ -473,6 +470,7 @@ public class MonthView extends Activity implements OnGestureListener,
 			inputStream = new ObjectInputStream(new FileInputStream(STATE_FILE));
 			sd = inputStream.readObject();
 			dm = inputStream.readObject();
+			writtenOut = inputStream.readObject();
 		} catch (ClassNotFoundException ex) {
 			Log.w(TAG,
 					"Error loading MonthView State - Incomplete data: "
@@ -495,11 +493,21 @@ public class MonthView extends Activity implements OnGestureListener,
 								+ ex.getMessage());
 			}
 		}
+
+		
+		if ( writtenOut != null && writtenOut instanceof AcalDateTime ) {
+			// Only restore the displayed date if it was less than six hours since
+			// the user was looking at that screen.  Otherwise show today.
+			AcalDateTime testTime = new AcalDateTime().applyLocalTimeZone().addSeconds(-1 * (AcalDateTime.SECONDS_IN_DAY / 4));
+			Log.d(TAG, String.format("Testing if %s is before %s", ((AcalDateTime) writtenOut).fmtIcal(), testTime.fmtIcal()) );
+			if ( ((AcalDateTime) writtenOut).before(testTime) )
+				sd = dm = null;
+		}
 		if (sd != null && sd instanceof AcalDateTime) {
-			this.changeSelectedDate((AcalDateTime) sd);
+			this.selectedDate = (AcalDateTime) sd;
 		}
 		if (dm != null && dm instanceof AcalDateTime) {
-			this.changeDisplayedMonth((AcalDateTime) dm);
+			this.displayedMonth = (AcalDateTime) dm;
 		}
 	}
 
@@ -737,8 +745,10 @@ public class MonthView extends Activity implements OnGestureListener,
 			this.gridView.setAdapter(new MonthAdapter(this, displayedMonth.clone(), selectedDate.clone()));
 			this.gridView.refreshDrawableState();
 		} else {
-			((MonthAdapter) this.gridView.getAdapter())
-					.updateSelectedDay(selectedDate);
+			MonthAdapter ma = ((MonthAdapter) this.gridView.getAdapter());
+			if ( ma == null )
+				ma = new MonthAdapter(this, displayedMonth.clone(), selectedDate.clone());
+			ma.updateSelectedDay(selectedDate);
 			this.gridView.refreshDrawableState();
 		}
 	}
@@ -747,10 +757,14 @@ public class MonthView extends Activity implements OnGestureListener,
 	 * Methods for managing event structure
 	 */
 	public ArrayList<SimpleAcalEvent> getEventsForDay(AcalDateTime day) {
-		if (dataRequest == null) return new ArrayList<SimpleAcalEvent>();
+		if (dataRequest == null) {
+			Log.w(TAG,"DataService connection not available!");
+			return new ArrayList<SimpleAcalEvent>();
+		}
 		try {
 			return (ArrayList<SimpleAcalEvent>) dataRequest.getEventsForDay(day);
-		} catch (RemoteException e) {
+		}
+		catch (RemoteException e) {
 			if (Constants.LOG_DEBUG) Log.d(TAG,"Remote Exception accessing eventcache: "+e);
 			return new ArrayList<SimpleAcalEvent>();
 		}
