@@ -124,11 +124,11 @@ public class MonthDayBox extends TextView {
 				p.setColor((e.colour|0xff000000)-0x77000000);
 				arg0.drawRect(x,y+(eStart/secsPerPixel), x+barWidth, y+(eFinish/secsPerPixel), p);
 
-//				if ( Constants.LOG_VERBOSE && Constants.debugMonthView )
-//					Log.v(TAG, String.format("%d - %d: %s (%ds - %ds, %dspp, %dx,%dy, %dw,%dh, %d-%d)",
-//								e.start, e.end, e.summary,
-//								eStart, eFinish, secsPerPixel, x, y, barWidth, (int) height,
-//								(int) y+(eStart/secsPerPixel), (int) y+(eFinish/secsPerPixel)));
+				if ( Constants.LOG_VERBOSE && Constants.debugMonthView )
+					Log.v(TAG, String.format("%d - %d: %s (%ds - %ds, %dspp, %dx,%dy, %dw,%dh, %d-%d)",
+								e.start, e.end, e.summary,
+								eStart, eFinish, secsPerPixel, x, y, barWidth, (int) height,
+								(int) y+(eStart/secsPerPixel), (int) y+(eFinish/secsPerPixel)));
 			}
 		}
 		else {
