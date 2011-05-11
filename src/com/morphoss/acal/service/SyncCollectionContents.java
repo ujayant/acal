@@ -83,6 +83,7 @@ public class SyncCollectionContents extends ServiceJob {
 	private aCalService			context;
 	private boolean	synchronisationForced			= false;
 	private AcalRequestor 		requestor;
+	private boolean	resourcesWereSynchronized;
 
 	/**
 	 * <p>
@@ -143,6 +144,7 @@ public class SyncCollectionContents extends ServiceJob {
 			aCalService.databaseDispatcher.dispatchEvent(new DatabaseChangedEvent(
 						DatabaseChangedEvent.DATABASE_BEGIN_RESOURCE_CHANGES, DavCollections.class, collectionData));
 
+			resourcesWereSynchronized = false;
 			syncMarkedResources();
 			
 			if ( ! timeToRun() ) {
@@ -163,11 +165,12 @@ public class SyncCollectionContents extends ServiceJob {
 			if ( syncToken != null ) collectionData.put(DavCollections.SYNC_TOKEN, syncToken);
 			cr.update(DavCollections.CONTENT_URI, collectionData, DavCollections._ID + "=?",
 															new String[] { "" + collectionId });
-			aCalService.databaseDispatcher.dispatchEvent(
+			if ( resourcesWereSynchronized ) {
+				aCalService.databaseDispatcher.dispatchEvent(
 							new DatabaseChangedEvent(DatabaseChangedEvent.DATABASE_RECORD_UPDATED,
 															DavCollections.class, collectionData)
 						);
-
+			}
 		}
 		catch (Exception e) {
 			Log.e(TAG, "Error syncing collection " + this.collectionId + ": " + e.getMessage());
@@ -544,7 +547,8 @@ public class SyncCollectionContents extends ServiceJob {
 			if (Constants.LOG_DEBUG) Log.d(TAG, "No resources marked for synchronisation.");
 			return;
 		}
-		if (Constants.LOG_DEBUG) Log.d(TAG, "Found " + originalData.size() + " resources marked as needing synchronisation.");
+		if (Constants.LOG_DEBUG)
+			Log.d(TAG, "Found " + originalData.size() + " resources marked as needing synchronisation.");
 
 		Set<String> hrefSet = originalData.keySet();
 		Object[] hrefs = hrefSet.toArray();
@@ -837,6 +841,7 @@ public class SyncCollectionContents extends ServiceJob {
 	private void writeResource( SQLiteDatabase db, WriteActions action, ContentValues resourceValues ) throws Exception {
 		try {
 			SynchronisationJobs.writeResource(db,action,resourceValues);
+			resourcesWereSynchronized = true;
 		}
 		catch ( Exception e ) {
 			Log.w(TAG,"Exception during collection contents sync: requesting full resync of collection.");
