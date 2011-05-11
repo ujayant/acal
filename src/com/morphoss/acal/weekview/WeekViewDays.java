@@ -32,6 +32,10 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.MenuItem;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.View.OnTouchListener;
 import android.widget.ImageView;
 
 import com.morphoss.acal.Constants;
@@ -40,7 +44,7 @@ import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.davacal.SimpleAcalEvent;
 
-public class WeekViewDays extends ImageView {
+public class WeekViewDays extends ImageView implements OnTouchListener {
 	
 	public static final String TAG = "aCal - WeekViewDays";
 	
@@ -116,7 +120,6 @@ public class WeekViewDays extends ImageView {
 		if (!(context instanceof WeekViewActivity))
 			throw new IllegalStateException("Week View Started with invalid context.");
 		this.context = (WeekViewActivity) context;
-		this.firstVisibleDay = this.context.getCurrentDate();
 	}
 
 	public int getHeaderHeight() {
@@ -225,7 +228,9 @@ public class WeekViewDays extends ImageView {
 		//calculate variables that may change from frame to frame
 		scrolly = context.getScrollY();
 		scrollx = context.getScrollX();
-		this.currentEpoch = firstVisibleDay.getEpoch();
+		this.firstVisibleDay = this.context.getCurrentDate();
+		AcalDateTime currentDay = this.firstVisibleDay.clone();
+		this.currentEpoch = currentDay.getEpoch();
 		
 		Paint p = new Paint();
 		drawBackground(canvas);
@@ -241,7 +246,6 @@ public class WeekViewDays extends ImageView {
 		int dayWidth = WeekViewActivity.DAY_WIDTH;
 		p = new Paint();
 
-		AcalDateTime currentDay = this.firstVisibleDay.clone();
 		currentDay.addDays(-1);
 		//draw events
 		while (dayX<= viewWidth) {
@@ -564,4 +568,14 @@ public class WeekViewDays extends ImageView {
 		return result;
 	}
 
+	@Override
+	public boolean onTouch(View v, MotionEvent event) {
+		return context.onTouch(v,event);
+	}
+
+	@Override
+	public void cancelLongPress() {
+		super.cancelLongPress();
+		context.cancelLongPress();
+	}
 }

@@ -264,5 +264,7 @@
 
 <string name="newAllDayEventOn">New event on %s</string>
 <string name="newHourEventAt">New event at %s</string>
+<string name="editSomeEvent">Edit: %s</string>
+<string name="copySomeEvent">Copy: %s</string>
 
 </resources>
