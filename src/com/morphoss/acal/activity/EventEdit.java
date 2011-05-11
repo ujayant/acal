@@ -243,10 +243,14 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 				start = new AcalDateTime().applyLocalTimeZone();
 			}
 			AcalDuration duration = new AcalDuration("PT1H");
+			AcalAlarm defaultAlarm = new AcalAlarm( true, "", new AcalDuration("-PT15M"),
+						ActionType.AUDIO, start, AcalDateTime.addDuration(start, duration));
 
 			if ( b.containsKey("ALLDAY") && b.getBoolean("ALLDAY", true) ) {
 				start.setDaySecond(0);
 				duration = new AcalDuration("PT24H");
+				defaultAlarm = new AcalAlarm( true, "", new AcalDuration("-PT12H"),
+							ActionType.AUDIO, start, AcalDateTime.addDuration(start, duration));
 			}
 			else if ( b.containsKey("TIME") ) {
 				start.setDaySecond((b.getInt("TIME") / 1800) * 1800);
@@ -282,8 +286,6 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 			defaults.put(EVENT_FIELD.collectionId, collectionId);
 			defaults.put(EVENT_FIELD.colour, Color.parseColor(collectionData.getAsString(DavCollections.COLOUR)));
 
-			AcalAlarm defaultAlarm = new AcalAlarm( true, "", new AcalDuration("-PT15M"),
-						ActionType.AUDIO, start, AcalDateTime.addDuration(start, duration));
 			List<AcalAlarm> alarmList = new ArrayList<AcalAlarm>();
 			alarmList.add(defaultAlarm);
 			defaults.put(EVENT_FIELD.alarmList, alarmList );
