@@ -28,7 +28,9 @@ import java.util.TimeZone;
 import java.util.TreeMap;
 
 import android.os.RemoteException;
+import android.util.Log;
 
+import com.morphoss.acal.aCal;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.davacal.AcalEvent;
@@ -58,6 +60,7 @@ public class EventCache {
 	static final LinkedList<Integer> dateQueue = new LinkedList<Integer>();
 
 	static final String currentTimeZoneName = TimeZone.getDefault().getID();
+	private static final ArrayList<SimpleAcalEvent>	emptyList	= new ArrayList<SimpleAcalEvent>(0);
 	
 	//Converts a datetime to a day hash
 	static private int getDateHash(AcalDateTime day) {
@@ -81,8 +84,7 @@ public class EventCache {
 		//only ensure size when adding, otherwise if MAX_DAYS is to small we could run into problems.
 		ensureSize();
 		//we want to get the largest 'chunk' possible. We will start with a 1 month range, but will reduce it until we get a first and last date that we haven't got.
-		AcalDateTime workingDate = day.clone();
-		workingDate.applyLocalTimeZone();
+		AcalDateTime workingDate = day.clone().applyLocalTimeZone();
 		int first = 1;
 		int month = day.getMonth();
 		int year = day.getYear();
@@ -92,8 +94,9 @@ public class EventCache {
 		if (first > last) return;	//This should be impossible
 		int originalFirst = first;
 		
-		AcalDateRange rangeToFetch = new AcalDateRange(new AcalDateTime(year,month,first,0,0,0,currentTimeZoneName), new AcalDateTime(year,month,last,23,59,59,currentTimeZoneName));
-		
+		AcalDateRange rangeToFetch = new AcalDateRange(new AcalDateTime(year,month,first,0,0,0,currentTimeZoneName),
+												new AcalDateTime(year,month,last,23,59,59,currentTimeZoneName));
+
 		//We need to convert a list with several days worth of events to a set of lists each with exactly one days events.
 		try {
 			List<AcalEvent> sourceEvents = dataRequest.getEventsForDateRange(rangeToFetch);
@@ -108,7 +111,7 @@ public class EventCache {
 				//put blanks in for days where there was no events
 				for (i = originalFirst; i<= last; i++) {
 					int hash = SimpleAcalEvent.getDateHash(i, month, year);
-					if (!cachedEvents.containsKey(hash)) cachedEvents.put(hash, new ArrayList<SimpleAcalEvent>());
+					if (!cachedEvents.containsKey(hash)) cachedEvents.put(hash, emptyList);
 				}
 				return;
 			}	//No events
@@ -117,9 +120,9 @@ public class EventCache {
 			Collections.sort(result); //, new EventComparator());
 			
 			int currentPointer = 0;
+
 			//temp storage for multiday events
 			ArrayList<SimpleAcalEvent> multiDayEvents = new ArrayList<SimpleAcalEvent>();
-			
 			while (currentPointer < result.size() && first <= last) {
 				int curHash = SimpleAcalEvent.getDateHash(first++,month,year);
 				//The current event we are processing
@@ -139,8 +142,10 @@ public class EventCache {
 					if ( event.endDateHash >= curHash ) si.remove();
 				}
 				
-				//while the current item has the same hash (i.e. the same day)	add it to the current list
-				while (currentEvent.startDateHash == curHash ) {
+				// while the current item has this or an earlier hash (i.e. the same day or earlier)
+				// add it to the current list.  We need to consider earlier events since we're looking
+				// at a month boundary and the first event(s) might start before that.
+				while (currentEvent.startDateHash <= curHash ) {
 					//check to see if multi day event, if so add to multi day list
 					if ( currentEvent.endDateHash > curHash) multiDayEvents.add(currentEvent);
 					todaysEvents.add(currentEvent);
@@ -148,31 +153,26 @@ public class EventCache {
 					if (currentPointer >= result.size()) break;
 					currentEvent = result.get(currentPointer);
 				}
+
 				cachedEvents.put(curHash,todaysEvents);
-				if (dateQueue.contains((Integer)curHash)) dateQueue.remove((Integer)curHash);	//remove item from queue if its already in there
+				if (dateQueue.contains((Integer)curHash))
+					dateQueue.remove((Integer)curHash);	//remove item from queue if its already in there
 				dateQueue.offer(curHash);	//add item to queue
 			}
+
 			//put blanks in for days where there was no events
 			for (i = originalFirst; i<= last; i++) {
 				int hash = SimpleAcalEvent.getDateHash(i, month, year);
-				if (!cachedEvents.containsKey(hash)) cachedEvents.put(hash, new ArrayList<SimpleAcalEvent>());
+				if (!cachedEvents.containsKey(hash)) cachedEvents.put(hash, emptyList);
 			}
 			
-			
-		} catch (RemoteException e) {
-			
+		}
+		catch (RemoteException e) {
+			Log.w(aCal.TAG,"EventCache: Unable to fetch events in "+rangeToFetch.start.fmtIcal()+" - " + rangeToFetch.end.fmtIcal());
+			Log.d(aCal.TAG, Log.getStackTraceString(e));
 		}
 		
 	}
-	
-	//private class EventComparator implements Comparator<AcalEvent> {
-
-		//@Override
-		//public int compare(AcalEvent arg0, AcalEvent arg1) {
-			//return arg0.dtstart- getDateHash(arg1.dtstart);
-		//}
-		
-	//}
 	
 	//prevents the cache from getting too big
 	private synchronized void ensureSize() {
@@ -184,7 +184,6 @@ public class EventCache {
 	public synchronized void flushCache() {
 		dateQueue.clear();
 		cachedEvents.clear();
-		
 	}
 	
 	/** Methods required by month view */
