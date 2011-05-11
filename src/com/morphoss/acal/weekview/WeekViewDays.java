@@ -94,42 +94,36 @@ public class WeekViewDays extends ImageView {
 	/** Default Constructor */
 	public WeekViewDays(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
-		if (this.isInEditMode()) {
-			return;
-		}
-		if (!(context instanceof WeekViewActivity)) throw new IllegalStateException("Week View Started with invalid context.");
-		this.context = (WeekViewActivity) context;
-		this.firstVisibleDay = this.context.getCurrentDate();
+		initialise(context);
 	}
-	
+
 	/** Default Constructor */
 	public WeekViewDays(Context context, AttributeSet attrs) {
 		super(context,attrs);
-		if (this.isInEditMode()) {
-			return;
-		}
-		if (!(context instanceof WeekViewActivity)) throw new IllegalStateException("Week View Started with invalid context.");
-		this.context = (WeekViewActivity) context;
-		this.firstVisibleDay = this.context.getCurrentDate();
-	} 
+		initialise(context);
+	}
 	
 	/** Default Constructor */
 	public WeekViewDays(Context context) {
 		super(context);
+		initialise(context);
+	}
+
+	private void initialise(Context context) {
 		if (this.isInEditMode()) {
 			return;
 		}
-		if (!(context instanceof WeekViewActivity)) throw new IllegalStateException("Week View Started with invalid context.");
+		if (!(context instanceof WeekViewActivity))
+			throw new IllegalStateException("Week View Started with invalid context.");
 		this.context = (WeekViewActivity) context;
 		this.firstVisibleDay = this.context.getCurrentDate();
 	}
-	
 
 	public int getHeaderHeight() {
 		return this.PxH; 
 	}
 
-	/**
+    /**
 	 * Return the nearest valid 'y' to the one given, ensuring we don't scroll above / below the day.
 	 *  
 	 * @param y A position we are attempting to scroll to
@@ -212,6 +206,7 @@ public class WeekViewDays extends ImageView {
 		context.refresh();
 		
 	}
+
 
 	
 	@Override
