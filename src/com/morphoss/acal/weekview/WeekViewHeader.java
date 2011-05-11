@@ -72,7 +72,6 @@ public class WeekViewHeader extends ImageView {
 		if (!(context instanceof WeekViewActivity)) 
 			throw new IllegalStateException("Week View Started with invalid context.");
 		this.context = (WeekViewActivity) context;
-		this.date = this.context.getCurrentDate();
 	}
 	
 	@Override
@@ -85,6 +84,7 @@ public class WeekViewHeader extends ImageView {
 			canvas.drawRect(0, 0, canvas.getWidth(), getHeight(), p);
 			return;
 		}
+		date = this.context.getCurrentDate();
 		AcalDateTime startDate = date.clone();
 		startDate.addDays(-1);		//we start one day before the current date, current date should be first fully visible date
 		int dayWidth = WeekViewActivity.DAY_WIDTH;
@@ -102,11 +102,6 @@ public class WeekViewHeader extends ImageView {
 		
 	}
 
-	public void setDate(AcalDateTime date) {
-		this.date = date;
-	}
-	
-	
 	//TODO move to image cache
 	private void drawBox(int x, int y, int w, int h, Canvas c, AcalDateTime day) {
 		LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
