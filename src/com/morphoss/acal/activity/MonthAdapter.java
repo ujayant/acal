@@ -19,9 +19,12 @@
 package com.morphoss.acal.activity;
 
 
+import java.util.List;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -32,6 +35,7 @@ import android.widget.TextView;
 
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateTime;
+import com.morphoss.acal.davacal.SimpleAcalEvent;
 import com.morphoss.acal.views.MonthDayBox;
 
 /**
@@ -41,6 +45,7 @@ import com.morphoss.acal.views.MonthDayBox;
  */
 public class MonthAdapter extends BaseAdapter {
 
+	private final static String TAG = "aCal MonthAdapter";
 	private MonthView context;
 	private AcalDateTime prevMonth;
 	private AcalDateTime nextMonth;
@@ -85,7 +90,7 @@ public class MonthAdapter extends BaseAdapter {
 
 		//what day does the first fall on?
 		int curDay = displayDate.get(AcalDateTime.DAY_OF_MONTH);
-		displayDate.set(AcalDateTime.DAY_OF_MONTH, 1);
+		displayDate.setMonthDay(1);
 		this.firstOffset = displayDate.get(AcalDateTime.DAY_OF_WEEK);
 		displayDate.set(AcalDateTime.DAY_OF_MONTH, curDay);
 	}
@@ -102,6 +107,7 @@ public class MonthAdapter extends BaseAdapter {
 			this.firstCol = AcalDateTime.MONDAY; 
 		}
 	}
+
 	
 	public int getCount() {
 		return 7*7;	//number of rows needed * 7
@@ -155,16 +161,13 @@ public class MonthAdapter extends BaseAdapter {
 		}
 		position -=7;
 		//we need to correct for offset
-		int offset = this.firstOffset-this.firstCol;
+		int offset = this.firstOffset - this.firstCol;
 		if (offset<0) offset+=7;
-
-
 
 
 		AcalDateTime bDate = null;
 		boolean inMonth = false;
-		AcalDateTime today = new AcalDateTime();
-		today.applyLocalTimeZone();
+		AcalDateTime today = new AcalDateTime().applyLocalTimeZone();
 
 		//What day of the month are we?
 		if (position < offset) {
@@ -187,16 +190,25 @@ public class MonthAdapter extends BaseAdapter {
 		MonthDayBox mDayBox = null; 
 		float textScaleFactor = 0.0f;
 	
-		if ( inMonth && bDate.get(AcalDateTime.DAY_OF_YEAR) == this.selectedDate.get(AcalDateTime.DAY_OF_YEAR) && this.selectedDate.getYear() == this.displayDate.getYear() ) {
-			mDayBox = (MonthDayBox) v.findViewById(R.id.DayBoxHighlightDay);
-			mDayBox.setEvents(context.getEventsForDay(bDate));
-			textScaleFactor = 0.6f;
-			mDayBox.setSelected();
-		} else if ( inMonth ) {
-			mDayBox = (MonthDayBox) v.findViewById(R.id.DayBoxInMonth);
-			mDayBox.setEvents(context.getEventsForDay(bDate));
-			textScaleFactor = 0.55f;
-		} else if   ((bDate.get(AcalDateTime.DAY_OF_YEAR) == this.selectedDate.get(AcalDateTime.DAY_OF_YEAR))&&
+		if ( inMonth ) {
+			if ( bDate.get(AcalDateTime.DAY_OF_YEAR) == this.selectedDate.get(AcalDateTime.DAY_OF_YEAR) && this.selectedDate.getYear() == this.displayDate.getYear() ) {
+				mDayBox = (MonthDayBox) v.findViewById(R.id.DayBoxHighlightDay);
+				textScaleFactor = 0.6f;
+				mDayBox.setSelected();
+			}
+			else {
+				mDayBox = (MonthDayBox) v.findViewById(R.id.DayBoxInMonth);
+				mDayBox.setEvents(context.getEventsForDay(bDate));
+				textScaleFactor = 0.55f;
+			}
+			List<SimpleAcalEvent> saeList = context.getEventsForDay(bDate);
+			Log.v(TAG,"MonthAdapter for "+bDate.fmtIcal());
+			for( SimpleAcalEvent sae : saeList ) {
+				Log.v(TAG, String.format("%d - %d: %s", sae.start, sae.end, sae.summary));
+			}
+			mDayBox.setEvents(saeList);
+		}
+		else if   ((bDate.get(AcalDateTime.DAY_OF_YEAR) == this.selectedDate.get(AcalDateTime.DAY_OF_YEAR))&&
 				(bDate.get(AcalDateTime.YEAR) == this.selectedDate.get(AcalDateTime.YEAR))) {
 			mDayBox = (MonthDayBox) v.findViewById(R.id.DayBoxOutMonthHighlighted);
 			textScaleFactor = 0.55f;
@@ -214,7 +226,7 @@ public class MonthAdapter extends BaseAdapter {
 		}
 		
 		mDayBox.setVisibility(View.VISIBLE);
-		mDayBox.setText(bDate.get(AcalDateTime.DAY_OF_MONTH)+"");
+		mDayBox.setDate(bDate.clone());
 		
 		v.setTag(bDate);
 		v.setOnClickListener(new MonthButtonListener());

@@ -24,18 +24,23 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.widget.TextView;
 
+import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.davacal.SimpleAcalEvent;
 
 public class MonthDayBox extends TextView {
 
+	private final static String TAG = "Acal MonthDayBox";
+
 	private List<SimpleAcalEvent> events;
 	private boolean isToday = false;
 	private boolean isSelectedDay = false;
 	private Context context;
+	private AcalDateTime boxDate;
 
 	private static int minBarHeight = -1;
 	
@@ -52,10 +57,6 @@ public class MonthDayBox extends TextView {
 		super(context, attrs, defStyle);
 		this.context = context;
 	}	
-	
-	public void setEvents(List<SimpleAcalEvent> events) {
-		this.events = events;
-	}
 	
 	@Override
 	public void draw(Canvas arg0) {
@@ -86,9 +87,9 @@ public class MonthDayBox extends TextView {
 			arg0.drawRect(width-x, 0, width, height, p);
 			arg0.drawRect(0, height-y, width, height, p);
 		}
+
 		if (events != null && !events.isEmpty()) {
-			long dayEpoch = (new AcalDateTime()).setEpoch(events.get(0).start)
-										.applyLocalTimeZone().setDaySecond(0).getEpoch(); 
+			long dayEpoch = boxDate.setDaySecond(0).getEpoch(); 
 			//Get the range of hours for todays events (min = 9am -> 5pm)
 			int dayStart  = 8 * AcalDateTime.SECONDS_IN_HOUR;
 			int dayFinish = 20 * AcalDateTime.SECONDS_IN_HOUR;
@@ -96,9 +97,11 @@ public class MonthDayBox extends TextView {
 			for (SimpleAcalEvent e : events) {
 				if ( e.isAllDay ) continue;
 				eStart = (int) (e.start - dayEpoch);
+				if ( eStart < 0 ) eStart = 0;
 				eFinish = (int) (e.end - dayEpoch);
+				if ( eFinish > AcalDateTime.SECONDS_IN_DAY ) eFinish = AcalDateTime.SECONDS_IN_DAY;
 				if (eStart < dayStart) dayStart = eStart;
-				if (eFinish > dayFinish) dayFinish = eFinish + AcalDateTime.SECONDS_IN_HOUR;
+				if (eFinish > dayFinish) dayFinish = eFinish;
 			}
 			if ( dayFinish > AcalDateTime.SECONDS_IN_DAY ) dayFinish = AcalDateTime.SECONDS_IN_DAY;
 			int displaySecs = dayFinish - dayStart;
@@ -111,25 +114,44 @@ public class MonthDayBox extends TextView {
 					eFinish = dayFinish - dayStart;
 				}
 				else {
-					eStart = (int) (e.end - dayEpoch) - dayStart;
-					eFinish = (int) (e.start - dayEpoch) - dayStart;
+					eStart = (int) (e.start - dayEpoch) - dayStart;
+					if ( eStart < 0 ) eStart = 0;
+					eFinish = (int) (e.end - dayEpoch) - dayStart;
 				}
 				if ( eFinish < (eStart + (secsPerPixel * minBarHeight)) )
 					eFinish = eStart + (minBarHeight * secsPerPixel);
 				//draw
 				p.setColor((e.colour|0xff000000)-0x77000000);
 				arg0.drawRect(x,y+(eStart/secsPerPixel), x+barWidth, y+(eFinish/secsPerPixel), p);
+
+//				if ( Constants.LOG_VERBOSE && Constants.debugMonthView )
+//					Log.v(TAG, String.format("%d - %d: %s (%ds - %ds, %dspp, %dx,%dy, %dw,%dh, %d-%d)",
+//								e.start, e.end, e.summary,
+//								eStart, eFinish, secsPerPixel, x, y, barWidth, (int) height,
+//								(int) y+(eStart/secsPerPixel), (int) y+(eFinish/secsPerPixel)));
 			}
-			
+		}
+		else {
+			if ( Constants.LOG_VERBOSE && Constants.debugMonthView )
+				Log.v(TAG,"No events for day " + this.getText() );
 		}
 	}
 
+	public void setEvents(List<SimpleAcalEvent> events) {
+		this.events = events;
+	}
+	
 	public void setToday() {
 		isToday = true;
 	}
 
 	public void setSelected() {
 		isSelectedDay = true;
+	}
+
+	public void setDate(AcalDateTime bDate ) {
+		boxDate = bDate;
+		setText(Integer.toString(boxDate.getMonthDay()));
 	}
 
 	
