@@ -120,7 +120,7 @@ public class SimpleAcalEvent implements Parcelable, Comparable<SimpleAcalEvent> 
 	}
 
 	static public int getDateHash(int day, int month, int year) {
-		return day + (month*32) + (year*32*13);
+		return (year << 9) + (month << 5) + day;
 	}
 	
 	/**
