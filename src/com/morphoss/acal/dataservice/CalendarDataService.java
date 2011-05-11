@@ -740,7 +740,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 	 * React to database change notifications.
 	 */
 	@Override
-	public synchronized void databaseChanged(DatabaseChangedEvent changeEvent) {
+	public void databaseChanged(DatabaseChangedEvent changeEvent) {
 		ContentValues cv = changeEvent.getContentValues();
 		if (changeEvent.getEventType() == DatabaseChangedEvent.DATABASE_BEGIN_RESOURCE_CHANGES) {
 			this.inResourceTx = System.currentTimeMillis() + MAX_TX_AGE;
