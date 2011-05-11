@@ -33,13 +33,13 @@ import android.view.View.OnClickListener;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
+import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.davacal.SimpleAcalEvent;
 import com.morphoss.acal.views.MonthDayBox;
 
 /**
- * TODO This class needs some DOC!
  * @author Morphoss Ltd
  *
  */
@@ -201,12 +201,14 @@ public class MonthAdapter extends BaseAdapter {
 				mDayBox.setEvents(context.getEventsForDay(bDate));
 				textScaleFactor = 0.55f;
 			}
-			List<SimpleAcalEvent> saeList = context.getEventsForDay(bDate);
-			Log.v(TAG,"MonthAdapter for "+bDate.fmtIcal());
-			for( SimpleAcalEvent sae : saeList ) {
-				Log.v(TAG, String.format("%d - %d: %s", sae.start, sae.end, sae.summary));
+			if ( Constants.LOG_VERBOSE && Constants.debugMonthView ) {
+				List<SimpleAcalEvent> saeList = context.getEventsForDay(bDate);
+				Log.v(TAG,"MonthAdapter for "+bDate.fmtIcal());
+				for( SimpleAcalEvent sae : saeList ) {
+					Log.v(TAG, String.format("%d - %d: %s", sae.start, sae.end, sae.summary));
+				}
 			}
-			mDayBox.setEvents(saeList);
+			mDayBox.setEvents(context.getEventsForDay(bDate));
 		}
 		else if   ((bDate.get(AcalDateTime.DAY_OF_YEAR) == this.selectedDate.get(AcalDateTime.DAY_OF_YEAR))&&
 				(bDate.get(AcalDateTime.YEAR) == this.selectedDate.get(AcalDateTime.YEAR))) {
