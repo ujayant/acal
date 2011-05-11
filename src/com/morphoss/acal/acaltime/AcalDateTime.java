@@ -607,7 +607,10 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	 * @return
 	 */
 	public long getEpochDay() {
-		if ( epoch != EPOCH_NOT_SET ) return (long) Math.floor(epoch / SECONDS_IN_DAY);
+		if ( epoch != EPOCH_NOT_SET ) {
+			long offset = (tz != null ? tz.getOffset(epoch*1000) / 1000 : 0);
+			return (long) Math.floor((epoch+offset) / SECONDS_IN_DAY);
+		}
 		
 		// Otherwise work it out from the date fields.
 		return (long) (
