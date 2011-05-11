@@ -29,6 +29,9 @@ import com.morphoss.acal.service.aCalService;
 import com.morphoss.acal.weekview.WeekViewActivity;
 
 public class aCal extends Activity {
+	
+	final public static String TAG = "aCal"; 
+
 	private SharedPreferences prefs;	
 
 	public void onCreate(Bundle savedInstanceState) {
