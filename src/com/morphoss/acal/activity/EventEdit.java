@@ -186,7 +186,7 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 			this.eventAction = (AcalEventAction)b.getParcelable("Event");
 		}
 		else if ( b.containsKey("Copy") ) {
-			this.eventAction = (AcalEventAction)b.getParcelable("Event");
+			this.eventAction = (AcalEventAction)b.getParcelable("Copy");
 			operation = SimpleAcalEvent.EVENT_OPERATION_COPY;
 		}
 
@@ -242,17 +242,27 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 			} catch (Exception e) {
 				start = new AcalDateTime().applyLocalTimeZone();
 			}
-			AcalDateTime now = new AcalDateTime().applyLocalTimeZone();
-			start.setHour(now.getHour());
-			start.setSecond(0);
-			start.setMinute(0);
-			start.addSeconds(AcalDateTime.SECONDS_IN_HOUR);
+			AcalDuration duration = new AcalDuration("PT1H");
+
+			if ( b.containsKey("ALLDAY") && b.getBoolean("ALLDAY", true) ) {
+				start.setDaySecond(0);
+				duration = new AcalDuration("PT24H");
+			}
+			else if ( b.containsKey("TIME") ) {
+				start.setDaySecond((b.getInt("TIME") / 1800) * 1800);
+			}
+			else {
+				// Default to "in the next hour"
+				AcalDateTime now = new AcalDateTime().applyLocalTimeZone();
+				start.setHour(now.getHour());
+				start.setSecond(0);
+				start.setMinute(0);
+				start.addSeconds(AcalDateTime.SECONDS_IN_HOUR);
+			}
 
 			Map<EVENT_FIELD,Object> defaults = new HashMap<EVENT_FIELD,Object>(10);
 
 			defaults.put( EVENT_FIELD.startDate, start );
-			AcalDuration duration = new AcalDuration();
-			duration.setDuration(0, AcalDateTime.SECONDS_IN_HOUR);
 			defaults.put( EVENT_FIELD.duration, duration );
 			defaults.put( EVENT_FIELD.summary, getString(R.string.NewEventTitle) );
 			defaults.put( EVENT_FIELD.location, "" );
@@ -542,7 +552,7 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		AcalDateTime start = (AcalDateTime)eventAction.getField(EVENT_FIELD.startDate);
 		//check if all day
 		if (allDayEvent.isChecked()) {
-			start.setHour(0); start.setMinute(0); start.setMinute(0);
+			start.setDaySecond(0);
 			start.setAsDate(true);
 			eventAction.setField(EVENT_FIELD.startDate,start);
 			eventAction.setField(EVENT_FIELD.duration,  new AcalDuration("PT24H"));
