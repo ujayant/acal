@@ -143,6 +143,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 	private long nextTriggerTime = Long.MAX_VALUE;
 	
 	private long inResourceTx = 0;
+	private boolean changesDuringTx = false;
 	final private static long MAX_TX_AGE = 30000;
 
 	/*****************************************
@@ -744,6 +745,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 		ContentValues cv = changeEvent.getContentValues();
 		if (changeEvent.getEventType() == DatabaseChangedEvent.DATABASE_BEGIN_RESOURCE_CHANGES) {
 			this.inResourceTx = System.currentTimeMillis() + MAX_TX_AGE;
+			this.changesDuringTx = false;
 			return;
 		}
 		else if (changeEvent.getEventType() == DatabaseChangedEvent.DATABASE_END_RESOURCE_CHANGES) {
@@ -821,16 +823,22 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 
 		}
 
-		// Always flush the cache if stuff has changed.
-		try {
-			dataRequest.flushCache();
-			if (callback != null) callback.statusChanged(UPDATE, false);
+		if ( this.inResourceTx == 0 ) {
+			// Always flush the cache if stuff has changed.
+			if ( this.changesDuringTx ) {
+				try {
+					dataRequest.flushCache();
+					if (callback != null) callback.statusChanged(UPDATE, false);
+				}
+				catch (RemoteException e) {
+					Log.d(TAG,Log.getStackTraceString(e));
+				}
+			}
+			this.openUnlessInTx();
 		}
-		catch (RemoteException e) {
-			Log.d(TAG,Log.getStackTraceString(e));
+		else {
+			this.changesDuringTx = true;
 		}
-
-		this.openUnlessInTx();
 
 	}
 
