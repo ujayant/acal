@@ -284,6 +284,8 @@ public class InitialCollectionSync extends ServiceJob {
 		if ( this == that ) return true;
 	    if ( !(that instanceof InitialCollectionSync) ) return false;
 	    InitialCollectionSync thatCis = (InitialCollectionSync)that;
+	    if ( this.collectionPath == null && thatCis.collectionPath == null ) return true;
+	    if ( this.collectionPath == null || thatCis.collectionPath == null ) return false;
 	    return (
 	    	this.collectionPath.equals(thatCis.collectionPath) &&
 	    	this.serverId == thatCis.serverId
