@@ -262,4 +262,7 @@
 <string name="deleteThisInstance">Delete this instance</string>
 <string name="deleteThisAndFuture">Delete this and future</string>
 
+<string name="newAllDayEventOn">New event on %s</string>
+<string name="newHourEventAt">New event at %s</string>
+
 </resources>
