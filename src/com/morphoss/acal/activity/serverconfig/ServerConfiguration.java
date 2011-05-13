@@ -133,14 +133,16 @@ public class ServerConfiguration extends PreferenceActivity implements OnPrefere
 		try {
 			serverData = this.getIntent().getExtras().getParcelable("ServerData");
 		} catch (Exception e) {
-			//unable to get data!
-			this.finish();
+			serverData = new ContentValues();
+			serverData.put(MODEKEY, MODE_CREATE);
 		}
-		if (serverData == null || !serverData.containsKey(MODEKEY)) {
+		if ( serverData == null || !serverData.containsKey(MODEKEY) ) {
 			//server data not correctly set
 			this.finish();
 		}
-		if (serverData.getAsInteger(MODEKEY) == MODE_CREATE) createDefaultValues();
+		if ( serverData == null || serverData.getAsInteger(MODEKEY) == MODE_CREATE) {
+			createDefaultValues();
+		}
 		else if (serverData.getAsInteger(MODEKEY) == MODE_IMPORT) {
 			createDefaultValuesForMissing();
 		}

@@ -19,19 +19,32 @@
 package com.morphoss.acal.activity.serverconfig;
 
 import android.app.ListActivity;
+import android.content.ContentValues;
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
 
 import com.morphoss.acal.R;
 
-public class AddServerList extends ListActivity {
+public class AddServerList extends ListActivity implements OnClickListener {
 
 	public static final String TAG = "acal AddServerList";
+	
+	private Button manualConfiguration;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.servers_list);
 		updateListView();
+		
+		manualConfiguration = (Button) findViewById(R.id.AddServerButton);
+		manualConfiguration.setOnClickListener(this);
+//		manualConfiguration.setBackgroundDrawable(getResources().getDrawable(R.drawable.plus_icon));
+		manualConfiguration.setText(getString(R.string.NewManualServerConfiguration));
+		manualConfiguration.setTextSize(24);
 	}
 	
 	private void updateListView() {
@@ -40,5 +53,21 @@ public class AddServerList extends ListActivity {
 
 		// make sure the display is refreshed
 		this.getListView().refreshDrawableState();		
+	}
+
+	@Override
+	public void onClick(View v) {
+		ContentValues newServer;
+		
+		newServer = new ContentValues();
+		newServer.put(ServerConfiguration.MODEKEY, ServerConfiguration.MODE_CREATE);
+
+		Intent serverConfigIntent = new Intent();
+
+		// Begin new activity
+		serverConfigIntent.setClassName("com.morphoss.acal", "com.morphoss.acal.activity.serverconfig.ServerConfiguration");
+		serverConfigIntent.putExtra("ServerData", newServer);
+		startActivity(serverConfigIntent); 
+		
 	}
 }

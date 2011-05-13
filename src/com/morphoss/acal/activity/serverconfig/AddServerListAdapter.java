@@ -50,7 +50,6 @@ public class AddServerListAdapter extends BaseAdapter {
 	public static final String TAG = "Acal AddServerListAdapter";
 	private Context context;
 	private ArrayList<ContentValues> data;
-	private ContentValues otherServer;
 	private int lastSavedConfig=0;
 	
 	public AddServerListAdapter(Context c) {
@@ -134,21 +133,16 @@ public class AddServerListAdapter extends BaseAdapter {
 			}
 		}
 		
-		// And finally we add the 'Manual Connfiguration' option
-		otherServer = new ContentValues();
-		otherServer.put(ServerConfiguration.MODEKEY, ServerConfiguration.MODE_CREATE);
-
 	}
 	
 	@Override
 	public int getCount() {
-		return this.data.size()+1; //number of servers, + 1 'Other'
+		return this.data.size(); //number of servers
 	}
 
 	@Override
 	public Object getItem(int id) {
-		if (id < data.size()) return data.get(id);
-		return otherServer;
+		return data.get(id);
 	}
 
 	@Override
@@ -173,17 +167,13 @@ public class AddServerListAdapter extends BaseAdapter {
 		final ContentValues item;
 		boolean preconfig=false;
 		boolean other=false;
-		if (position < data.size() ) item = data.get(position);
-		else { item = otherServer; other = true; }
+ 
+		item = data.get(position);
+
 		preconfig = (position >= this.lastSavedConfig);
 		
 		//Icon
-		if (other) {
-			icon.setBackgroundDrawable(context.getResources().getDrawable(R.drawable.plus_icon));
-			title.setText(context.getString(R.string.NewManualServerConfiguration));
-			blurb.setText(context.getString(R.string.ManualServerConfigurationBlurb));
-		}
-		else if (!preconfig) {
+		if (!preconfig) {
 			icon.setBackgroundDrawable(context.getResources().getDrawable(R.drawable.icon));
 			title.setText(item.getAsString(Servers.FRIENDLY_NAME));
 			StringBuilder blurbString = new StringBuilder("");

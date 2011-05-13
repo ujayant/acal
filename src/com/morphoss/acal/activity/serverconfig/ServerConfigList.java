@@ -34,9 +34,11 @@ import android.view.ContextMenu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ContextMenu.ContextMenuInfo;
+import android.view.View.OnClickListener;
 import android.view.View.OnCreateContextMenuListener;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 
@@ -59,7 +61,7 @@ import com.morphoss.acal.service.ServiceRequest;
  * @author Morphoss Ltd
  * 
  */
-public class ServerConfigList extends ListActivity {
+public class ServerConfigList extends ListActivity implements OnClickListener {
 
 	public static final String TAG = "acal ServerConfigList";
 	
@@ -68,9 +70,8 @@ public class ServerConfigList extends ListActivity {
 	private Map<String, ContentValues> serverData;
 
 	// Add Server list item
-	private int addServerPosition;
-	private String addServerText;
-
+	private Button addServer;
+	
 	// Context Menu Options
 	public static final int CONTEXT_DELETE = 1;
 	public static final int CONTEXT_CANCEL = 2;
@@ -90,11 +91,13 @@ public class ServerConfigList extends ListActivity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		addServerText = getString(R.string.Add_Server);
 		setContentView(R.layout.servers_list);
 		updateListView();
 		getListView().setOnItemClickListener(new ServerListClickListener());
 		registerForContextMenu(getListView());
+
+		addServer = (Button) findViewById(R.id.AddServerButton);
+		addServer.setOnClickListener(this);
 	}
 
 	/**
@@ -121,16 +124,18 @@ public class ServerConfigList extends ListActivity {
 		
 
 		// Store data in useful structures
-		this.serverNames = new String[this.serverData.size() + 1];
+		this.serverNames = new String[this.serverData.size()];
 		this.serverData.keySet().toArray(this.serverNames);
 
+/*		
 		// Add the 'Add Server' Option
 		this.serverNames[this.serverData.size()] = this.addServerText;
 		this.addServerPosition = this.serverData.size();
 		ContentValues cv = new ContentValues();
 		cv.put(ServerConfiguration.MODEKEY, ServerConfiguration.MODE_CREATE);
 		this.serverData.put(this.addServerText, cv);
-
+*/
+		
 		// Create ListAdapter for storing the list of server names to be
 		// displayed
 		ArrayAdapter<String> mAdapter = new ArrayAdapter<String>(this, // Context.
@@ -207,8 +212,6 @@ public class ServerConfigList extends ListActivity {
 		try {
 			AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item
 					.getMenuInfo();
-			if ( info.position == addServerPosition )
-				return false; // no context menu for add server
 			long id = getListAdapter().getItemId(info.position);
 			switch (item.getItemId()) {
 			case CONTEXT_DELETE:
@@ -272,42 +275,29 @@ public class ServerConfigList extends ListActivity {
 			
 		
 			if (!toPass.containsKey(ServerConfiguration.MODEKEY))
-				toPass.put(ServerConfiguration.MODEKEY,
-						ServerConfiguration.MODE_EDIT);
+				toPass.put(ServerConfiguration.MODEKEY, ServerConfiguration.MODE_EDIT);
 
 			// We need to re-insert friendly name as it was removed when
 			// creating this.serverNames
 			toPass.put(Servers.FRIENDLY_NAME,
 					ServerConfigList.this.serverNames[position]);
 
-			if (toPass.getAsInteger(ServerConfiguration.MODEKEY) == ServerConfiguration.MODE_CREATE) {
-				//go to add server list screen
-				serverConfigIntent.setClassName("com.morphoss.acal",
-							"com.morphoss.acal.activity.serverconfig.AddServerList");
-				ServerConfigList.this.startActivity(serverConfigIntent);
-			} else {
-			
-				// Begin new activity
-				serverConfigIntent.setClassName("com.morphoss.acal",
-							"com.morphoss.acal.activity.serverconfig.ServerConfiguration");
-				serverConfigIntent.putExtra("ServerData", toPass);
-				ServerConfigList.this.startActivity(serverConfigIntent);
-			}
+			// Begin new activity
+			serverConfigIntent.setClassName("com.morphoss.acal",
+						"com.morphoss.acal.activity.serverconfig.ServerConfiguration");
+			serverConfigIntent.putExtra("ServerData", toPass);
+			ServerConfigList.this.startActivity(serverConfigIntent);
 		}
 	}
 
 	/**
-	 * Creates the context menus for each item in the list. Does not create a
-	 * menu for the 'Add Server' item.
+	 * Creates the context menus for each item in the list.
 	 */
 	private class ServerListCreateContextListener implements
 			OnCreateContextMenuListener {
 
 		@Override
-		public void onCreateContextMenu(ContextMenu menu, View view,
-				ContextMenuInfo info) {
-			if (((AdapterView.AdapterContextMenuInfo) info).position == addServerPosition)
-				return;
+		public void onCreateContextMenu(ContextMenu menu, View view, ContextMenuInfo info) {
 			menu.setHeaderTitle(getString(R.string.Server_Options));
 			menu.add(0, ServerConfigList.CONTEXT_EXPORT, 0, "Export");
 			menu.add(0, ServerConfigList.CONTEXT_DELETE, 0, "Delete");
@@ -338,6 +328,15 @@ public class ServerConfigList extends ListActivity {
 	public void onDestroy() {
 		super.onDestroy();
 		if (mCursor != null && !mCursor.isClosed()) mCursor.close();
+	}
+
+	@Override
+	public void onClick(View v) {
+		Log.d(TAG,"Add Server was clicked!");
+		Intent serverConfigIntent = new Intent();
+		serverConfigIntent.setClassName("com.morphoss.acal",
+							"com.morphoss.acal.activity.serverconfig.AddServerList");
+		startActivity(serverConfigIntent);
 	}
 	
 
