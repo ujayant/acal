@@ -249,8 +249,8 @@ public class SyncCollectionContents extends ServiceJob {
 					+ "<sync-collection xmlns=\"DAV:\">"
 						+ "<prop>"
 							+ "<getetag/>"
-							+ "<getlastmodified/>"
-							+ "<" + dataType + "-data xmlns=\"" + nameSpace + "\"/>"
+//							+ "<getlastmodified/>"
+//							+ "<" + dataType + "-data xmlns=\"" + nameSpace + "\"/>"
 						+ "</prop>"
 					+ "<sync-token>" + syncToken + "</sync-token>"
 					+ "</sync-collection>"
@@ -504,14 +504,6 @@ public class SyncCollectionContents extends ServiceJob {
 
 
 
-	private Header[] getHeaders( int depth ) {
-		return new Header[] {
-					new BasicHeader("Content-Type", "text/xml; encoding=UTF-8"),
-					new BasicHeader("Depth", Integer.toString(depth))
-				};
-	}
-
-	
 	/**
 	 * <p>
 	 * Does a request against the collection path
@@ -522,7 +514,8 @@ public class SyncCollectionContents extends ServiceJob {
 	 *         </p>
 	 */
 	private DavNode doCalendarRequest( String method, int depth, String xml) {
-		DavNode root = requestor.doXmlRequest(method, collectionPath, getHeaders(depth), xml);
+		DavNode root = requestor.doXmlRequest(method, collectionPath,
+								SynchronisationJobs.getReportHeaders(depth), xml);
 		if ( requestor.getStatusCode() == 404 ) {
 			Log.i(TAG,"Sync PROPFIND got 404 on "+collectionPath+" so a HomeSetsUpdate is being scheduled.");
 			ServiceJob sj = new HomeSetsUpdate(serverId);
@@ -597,7 +590,7 @@ public class SyncCollectionContents extends ServiceJob {
 				hrefList.append(String.format("<D:href>%s</D:href>", collectionPath + hrefs[i].toString()));
 			}
 		
-			if (Constants.LOG_DEBUG) Log.d(TAG, "Requesting " + multigetReportTag + " for " + nPerMultiget + " resources.");
+			if (Constants.LOG_DEBUG) Log.d(TAG, "Requesting " + multigetReportTag + " for " + nPerMultiget + " resources out of "+hrefs.length+"." );
 			DavNode root = doCalendarRequest( "REPORT", 1, String.format(baseXml,hrefList.toString()) );
 
 			if (root == null) {
@@ -641,14 +634,14 @@ public class SyncCollectionContents extends ServiceJob {
 				db.close();
 			}
 			if ( hrefIndex + nPerMultiget < hrefs.length ) {
+				Debug.MemoryInfo mi = new Debug.MemoryInfo();
+				try {
+					Debug.getMemoryInfo(mi);
+				}
+				catch ( Exception e ) {
+					Log.i(TAG,"Unable to get Debug.MemoryInfo() because: " + e.getMessage());
+				}
 				if ( Constants.LOG_DEBUG ) {
-					Debug.MemoryInfo mi = new Debug.MemoryInfo();
-					try {
-						Debug.getMemoryInfo(mi);
-					}
-					catch ( Exception e ) {
-						Log.i(TAG,"Unable to get Debug.MemoryInfo() because: " + e.getMessage());
-					}
 					if ( mi != null ) {
 						Log.d(TAG,String.format("MemoryInfo: Dalvik(%d,%d,%d), Native(%d,%d,%d), Other(%d,%d,%d)",
 									mi.dalvikPrivateDirty, mi.dalvikPss, mi.dalvikSharedDirty,
@@ -842,6 +835,7 @@ public class SyncCollectionContents extends ServiceJob {
 		try {
 			SynchronisationJobs.writeResource(db,action,resourceValues);
 			resourcesWereSynchronized = true;
+			db.yieldIfContendedSafely();
 		}
 		catch ( Exception e ) {
 			Log.w(TAG,"Exception during collection contents sync: requesting full resync of collection.");

@@ -18,6 +18,9 @@
 
 package com.morphoss.acal.service;
 
+import org.apache.http.Header;
+import org.apache.http.message.BasicHeader;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -166,7 +169,7 @@ public class SynchronisationJobs extends ServiceJob {
 	 * @param resourceValues
 	 * @throws Exception 
 	 */
-	public static void writeResource( SQLiteDatabase db, WriteActions action, ContentValues resourceValues ) throws Exception {
+	public static void writeResource( SQLiteDatabase db, WriteActions action, ContentValues resourceValues ) {
 
 		String data = resourceValues.getAsString(DavResources.RESOURCE_DATA);
 
@@ -232,6 +235,19 @@ public class SynchronisationJobs extends ServiceJob {
 	}
 
 
+	/**
+	 * Returns a minimal Header[] array for a REPORT request.
+	 * @param depth
+	 * @return
+	 */
+	public static Header[] getReportHeaders( int depth ) {
+		return new Header[] {
+					new BasicHeader("Content-Type", "text/xml; encoding=UTF-8"),
+					new BasicHeader("Depth", Integer.toString(depth))
+				};
+	}
+
+	
 	
 	@Override
 	public String getDescription() {
