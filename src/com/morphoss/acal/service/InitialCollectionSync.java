@@ -29,6 +29,7 @@ import android.content.ContentQueryMap;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.util.Log;
@@ -36,6 +37,7 @@ import android.util.Log;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.DatabaseChangedEvent;
 import com.morphoss.acal.HashCodeUtil;
+import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.database.AcalDBHelper;
 import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.providers.DavResources;
@@ -49,6 +51,7 @@ public class InitialCollectionSync extends ServiceJob {
 	private int collectionId = -1;
 	private int serverId = -1;
 	private String collectionPath = null;
+	ContentValues collectionValues = null;
 	private boolean isCollectionIdAssigned = false;
 	private boolean collectionNeedsSync = false;
 
@@ -76,6 +79,22 @@ public class InitialCollectionSync extends ServiceJob {
 										"</sync-collection>";
 	private aCalService	context;
 												
+	private final String calendarQuery = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"+
+	"<calendar-query xmlns:D=\"DAV:\" xmlns=\"urn:ietf:params:xml:ns:caldav\">\n"+
+	"  <D:prop>\n"+
+	"   <D:getetag/>\n"+
+	"   <calendar-data/>\n"+
+	"   <D:getlastmodified/>\n"+
+	"   <D:getcontenttype/>\n"+
+	"  </D:prop>\n"+
+	"  <filter>\n"+
+	"    <comp-filter name=\"VCALENDAR\">\n"+
+	"      <comp-filter name=\"VEVENT\">\n"+
+	"        <time-range start=\"%s\" end=\"%s\"/>\n"+
+	"      </comp-filter>\n"+
+	"    </comp-filter>\n"+
+	"  </filter>\n"+
+	"</calendar-query>";
 
 
 	public InitialCollectionSync (int collectionId ) {
@@ -154,25 +173,25 @@ public class InitialCollectionSync extends ServiceJob {
 		Cursor cursor = null;
 		try {
 			if ( collectionPath == null ) {
-				cursor = cr.query(Uri.withAppendedPath(DavCollections.CONTENT_URI,Integer.toString(collectionId)),
-							new String[] { DavCollections.SERVER_ID, DavCollections.COLLECTION_PATH }, 
-							null, null, null);
-				if ( cursor.moveToFirst() ) {
+				collectionValues = DavCollections.getRow(collectionId, cr);
+				if ( collectionValues != null ) {
 					isCollectionIdAssigned = true;
-					serverId = cursor.getInt(cursor.getColumnIndex(DavCollections.SERVER_ID));
-					collectionPath = cursor.getString(cursor.getColumnIndex(DavCollections.COLLECTION_PATH));
+					serverId = collectionValues.getAsInteger(DavCollections.SERVER_ID);
+					collectionPath = collectionValues.getAsString(DavCollections.COLLECTION_PATH);
 				}
 				else {
 					Log.e(TAG,"Cannot find collection ID "+collectionId+" which I should sync!");
 				}
 			}
 			else if ( serverId > 0 && collectionId < 0 ) {
-				cursor = cr.query(DavCollections.CONTENT_URI, new String[] { DavCollections._ID }, 
+				cursor = cr.query(DavCollections.CONTENT_URI, null, 
 							DavCollections.SERVER_ID + "=? AND " + DavCollections.COLLECTION_PATH + "=?",
 							new String[] { "" + serverId, collectionPath }, null);
 				if ( cursor.moveToFirst() ) {
 					isCollectionIdAssigned = true;
-					collectionId = cursor.getInt(cursor.getColumnIndex(DavCollections._ID));
+					collectionValues = new ContentValues();
+					DatabaseUtils.cursorRowToContentValues(cursor, collectionValues);
+					collectionId = collectionValues.getAsInteger(DavCollections._ID);
 				}
 				else {
 					Log.e(TAG,"Cannot find collection "+collectionPath+" which I should sync!");
@@ -201,7 +220,6 @@ public class InitialCollectionSync extends ServiceJob {
 		try {
 		
 			// begin transaction
-			db.beginTransaction();
 			if (Constants.LOG_VERBOSE) Log.v(TAG, "DavResources DB Transaction started.");
 
 			// Get a map of all existing records where Name is the key.
@@ -219,6 +237,7 @@ public class InitialCollectionSync extends ServiceJob {
 			Map<String, ContentValues> serverList = new HashMap<String,ContentValues>();
 			List<DavNode> responseList = root.getNodesFromPath("multistatus/response");
 
+			int numRowsToSync = responseList.size() - databaseList.size();
 			if ( Constants.LOG_VERBOSE ) {
 				Log.v(TAG,"Database list has "+databaseList.size()+" rows.");
 				Log.v(TAG,"Response list has "+responseList.size()+" rows.");
@@ -250,12 +269,14 @@ public class InitialCollectionSync extends ServiceJob {
 			}
 			//Remove all duplicates
 			removeDuplicates(databaseList, serverList);
-			
+
+			// Start a transaction for the writes to the database
+			db.beginTransaction();
+
 			//Delete those that have been removed
 			int deleted = deleteRecords(db, databaseList);
 			int updated = updateRecords(db, serverList);
-			if (Constants.LOG_VERBOSE) Log.v(TAG, deleted + " records deleted, " + updated + " updated");			
-			
+
 			if ( root != null ) {
 				//Update sync token
 				ContentValues cv = new ContentValues();
@@ -264,21 +285,143 @@ public class InitialCollectionSync extends ServiceJob {
 				db.update(DavCollections.DATABASE_TABLE, cv, DavCollections._ID+"=?", new String[] {Integer.toString(collectionId)});
 			}
 				
-			//We can now approve the transaction
+			// Finish the transaction, as soon as possible
 			db.setTransactionSuccessful();
 			db.endTransaction();
+
+			if (Constants.LOG_VERBOSE) Log.v(TAG, deleted + " records deleted, " + updated + " updated");			
+
+			if ( collectionValues.getAsInteger(DavCollections.ACTIVE_EVENTS) == 1 ) {
+				syncRecentEvents(db);
+			}
+			
+			//We can now approve the transaction
 			db.close();
 		}
 		catch (Exception e) {
 			Log.w(TAG, "Initial Sync transaction failed. Data not will not be saved.");
 			Log.e(TAG,Log.getStackTraceString(e));
-			db.endTransaction();
+			if ( db.inTransaction() ) db.endTransaction();
 			db.close();
 		}
 
 		//lastly, create new regular sync
 		context.addWorkerJob(new SyncCollectionContents(this.collectionId)); 
 	}
+
+	
+	/**
+	 * When we have a lot of events to sync, we want to make sure that the period
+	 * of time around the present day is in sync first.
+	 */
+	private void syncRecentEvents(SQLiteDatabase db) {
+		AcalDateTime from = new AcalDateTime().applyLocalTimeZone().addDays(-32).shiftTimeZone("UTC");
+		AcalDateTime until = new AcalDateTime().applyLocalTimeZone().addDays(+68).shiftTimeZone("UTC");
+		DavNode root = requestor.doXmlRequest("REPORT", collectionPath, SynchronisationJobs.getReportHeaders(1),
+					String.format(calendarQuery, from.fmtIcal(), until.fmtIcal()));
+
+		boolean resourcesWereSynchronized = false;
+		db.beginTransaction();
+
+		try {
+			// step 1c parse response
+			if (Constants.LOG_VERBOSE) Log.v(TAG, "Start processing response");
+			long start2 = System.currentTimeMillis();
+			List<DavNode> responses = root.getNodesFromPath("multistatus/response");
+
+			for (DavNode response : responses) {
+				String name = response.segmentFromFirstHref("href");
+				ContentValues cv = null;
+				Cursor c = db.query(DavResources.DATABASE_TABLE, null,
+							DavResources.COLLECTION_ID+"=? AND "+DavResources.RESOURCE_NAME+"=?",
+							new String[] {Integer.toString(collectionId), name}, null, null, null);
+				if ( c.moveToFirst() ) {
+					cv = new ContentValues();
+					DatabaseUtils.cursorRowToContentValues(c, cv);
+				}
+				c.close();
+				
+				WriteActions action = WriteActions.UPDATE;
+				if ( cv == null ) {
+					cv = new ContentValues();
+					cv.put(DavResources.COLLECTION_ID, collectionId);
+					cv.put(DavResources.RESOURCE_NAME, name);
+					action = WriteActions.INSERT;
+				}
+				if ( !parseResponseNode(response, cv) ) continue;
+				
+				try {
+					SynchronisationJobs.writeResource(db,action,cv);
+					resourcesWereSynchronized = true;
+					db.yieldIfContendedSafely();
+				}
+				catch ( Exception e ) {
+					Log.w(TAG,"Exception during initial content sync with calendar-query.");
+					throw e; // So we give up on this update.
+				}
+			}
+			db.setTransactionSuccessful();
+
+			if (Constants.LOG_VERBOSE)	Log.v(TAG, "Completed processing in completed in " + (System.currentTimeMillis() - start2) + "ms");
+		}
+		catch (Exception e) {
+			Log.e(TAG, "Exception updating resources DB: " + e.getMessage());
+			Log.e(TAG, Log.getStackTraceString(e));
+		}
+		db.endTransaction();
+		
+	}
+
+	
+	/**
+	 * <p>
+	 * Parse a single &lt;response&gt; node within a &lt;multistatus&gt;
+	 * </p>
+	 * @return true If we need to write to the database, false otherwise.
+	 */
+	private boolean parseResponseNode(DavNode responseNode, ContentValues cv) {
+
+		List<DavNode> propstats = responseNode.getNodesFromPath("propstat");
+		if ( propstats.size() < 1 ) return false;
+
+		for (DavNode propstat : propstats) {
+			if ( !propstat.getFirstNodeText("status").equalsIgnoreCase("HTTP/1.1 200 OK") ) {
+				responseNode.removeSubTree(propstat);
+				continue;
+			}
+
+			DavNode prop = propstat.getNodesFromPath("prop").get(0);
+
+			String etag = prop.getFirstNodeText("getetag");
+			String data = prop.getFirstNodeText("calendar-data");
+			String last_modified = prop.getFirstNodeText("getlastmodified");
+			String content_type = prop.getFirstNodeText("getcontenttype");
+			if ( etag == null || data == null ) return false;
+			
+			String oldEtag = cv.getAsString(DavResources.ETAG);
+			String oldData = cv.getAsString(DavResources.RESOURCE_DATA);
+			
+			if ( etag != null && oldEtag != null && oldEtag.equals(etag)
+						&& ( (data == null && oldData == null)
+							 || (data != null && oldData != null && oldData.equals(data) ) )
+							 ) {
+				cv.put(DavResources.NEEDS_SYNC, (oldData == null ? "1" : "0") );
+				return false;
+			}
+
+			if ( etag != null ) cv.put(DavResources.ETAG, etag);
+			if ( data != null ) cv.put(DavResources.RESOURCE_DATA, data); 
+			if ( last_modified != null ) cv.put(DavResources.LAST_MODIFIED, last_modified);
+			if ( content_type != null ) cv.put(DavResources.CONTENT_TYPE, content_type);
+			cv.put(DavResources.NEEDS_SYNC, (data == null || etag == null) );
+		}
+
+		// We remove our references to this now, since we've finished with it.
+		responseNode.getParent().removeSubTree(responseNode);
+
+		return true;
+	}
+
 	
 	public boolean equals(Object that) {
 		if ( this == that ) return true;
@@ -338,25 +481,24 @@ public class InitialCollectionSync extends ServiceJob {
 	public int updateRecords(SQLiteDatabase db, Map<String, ContentValues> toUpdate) {
 		String names[] = new String[toUpdate.size()];
 		toUpdate.keySet().toArray(names);
-		try {
-			for (String name : names) {
-				ContentValues cv = toUpdate.get(name);
-				cv.put(DavResources.NEEDS_SYNC, 1);
-				cv.put(DavResources.COLLECTION_ID, this.collectionId);
-				// is this an update or insert?
-				String id = cv.getAsString(DavResources._ID);
-				WriteActions action;
-				if (id == null || id.equals("")) {
-					action = WriteActions.INSERT;
-				}
-				else {
-					action = WriteActions.UPDATE;
-				}
-				SynchronisationJobs.writeResource(db,action,cv);
-				collectionNeedsSync = true;
+		for (String name : names) {
+			ContentValues cv = toUpdate.get(name);
+			cv.put(DavResources.NEEDS_SYNC, 1);
+			cv.put(DavResources.COLLECTION_ID, this.collectionId);
+			// is this an update or insert?
+			String id = cv.getAsString(DavResources._ID);
+			WriteActions action;
+			if (id == null || id.equals("")) {
+				action = WriteActions.INSERT;
 			}
+			else {
+				action = WriteActions.UPDATE;
+			}
+
+			SynchronisationJobs.writeResource(db,action,cv);
+			collectionNeedsSync = true;
+			db.yieldIfContendedSafely();
 		}
-		catch ( Exception e ) { }
 		return names.length;
 	}
 
