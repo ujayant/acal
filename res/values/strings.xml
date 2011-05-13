@@ -266,5 +266,8 @@
 <string name="newHourEventAt">New event at %s</string>
 <string name="editSomeEvent">Edit: %s</string>
 <string name="copySomeEvent">Copy: %s</string>
+<string name="deleteSomeEvent">Delete: %s</string>
+
+<string name="noCollectionsFound">No Calendars Found</string>
 
 </resources>
