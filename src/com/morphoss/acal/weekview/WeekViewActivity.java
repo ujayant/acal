@@ -539,8 +539,10 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	}
 	
 	private List<Object>	underList;
-	private static final int	CONTEXT_ACTION_EDIT	= 0x100;
-	private static final int	CONTEXT_ACTION_COPY	= 0x200;
+	private static final int	CONTEXT_ACTION_VIEW		= 0x100;
+	private static final int	CONTEXT_ACTION_EDIT		= 0x200;
+	private static final int	CONTEXT_ACTION_COPY		= 0x300;
+	private static final int	CONTEXT_ACTION_DELETE	= 0x400;
 	@Override
 	public void onCreateContextMenu(ContextMenu menu, View view, ContextMenuInfo info) {
 		days.cancelLongPress();
@@ -564,10 +566,13 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
         }
 
         for( int i=2; i< underList.size(); i++) {
-        	menu.add(Menu.NONE, i | CONTEXT_ACTION_EDIT, Menu.NONE,
-        				getString(R.string.editSomeEvent, ((SimpleAcalEvent) underList.get(i)).summary ));  
-        	menu.add(Menu.NONE, i | CONTEXT_ACTION_COPY, Menu.NONE,
-        				getString(R.string.copySomeEvent, ((SimpleAcalEvent) underList.get(i)).summary ));  
+        	menu.add(Menu.NONE, i | CONTEXT_ACTION_VIEW, Menu.NONE, ((SimpleAcalEvent) underList.get(i)).summary );  
+//        	menu.add(Menu.NONE, i | CONTEXT_ACTION_EDIT, Menu.NONE,
+//        				getString(R.string.editSomeEvent, ((SimpleAcalEvent) underList.get(i)).summary ));  
+//        	menu.add(Menu.NONE, i | CONTEXT_ACTION_COPY, Menu.NONE,
+//        				getString(R.string.copySomeEvent, ((SimpleAcalEvent) underList.get(i)).summary ));  
+//        	menu.add(Menu.NONE, i | CONTEXT_ACTION_DELETE, Menu.NONE,
+//       				getString(R.string.deleteSomeEvent, ((SimpleAcalEvent) underList.get(i)).summary ));  
         }
 		
 	}
@@ -603,17 +608,29 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
         	}
         	default: {
         		SimpleAcalEvent sae = (SimpleAcalEvent) underList.get(item.getItemId() & 0xFF);
-        		if ( (item.getItemId() & 0xFF00) == CONTEXT_ACTION_COPY ) {
-        			sae.operation = SimpleAcalEvent.EVENT_OPERATION_COPY;
+        		int action = (item.getItemId() & 0xFF00);
+        		if ( action == CONTEXT_ACTION_VIEW ) {
+	        		Bundle bundle = new Bundle();
+	    			bundle.putParcelable("SimpleAcalEvent", sae);
+	    			Intent eventViewIntent = new Intent(this, EventView.class);
+	    			eventViewIntent.putExtras(bundle);
+	    			this.startActivity(eventViewIntent);
+        		}
+        		else if ( action == CONTEXT_ACTION_DELETE ) {
         		}
         		else {
-        			sae.operation = SimpleAcalEvent.EVENT_OPERATION_EDIT;
+	        		if ( action == CONTEXT_ACTION_COPY ) {
+	        			sae.operation = SimpleAcalEvent.EVENT_OPERATION_COPY;
+	        		}
+	        		else {
+	        			sae.operation = SimpleAcalEvent.EVENT_OPERATION_EDIT;
+	        		}
+	        		Bundle bundle = new Bundle();
+	    			bundle.putParcelable("SimpleAcalEvent", sae);
+	    			Intent eventEditIntent = new Intent(this, EventEdit.class);
+	    			eventEditIntent.putExtras(bundle);
+	    			this.startActivity(eventEditIntent);
         		}
-        		Bundle bundle = new Bundle();
-    			bundle.putParcelable("SimpleAcalEvent", sae);
-    			Intent eventEditIntent = new Intent(this, EventEdit.class);
-    			eventEditIntent.putExtras(bundle);
-    			this.startActivity(eventEditIntent);
         		break;
         	}
         }
@@ -679,6 +696,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 				}
 				else {
 					// There's more than one, so we need to show a context menu
+					this.openContextMenu(days);
 				}
 			}
 			lastClickMe = null;
