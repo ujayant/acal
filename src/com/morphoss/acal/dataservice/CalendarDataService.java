@@ -827,6 +827,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 			// Always flush the cache if stuff has changed.
 			if ( this.changesDuringTx ) {
 				try {
+					if ( Constants.LOG_VERBOSE ) Log.v(TAG,"Requesting flushing of event cache.");
 					dataRequest.flushCache();
 					if (callback != null) callback.statusChanged(UPDATE, false);
 				}
