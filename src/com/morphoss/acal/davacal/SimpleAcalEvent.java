@@ -134,22 +134,13 @@ public class SimpleAcalEvent implements Parcelable, Comparable<SimpleAcalEvent> 
 	public static SimpleAcalEvent getSimpleEvent(AcalEvent event) {
 		if ( event == null ) return null;
 		AcalDateTime start = event.getStart();
-//		if ( Constants.LOG_VERBOSE )
+//		if ( Constants.LOG_VERBOSE 
 //			Log.v(TAG,"AcalEvent at " + start + " to " + event.getEnd() + " for: " + event.summary );
 
-		boolean allDayEvent = start.isDate() ||	(start.isFloating()
-														&& event.getDuration().getTimeMillis() == 0
-																	&& event.getDuration().getDays() > 0);
-/*
- * The logic in WeekViewDays had it something like this, but I think the above is better. Maybe...
- * 
-		//only add events that cover less than one full calendar day
-		if (e.getDuration().getDays() > 0 ) continue;	// more than 1 day, so can't go in
-
-		AcalDateTime start = e.getStart().clone().applyLocalTimeZone().setDaySecond(0).addDays(1);
-		//start is now at the first 'midnight' of the event. Duration to end MUST be < 24hours for us to want this event
-		if ( start.getDurationTo(e.getEnd()).getDays() > 0 ) continue;
-*/
+		boolean allDayEvent = start.isDate()
+						||	(start.isFloating() && event.getDuration().getTimeMillis() == 0
+																	&& event.getDuration().getDays() > 0)
+						|| (event.getEnd().after(event.dtstart.clone().addDays(2).applyLocalTimeZone().setDaySecond(0)) );
 
 		start.applyLocalTimeZone();
 		long finish = event.getEnd().applyLocalTimeZone().getEpoch();
