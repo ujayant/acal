@@ -147,10 +147,7 @@ public class AlarmActivity extends Activity implements OnClickListener  {
 
 
 	private void showNextAlarm() {
-		if (Constants.LOG_DEBUG)Log.d(TAG, "Showing next alarm....");
-		if ( dataRequest == null ) {
-			this.finish();
-		}
+		if (Constants.LOG_DEBUG) Log.d(TAG, "Showing next alarm....");
 		try {
 			this.currentAlarm = dataRequest.getCurrentAlarm();
 			if (this.currentAlarm == null) {
@@ -308,7 +305,10 @@ public class AlarmActivity extends Activity implements OnClickListener  {
 			}
 
 		}
-		this.showNextAlarm();
+		if ( dataRequest == null )
+			connectToService();
+		else
+			this.showNextAlarm();
 	}
 
 	/************************************************************************
