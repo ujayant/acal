@@ -162,6 +162,7 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 		if ( event.hasAlarm ) {
 			ImageView alarmed = (ImageView) rowLayout.findViewById(R.id.EventListItemAlarmBell);
 			alarmed.setVisibility(View.VISIBLE);
+			if ( ! event.alarmEnabled ) alarmed.setBackgroundColor(0xb0ffffff);
 		}
 		if ( event.hasRepeat ) {
 			ImageView repeating = (ImageView) rowLayout.findViewById(R.id.EventListItemRepeating);

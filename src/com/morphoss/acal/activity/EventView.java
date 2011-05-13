@@ -117,15 +117,16 @@ public class EventView extends Activity implements OnGestureListener, OnTouchLis
 	
 	private void populateLayout() {
 		AcalDateTime start = (AcalDateTime)event.getField(EVENT_FIELD.startDate);
-		AcalDuration duration = (AcalDuration)event.getField(EVENT_FIELD.duration);
-		AcalDateTime end = AcalDateTime.addDuration(start, duration);
 		String title = (String)event.getField(EVENT_FIELD.summary);
 		String location = (String)event.getField(EVENT_FIELD.location);
 		String description = (String)event.getField(EVENT_FIELD.description);
-		String alarms = "";
-		List<AcalAlarm> alarmList = (List<AcalAlarm>)event.getField(EVENT_FIELD.alarmList);
-		for (AcalAlarm alarm : alarmList) {
-			alarms+=alarm.toPrettyString()+"\n";
+		StringBuilder alarms = new StringBuilder();
+		List<?> alarmList = (List<?>) event.getField(EVENT_FIELD.alarmList);
+		for (Object alarm : alarmList) {
+			if ( alarm instanceof AcalAlarm ) {
+				if ( alarms.length() > 0 ) alarms.append('\n');
+				alarms.append(((AcalAlarm)alarm).toPrettyString());
+			}
 		}
 		
 		String repetition = (String) event.getField(EVENT_FIELD.repeatRule);
@@ -153,13 +154,8 @@ public class EventView extends Activity implements OnGestureListener, OnTouchLis
 			locationView.setText(location);
 		}
 		else {
-			locationView.setText("");
-			locationView.setHeight(0);
-			TextView locationPrompt = (TextView) this.findViewById(R.id.EventLocationLabel);
-			locationPrompt.setText("");
-			locationPrompt.setHeight(0);
 			RelativeLayout locationLayout = (RelativeLayout) this.findViewById(R.id.EventLocationLayout);
-			locationLayout.setPadding(0, 0, 0, 0);
+			locationLayout.setVisibility(View.GONE);
 		}
 
 		TextView notesView = (TextView) this.findViewById(R.id.EventNotesContent);
@@ -167,27 +163,21 @@ public class EventView extends Activity implements OnGestureListener, OnTouchLis
 			notesView.setText(description);
 		}
 		else {
-			notesView.setText("");
-			notesView.setHeight(0);
-			TextView notesPrompt = (TextView) this.findViewById(R.id.EventNotesLabel);
-			notesPrompt.setText("");
-			notesPrompt.setHeight(0);
 			RelativeLayout notesLayout = (RelativeLayout) this.findViewById(R.id.EventNotesLayout);
-			notesLayout.setPadding(0, 0, 0, 0);
+			notesLayout.setVisibility(View.GONE);
 		}
 		
 		TextView alarmsView = (TextView) this.findViewById(R.id.EventAlarmsContent);
 		if ( alarms != null && ! alarms.equals("") ) {
 			alarmsView.setText(alarms);
+			if ( !event.event.getAlarmEnabled() ) {
+				TextView alarmsWarning = (TextView) this.findViewById(R.id.CalendarAlarmsDisabled);
+				alarmsWarning.setVisibility(View.VISIBLE);
+			}
 		}
 		else {
-			alarmsView.setText("");
-			alarmsView.setHeight(0);
-			TextView alarmsPrompt = (TextView) this.findViewById(R.id.EventAlarmsLabel);
-			alarmsPrompt.setText("");
-			alarmsPrompt.setHeight(0);
 			RelativeLayout alarmsLayout = (RelativeLayout) this.findViewById(R.id.EventAlarmsLayout);
-			alarmsLayout.setPadding(0, 0, 0, 0);
+			alarmsLayout.setVisibility(View.GONE);
 		}
 		
 		TextView repeatsView = (TextView) this.findViewById(R.id.EventRepeatsContent);

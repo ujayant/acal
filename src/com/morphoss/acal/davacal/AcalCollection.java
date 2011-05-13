@@ -30,11 +30,13 @@ public class AcalCollection {
 	final private static String TAG = "AcalCollection";
 	private ContentValues cv;
 	private int collectionColour;
+	public boolean alarmsEnabled;
 	public final int collectionId;
 
 	public AcalCollection( ContentValues collectionRow ) {
 		cv = collectionRow;
 		setColour(cv.getAsString(DavCollections.COLOUR));
+		alarmsEnabled = (cv.getAsInteger(DavCollections.USE_ALARMS) == 1);
 		collectionId = cv.getAsInteger(DavCollections._ID);
 	}
 
@@ -59,6 +61,9 @@ public class AcalCollection {
 		cv.putAll(collectionRow);
 		if (cv.containsKey(DavCollections.COLOUR)){
 			setColour(cv.getAsString(DavCollections.COLOUR));
+		}
+		if (cv.containsKey(DavCollections.USE_ALARMS)){
+			alarmsEnabled = (cv.getAsInteger(DavCollections.USE_ALARMS) == 1);
 		}
 	}
 

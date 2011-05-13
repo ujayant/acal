@@ -290,6 +290,15 @@ public abstract class VComponent {
 	}
 
 	
+	public boolean getAlarmEnabled() {
+		try {
+			// When we are adding events we might not have a collection yet
+			return this.collectionData.alarmsEnabled;
+		}
+		catch( NullPointerException e ) {};
+		return true;
+	}
+	
 	
 	/****************************************
 	 * 			Protected Methods			*

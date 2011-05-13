@@ -56,6 +56,7 @@ public class SimpleAcalEvent implements Parcelable, Comparable<SimpleAcalEvent> 
 	public final boolean hasAlarm;
 	public final boolean isAllDay;
 	public final boolean isPending;
+	public final boolean alarmEnabled;
 	public final int startDateHash;
 	public final int endDateHash;
 
@@ -83,7 +84,8 @@ public class SimpleAcalEvent implements Parcelable, Comparable<SimpleAcalEvent> 
 	 * @param isPending
 	 */
 	public SimpleAcalEvent(long start, long end, int resourceId, String summary, String location, int colour,
-				boolean isAlarming, boolean isRepetitive, boolean allDayEvent, boolean isPending ) {
+				boolean isAlarming, boolean isRepetitive, boolean allDayEvent, boolean isPending,
+				boolean alarmEnabled ) {
 		this.start = start;
 		this.end = end;
 		this.resourceId = resourceId;
@@ -91,6 +93,7 @@ public class SimpleAcalEvent implements Parcelable, Comparable<SimpleAcalEvent> 
 		this.location = location;
 		this.colour = colour;
 		this.hasAlarm = isAlarming;
+		this.alarmEnabled = alarmEnabled;
 		this.hasRepeat = isRepetitive;
 		this.isAllDay = allDayEvent;
 		this.isPending = isPending;
@@ -146,7 +149,8 @@ public class SimpleAcalEvent implements Parcelable, Comparable<SimpleAcalEvent> 
 		long finish = event.getEnd().applyLocalTimeZone().getEpoch();
 		return new SimpleAcalEvent(start.getEpoch(), finish, event.resourceId, event.summary,
 					event.location, event.colour, 
-					event.hasAlarms(), event.getRepetition().length() > 0, allDayEvent, event.isPending);
+					event.hasAlarms(), event.getRepetition().length() > 0, allDayEvent, event.isPending,
+					event.getAlarmEnabled());
 	}
 
 	
@@ -205,13 +209,16 @@ public class SimpleAcalEvent implements Parcelable, Comparable<SimpleAcalEvent> 
 		hasAlarm = isAlarming;
 		
 		int aColor = Color.BLUE;
+		boolean alarmsForCollection = true;
 		try {
 			aColor = event.getCollectionColour();
+			alarmsForCollection = event.getAlarmEnabled();
 		} catch (Exception e) {
-			Log.e(TAG,"Error Creating UnModifiableAcalEvent - "+e.getMessage());
+			Log.e(TAG,"Error Creating SimpleAcalEvent - "+e.getMessage());
 			Log.e(TAG,Log.getStackTraceString(e));
 		}
 		colour = aColor;
+		alarmEnabled = alarmsForCollection;
 		
 	}
 
@@ -331,7 +338,7 @@ public class SimpleAcalEvent implements Parcelable, Comparable<SimpleAcalEvent> 
 		dest.writeString(summary);
 		dest.writeString(location);
 		dest.writeInt(colour);
-		dest.writeByte( (byte) ((hasAlarm?0x08:0) | (hasRepeat?0x04:0) | (isAllDay?0x02:0) | (isPending?0x01:0)) );
+		dest.writeByte( (byte) ((alarmEnabled?0x10:0) | (hasAlarm?0x08:0) | (hasRepeat?0x04:0) | (isAllDay?0x02:0) | (isPending?0x01:0)) );
 		dest.writeInt(startDateHash);
 		dest.writeInt(endDateHash);
 		dest.writeInt(operation);
@@ -345,6 +352,7 @@ public class SimpleAcalEvent implements Parcelable, Comparable<SimpleAcalEvent> 
 		location = src.readString();
 		colour = src.readInt();
 		byte b = src.readByte();
+		alarmEnabled  = ((b & 0x10) == 0x10);
 		hasAlarm  = ((b & 0x08) == 0x08);
 		hasRepeat = ((b & 0x04) == 0x04);
 		isAllDay  = ((b & 0x02) == 0x02);

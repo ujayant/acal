@@ -232,6 +232,7 @@
 <string name="alarm12HoursPrior">12 hours before</string>
 <string name="alarm1DayPrior">One day before</string>
 <string name="alarmCustom">Custom Alarm</string>
+<string name="alarmsDisabledNote">(all alarms are disabled for this calendar)</string>
 
 <string name="changeThisInstance">This Instance Only</string>
 <string name="changeAllInstances">All Instances</string>

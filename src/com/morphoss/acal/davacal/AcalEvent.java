@@ -58,6 +58,7 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 	private final String originalBlob;
 	private final int collection;
 	public final boolean isPending;
+	private final boolean	alarmEnabled;
 	
 
 	public static final Parcelable.Creator<AcalEvent> CREATOR = new Parcelable.Creator<AcalEvent>() {
@@ -121,6 +122,7 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 		out.writeString(getRepetition());
 		out.writeInt(getColour());
 		out.writeByte((byte) (hasAlarms() ? 'T' : 'F'));
+		out.writeByte((byte) (alarmEnabled ? 'T' : 'F'));
 		out.writeInt(getResourceId());
 		out.writeString(originalBlob);
 		out.writeInt(collection);
@@ -137,6 +139,7 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 		this.repetition = in.readString();
 		this.colour = in.readInt();
 		this.hasAlarms = in.readByte() == 'T';
+		this.alarmEnabled = in.readByte() == 'T';
 		this.resourceId = in.readInt();
 		this.originalBlob = in.readString();
 		this.collection = in.readInt();
@@ -207,13 +210,16 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 		hasAlarms = alarmList.size() > 0;
 		
 		int aColor = Color.BLUE;
+		boolean alarmsForCollection = true;
 		try {
 			aColor = event.getCollectionColour();
+			alarmsForCollection = event.getAlarmEnabled();
 		} catch (Exception e) {
-			Log.e(TAG,"Error Creating UnModifiableAcalEvent - "+e.getMessage());
+			Log.e(TAG,"Error Creating AcalEvent - "+e.getMessage());
 			Log.e(TAG,Log.getStackTraceString(e));
 		}
 		colour = aColor;
+		alarmEnabled = alarmsForCollection;
 		
 		int collectionId;
 		try {
@@ -247,6 +253,10 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 
 	public int getColour() {
 		return this.colour;
+	}
+
+	public boolean getAlarmEnabled() {
+		return this.alarmEnabled;
 	}
 
 	public String getDescription() {
@@ -356,7 +366,7 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 		return null;
 	}
 
-	
+
 	/**	
 	private AcalEvent(AcalDateTime dtstart,	AcalDuration duration, String summary,
 						String description, String location, 
