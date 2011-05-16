@@ -43,6 +43,7 @@ public class SynchronisationJobs extends ServiceJob {
 	public static final int		HOME_SET_DISCOVERY	= 0;
 	public static final int		HOME_SETS_UPDATE	= 1;
 	public static final int		CALENDAR_SYNC		= 2;
+	public static final int		CACHE_RESYNC		= 3;
 
 	public static final String	TAG					= "aCal SynchronisationJobs";
 
@@ -67,6 +68,11 @@ public class SynchronisationJobs extends ServiceJob {
 
 			case HOME_SETS_UPDATE:
 				refreshCollectionsFromHomeSets();
+				break;
+
+			case CACHE_RESYNC:
+				if ( Constants.LOG_DEBUG ) Log.i(TAG,"Responding to internal cache revalidation request.");
+				aCalService.databaseDispatcher.dispatchEvent(new DatabaseChangedEvent(DatabaseChangedEvent.DATABASE_INVALIDATED,null,null));
 				break;
 
 		}
@@ -256,6 +262,8 @@ public class SynchronisationJobs extends ServiceJob {
 				return "Updating collections in all home sets";
 			case HOME_SET_DISCOVERY:
 				return "Discovering home sets for all servers";
+			case CACHE_RESYNC:
+				return "Resync internal database cache";
 		}
 		Log.e(TAG,"No description defined for jobtype "+jobtype );
 		return "Unknown SynchronisationJobs jobtype!";
