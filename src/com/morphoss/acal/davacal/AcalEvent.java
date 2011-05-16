@@ -54,7 +54,7 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 	private int colour;
 	public final boolean hasAlarms;
 	public final int resourceId;
-	public final List<AcalAlarm> alarmList = new ArrayList<AcalAlarm>();
+	private List<AcalAlarm> alarmList = new ArrayList<AcalAlarm>();
 	private final String originalBlob;
 	private int collectionId;
 	public final boolean isPending;
@@ -310,6 +310,9 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 			case collectionId:
 				this.collectionId = (Integer) val;
 				break;
+			case alarmList:
+				this.alarmList = (List<AcalAlarm>) val;
+				break;
 			default:
 				throw new IllegalStateException("The "+field.toString()+" is not modifiable.");
 		}
@@ -338,10 +341,11 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 				SimpleDateFormat startFormatter = timeFormatter;
 				SimpleDateFormat finishFormatter = timeFormatter;
 				
-				if ( start.before(viewDateStart) )
+				if ( start.before(viewDateStart) || start.after(viewDateEnd) ) {
 					startFormatter  = new SimpleDateFormat("MMM d, "+timeFormatString);
-				if ( finish.after(viewDateEnd) )
-					finishFormatter = new SimpleDateFormat("MMM d, "+timeFormatString);
+					if ( (finish.getYear() > start.getYear()) || (finish.getYearDay() > start.getYearDay()) )
+						finishFormatter = new SimpleDateFormat("MMM d, "+timeFormatString);
+				}
 		
 				timeText = (startFormatter.format(start.toJavaDate())+" - "
 							+ (finish == null ? "null" : finishFormatter.format(finish.toJavaDate())));
@@ -416,8 +420,17 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 		List<?> alarmList = (List<?>) defaults.get(EVENT_FIELD.alarmList);
 		this.hasAlarms = ! alarmList.isEmpty();
 		this.alarmList.addAll((List<AcalAlarm>) alarmList);
-		this.resourceId = (Integer) defaults.get(EVENT_FIELD.resourceId);
-		this.collectionId = (Integer) defaults.get(EVENT_FIELD.collectionId);
+
+		int theId = -1;
+		if ( (Integer) defaults.get(EVENT_FIELD.resourceId) != null )
+			theId = (Integer) defaults.get(EVENT_FIELD.resourceId);
+		this.resourceId = theId;
+
+		theId = -1;
+		if ( (Integer) defaults.get(EVENT_FIELD.collectionId) != null )
+			theId = (Integer) defaults.get(EVENT_FIELD.collectionId);
+		this.collectionId = theId;
+
 		this.originalBlob = null;
 		this.isPending = false;
 		this.alarmEnabled = true;

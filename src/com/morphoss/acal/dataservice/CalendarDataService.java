@@ -509,7 +509,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 				List<AcalEvent> events = new ArrayList<AcalEvent>();
 				if ( vc.hasAlarm() && vc.appendEventInstancesBetween(events, dateRange, true) ) {
 					for( AcalEvent event : events ) {
-						for (AcalAlarm alarm : event.alarmList) {
+						for (AcalAlarm alarm : event.getAlarms()) {
 							//the alarm needs to have event data associated
 							alarm.setEvent(event);
 							alarms.add(alarm);

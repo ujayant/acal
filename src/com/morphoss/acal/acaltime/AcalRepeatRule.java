@@ -398,7 +398,7 @@ public class AcalRepeatRule {
 		List<AcalEvent> events = new ArrayList<AcalEvent>();
 		if ( this.sourceVCalendar.hasAlarm() && this.sourceVCalendar.appendEventInstancesBetween(events, range, false) ) {
 			for( AcalEvent event : events ) {
-				for (AcalAlarm alarm : event.alarmList) {
+				for (AcalAlarm alarm : event.getAlarms()) {
 					alarm.setToLocalTime();
 					if (alarm.getNextTimeToFire().after(range.start)) {
 						//the alarm needs to have event data associated
