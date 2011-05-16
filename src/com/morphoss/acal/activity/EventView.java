@@ -21,7 +21,6 @@ package com.morphoss.acal.activity;
 import java.util.List;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -42,12 +41,10 @@ import android.widget.TextView;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateTime;
-import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
 import com.morphoss.acal.davacal.AcalAlarm;
-import com.morphoss.acal.davacal.AcalEventAction;
+import com.morphoss.acal.davacal.AcalEvent;
 import com.morphoss.acal.davacal.SimpleAcalEvent;
-import com.morphoss.acal.davacal.AcalEventAction.EVENT_FIELD;
 import com.morphoss.acal.service.aCalService;
 
 public class EventView extends Activity implements OnGestureListener, OnTouchListener, OnClickListener{
@@ -59,11 +56,13 @@ public class EventView extends Activity implements OnGestureListener, OnTouchLis
 	public static final int SHOW_ON_MAP = 3;
 	
 	public static final int EDIT_EVENT = 0;
+	public static final int EDIT_ADD = 0;
 	
 	//private GestureDetector gestureDetector;
 	
 	//private AcalDateTime currentDate;
-	private AcalEventAction event;
+	private AcalEvent event;
+	private SimpleAcalEvent sae = null;
 	private SharedPreferences prefs;	
 	
 	
@@ -86,12 +85,8 @@ public class EventView extends Activity implements OnGestureListener, OnTouchLis
 		
 		Bundle b = this.getIntent().getExtras();
 		try {
-			if (b.containsKey("Event")) {
-				this.event = ((AcalEventAction) b.getParcelable("Event"));
-			}
-			else if ( b.containsKey("SimpleAcalEvent") ) {
-				this.event = new AcalEventAction(this,(SimpleAcalEvent) b.getParcelable("SimpleAcalEvent"));
-			}
+			this.sae = (SimpleAcalEvent) b.getParcelable("SimpleAcalEvent");
+			this.event = AcalEvent.fromDatabase(this, sae.resourceId, new AcalDateTime().applyLocalTimeZone());
 			this.populateLayout();
 		}
 		catch (Exception e) {
@@ -102,7 +97,7 @@ public class EventView extends Activity implements OnGestureListener, OnTouchLis
 		map.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				
-				String loc = (String)event.getField(EVENT_FIELD.location);
+				String loc = event.getLocation();
 				//replace whitespaces with '+'
 				loc.replace("\\s", "+");
 				Uri target = Uri.parse("geo:0,0?q="+loc);
@@ -116,21 +111,19 @@ public class EventView extends Activity implements OnGestureListener, OnTouchLis
 	}
 	
 	private void populateLayout() {
-		AcalDateTime start = (AcalDateTime)event.getField(EVENT_FIELD.startDate);
-		String title = (String)event.getField(EVENT_FIELD.summary);
-		String location = (String)event.getField(EVENT_FIELD.location);
-		String description = (String)event.getField(EVENT_FIELD.description);
+		AcalDateTime start = event.getStart();
+		String title = event.getSummary();
+		String location = event.getLocation();
+		String description = event.getDescription();
 		StringBuilder alarms = new StringBuilder();
-		List<?> alarmList = (List<?>) event.getField(EVENT_FIELD.alarmList);
-		for (Object alarm : alarmList) {
-			if ( alarm instanceof AcalAlarm ) {
-				if ( alarms.length() > 0 ) alarms.append('\n');
-				alarms.append(((AcalAlarm)alarm).toPrettyString());
-			}
+		List<AcalAlarm> alarmList = event.getAlarms();
+		for (AcalAlarm alarm : alarmList) {
+			if ( alarms.length() > 0 ) alarms.append('\n');
+			alarms.append(alarm.toPrettyString());
 		}
 		
-		String repetition = (String) event.getField(EVENT_FIELD.repeatRule);
-		int colour = (Integer)event.getField(EVENT_FIELD.colour);
+		String repetition = event.getRepetition();
+		int colour = event.getColour();
 		LinearLayout sidebar = (LinearLayout)this.findViewById(R.id.EventViewColourBar);
 		sidebar.setBackgroundColor(colour);
 		
@@ -170,7 +163,7 @@ public class EventView extends Activity implements OnGestureListener, OnTouchLis
 		TextView alarmsView = (TextView) this.findViewById(R.id.EventAlarmsContent);
 		if ( alarms != null && ! alarms.equals("") ) {
 			alarmsView.setText(alarms);
-			if ( !event.event.getAlarmEnabled() ) {
+			if ( !event.getAlarmEnabled() ) {
 				TextView alarmsWarning = (TextView) this.findViewById(R.id.CalendarAlarmsDisabled);
 				alarmsWarning.setVisibility(View.VISIBLE);
 			}
@@ -246,7 +239,7 @@ public class EventView extends Activity implements OnGestureListener, OnTouchLis
 			case EDIT: {
 				//start event activity
 				Bundle bundle = new Bundle();
-				bundle.putParcelable("Event", event);
+				bundle.putParcelable("SimpleAcalEvent", sae);
 				Intent eventEditIntent = new Intent(this, EventEdit.class);
 				eventEditIntent.putExtras(bundle);
 				this.startActivityForResult(eventEditIntent,EDIT_EVENT);
@@ -254,10 +247,14 @@ public class EventView extends Activity implements OnGestureListener, OnTouchLis
 			}
 			case ADD: {
 				Bundle bundle = new Bundle();
-				bundle.putParcelable("DATE", (AcalDateTime)event.getField(EVENT_FIELD.startDate));
+				bundle.putParcelable("DATE", event.getStart());
+				if ( event.getStart().isDate() )
+					bundle.putBoolean("ALLDAY", true);
+				else
+					bundle.putInt("TIME", event.getStart().applyLocalTimeZone().getDaySecond());
 				Intent eventEditIntent = new Intent(this, EventEdit.class);
 				eventEditIntent.putExtras(bundle);
-				this.startActivity(eventEditIntent);
+				this.startActivityForResult(eventEditIntent,EDIT_ADD);
 				break;
 			}
 			case TODAY: {
@@ -273,10 +270,13 @@ public class EventView extends Activity implements OnGestureListener, OnTouchLis
 	}
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
     	if (requestCode == EDIT_EVENT && resultCode == RESULT_OK) {
-    		if (data.hasExtra("changedEvent")) {
-    			event  = (AcalEventAction)data.getParcelableExtra("changedEvent");
-    			populateLayout();
-    		}
+			this.event = AcalEvent.fromDatabase(this, sae.resourceId, new AcalDateTime().applyLocalTimeZone());
+			populateLayout();
+    	}
+    	else if (requestCode == EDIT_ADD && resultCode == RESULT_OK) {
+			Intent res = new Intent();
+			this.setResult(RESULT_OK, res);
+			this.finish();
     	}
     }
 	

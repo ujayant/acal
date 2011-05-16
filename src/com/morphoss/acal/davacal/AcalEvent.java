@@ -22,6 +22,7 @@ import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -33,7 +34,6 @@ import android.util.Log;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDuration;
-import com.morphoss.acal.davacal.AcalEventAction.EVENT_FIELD;
 import com.morphoss.acal.providers.DavResources;
 
 /**
@@ -45,22 +45,45 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 
 	private static final long serialVersionUID = 1L;
 	public static final String TAG = "AcalEvent";
-	public final AcalDateTime dtstart;
-	public final AcalDuration duration;
-	public final String summary;
-	public final String description;
-	public final String location;
-	public final String repetition;
-	public final int colour;
+	private AcalDateTime dtstart;
+	private AcalDuration duration;
+	private String summary;
+	private String description;
+	private String location;
+	private String repetition;
+	private int colour;
 	public final boolean hasAlarms;
 	public final int resourceId;
 	public final List<AcalAlarm> alarmList = new ArrayList<AcalAlarm>();
 	private final String originalBlob;
-	private final int collection;
+	private int collectionId;
 	public final boolean isPending;
-	private final boolean	alarmEnabled;
-	
+	private boolean	alarmEnabled;
+	private int action = ACTION_CREATE;
+	private boolean	dirty; 
+	private final boolean[] dirtyFlags = new boolean[EVENT_FIELD.values().length];
 
+	public static final int ACTION_CREATE = 0;
+	public static final int ACTION_MODIFY_SINGLE = 1;
+	public static final int ACTION_MODIFY_ALL = 2;
+	public static final int ACTION_MODIFY_ALL_FUTURE = 3;
+	public static final int ACTION_DELETE_SINGLE = 4;
+	public static final int ACTION_DELETE_ALL = 5;
+	public static final int ACTION_DELETE_ALL_FUTURE = 6;
+
+	public static enum EVENT_FIELD {
+			resourceId,
+			startDate,
+			duration,
+			summary,
+			location,
+			description,
+			colour,
+			collectionId,
+			repeatRule,
+			alarmList
+	}
+	
 	public static final Parcelable.Creator<AcalEvent> CREATOR = new Parcelable.Creator<AcalEvent>() {
         public AcalEvent createFromParcel(Parcel in) {
             return getInstanceFromParcel(in);
@@ -125,7 +148,7 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 		out.writeByte((byte) (alarmEnabled ? 'T' : 'F'));
 		out.writeInt(getResourceId());
 		out.writeString(originalBlob);
-		out.writeInt(collection);
+		out.writeInt(collectionId);
 		out.writeTypedList(alarmList);
 		out.writeByte((byte) (isPending ? 'T' : 'F'));
 	}
@@ -142,30 +165,10 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 		this.alarmEnabled = in.readByte() == 'T';
 		this.resourceId = in.readInt();
 		this.originalBlob = in.readString();
-		this.collection = in.readInt();
+		this.collectionId = in.readInt();
 		in.readTypedList(this.alarmList, AcalAlarm.CREATOR);
 		this.isPending = in.readByte() == 'T';
     }
-	
-	public static void parcelActionEventAsEvent(Parcel out, AcalEventAction action) {
-		AcalDateTime dtStart = (AcalDateTime) action.getField(EVENT_FIELD.startDate);
-		dtStart.writeToParcel(out, 0);
-		((AcalDuration)action.getField(EVENT_FIELD.duration)).writeToParcel(out, 0);
-		out.writeString((String)action.getField(EVENT_FIELD.summary));
-		out.writeString((String)action.getField(EVENT_FIELD.location));
-		out.writeString((String)action.getField(EVENT_FIELD.description));
-		out.writeString((String)action.getField(EVENT_FIELD.repeatRule));
-		out.writeInt((Integer)action.getField(EVENT_FIELD.colour));
-		List<AcalAlarm> alarmList = (List<AcalAlarm>)action.getField(EVENT_FIELD.alarmList);
-		char bit = (alarmList.isEmpty() ? 'F' : 'T');
-		out.writeByte((byte) (bit));
-		out.writeInt((Integer)action.getField(EVENT_FIELD.resourceId));
-		out.writeString(action.getOriginalBlob());
-		out.writeInt((Integer)action.getField(EVENT_FIELD.collectionId));
-		out.writeTypedList(alarmList);
-		bit = (action.isPending() ? 'F' : 'T');
-		out.writeByte((byte) (bit));
-	}
 	
 	@Override
 	public int compareTo(AcalEvent other) {
@@ -221,14 +224,14 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 		colour = aColor;
 		alarmEnabled = alarmsForCollection;
 		
-		int collectionId;
+		int fromCollectionId;
 		try {
-			collectionId = event.getCollectionId();
+			fromCollectionId = event.getCollectionId();
 		}
 		catch( NullPointerException e ) {
-			collectionId = -1;
+			fromCollectionId = -1;
 		}
-		collection = collectionId;
+		collectionId = fromCollectionId;
 		this.isPending = isPending;
 	}
 
@@ -277,6 +280,41 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 
 	public String getRepetition() {
 		return this.repetition;
+	}
+
+	public void setRepetition(String newRepetition) {
+		this.repetition = newRepetition;
+		this.dirty = true;
+	}
+
+	public void setField(EVENT_FIELD field, Object val) {
+		switch( field ) {
+			case startDate:
+				this.dtstart = (AcalDateTime) val;
+				break;
+			case duration:
+				this.duration = (AcalDuration) val;
+				break;
+			case summary:
+				this.summary = (String) val;
+				break;
+			case description:
+				this.description = (String) val;
+				break;
+			case location:
+				this.location = (String) val;
+				break;
+			case repeatRule:
+				this.repetition = (String) val;
+				break;
+			case collectionId:
+				this.collectionId = (Integer) val;
+				break;
+			default:
+				throw new IllegalStateException("The "+field.toString()+" is not modifiable.");
+		}
+		dirtyFlags[field.ordinal()] = true;
+		dirty=true;
 	}
 
 	public AcalDateTime getStart() {
@@ -343,27 +381,47 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 		return this.resourceId;
 	}
 	
+	public int getCollectionId() {
+		return this.collectionId;
+	}
+	
 	public String getOriginalBlob() {
 		return this.originalBlob;
 	}
+
+	public void setAction(int action) {
+		this.action = action;
+	}
+
+	public boolean isDirty() { return dirty; }
+	public int getAction() {
+		return this.action;
+	}
 	
-	public Object getField(AcalEventAction.EVENT_FIELD field) {
-		switch (field) {
-			case startDate : 	return this.dtstart;
-			case duration : 	return this.duration;
-			case summary : 		return this.summary;
-			case location : 	return this.location;
-			case colour : 		return this.colour;
-			case resourceId : 	return this.resourceId;
-			case description : 	return this.description;
-			case collectionId : return this.collection;
-			case alarmList :	return this.alarmList;
-			case repeatRule :	return this.repetition;
-			default:
-				Log.w(TAG,".getField("+field+") Trying to get a field that does not exist!");
-//				throw new IllegalArgumentException();
-		}
-		return null;
+	public boolean isModifyAction() {
+			return 	(this.action == ACTION_MODIFY_SINGLE) ||
+					(this.action == ACTION_MODIFY_ALL) ||
+					(this.action == ACTION_MODIFY_ALL_FUTURE); 
+	}
+
+
+	public AcalEvent(Map<EVENT_FIELD, Object> defaults) {
+		this.dtstart = (AcalDateTime) defaults.get(EVENT_FIELD.startDate);
+		this.duration = (AcalDuration) defaults.get(EVENT_FIELD.duration);
+		this.summary = (String) defaults.get(EVENT_FIELD.summary);
+		this.description = (String) defaults.get(EVENT_FIELD.description);
+		this.location = (String) defaults.get(EVENT_FIELD.location);
+		this.repetition = (String) defaults.get(EVENT_FIELD.repeatRule);
+		this.colour = (Integer) defaults.get(EVENT_FIELD.colour);
+		List<?> alarmList = (List<?>) defaults.get(EVENT_FIELD.alarmList);
+		this.hasAlarms = ! alarmList.isEmpty();
+		this.alarmList.addAll((List<AcalAlarm>) alarmList);
+		this.resourceId = (Integer) defaults.get(EVENT_FIELD.resourceId);
+		this.collectionId = (Integer) defaults.get(EVENT_FIELD.collectionId);
+		this.originalBlob = null;
+		this.isPending = false;
+		this.alarmEnabled = true;
+		this.dirty = false;
 	}
 
 
@@ -371,7 +429,7 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 	private AcalEvent(AcalDateTime dtstart,	AcalDuration duration, String summary,
 						String description, String location, 
 						String repetition, int colour, boolean hasAlarms,
-						int resourceId, List<AcalAlarm> alarmList, String originalBlob, int collection) {
+						int resourceId, List<AcalAlarm> alarmList, String originalBlob, int collectionId) {
 		this.dtstart = dtstart;
 		this.duration = duration;
 		this.summary = summary;
@@ -383,7 +441,7 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 		this.resourceId = resourceId;
 		this.alarmList.addAll(alarmList);
 		this.originalBlob = originalBlob;
-		this.collection = collection;
+		this.collection = collectionId;
 		
 	}
 

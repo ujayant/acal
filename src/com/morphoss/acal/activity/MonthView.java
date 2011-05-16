@@ -63,7 +63,6 @@ import com.morphoss.acal.dataservice.CalendarDataService;
 import com.morphoss.acal.dataservice.DataRequest;
 import com.morphoss.acal.dataservice.DataRequestCallBack;
 import com.morphoss.acal.davacal.AcalEvent;
-import com.morphoss.acal.davacal.AcalEventAction;
 import com.morphoss.acal.davacal.SimpleAcalEvent;
 import com.morphoss.acal.service.aCalService;
 import com.morphoss.acal.weekview.WeekViewActivity;
@@ -795,9 +794,8 @@ public class MonthView extends Activity implements OnGestureListener,
 		try {
 			SimpleAcalEvent sae = dataRequest.getNthEventForDay(day, n);
 			AcalEvent ae = AcalEvent.fromDatabase(this, sae.resourceId, new AcalDateTime().setEpoch(sae.start));
-			AcalEventAction action = new AcalEventAction(ae);
-			action.setAction(AcalEventAction.ACTION_DELETE_SINGLE);
-			this.dataRequest.eventChanged(action);
+			ae.setAction(AcalEvent.ACTION_DELETE_SINGLE);
+			this.dataRequest.eventChanged(ae);
 			dataRequest.deleteEvent(day, n);
 		} catch (RemoteException e) {
 			Log.e(TAG,"Error deleting event: "+e);
@@ -810,9 +808,8 @@ public class MonthView extends Activity implements OnGestureListener,
 		try {
 			SimpleAcalEvent sae = dataRequest.getNthEventForDay(day, n);
 			AcalEvent ae = AcalEvent.fromDatabase(this, sae.resourceId, new AcalDateTime().setEpoch(sae.start));
-			AcalEventAction action = new AcalEventAction(ae);
-			action.setAction(AcalEventAction.ACTION_DELETE_ALL);
-			this.dataRequest.eventChanged(action);
+			ae.setAction(AcalEvent.ACTION_DELETE_ALL);
+			this.dataRequest.eventChanged(ae);
 			dataRequest.deleteEvent(day, n);
 		} catch (RemoteException e) {
 			Log.e(TAG,"Error deleting event: "+e);
@@ -825,9 +822,8 @@ public class MonthView extends Activity implements OnGestureListener,
 		try {
 			SimpleAcalEvent sae = dataRequest.getNthEventForDay(day, n);
 			AcalEvent ae = AcalEvent.fromDatabase(this, sae.resourceId, new AcalDateTime().setEpoch(sae.start));
-			AcalEventAction action = new AcalEventAction(ae);
-			action.setAction(AcalEventAction.ACTION_DELETE_ALL_FUTURE);
-			this.dataRequest.eventChanged(action);
+			ae.setAction(AcalEvent.ACTION_DELETE_ALL_FUTURE);
+			this.dataRequest.eventChanged(ae);
 			dataRequest.deleteEvent(day, n);
 		} catch (RemoteException e) {
 			Log.e(TAG,"Error deleting event: "+e);

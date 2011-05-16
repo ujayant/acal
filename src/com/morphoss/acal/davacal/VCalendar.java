@@ -28,10 +28,8 @@ import android.util.Log;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
-import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
 import com.morphoss.acal.acaltime.AcalRepeatRuleParser;
-import com.morphoss.acal.davacal.AcalEventAction.EVENT_FIELD;
 
 public class VCalendar extends VComponent {
 	public static final String TAG = "aCal VCalendar";
@@ -64,7 +62,7 @@ public class VCalendar extends VComponent {
 	}
 
 
-	public static VCalendar getGenericCalendar( AcalCollection collection, AcalEventAction newEventData) {
+	public static VCalendar getGenericCalendar( AcalCollection collection, AcalEvent newEventData) {
 		VCalendar vcal = new VCalendar(collection);
 		VEvent event = new VEvent(vcal);
 		// TODO: addChild should really probably setParent() on the child as it does it
@@ -83,7 +81,7 @@ public class VCalendar extends VComponent {
 		return new VCalendar(this.content, this.resourceId, this.earliestStart, this.latestEnd, this.collectionData, this.parent);
 	}
 
-	public String applyAction(AcalEventAction action) {
+	public String applyAction(AcalEvent action) {
 		try {
 			this.setPersistentOn();
 			this.populateChildren();
@@ -106,23 +104,23 @@ public class VCalendar extends VComponent {
 			mast.addProperty(AcalProperty.fromString(lastModified.toPropertyString("LAST-MODIFIED")));
 
 			
-			if ( action.getAction() == AcalEventAction.ACTION_DELETE_SINGLE) {
+			if ( action.getAction() == AcalEvent.ACTION_DELETE_SINGLE) {
 				AcalProperty exDate = mast.getProperty("EXDATE");
 				if ( exDate == null || exDate.getValue().equals("") ) 
-					exDate = AcalProperty.fromString(action.event.dtstart.toPropertyString("EXDATE"));
+					exDate = AcalProperty.fromString(action.getStart().toPropertyString("EXDATE"));
 				else {
 					mast.removeProperties( new String[] {"EXDATE"} );
-					exDate = AcalProperty.fromString(exDate.toRfcString() + "," + action.event.dtstart.fmtIcal() );
+					exDate = AcalProperty.fromString(exDate.toRfcString() + "," + action.getStart().fmtIcal() );
 				}
 				mast.addProperty(exDate);
 			}
-			else if (action.getAction() == AcalEventAction.ACTION_DELETE_ALL_FUTURE) {
-				AcalRepeatRuleParser parsedRule = AcalRepeatRuleParser.parseRepeatRule((String) action.getField(EVENT_FIELD.repeatRule));
-				AcalDateTime until = action.event.dtstart.clone();
+			else if (action.getAction() == AcalEvent.ACTION_DELETE_ALL_FUTURE) {
+				AcalRepeatRuleParser parsedRule = AcalRepeatRuleParser.parseRepeatRule(action.getRepetition());
+				AcalDateTime until = action.getStart().clone();
 				until.addSeconds(-1);
 				parsedRule.setUntil(until);
 				String rrule = parsedRule.toString();
-				action.setField(EVENT_FIELD.repeatRule, rrule);
+				action.setRepetition(rrule);
 				mast.removeProperties( new String[] {"RRULE"} );
 				mast.addProperty(new AcalProperty("RRULE",rrule));
 			}
@@ -143,44 +141,42 @@ public class VCalendar extends VComponent {
 
 	}
 
-	private void applyModify(Masterable mast, AcalEventAction action) {
+	private void applyModify(Masterable mast, AcalEvent action) {
 		//there are 3 possible modify actions:
-		if (action.getAction() == AcalEventAction.ACTION_MODIFY_SINGLE) {
+		if (action.getAction() == AcalEvent.ACTION_MODIFY_SINGLE) {
 			// Only modify the single instance
 		}
-		else if (action.getAction() == AcalEventAction.ACTION_MODIFY_ALL_FUTURE) {
+		else if (action.getAction() == AcalEvent.ACTION_MODIFY_ALL_FUTURE) {
 			// Modify this instance, and all future instances.
 
 		}
-		else if (action.getAction() == AcalEventAction.ACTION_MODIFY_ALL) {
+		else if (action.getAction() == AcalEvent.ACTION_MODIFY_ALL) {
 			// Modify all instances
 
 			// First, strip any existing properties which we modify
 			mast.removeProperties( new String[] {"DTSTART", "DTEND", "DURATION",
 					"SUMMARY", "LOCATION", "DESCRIPTION", "RRULE" } );
 
-			AcalDateTime dtStart = (AcalDateTime) action.getField(EVENT_FIELD.startDate);
+			AcalDateTime dtStart = action.getStart();
 			mast.addProperty( AcalProperty.fromString( dtStart.toPropertyString("DTSTART")));
 
-			mast.addProperty(new AcalProperty("DURATION",
-					((AcalDuration) action.getField(EVENT_FIELD.duration)).toString() ) );
+			mast.addProperty(new AcalProperty("DURATION", action.getDuration().toString() ) );
 
-			mast.addProperty(new AcalProperty("SUMMARY",
-					(String) action.getField(EVENT_FIELD.summary)));
+			mast.addProperty(new AcalProperty("SUMMARY", action.getSummary()));
 
-			String location = (String) action.getField(EVENT_FIELD.location);
+			String location = action.getLocation();
 			if ( !location.equals("") )
 				mast.addProperty(new AcalProperty("LOCATION",location));
 
-			String description = (String) action.getField(EVENT_FIELD.description);
+			String description = action.getDescription();
 			if ( !description.equals("") )
 				mast.addProperty(new AcalProperty("DESCRIPTION",description));
 
-			String rrule = (String) action.getField(EVENT_FIELD.repeatRule);
+			String rrule = action.getRepetition();
 			if ( rrule != null && !rrule.equals(""))
 				mast.addProperty(new AcalProperty("RRULE",rrule));
 
-			mast.updateAlarmComponents( (List<?>) action.getField(EVENT_FIELD.alarmList) );
+			mast.updateAlarmComponents( action.getAlarms() );
 		}
 	}
 

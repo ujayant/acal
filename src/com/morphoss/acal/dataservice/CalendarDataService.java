@@ -64,13 +64,11 @@ import com.morphoss.acal.activity.AlarmActivity;
 import com.morphoss.acal.davacal.AcalAlarm;
 import com.morphoss.acal.davacal.AcalCollection;
 import com.morphoss.acal.davacal.AcalEvent;
-import com.morphoss.acal.davacal.AcalEventAction;
 import com.morphoss.acal.davacal.SimpleAcalEvent;
 import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VComponent;
 import com.morphoss.acal.davacal.VComponentCreationException;
 import com.morphoss.acal.davacal.YouMustSurroundThisMethodInTryCatchOrIllEatYouException;
-import com.morphoss.acal.davacal.AcalEventAction.EVENT_FIELD;
 import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.providers.DavResources;
 import com.morphoss.acal.providers.PendingChanges;
@@ -1045,14 +1043,14 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 
 
 		@Override
-		public void eventChanged(AcalEventAction action) throws RemoteException {
-			int collectionId = (Integer) action.getField(EVENT_FIELD.collectionId);
+		public void eventChanged(AcalEvent action) throws RemoteException {
+			int collectionId = action.getCollectionId();
 			AcalCollection collection = collections.get(collectionId);
 
 			switch (action.getAction()) {
-				case AcalEventAction.ACTION_CREATE: {
+				case AcalEvent.ACTION_CREATE: {
 					VCalendar newCal = VCalendar.getGenericCalendar(collection, action);
-					action.setAction(AcalEventAction.ACTION_MODIFY_ALL);
+					action.setAction(AcalEvent.ACTION_MODIFY_ALL);
 					newCal.applyAction(action);
 					ContentValues cv = new ContentValues();
 					cv.put(PendingChanges.COLLECTION_ID, collectionId);
@@ -1064,12 +1062,12 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 					newResources.put(r, newCal);
 					break;
 				}
-				case AcalEventAction.ACTION_MODIFY_ALL:
-				case AcalEventAction.ACTION_MODIFY_SINGLE:
-				case AcalEventAction.ACTION_MODIFY_ALL_FUTURE:
-				case AcalEventAction.ACTION_DELETE_SINGLE:
-				case AcalEventAction.ACTION_DELETE_ALL_FUTURE: {
-					int rid = (Integer) action.getField(EVENT_FIELD.resourceId);
+				case AcalEvent.ACTION_MODIFY_ALL:
+				case AcalEvent.ACTION_MODIFY_SINGLE:
+				case AcalEvent.ACTION_MODIFY_ALL_FUTURE:
+				case AcalEvent.ACTION_DELETE_SINGLE:
+				case AcalEvent.ACTION_DELETE_ALL_FUTURE: {
+					int rid = action.getResourceId();
 					VCalendar original = calendars.get(rid);
 					String newBlob = original.applyAction(action);
 					if (newBlob == null || newBlob.equalsIgnoreCase(""))
@@ -1083,8 +1081,8 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 					getContentResolver().insert(PendingChanges.CONTENT_URI, cv);
 					break;
 				}
-				case AcalEventAction.ACTION_DELETE_ALL: {
-					int rid = (Integer) action.getField(EVENT_FIELD.resourceId);
+				case AcalEvent.ACTION_DELETE_ALL: {
+					int rid = action.getResourceId();
 					ContentValues cv = new ContentValues();
 					cv.put(PendingChanges.COLLECTION_ID, collectionId);
 					cv.put(PendingChanges.RESOURCE_ID, rid);
