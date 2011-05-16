@@ -512,6 +512,31 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 
 
 	/**
+	 * <p>Set the year, month and day of this AcalDateTime.</p>
+	 * <p>If the day is invalid for the month in question it will be coerced to the maximum
+	 * for that actual month (i.e. 31st of Feb will be coerced to 29th or 28th depending on the
+	 * year, 31st April will become 30th, etc.)</p>
+	 * <p>If you want the adjustment to fail you should call setMonthDay() instead, which also
+	 * handles setting negative days as offsets from the end of the month, and this method does not.</p>
+	 * @param newYear The year to set
+	 * @param newMonth The month to set, from 1 to 12
+	 * @param newDay The day to try and set, from 1 to 31
+	 * @return this, for chaining.
+	 */
+	public synchronized AcalDateTime setYearMonthDay(int newYear, int newMonth, int newDay) {
+		if ( newYear < MIN_YEAR_VALUE || newYear > MAX_YEAR_VALUE ) throw new IllegalArgumentException("Year must be between "+MIN_YEAR_VALUE +" and "+ MAX_YEAR_VALUE);
+		if ( newMonth < 1 || newMonth > 12 ) throw new IllegalArgumentException("Month must be from 1 to 12");
+		if ( newDay < 1 || newDay > 31 ) throw new IllegalArgumentException("Day must be from 1 to 31");
+		if ( newDay > monthDays(year,month) ) newDay = monthDays(year,month);
+		if ( year == YEAR_NOT_SET ) calculateDateTime();
+		month = (short) newMonth;
+		day = (short) newDay;
+		epoch = EPOCH_NOT_SET;
+		return this;
+	}
+
+	
+	/**
 	 * <p>
 	 * Returns the day of year.  January the first is 1
 	 * </p>
@@ -1644,5 +1669,6 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 		dest.writeByte((byte) (tzName == null ? '0' : '1'));
 		if ( tzName != null ) dest.writeString(tzName);
 	}
+
 
 }
