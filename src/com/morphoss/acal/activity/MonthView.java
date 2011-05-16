@@ -1132,6 +1132,7 @@ public class MonthView extends Activity implements OnGestureListener,
 			int val = msg.arg2;
 			switch (type) {
 			case CalendarDataService.UPDATE:
+				if ( Constants.LOG_DEBUG ) Log.i(TAG,"Received update notification from CalendarDataService.");
 				changeSelectedDate(selectedDate);
 				break;
 			}

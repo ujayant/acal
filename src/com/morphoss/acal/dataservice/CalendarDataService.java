@@ -566,6 +566,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 
 	private void pendingResourceDeleted(int rowid) {
 		if (this.newResources.containsKey(rowid)) newResources.remove(rowid);
+		if ( Constants.LOG_DEBUG ) Log.i(TAG,"Pending resource removed.");
 		openUnlessInTx();
 	}
 
@@ -628,9 +629,10 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 	private void collectionUpdated( ContentValues collectionData ) {
 		int collectionId = collectionData.getAsInteger(DavCollections._ID);
 
-		if (Constants.LOG_DEBUG)Log.d(TAG, "Collection "+collectionId
-				+" '"+collectionData.getAsString(DavCollections.DISPLAYNAME)
-				+"' was modified.");
+		if (Constants.LOG_DEBUG)
+			Log.d(TAG, "Collection "+collectionId
+					+" '"+collectionData.getAsString(DavCollections.DISPLAYNAME)
+					+"' was modified.");
 
 		AcalCollection c = collections.get(collectionId);
 		//
