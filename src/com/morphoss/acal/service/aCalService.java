@@ -42,6 +42,8 @@ public class aCalService extends Service {
 	public static String aCalVersion;
 	public static final DatabaseEventDispatcher databaseDispatcher = new DatabaseEventDispatcher();
 	
+	private final static long serviceStartedAt = System.currentTimeMillis();
+	
 	public void onCreate() {
 		super.onCreate();
 		Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
@@ -49,6 +51,7 @@ public class aCalService extends Service {
 		startService();
 	}
 
+	
 	private synchronized void startService() {
 
 		worker = WorkerClass.getInstance(this);
@@ -77,6 +80,45 @@ public class aCalService extends Service {
 		SynchronisationJobs.startCollectionSync(worker, this);
 
 	}
+
+	
+	// This is the old onStart method that will be called on the pre-2.0
+	// platform.  On 2.0 or later we override onStartCommand() so this
+	// method will not be called.
+	@Override
+	public void onStart(Intent intent, int startId) {
+		handleCommand(intent);
+	}
+
+	@Override
+	public int onStartCommand(Intent intent, int flags, int startId) {
+		handleCommand(intent);
+		// We want this service to continue running until it is explicitly
+		// stopped, so return sticky.
+		return Service.START_STICKY;
+	}
+
+	// The actual start command, regardless of whether we're running under
+	// 1.x or 2.x
+	private void handleCommand( Intent inRequest ) {
+		if ( inRequest == null ) return;
+		if ( inRequest.hasExtra("UISTARTED") ) {
+			// The UI is currently starting, so we might schedule some stuff
+			// to happen soon.
+			long uiStarted = inRequest.getLongExtra("UISTARTED", System.currentTimeMillis());
+			if ( serviceStartedAt > uiStarted ) return; // Not if everything just started!
+
+			// Tell the dataService to rebuild it's caches, just to be sure.
+			if ( Constants.LOG_DEBUG )
+				Log.i(TAG,"UI Started, requesting internal cache revalidation.");
+
+			ServiceJob job = new SynchronisationJobs(SynchronisationJobs.CACHE_RESYNC);
+			job.TIME_TO_EXECUTE = 15000L;
+			worker.addJobAndWake(job);
+			
+		}
+	}
+
 	
 
 	@Override

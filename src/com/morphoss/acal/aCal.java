@@ -36,8 +36,11 @@ public class aCal extends Activity {
 
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
 		// make sure aCalService is running
-		this.startService(new Intent(this, aCalService.class));
+		Intent serviceIntent = new Intent(this, aCalService.class);
+		serviceIntent.putExtra("UISTARTED", System.currentTimeMillis());
+		this.startService(serviceIntent);
 
 		// Read our preference for which view should be the default
 		prefs = PreferenceManager.getDefaultSharedPreferences(this);
