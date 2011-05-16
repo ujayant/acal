@@ -51,8 +51,9 @@ public class ResourceModification {
 	public void commit( SQLiteDatabase db ) {
 		Integer resourceId = resourceValues.getAsInteger(DavResources._ID);
 
-		Log.i(TAG, "Writing Resource with " + modificationAction + " on resource ID "
-					+ (resourceId == null ? "new" : Integer.toString(resourceId)));
+		if ( Constants.LOG_DEBUG )
+			Log.d(TAG, "Writing Resource with " + modificationAction + " on resource ID "
+						+ (resourceId == null ? "new" : Integer.toString(resourceId)));
 
 		switch (modificationAction) {
 			case UPDATE:
@@ -82,6 +83,10 @@ public class ResourceModification {
 	}
 
 	public void notifyChange() {
+		if ( dbChangeNotification == null ) {
+			if ( Constants.LOG_VERBOSE ) Log.v(TAG,"No change to notify to databaseDispatcher");
+			return;
+		}
 		aCalService.databaseDispatcher.dispatchEvent(dbChangeNotification);
 	}
 }
