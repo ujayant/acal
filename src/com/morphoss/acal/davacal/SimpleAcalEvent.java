@@ -143,12 +143,12 @@ public class SimpleAcalEvent implements Parcelable, Comparable<SimpleAcalEvent> 
 		boolean allDayEvent = start.isDate()
 						||	(start.isFloating() && event.getDuration().getTimeMillis() == 0
 																	&& event.getDuration().getDays() > 0)
-						|| (event.getEnd().after(event.dtstart.clone().addDays(2).applyLocalTimeZone().setDaySecond(0)) );
+						|| (event.getEnd().after(event.getStart().clone().addDays(2).applyLocalTimeZone().setDaySecond(0)) );
 
 		start.applyLocalTimeZone();
 		long finish = event.getEnd().applyLocalTimeZone().getEpoch();
-		return new SimpleAcalEvent(start.getEpoch(), finish, event.resourceId, event.summary,
-					event.location, event.colour, 
+		return new SimpleAcalEvent(start.getEpoch(), finish, event.getResourceId(), event.getSummary(),
+					event.getLocation(), event.getColour(), 
 					event.hasAlarms(), event.getRepetition().length() > 0, allDayEvent, event.isPending,
 					event.getAlarmEnabled());
 	}

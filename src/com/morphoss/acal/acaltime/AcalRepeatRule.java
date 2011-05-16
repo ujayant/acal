@@ -502,7 +502,7 @@ public class AcalRepeatRule {
 				Log.d(TAG, "Found "+found+" instances in "+ range.toString());
 				for( int i=0; i<found; i++ ) {
 					AcalEvent thisOne = eventList.get(i);
-					Log.v(TAG, "["+i+"] Start: " + thisOne.dtstart.fmtIcal() + ", End: " + thisOne.getEnd().fmtIcal() );
+					Log.v(TAG, "["+i+"] Start: " + thisOne.getStart().fmtIcal() + ", End: " + thisOne.getEnd().fmtIcal() );
 				}
 			}
 		}

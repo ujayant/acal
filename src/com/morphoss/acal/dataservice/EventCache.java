@@ -102,7 +102,7 @@ public class EventCache {
 			List<AcalEvent> sourceEvents = dataRequest.getEventsForDateRange(rangeToFetch);
 			ArrayList<SimpleAcalEvent> result = new ArrayList<SimpleAcalEvent>(sourceEvents.size());
 			for (AcalEvent se : sourceEvents) {
-				se.dtstart.applyLocalTimeZone();
+				se.getStart().applyLocalTimeZone();
 				result.add( SimpleAcalEvent.getSimpleEvent(se));
 			}
 			
