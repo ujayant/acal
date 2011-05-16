@@ -123,6 +123,12 @@ public class SyncChangesToServer extends ServiceJob {
 					for( Integer collectionId : collectionsToSync ) {
 						context.addWorkerJob(new SyncCollectionContents(collectionId, true) );
 					}
+					
+					// Fallback hack to really make sure the updated event actually gets displayed.
+					// Push this out 30 seconds in the future to nag us to fix it properly!
+					ServiceJob job = new SynchronisationJobs(SynchronisationJobs.CACHE_RESYNC);
+					job.TIME_TO_EXECUTE = 30000L;
+					context.addWorkerJob(job);
 				}
 			}
 			catch( Exception e ) {
