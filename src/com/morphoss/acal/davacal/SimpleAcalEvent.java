@@ -29,6 +29,7 @@ import android.util.Log;
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDuration;
+import com.morphoss.acal.activity.EventView;
 
 
 /**
@@ -371,5 +372,9 @@ public class SimpleAcalEvent implements Parcelable, Comparable<SimpleAcalEvent> 
 			return new SimpleAcalEvent[size];
 		}
 	};
+
+	public AcalEvent getAcalEvent(Context c) {
+		return AcalEvent.fromDatabase(c, resourceId, new AcalDateTime().applyLocalTimeZone().setEpoch(start) );
+	}
 	
 }

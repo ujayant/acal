@@ -86,7 +86,7 @@ public class EventView extends Activity implements OnGestureListener, OnTouchLis
 		Bundle b = this.getIntent().getExtras();
 		try {
 			this.sae = (SimpleAcalEvent) b.getParcelable("SimpleAcalEvent");
-			this.event = AcalEvent.fromDatabase(this, sae.resourceId, new AcalDateTime().applyLocalTimeZone());
+			this.event = sae.getAcalEvent(this);
 			this.populateLayout();
 		}
 		catch (Exception e) {
@@ -131,11 +131,10 @@ public class EventView extends Activity implements OnGestureListener, OnTouchLis
 		name.setText(title);
 		name.setTextColor(colour);
 		
-		AcalDateTime viewDate = new AcalDateTime();
-		viewDate.applyLocalTimeZone();
-		viewDate.setDaySecond(0);
+		AcalDateTime viewDate = new AcalDateTime().applyLocalTimeZone().setDaySecond(0);
 		TextView time = (TextView) this.findViewById(R.id.EventTimeContent);
-		time.setText(event.getTimeText(viewDate, AcalDateTime.addDays(viewDate, 1),prefs.getBoolean(getString(R.string.prefTwelveTwentyfour), false)));
+		time.setText(event.getTimeText(viewDate, viewDate.clone().addDays(1),
+					prefs.getBoolean(getString(R.string.prefTwelveTwentyfour), false)));
 		time.setTextColor(colour);
 
 		TextView titlebar = (TextView)this.findViewById(R.id.EventViewTitle);
@@ -271,7 +270,7 @@ public class EventView extends Activity implements OnGestureListener, OnTouchLis
 	}
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
     	if (requestCode == EDIT_EVENT && resultCode == RESULT_OK) {
-			this.event = AcalEvent.fromDatabase(this, sae.resourceId, new AcalDateTime().applyLocalTimeZone());
+			this.event = sae.getAcalEvent(this);
 			populateLayout();
     	}
     	else if (requestCode == EDIT_ADD && resultCode == RESULT_OK) {

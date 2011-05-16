@@ -181,7 +181,7 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 			SimpleAcalEvent sae = ((SimpleAcalEvent) b.getParcelable("SimpleAcalEvent"));
 			operation = sae.operation;
 			this.sae = (SimpleAcalEvent) b.getParcelable("SimpleAcalEvent");
-			this.event = AcalEvent.fromDatabase(this, sae.resourceId, new AcalDateTime().applyLocalTimeZone());
+			this.event = sae.getAcalEvent(this);
 		}
 
 		//Get collection data
