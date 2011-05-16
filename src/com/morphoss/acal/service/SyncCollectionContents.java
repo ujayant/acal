@@ -287,16 +287,21 @@ public class SyncCollectionContents extends ServiceJob {
 						|| aNode.get(0).getText().equalsIgnoreCase("HTTP/1.1 201 Created")
 						|| aNode.get(0).getText().equalsIgnoreCase("HTTP/1.1 200 OK") ) {
 
-				Log.i(TAG,"Updating node "+name );
+				Log.i(TAG,"Updating node "+name+" with "+action.toString() );
 				// We are dealing with an update or insert
 				if ( !parseResponseNode(response, cv) ) continue;
 				if ( cv.getAsBoolean(DavResources.NEEDS_SYNC) ) needSyncAfterwards = true; 
 			}
 			else if ( action == WriteActions.INSERT ) {
+				// It looked like an INSERT because it's not in our DB, but in fact
+				// the status message was not 200/201 so it's a DELETE that we're
+				// seeing reflected back at us.
 				Log.i(TAG,"Ignoring delete sync on node '"+name+"' which is already deleted from our DB." );
 			}
 			else {
-				// We should be dealing with a DELETE, but maybe we should check...
+				// This really *is* a DELETE, since the status could only
+				// have said so.  Or we're getting invalid status messages
+				// and their events all deserve to die anyway!
 				Log.i(TAG,"Deleting node '"+name+"'with status: "+aNode.get(0).getText() );
 				action = WriteActions.DELETE;
 			}
@@ -713,7 +718,8 @@ public class SyncCollectionContents extends ServiceJob {
 		// propstats.size()+"propstat nodes retrieved in  "+(System.currentTimeMillis()-props)+"ms");
 
 		for (DavNode propstat : propstats) {
-			if ( !propstat.getFirstNodeText("status").equalsIgnoreCase("HTTP/1.1 200 OK") ) {
+			String statusText = propstat.getFirstNodeText("status"); 
+			if ( !statusText.equalsIgnoreCase("HTTP/1.1 200 OK") || !statusText.equalsIgnoreCase("HTTP/1.1 201 Created")) {
 				responseNode.removeSubTree(propstat);
 				continue;
 			}
