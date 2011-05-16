@@ -85,7 +85,7 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 	public static final int CANCEL = 1;
 
 	private SimpleAcalEvent sae;
-	private AcalEvent eventAction;
+	private AcalEvent event;
 	private static final int FROM_DATE_DIALOG = 0;
 	private static final int FROM_TIME_DIALOG = 1;
 	private static final int UNTIL_DATE_DIALOG = 2;
@@ -167,7 +167,7 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 
 		Bundle b = this.getIntent().getExtras();
 		getEventAction(b);
-		if ( this.eventAction == null ) {
+		if ( this.event == null ) {
 			Log.d(TAG,"Unable to create AcalEvent object");
 			return;
 		}
@@ -181,7 +181,7 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 			SimpleAcalEvent sae = ((SimpleAcalEvent) b.getParcelable("SimpleAcalEvent"));
 			operation = sae.operation;
 			this.sae = (SimpleAcalEvent) b.getParcelable("SimpleAcalEvent");
-			this.eventAction = AcalEvent.fromDatabase(this, sae.resourceId, new AcalDateTime().applyLocalTimeZone());
+			this.event = AcalEvent.fromDatabase(this, sae.resourceId, new AcalDateTime().applyLocalTimeZone());
 		}
 
 		//Get collection data
@@ -197,19 +197,19 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		
 		if ( operation == SimpleAcalEvent.EVENT_OPERATION_EDIT ) {
 			try {
-				collectionId = (Integer) this.eventAction.getCollectionId();
-				this.eventAction.setAction(AcalEvent.ACTION_MODIFY_ALL);
-				if ( eventAction.isModifyAction() ) {
-					String rr = (String)  this.eventAction.getRepetition();
+				collectionId = (Integer) this.event.getCollectionId();
+				this.event.setAction(AcalEvent.ACTION_MODIFY_ALL);
+				if ( event.isModifyAction() ) {
+					String rr = (String)  this.event.getRepetition();
 					if (rr != null && !rr.equals("") && !rr.equals(AcalRepeatRule.SINGLE_INSTANCE)) {
 						this.originalHasOccurrence = true;
 						this.originalOccurence = rr;
 					}
 					if (this.originalHasOccurrence) {
-						this.eventAction.setAction(AcalEvent.ACTION_MODIFY_SINGLE);
+						this.event.setAction(AcalEvent.ACTION_MODIFY_SINGLE);
 					}
 					else {
-						this.eventAction.setAction(AcalEvent.ACTION_MODIFY_ALL);
+						this.event.setAction(AcalEvent.ACTION_MODIFY_ALL);
 					}
 				}
 			}
@@ -220,15 +220,15 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		else if ( operation == SimpleAcalEvent.EVENT_OPERATION_COPY ) {
 			// Duplicate the event into a new one.
 			try {
-				collectionId = eventAction.getCollectionId();
+				collectionId = event.getCollectionId();
 			}
 			catch (Exception e) {
 				if (Constants.LOG_DEBUG)Log.d(TAG, "Error getting data from caller: "+e.getMessage());
 			}
-			this.eventAction.setAction(AcalEvent.ACTION_CREATE);
+			this.event.setAction(AcalEvent.ACTION_CREATE);
 		}
 
-		if ( this.eventAction == null ) {
+		if ( this.event == null ) {
 			AcalDateTime start; 
 			
 			try {
@@ -284,8 +284,8 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 			alarmList.add(defaultAlarm);
 			defaults.put(EVENT_FIELD.alarmList, alarmList );
 
-			this.eventAction = new AcalEvent(defaults);
-			this.eventAction.setAction(AcalEvent.ACTION_CREATE);
+			this.event = new AcalEvent(defaults);
+			this.event.setAction(AcalEvent.ACTION_CREATE);
 
 		}
 		this.collectionsArray = new String[activeCollections.length];
@@ -295,7 +295,7 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 			collectionsArray[count++] = cv.getAsString(DavCollections.DISPLAYNAME);
 		}
 		
-		return eventAction;
+		return event;
 	}
 
 	
@@ -305,10 +305,10 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 				this.currentCollection = cv; break;
 			}
 		}
-		this.eventAction.setField(EVENT_FIELD.collectionId, this.currentCollection.getAsInteger(DavCollections._ID));
+		this.event.setField(EVENT_FIELD.collectionId, this.currentCollection.getAsInteger(DavCollections._ID));
 		this.collection.setText(this.currentCollection.getAsString(DavCollections.DISPLAYNAME));
 		sidebar.setBackgroundColor(Color.parseColor(this.currentCollection.getAsString(DavCollections.COLOUR)));
-		this.eventAction.setField(EVENT_FIELD.colour, Color.parseColor(currentCollection.getAsString(DavCollections.COLOUR)));
+		this.event.setField(EVENT_FIELD.colour, Color.parseColor(currentCollection.getAsString(DavCollections.COLOUR)));
 		this.updateLayout();
 	}
 
@@ -320,7 +320,7 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 
 		//Title
 		this.eventName = (TextView) this.findViewById(R.id.EventName);
-		if ( eventAction == null || eventAction.getAction() == AcalEvent.ACTION_CREATE ) {
+		if ( event == null || event.getAction() == AcalEvent.ACTION_CREATE ) {
 			eventName.setSelectAllOnFocus(true);
 		}
 
@@ -371,18 +371,18 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		setListen(alarmsView,ADD_ALARM_DIALOG);
 		setListen(repeatsView,SET_REPEAT_RULE_DIALOG);
 		allDayEvent.setOnCheckedChangeListener(this);
-		if ( this.eventAction.getDuration().getDurationMillis() == 60L*60L*24L*1000L ){
+		if ( this.event.getDuration().getDurationMillis() == 60L*60L*24L*1000L ){
 			allDayEvent.setChecked(true);
 		}
 
 		
-		String title = eventAction.getSummary();
+		String title = event.getSummary();
 		eventName.setText(title);
 
-		String location = eventAction.getLocation();
+		String location = event.getLocation();
 		locationView.setText(location);
 
-		String description = eventAction.getDescription();
+		String description = event.getDescription();
 		notesView.setText(description);
 		
 		updateLayout();
@@ -390,17 +390,17 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 
 	
 	private void updateLayout() {
-		AcalDateTime start = eventAction.getStart();
-		AcalDateTime end = AcalDateTime.addDuration(start, eventAction.getDuration());
+		AcalDateTime start = event.getStart().applyLocalTimeZone();
+		AcalDateTime end = event.getEnd().applyLocalTimeZone();
 
-		Integer colour = eventAction.getColour();
+		Integer colour = event.getColour();
 		if ( colour == null ) colour = getResources().getColor(android.R.color.black);
 		sidebar.setBackgroundColor(colour);
 		eventName.setTextColor(colour);
 		
 		this.collection.setText(this.currentCollection.getAsString(DavCollections.DISPLAYNAME));
 		
-		this.applyButton.setText((eventAction.isModifyAction() ? getString(R.string.Apply) : getString(R.string.Add)));
+		this.applyButton.setText((event.isModifyAction() ? getString(R.string.Apply) : getString(R.string.Add)));
 		
 		boolean allDay = allDayEvent.isChecked();
 		
@@ -437,7 +437,7 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		
 		
 		//Display Alarms
-		alarmList = eventAction.getAlarms();
+		alarmList = event.getAlarms();
 		this.alarmsList.removeAllViews();
 		for (AcalAlarm alarm : alarmList) {
 			this.alarmsList.addView(this.getAlarmItem(alarm, alarmsList));
@@ -512,7 +512,7 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 				"FREQ=MONTHLY;COUNT=60;BYDAY="+weekNum+dowStr,
 				"FREQ=YEARLY"
 		};
-		String repeatRuleString = eventAction.getRepetition();
+		String repeatRuleString = event.getRepetition();
 		if (repeatRuleString == null) repeatRuleString = "";
 		AcalRepeatRule RRule = new AcalRepeatRule(start, repeatRuleString); 
 		String rr = RRule.repeatRule.toPrettyString(this);
@@ -535,38 +535,38 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 	public void applyChanges() {
 		//check if text fields changed
 		//summary
-		String oldSum = eventAction.getSummary();
+		String oldSum = event.getSummary();
 		String newSum = this.eventName.getText().toString() ;
-		String oldLoc = eventAction.getLocation();
+		String oldLoc = event.getLocation();
 		String newLoc = this.locationView.getText().toString();
-		String oldDesc = eventAction.getDescription();
+		String oldDesc = event.getDescription();
 		String newDesc = this.notesView.getText().toString() ;
 		
-		if (!oldSum.equals(newSum)) eventAction.setField(EVENT_FIELD.summary, newSum);
-		if (!oldLoc.equals(newLoc)) eventAction.setField(EVENT_FIELD.location, newLoc);
-		if (!oldDesc.equals(newDesc)) eventAction.setField(EVENT_FIELD.description, newDesc);
+		if (!oldSum.equals(newSum)) event.setField(EVENT_FIELD.summary, newSum);
+		if (!oldLoc.equals(newLoc)) event.setField(EVENT_FIELD.location, newLoc);
+		if (!oldDesc.equals(newDesc)) event.setField(EVENT_FIELD.description, newDesc);
 		
-		AcalDateTime start = eventAction.getStart();
+		AcalDateTime start = event.getStart();
 		//check if all day
 		if (allDayEvent.isChecked()) {
 			start.setDaySecond(0);
 			start.setAsDate(true);
-			eventAction.setField(EVENT_FIELD.startDate,start);
-			eventAction.setField(EVENT_FIELD.duration,  new AcalDuration("PT24H"));
+			event.setField(EVENT_FIELD.startDate,start);
+			event.setField(EVENT_FIELD.duration,  new AcalDuration("PT24H"));
 		}
 
-		AcalDuration duration = eventAction.getDuration();
+		AcalDuration duration = event.getDuration();
 		// Ensure end is not before start
 		if ( duration.getDays() < 0 || duration.getTimeMillis() < 0 ) {
-			start = eventAction.getStart();
+			start = event.getStart();
 			AcalDateTime end = AcalDateTime.addDuration(start, duration);
 			while( end.before(start) ) end.addDays(1);
 			duration = start.getDurationTo(end);
-			eventAction.setField(EVENT_FIELD.duration, duration);
+			event.setField(EVENT_FIELD.duration, duration);
 		}
 		
-		if (eventAction.getAction() == AcalEvent.ACTION_CREATE ||
-				eventAction.getAction() == AcalEvent.ACTION_MODIFY_ALL) {
+		if (event.getAction() == AcalEvent.ACTION_CREATE ||
+				event.getAction() == AcalEvent.ACTION_MODIFY_ALL) {
 			if ( !this.saveChanges() ){
 				Toast.makeText(this, "Save failed: retrying!", Toast.LENGTH_LONG).show();
 				this.saveChanges();
@@ -582,16 +582,16 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 	private boolean saveChanges() {
 		
 		try {
-			this.dataRequest.eventChanged(eventAction);
+			this.dataRequest.eventChanged(event);
 
-			Log.i(TAG,"Saving event with action " + eventAction.getAction() );
-			if (eventAction.getAction() == AcalEvent.ACTION_CREATE)
+			Log.i(TAG,"Saving event with action " + event.getAction() );
+			if (event.getAction() == AcalEvent.ACTION_CREATE)
 				Toast.makeText(this, getString(R.string.EventSaved), Toast.LENGTH_LONG).show();
-			else if (eventAction.getAction() == AcalEvent.ACTION_MODIFY_ALL)
+			else if (event.getAction() == AcalEvent.ACTION_MODIFY_ALL)
 				Toast.makeText(this, getString(R.string.ModifiedAllInstances), Toast.LENGTH_LONG).show();
-			else if (eventAction.getAction() == AcalEvent.ACTION_MODIFY_SINGLE)
+			else if (event.getAction() == AcalEvent.ACTION_MODIFY_SINGLE)
 				Toast.makeText(this, getString(R.string.ModifiedOneInstance), Toast.LENGTH_LONG).show();
-			else if (eventAction.getAction() == AcalEvent.ACTION_MODIFY_ALL_FUTURE)
+			else if (event.getAction() == AcalEvent.ACTION_MODIFY_ALL_FUTURE)
 				Toast.makeText(this, getString(R.string.ModifiedThisAndFuture), Toast.LENGTH_LONG).show();
 
 			Intent ret = new Intent();
@@ -674,8 +674,8 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 
 	//Dialogs
 	protected Dialog onCreateDialog(int id) {
-		AcalDateTime start = eventAction.getStart();
-		AcalDateTime end = eventAction.getEnd();
+		AcalDateTime start = event.getStart();
+		AcalDateTime end = event.getEnd();
 		switch (id) {
 		case FROM_DATE_DIALOG:
 			return new DatePickerDialog(this,fromDateListener,
@@ -717,14 +717,14 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 			    	alarmList.add(
 			    			new AcalAlarm(
 			    					true, 
-			    					eventAction.getDescription(), 
+			    					event.getDescription(), 
 			    					alarmValues[item], 
 			    					ActionType.AUDIO, 
-			    					eventAction.getStart(), 
-			    					AcalDateTime.addDuration( eventAction.getStart(), alarmValues[item] )
+			    					event.getStart(), 
+			    					AcalDateTime.addDuration( event.getStart(), alarmValues[item] )
 			    			)
 			    	);
-			    	eventAction.setField(EVENT_FIELD.alarmList, alarmList);
+			    	event.setField(EVENT_FIELD.alarmList, alarmList);
 			    	updateLayout();
 			    }
 			});
@@ -735,9 +735,9 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 			builder.setItems(eventChangeRanges, new DialogInterface.OnClickListener() {
 			    public void onClick(DialogInterface dialog, int item) {
 			    	switch (item) {
-			    		case 0: eventAction.setAction(AcalEvent.ACTION_MODIFY_SINGLE); saveChanges(); return;
-			    		case 1: eventAction.setAction(AcalEvent.ACTION_MODIFY_ALL); saveChanges(); return;
-			    		case 2: eventAction.setAction(AcalEvent.ACTION_MODIFY_ALL_FUTURE); saveChanges(); return;
+			    		case 0: event.setAction(AcalEvent.ACTION_MODIFY_SINGLE); saveChanges(); return;
+			    		case 1: event.setAction(AcalEvent.ACTION_MODIFY_ALL); saveChanges(); return;
+			    		case 2: event.setAction(AcalEvent.ACTION_MODIFY_ALL_FUTURE); saveChanges(); return;
 			    	}
 			    }
 			});
@@ -752,14 +752,14 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 			    		item--;
 			    		newRule = repeatRulesValues[item];
 			    	}
-			    	if ( eventAction.isModifyAction() ) {
+			    	if ( event.isModifyAction() ) {
 				    	if (EventEdit.this.originalHasOccurrence && !newRule.equals(EventEdit.this.originalOccurence)) {
-				    		eventAction.setAction(AcalEvent.ACTION_MODIFY_ALL);
+				    		event.setAction(AcalEvent.ACTION_MODIFY_ALL);
 				    	} else if (EventEdit.this.originalHasOccurrence) {
-				    		eventAction.setAction(AcalEvent.ACTION_MODIFY_SINGLE);
+				    		event.setAction(AcalEvent.ACTION_MODIFY_SINGLE);
 				    	}
 			    	}
-			    	eventAction.setField(EVENT_FIELD.repeatRule, newRule);
+			    	event.setField(EVENT_FIELD.repeatRule, newRule);
 			    	updateLayout();
 			    	
 			    }
@@ -775,9 +775,9 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		public void onDateSet(DatePicker view, int year, 
 				int monthOfYear, int dayOfMonth) {
 
-			AcalDateTime start = eventAction.getStart().clone().applyLocalTimeZone();
+			AcalDateTime start = event.getStart().clone().applyLocalTimeZone();
 			start.setYearMonthDay(year, monthOfYear + 1, dayOfMonth);
-			eventAction.setField(EVENT_FIELD.startDate, start);
+			event.setField(EVENT_FIELD.startDate, start);
 			updateLayout();
 		}
 	};
@@ -791,10 +791,10 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		public void onDateSet(DatePicker view, int year, 
 				int monthOfYear, int dayOfMonth) {
 
-			AcalDateTime start = eventAction.getStart().clone().applyLocalTimeZone();
-			AcalDateTime end = eventAction.getEnd().clone().applyLocalTimeZone();
+			AcalDateTime start = event.getStart().clone().applyLocalTimeZone();
+			AcalDateTime end = event.getEnd().clone().applyLocalTimeZone();
 			end.setYearMonthDay(year, monthOfYear + 1, dayOfMonth);
-			eventAction.setField(EVENT_FIELD.duration, start.getDurationTo(end));
+			event.setField(EVENT_FIELD.duration, start.getDurationTo(end));
 			updateLayout();
 		}
 	};
@@ -805,9 +805,9 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 
 		public void onTimeSet(TimePicker view, int hour, int minute) {
 
-			AcalDateTime start = eventAction.getStart().clone().applyLocalTimeZone();
+			AcalDateTime start = event.getStart().clone().applyLocalTimeZone();
 			start.setDaySecond(hour*3600 + minute*60);
-			eventAction.setField(EVENT_FIELD.startDate,start);
+			event.setField(EVENT_FIELD.startDate,start);
 
 			SimpleDateFormat formatter = new SimpleDateFormat("hh:mma");
 			fromTime.setText(formatter.format(start.toJavaDate()));
@@ -821,11 +821,11 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 
 		public void onTimeSet(TimePicker view, int hour, int minute) {
 
-			AcalDateTime start = eventAction.getStart().clone().applyLocalTimeZone();
-			AcalDateTime end = eventAction.getEnd().clone().applyLocalTimeZone();
+			AcalDateTime start = event.getStart().clone().applyLocalTimeZone();
+			AcalDateTime end = event.getEnd().clone().applyLocalTimeZone();
 			end.setDaySecond(hour*3600 + minute*60);
 			AcalDuration duration = start.getDurationTo(end);
-			eventAction.setField(EVENT_FIELD.duration, duration);
+			event.setField(EVENT_FIELD.duration, duration);
 			SimpleDateFormat formatter = new SimpleDateFormat("hh:mma");
 			untilTime.setText(formatter.format(start.toJavaDate()));
 			updateLayout();
