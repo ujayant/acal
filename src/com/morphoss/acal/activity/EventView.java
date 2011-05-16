@@ -239,6 +239,7 @@ public class EventView extends Activity implements OnGestureListener, OnTouchLis
 			case EDIT: {
 				//start event activity
 				Bundle bundle = new Bundle();
+				sae.operation = SimpleAcalEvent.EVENT_OPERATION_EDIT;
 				bundle.putParcelable("SimpleAcalEvent", sae);
 				Intent eventEditIntent = new Intent(this, EventEdit.class);
 				eventEditIntent.putExtras(bundle);
