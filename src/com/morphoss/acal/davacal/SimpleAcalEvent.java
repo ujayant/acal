@@ -310,6 +310,18 @@ public class SimpleAcalEvent implements Parcelable, Comparable<SimpleAcalEvent> 
 		return timeText;
 	}
 
+	/**
+	 * They're only equal if they're the same object, or if their resourceId is > 0 and equal
+	 * @param another
+	 * @return Whether these two events are equal
+	 */
+	@Override
+	public boolean equals( Object another ) {
+		return (this == another
+					|| (another instanceof SimpleAcalEvent && this.resourceId > 0
+								&& this.resourceId == ((SimpleAcalEvent) another).resourceId ) );
+	}
+
 	
 	/**
 	 * Compare this SimpleAcalEvent to another.  If this is earlier than the other return a negative
@@ -317,8 +329,9 @@ public class SimpleAcalEvent implements Parcelable, Comparable<SimpleAcalEvent> 
 	 * @param another
 	 * @return -1, 1 or 0
 	 */
+	@Override
 	public int compareTo( SimpleAcalEvent another ) {
-		if ( this == another ) return 0;
+		if ( equals(another) ) return 0;
 		if ( this.start < another.start ) return -1;
 		if ( this.start > another.start ) return 1;
 		return ( this.end < another.end ? -1 : (this.end > another.end ? 1 : 0));
