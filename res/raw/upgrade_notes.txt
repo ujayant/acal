@@ -1,0 +1,8 @@
+v25=1.2
+New "Week View"
+Rewritten internal caching layer
+Improved support for Zimbra
+Improved handling of very large calendars
+Various improvements to Month View
+Many, many bug fixes
+List of changes displayed on upgrade

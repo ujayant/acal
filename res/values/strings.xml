@@ -270,5 +270,8 @@
 <string name="deleteSomeEvent">Delete: %s</string>
 
 <string name="noCollectionsFound">No Calendars Found</string>
+<string name="aCalVersionChanges">Welcome to a new version of aCal!</string>
+<string name="newWithVersion">Changes in version %s</string>
+<string name="newVersionSeen">Thanks, now show me!</string>
 
 </resources>

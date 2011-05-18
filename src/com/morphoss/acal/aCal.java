@@ -21,10 +21,12 @@ package com.morphoss.acal;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 
 import com.morphoss.acal.activity.MonthView;
+import com.morphoss.acal.activity.ShowUpgradeChanges;
 import com.morphoss.acal.service.aCalService;
 import com.morphoss.acal.weekview.WeekViewActivity;
 
@@ -47,18 +49,38 @@ public class aCal extends Activity {
 
 		// Set all default preferences to reasonable values
 		PreferenceManager.setDefaultValues(this, R.xml.main_preferences, false);
-		
+
+		int lastRevision = prefs.getInt(Constants.lastRevisionPreference, 0);
+
+		try {
+			int thisRevision = getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
+			if ( lastRevision < thisRevision ) {
+				startActivity(new Intent(this, ShowUpgradeChanges.class));
+			}
+			else { 
+				startPreferredView(prefs,this);
+			}
+		}
+		catch (NameNotFoundException e) { }
+		this.finish();
+	}
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+	}
+
+	
+	public static void startPreferredView( SharedPreferences sPrefs, Activity c ) {
 		Bundle bundle = new Bundle();
 		Intent startIntent = null;
-		if ( prefs.getBoolean(getString(R.string.prefDefaultView), false) ) {
-			startIntent = new Intent(this, WeekViewActivity.class);
+		if ( sPrefs.getBoolean(c.getString(R.string.prefDefaultView), false) ) {
+			startIntent = new Intent(c, WeekViewActivity.class);
 		}
 		else {
-			startIntent = new Intent(this, MonthView.class);
+			startIntent = new Intent(c, MonthView.class);
 		}
 		startIntent.putExtras(bundle);
-		this.startActivity(startIntent);
-
-		this.finish();
+		c.startActivity(startIntent);
 	}
 }

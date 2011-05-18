@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="com.morphoss.acal"
-      android:versionCode="24" android:versionName="1.19.1">
+      android:versionCode="25" android:versionName="1.19.2">
     <uses-sdk android:minSdkVersion="4" android:targetSdkVersion="7"/>
       
     <application 
@@ -92,6 +92,12 @@
         <activity android:launchMode="standard" android:name=".activity.EventEdit">
             <intent-filter>
 	             <action android:name="com.morphoss.acal.activity.EventEdit" />
+    	         <category android:name="android.intent.category.DEFAULT" />
+			</intent-filter>
+        </activity>
+        <activity android:launchMode="standard" android:name=".activity.ShowUpgradeChanges">
+            <intent-filter>
+	             <action android:name="com.morphoss.acal.activity.ShowUpgradeChanges" />
     	         <category android:name="android.intent.category.DEFAULT" />
 			</intent-filter>
         </activity>

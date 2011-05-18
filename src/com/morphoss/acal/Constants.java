@@ -72,4 +72,6 @@ public class Constants {
 	public static final String	CRLF	= "\r\n";
 	
 	public static final String URLEncoding = "utf-8";
+	
+	public static final String lastRevisionPreference = "prefLastRevision";
 }
