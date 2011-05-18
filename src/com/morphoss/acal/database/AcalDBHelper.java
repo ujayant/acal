@@ -46,7 +46,7 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 	/**
 	 * The version of this database. Used to determine if an upgrade is required.
 	 */
-	public static final int DB_VERSION = 10;
+	public static final int DB_VERSION = 11;
 	
 	/**
 	 * <p>The dav_server Table as stated in the specification.</p>
@@ -71,6 +71,8 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 				+",has_sync BOOLEAN"
 				+",active BOOLEAN"
 				+",last_checked DATETIME"
+				+",use_advanced BOOLEAN"
+				+",prepared_config TEXT"
 				+",UNIQUE(use_ssl,hostname,port,principal_path,username)"
 			+");";
 
@@ -221,6 +223,12 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 
 		if ( oldVersion == 9 ) {
 			db.execSQL("ALTER TABLE dav_collection ADD COLUMN sync_metadata BOOLEAN");
+			oldVersion++;
+		}
+
+		if ( oldVersion == 10 ) {
+			db.execSQL("ALTER TABLE dav_server ADD COLUMN use_advanced BOOLEAN");
+			db.execSQL("ALTER TABLE dav_server ADD COLUMN prepared_config TEXT");
 			oldVersion++;
 		}
 
