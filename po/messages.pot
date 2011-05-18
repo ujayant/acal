@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-05-10 12:04+1200\n"
+"POT-Creation-Date: 2011-05-19 09:05+1200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -616,6 +616,9 @@ msgstr "One day before"
 msgid "alarmCustom"
 msgstr "Custom Alarm"
 
+msgid "alarmsDisabledNote"
+msgstr "(all alarms are disabled for this calendar)"
+
 msgid "changeThisInstance"
 msgstr "This Instance Only"
 
@@ -690,3 +693,30 @@ msgstr "Delete this instance"
 
 msgid "deleteThisAndFuture"
 msgstr "Delete this and future"
+
+msgid "newAllDayEventOn"
+msgstr "New event on %s"
+
+msgid "newHourEventAt"
+msgstr "New event at %s"
+
+msgid "editSomeEvent"
+msgstr "Edit: %s"
+
+msgid "copySomeEvent"
+msgstr "Copy: %s"
+
+msgid "deleteSomeEvent"
+msgstr "Delete: %s"
+
+msgid "noCollectionsFound"
+msgstr "No Calendars Found"
+
+msgid "aCalVersionChanges"
+msgstr "Welcome to a new version of aCal!"
+
+msgid "newWithVersion"
+msgstr "Changes in version %s"
+
+msgid "newVersionSeen"
+msgstr "Thanks, now show me!"
