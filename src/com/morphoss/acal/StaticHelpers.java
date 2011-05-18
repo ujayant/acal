@@ -148,4 +148,32 @@ public final class StaticHelpers {
 		}
 		return toTrim.substring(0,pos);
 	}
+
+	
+	/**
+	 * URL escape things in the string.
+	 * @param toEscape The String to be escaped
+	 * @param makeParas set to true if you want \n => <p> conversion as well.
+	 * @return The urlescaped string.
+	 */
+	public static String urlescape( String toEscape, boolean makeParas ) {
+		StringBuilder escaped = new StringBuilder();
+		for (int i = 0; i < toEscape.length(); i++) {
+			char chr = toEscape.charAt(i);
+			switch (chr) {
+				case '%':	escaped.append("%25");		break;
+				case '\'':	escaped.append("%27");		break;
+				case '#':	escaped.append("%23");		break;
+				case '?':	escaped.append("%3f");		break;
+				case '\n':
+					if ( makeParas ) {
+						escaped.append("<p>");
+						break;
+					}
+				default:	escaped.append(chr);
+			}
+		}
+		return escaped.toString();
+	}
+	
 }
