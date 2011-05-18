@@ -279,6 +279,7 @@ public class SyncCollectionContents extends ServiceJob {
 				cv = new ContentValues();
 				cv.put(DavResources.COLLECTION_ID, collectionId);
 				cv.put(DavResources.RESOURCE_NAME, name);
+				cv.put(DavResources.NEEDS_SYNC, true );
 				action = WriteActions.INSERT;
 			}
 			
