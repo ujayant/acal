@@ -1345,6 +1345,7 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	 * @param another
 	 * @return -1, 1 or 0
 	 */
+	@Override
 	public int compareTo( AcalDateTime another ) {
 		if ( this == another ) return 0;
 		if ( Constants.debugDateTime ) checkEpoch();
@@ -1353,19 +1354,31 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 		return ( this.epoch == another.epoch ? 0 : (this.epoch < another.epoch ? -1 : 1));
 	}
 
-	
-	public boolean equals( AcalDateTime another ) {
-		if ( another == null ) return false;
-		return (this.compareTo(another) == 0);
+
+	@Override
+	public boolean equals( Object another ) {
+		if ( another == null || !(another instanceof AcalDateTime) ) return false;
+		if ( this == another ) return true;
+		return (this.compareTo((AcalDateTime)another) == 0);
 	}
 
 	
+	/**
+	 * Checks whether this date is before some other date.
+	 * @param another AcalDateTime
+	 * @return true, iff this date is earlier than the other date, false otherwise, including if the other date is null
+	 */
 	public boolean before( AcalDateTime another ) {
 		if ( another == null ) return false;
 		return (this.compareTo(another) < 0);
 	}
 
-	
+
+	/**
+	 * Checks whether this date is after some other date.
+	 * @param another
+	 * @return true, iff this date is later than the other date, false otherwise, including if the other date is null
+	 */
 	public boolean after( AcalDateTime another ) {
 		if ( another == null ) return false;
 		return (this.compareTo(another) > 0);
