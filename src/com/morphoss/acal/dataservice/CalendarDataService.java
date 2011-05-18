@@ -120,6 +120,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 	
 	private DataRequestCallBack callback = null;
 
+	private static long lastSetEarlyStamp = 0;
 	private static AcalDateTime earlyTimeStamp = null;
 
 	private boolean intialise = false;																//State information
@@ -151,8 +152,8 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 	@Override
 	public void onCreate() {
 
-		earlyTimeStamp = new AcalDateTime();
-		earlyTimeStamp.addSeconds(86400 * -32);
+		earlyTimeStamp = new AcalDateTime().addDays(35); 	// Set it some time in a future month
+		updateEarlyTimeStamp(new AcalDateTime());			// Now rationalise it back earlier
 
 		//immediately start listening for changes to the database
 		aCalService.databaseDispatcher.addListener(this);
@@ -274,17 +275,32 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 	 * </p>  
 	 * @param dateRange
 	 */
-	public void updateEarlyTimeStamp(AcalDateTime newTime ) {
-		if ( newTime.after(new AcalDateTime() ) ) return;
-		newTime.addSeconds(86400 * -5);
-		newTime.set(AcalDateTime.DAY_OF_MONTH, 1);
-		newTime.addSeconds(86400 * -5);
-		int daysDiff = earlyTimeStamp.getDurationTo(newTime).getDays();
-		if ( daysDiff < -10 || daysDiff > 10 ) {
-				if (Constants.LOG_DEBUG)Log.d(TAG, "Setting early timestamp to "+newTime.fmtIcal() );
+	public void updateEarlyTimeStamp(AcalDateTime earliestVisible ) {
+		if ( earliestVisible == null ) return;
+		AcalDateTime latestEarlyTimeStamp = new AcalDateTime().applyLocalTimeZone().addMonths(-1).setDaySecond(0);
+		latestEarlyTimeStamp.setMonthDay(1);
+		latestEarlyTimeStamp.addDays(-5);
+		
+		if ( earliestVisible.after(earlyTimeStamp) ) return;
+
+		AcalDateTime wantEarlyStamp = earliestVisible.clone().addDays(-5);
+		wantEarlyStamp.setMonthDay(1);
+		wantEarlyStamp.addDays(-5); 
+		if ( wantEarlyStamp.after(latestEarlyTimeStamp) )
+			wantEarlyStamp = latestEarlyTimeStamp;
+
+		int daysDiff = earlyTimeStamp.getDurationTo(wantEarlyStamp).getDays();
+
+		long now = System.currentTimeMillis();
+		if ( daysDiff > 0 && lastSetEarlyStamp > (now - 30000L) ) return;
+		lastSetEarlyStamp = now;
+		
+		if (Constants.LOG_DEBUG) Log.d(TAG, "Considering setting early timestamp to "+wantEarlyStamp.fmtIcal() );
+		if ( daysDiff < 0 || daysDiff > 10 ) {
+				if (Constants.LOG_DEBUG)Log.d(TAG, "Setting early timestamp to "+wantEarlyStamp.fmtIcal() );
 
 			AcalDateTime oldEarlyStamp = earlyTimeStamp;
-			earlyTimeStamp = newTime;
+			earlyTimeStamp = wantEarlyStamp;
 			if ( daysDiff < -10 )
 				fetchOldResources(oldEarlyStamp);
 			else
@@ -709,7 +725,8 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 		whereClause.append(" AND latest_end < ");
 		whereClause.append(Long.toString(previousTimeStamp.getMillis()));
 		Cursor cursor = this.getContentResolver().query(DavResources.CONTENT_URI, null, whereClause.toString(), null, null);
-		if (Constants.debugCalendarDataService && Constants.LOG_DEBUG)	Log.d(TAG, "Fetching old resources now possibly useful in view: "
+//		if (Constants.debugCalendarDataService && Constants.LOG_DEBUG)	
+			Log.d(TAG, "Fetching old resources now possibly useful in view: "
 					+ cursor.getCount() + " records to process.");
 		for( cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext() ) {
 			ContentValues cv = new ContentValues();
@@ -724,10 +741,11 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 
 
 	private void discardOldResources() {
-		if (Constants.debugCalendarDataService && Constants.LOG_DEBUG) Log.d(TAG, "Discarding old resources not useful in view.");
+//		if (Constants.debugCalendarDataService && Constants.LOG_DEBUG) 
+			Log.d(TAG, "Discarding old resources not useful in view.");
 
 		for( Entry<Integer, VCalendar> vCal : calendars.entrySet() ) {
-			if ( vCal.getValue().getRangeEnd().before(earlyTimeStamp) ) {
+			if ( earlyTimeStamp.after(vCal.getValue().getRangeEnd()) ) {
 				calendars.remove(vCal.getKey());
 			}
 		}
@@ -953,9 +971,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 				else
 					skipped++;
 			}
-			//int outOfTouch = earlyTimeStamp.getDurationTo(dateRange.start).getDays();
-			//if ( outOfTouch < 40 || outOfTouch > 90 )
-			//	updateEarlyTimeStamp(dateRange.start);
+			updateEarlyTimeStamp(dateRange.start);
 
 			if ( Constants.LOG_DEBUG ) 	Log.d(TAG, "Got "+events.size()+" events for range ("
 						+dateRange.start.fmtIcal()+","+dateRange.end.fmtIcal()+"): processed "
