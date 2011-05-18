@@ -310,6 +310,9 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 			case collectionId:
 				this.collectionId = (Integer) val;
 				break;
+			case colour:
+				this.colour = (Integer) val;
+				break;
 			case alarmList:
 				this.alarmList = (List<AcalAlarm>) val;
 				break;
