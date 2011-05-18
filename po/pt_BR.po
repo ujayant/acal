@@ -1,16 +1,15 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 # 
 msgid ""
 msgstr ""
 "Project-Id-Version: aCal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-04-06 17:49+1200\n"
-"PO-Revision-Date: 2011-04-11 17:43-0300\n"
+"POT-Creation-Date: 2011-05-19 09:05+1200\n"
+"PO-Revision-Date: 2011-05-18 21:21+0000\n"
 "Last-Translator: Samuel Ribeiro da Costa Vale <srcvale@minaslivre.org>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language-Team: Portuguese (Brazilian) (http://www.transifex.net/projects/p/acal/team/pt_BR/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -19,7 +18,7 @@ msgstr ""
 
 # Strings that should not be localised belong in unlocalisable_strings.xml
 msgid "theDayEachWeekStartsWith"
-msgstr "O dia de início da semana"
+msgstr "O dia em que a semana se inicia"
 
 msgid "firstDayOfWeek"
 msgstr "Primeiro dia da semana"
@@ -32,8 +31,8 @@ msgstr "Cancelar"
 
 msgid "appDescription"
 msgstr ""
-"Uma agenda para Android que armazena seus compromissos, tarefas, anotações "
-"e contatos em um servidor CalDAV / CardDAV remoto, como o DAViCal (Veja: "
+"Uma agenda para Android que armazena seus compromissos, tarefas, anotações e"
+" contatos em um servidor CalDAV / CardDAV remoto, como o DAViCal (Veja: "
 "http://davical.org)"
 
 msgid "Active"
@@ -86,6 +85,9 @@ msgstr "Cor"
 
 msgid "Default_timezone"
 msgstr "Fuso horário padrão"
+
+msgid "DefaultAlarmTone"
+msgstr ""
 
 msgid "Server_Path"
 msgstr "Caminho do servidor"
@@ -149,9 +151,6 @@ msgstr "Preferências de depuração"
 
 msgid "appActivitySettings"
 msgstr "Configurações"
-
-msgid "appActivityYearView"
-msgstr "aCal - Visualização anual"
 
 msgid "appActivityPreference"
 msgstr "Preferências"
@@ -348,6 +347,14 @@ msgstr "Nov"
 msgid "thDec"
 msgstr "Dez"
 
+# If the user is displaying AM/PM we need a single character to display e.g.
+# 1p for 1:00pm
+msgid "oneCharMorning"
+msgstr "a"
+
+msgid "oneCharAfternoon"
+msgstr "p"
+
 msgid "YearViewSize_PrefTitle"
 msgstr "Número de meses na visualização anual"
 
@@ -372,7 +379,31 @@ msgid "DefaultAlarmTone_PrefTitle"
 msgstr "Toque padrão para alarmes"
 
 msgid "DefaultAlarmTone_PrefSummary"
-msgstr "O toque que será tocado nos alarmes."
+msgstr "O som que será usado nos alarmes de compromissos."
+
+msgid "prefWorkdayStart_Title"
+msgstr "Início do dia útil"
+
+msgid "prefWorkdayStart_Summary"
+msgstr "A hora de início de um dia útil."
+
+msgid "prefWorkdayFinish_Title"
+msgstr "Fim do dia útil"
+
+msgid "prefWorkdayFinish_Summary"
+msgstr "A hora do fim do dia útil."
+
+msgid "prefWeekViewLinesPerHour_Title"
+msgstr "Largura das linhas"
+
+msgid "prefWeekViewLinesPerHour_Summary"
+msgstr "A largura de cada hora do dia, na visualização de semana."
+
+msgid "prefWeekViewDayWidth_Title"
+msgstr ""
+
+msgid "prefWeekViewDayWidth_Summary"
+msgstr ""
 
 msgid "Today"
 msgstr "Hoje"
@@ -382,6 +413,9 @@ msgstr "Ano"
 
 msgid "Month"
 msgstr "Mês"
+
+msgid "Week"
+msgstr "Semana"
 
 msgid "Edit"
 msgstr "Editar"
@@ -497,6 +531,9 @@ msgstr "Em cada dia %s do mês"
 msgid "EveryMonthOnTheNthSomeday"
 msgstr "Em todo(a) %s de cada mês"
 
+msgid "CustomRepeatRule"
+msgstr "Repetição Personalizada"
+
 msgid "EventSaved"
 msgstr "Evento salvo."
 
@@ -512,8 +549,11 @@ msgstr "Esta instância e todas as instâncias futuras serão modificadas."
 msgid "ErrorSavingEvent"
 msgstr "Erro ao salvar compromisso. Tente novamente."
 
+msgid "NewEventTitle"
+msgstr "Novo Evento"
+
 msgid "ChooseACollection"
-msgstr "Selectione uma coleção"
+msgstr "Selecione uma coleção"
 
 msgid "ChooseAlarmTime"
 msgstr "Selecione a hora do alarme"
@@ -530,6 +570,9 @@ msgstr "Adicionar Alarme"
 msgid "errorMustHaveActiveCalendar"
 msgstr "Não é possível editar compromisso sem uma agenda ativa."
 
+msgid "errorSavingServerConfig"
+msgstr ""
+
 msgid "errorSavingFile"
 msgstr "Erro ao salvar arquivo"
 
@@ -544,6 +587,12 @@ msgstr "Entrar manualmente as informações do servidor"
 
 msgid "SavedServerConfigurationBlurb"
 msgstr "Uma configuração de servidor gravada"
+
+msgid "AllDaysInPeriod"
+msgstr ""
+
+msgid "ForTheWholeDay"
+msgstr ""
 
 msgid "alarmAtEventTime"
 msgstr "Na hora do compromisso"
@@ -565,6 +614,12 @@ msgstr "12 horas antes"
 
 msgid "alarm1DayPrior"
 msgstr "Um dia antes"
+
+msgid "alarmCustom"
+msgstr "Alarme Personalizado"
+
+msgid "alarmsDisabledNote"
+msgstr ""
 
 msgid "changeThisInstance"
 msgstr "Esta instância apenas"
@@ -601,3 +656,71 @@ msgstr "Gostaria de salvar as configurações de qualquer modo?"
 
 msgid "serverValidationSuccess"
 msgstr "Servidor validado com sucesso."
+
+msgid "authenticationFailed"
+msgstr "Não foi possível autenticar no servidor."
+
+msgid "WeekViewPreferences"
+msgstr ""
+
+msgid "checkServer"
+msgstr ""
+
+msgid "checkServer_Connecting"
+msgstr ""
+
+msgid "checkServer_Internet"
+msgstr ""
+
+msgid "checkServer_ProbePorts"
+msgstr ""
+
+msgid "checkServer_SearchingPrincipal"
+msgstr ""
+
+msgid "checkServer_CheckingCapabilities"
+msgstr ""
+
+msgid "newEventFromThis"
+msgstr ""
+
+msgid "Delete"
+msgstr ""
+
+msgid "deleteAllInstances"
+msgstr ""
+
+msgid "deleteThisInstance"
+msgstr ""
+
+msgid "deleteThisAndFuture"
+msgstr ""
+
+msgid "newAllDayEventOn"
+msgstr ""
+
+msgid "newHourEventAt"
+msgstr ""
+
+msgid "editSomeEvent"
+msgstr ""
+
+msgid "copySomeEvent"
+msgstr ""
+
+msgid "deleteSomeEvent"
+msgstr ""
+
+msgid "noCollectionsFound"
+msgstr ""
+
+msgid "aCalVersionChanges"
+msgstr ""
+
+msgid "newWithVersion"
+msgstr ""
+
+msgid "newVersionSeen"
+msgstr ""
+
+

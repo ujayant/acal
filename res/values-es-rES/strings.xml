@@ -44,7 +44,6 @@
 <string name="appActivityCollectionConfigList">Calendarios y libretas de direcciones</string>
 <string name="appActivityDebugSettings">Ajustes de depurado</string>
 <string name="appActivitySettings">Ajustes</string>
-<string name="appActivityYearView">aCal - Vista anual</string>
 <string name="appActivityPreference">Preferencias</string>
 <string name="The_port_to_connect_to">El puerto a conectarse</string>
 <string name="A_name_for_this_collection">Un nombre para esta colección</string>
@@ -101,6 +100,7 @@
 <string name="thApr">Abr</string>
 <string name="thAug">Ago</string>
 <string name="thDec">Dic</string>
+<!-- If the user is displaying AM/PM we need a single character to display e.g. 1p for 1:00pm -->
 <string name="YearViewSize_PrefTitle">Número de meses en vista anual</string>
 <string name="YearViewSize_PrefSummary">El número de meses visibles en la vista anual</string>
 <string name="Snooze_PrefTitle">Tiempo a dormir</string>
@@ -131,7 +131,13 @@
 <string name="EveryWeekday">Cada día laborable</string>
 <string name="EveryWeekend">Cada fin de semana</string>
 <string name="EveryDay">Cada día</string>
+<string name="EveryWeek">Cada semana</string>
+<string name="EveryMonth">Cada mes</string>
 <string name="EveryYear">Cada año</string>
+<string name="EveryNDays">Cada N días</string>
+<string name="EveryNWeeks">Cada N semanas</string>
+<string name="EveryNMonths">Cada N meses</string>
+<string name="EveryNYears">Cada N años</string>
 <string name="EveryMonday">Cada lunes</string>
 <string name="EveryTuesday">Cada martes</string>
 <string name="EveryWednesday">Cada miércoles</string>
@@ -150,6 +156,13 @@
 <string name="ChooseAlarmTime">Elige la hora de la alarma</string>
 <string name="ChooseInstancesToChange">¿Qué instancias cambiar?</string>
 <string name="ChooseRepeatFrequency">Elige la frecuencia de repetición</string>
+<string name="Add_Alarm">Añadir alarma</string>
+<string name="errorMustHaveActiveCalendar">No se puede editar la cita sin un calendario activo.</string>
+<string name="errorSavingFile">Error guardando fichero.</string>
+<string name="ServerDataSaved">Datos del servidor guardados. Nombre del fichero:</string>
+<string name="NewManualServerConfiguration">Configuración manual</string>
+<string name="ManualServerConfigurationBlurb">Introducir manualmente la configuración del servidor</string>
+<string name="SavedServerConfigurationBlurb">Una configuración de servidor guardada</string>
 <string name="alarmAtEventTime">A la hora de la cita</string>
 <string name="alarm10MinutesPrior">10 minutos antes</string>
 <string name="alarm30MinutesPrior">30 minutos antes</string>
@@ -160,4 +173,13 @@
 <string name="changeThisInstance">Sólo esta instancia</string>
 <string name="changeAllInstances">Todas las instancias</string>
 <string name="changeThisAndFuture">Ésta y todas las instancias futuras</string>
+<string name="internetNotAvailable">Internet no está disponible</string>
+<string name="couldNotDiscoverPort">No se ha podido encontrar el puerto HTTP para el servidor CalDAV</string>
+<string name="couldNotDiscoverPrincipal">No se ha podido encontrar la ruta a la identidad - usando los valores propuestos</string>
+<string name="foundPrincipalPath">Se ha encontrado la ruta a la identidad en &quot;%s&quot;</string>
+<string name="serverSupportsCalDAV">El servidor soporta CalDAV</string>
+<string name="serverLacksCalDAV">El servidor no tiene soporte CalDAV</string>
+<string name="serverFailedValidation">Ha ocurrido un error validando el servidor:</string>
+<string name="saveSettingsAnyway">¿Quieres guardar la configuración de todas maneras?</string>
+<string name="serverValidationSuccess">La validación del serivdor ha sido satisfactoria.</string>
 </resources>

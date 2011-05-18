@@ -44,7 +44,6 @@
 <string name="appActivityCollectionConfigList">Calendaris i llibretes d\'adreces</string>
 <string name="appActivityDebugSettings">Paràmetres de depuració</string>
 <string name="appActivitySettings">Paràmetres</string>
-<string name="appActivityYearView">aCal - Vista anual</string>
 <string name="appActivityPreference">Paràmetres</string>
 <string name="The_port_to_connect_to">El port a connectar-se</string>
 <string name="A_name_for_this_collection">Un nom per aquesta col·lecció</string>
@@ -104,6 +103,7 @@
 <string name="thAug">Ago</string>
 <string name="thSep">Set</string>
 <string name="thDec">Des</string>
+<!-- If the user is displaying AM/PM we need a single character to display e.g. 1p for 1:00pm -->
 <string name="YearViewSize_PrefTitle">Nombre de mesos a la vista anual</string>
 <string name="YearViewSize_PrefSummary">El nombre de mesos que són visibles a la vista mensual</string>
 <string name="Snooze_PrefTitle">Temps a postposar</string>
@@ -133,7 +133,13 @@
 <string name="EveryWeekday">Cada dia laborable</string>
 <string name="EveryWeekend">Cada cap de setmana</string>
 <string name="EveryDay">Cada dia</string>
+<string name="EveryWeek">Cada setmana</string>
+<string name="EveryMonth">Cada mes</string>
 <string name="EveryYear">Cada any</string>
+<string name="EveryNDays">Cada N dies</string>
+<string name="EveryNWeeks">Cada N setmanes</string>
+<string name="EveryNMonths">Cada N mesos</string>
+<string name="EveryNYears">Cada N anys</string>
 <string name="EveryMonday">Cada dilluns</string>
 <string name="EveryTuesday">Cada dimarts</string>
 <string name="EveryWednesday">Cada dimecres</string>
@@ -152,6 +158,13 @@
 <string name="ChooseAlarmTime">Escull l\'hora de l\'alarma</string>
 <string name="ChooseInstancesToChange">Quines són les instàncies a canviar?</string>
 <string name="ChooseRepeatFrequency">Escull una freqüència de repetició</string>
+<string name="Add_Alarm">Afegir alarma</string>
+<string name="errorMustHaveActiveCalendar">No es pot editar una cita sense un calendari actiu.</string>
+<string name="errorSavingFile">Error guardant fitxer</string>
+<string name="ServerDataSaved">Dades del servidor guardades. Nom de fitxer:</string>
+<string name="NewManualServerConfiguration">Configuració manual</string>
+<string name="ManualServerConfigurationBlurb">Entrar la informació del servidor manualment</string>
+<string name="SavedServerConfigurationBlurb">Una configuració de servidor guardada</string>
 <string name="alarmAtEventTime">A l\'hora de la cita</string>
 <string name="alarm10MinutesPrior">10 minuts abans</string>
 <string name="alarm30MinutesPrior">30 minuts abans</string>
@@ -162,4 +175,13 @@
 <string name="changeThisInstance">Només aquesta instància</string>
 <string name="changeAllInstances">Totes les instàncies</string>
 <string name="changeThisAndFuture">Aquesta i totes les futures</string>
+<string name="internetNotAvailable">Internet no es troba disponible</string>
+<string name="couldNotDiscoverPort">No s\'ha pogut trobar el port HTTP pel servidor CalDAV</string>
+<string name="couldNotDiscoverPrincipal">No s\'ha pogut trobar el camí a la identitat - utilitzant els valors donats</string>
+<string name="foundPrincipalPath">S\'ha trobat el path de la identitat a &quot;%s&quot;</string>
+<string name="serverSupportsCalDAV">El servidor suporta CalDAV</string>
+<string name="serverLacksCalDAV">El servidor no suporta CalDAV</string>
+<string name="serverFailedValidation">Hi ha hagut un error validant el servidor:</string>
+<string name="saveSettingsAnyway">Vols gravar els paràmetres igualment?</string>
+<string name="serverValidationSuccess">La validació del servidor ha estat satisfactòria.</string>
 </resources>

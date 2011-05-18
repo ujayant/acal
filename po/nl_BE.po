@@ -1,16 +1,15 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 # 
 msgid ""
 msgstr ""
 "Project-Id-Version: aCal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-04-06 17:49+1200\n"
-"PO-Revision-Date: 2011-04-07 00:00+0000\n"
+"POT-Creation-Date: 2011-05-19 09:05+1200\n"
+"PO-Revision-Date: 2011-05-18 21:21+0000\n"
 "Last-Translator: zenlord <zenlord@gmail.com>\n"
-"Language-Team: Dutch (Belgium/Flemish) <None>\n"
+"Language-Team: Dutch (Belgium/Flemish) (http://www.transifex.net/projects/p/acal/team/nl_BE/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -87,6 +86,9 @@ msgstr "Kleur"
 msgid "Default_timezone"
 msgstr "Standaard Tijdzone"
 
+msgid "DefaultAlarmTone"
+msgstr ""
+
 msgid "Server_Path"
 msgstr "Server-pad"
 
@@ -150,9 +152,6 @@ msgstr "Instellingen voor foutopsporing"
 
 msgid "appActivitySettings"
 msgstr "Instellingen"
-
-msgid "appActivityYearView"
-msgstr "aCal - Bekijk Jaar"
 
 msgid "appActivityPreference"
 msgstr "Voorkeuren"
@@ -350,6 +349,14 @@ msgstr "Nov"
 msgid "thDec"
 msgstr "Dec"
 
+# If the user is displaying AM/PM we need a single character to display e.g.
+# 1p for 1:00pm
+msgid "oneCharMorning"
+msgstr "a"
+
+msgid "oneCharAfternoon"
+msgstr "p"
+
 msgid "YearViewSize_PrefTitle"
 msgstr "Aantal zichtbare maanden in Jaar-view"
 
@@ -376,6 +383,30 @@ msgstr "Standaard alarmgeluid"
 msgid "DefaultAlarmTone_PrefSummary"
 msgstr "Het standaard geluid voor notificaties."
 
+msgid "prefWorkdayStart_Title"
+msgstr "Aanvang werkdag"
+
+msgid "prefWorkdayStart_Summary"
+msgstr "De werkdag vangt aan om"
+
+msgid "prefWorkdayFinish_Title"
+msgstr "Einde werkdag"
+
+msgid "prefWorkdayFinish_Summary"
+msgstr "De werkdag eindigt om"
+
+msgid "prefWeekViewLinesPerHour_Title"
+msgstr "Rijhoogte"
+
+msgid "prefWeekViewLinesPerHour_Summary"
+msgstr "De hoogte van ieder uur van de dag in week-view"
+
+msgid "prefWeekViewDayWidth_Title"
+msgstr ""
+
+msgid "prefWeekViewDayWidth_Summary"
+msgstr ""
+
 msgid "Today"
 msgstr "Vandaag"
 
@@ -384,6 +415,9 @@ msgstr "Jaar"
 
 msgid "Month"
 msgstr "Maand"
+
+msgid "Week"
+msgstr "Week"
 
 msgid "Edit"
 msgstr "Bewerken"
@@ -499,6 +533,9 @@ msgstr "Iedere %s van de maand"
 msgid "EveryMonthOnTheNthSomeday"
 msgstr "Op de %s van iedere maand"
 
+msgid "CustomRepeatRule"
+msgstr "Aangepaste herhaling"
+
 msgid "EventSaved"
 msgstr "Gebeurtenis bewaard."
 
@@ -513,6 +550,9 @@ msgstr "Deze en alle toekomstige instanties van deze gebeurtenis bewerkt."
 
 msgid "ErrorSavingEvent"
 msgstr "Fout bij het opslaan van gebeurtenis - probeer aub  opnieuw."
+
+msgid "NewEventTitle"
+msgstr "Nieuwe gebeurtenis"
 
 msgid "ChooseACollection"
 msgstr "Kies een Collectie"
@@ -532,6 +572,9 @@ msgstr "Melding toevoegen"
 msgid "errorMustHaveActiveCalendar"
 msgstr "Kan gebeurtenis niet bewerken zonder een actieve kalender."
 
+msgid "errorSavingServerConfig"
+msgstr ""
+
 msgid "errorSavingFile"
 msgstr "Fout bij opslaan bestand"
 
@@ -546,6 +589,12 @@ msgstr "Handmatig invoeren van de server informatie"
 
 msgid "SavedServerConfigurationBlurb"
 msgstr "Een opgeslagen server configuratie"
+
+msgid "AllDaysInPeriod"
+msgstr ""
+
+msgid "ForTheWholeDay"
+msgstr ""
 
 msgid "alarmAtEventTime"
 msgstr "Op het ogenblik van de gebeurtenis"
@@ -567,6 +616,12 @@ msgstr "12 uren op voorhand"
 
 msgid "alarm1DayPrior"
 msgstr "1 dag op voorhand"
+
+msgid "alarmCustom"
+msgstr "Aangepast alarm"
+
+msgid "alarmsDisabledNote"
+msgstr ""
 
 msgid "changeThisInstance"
 msgstr "Enkel deze instantie"
@@ -604,3 +659,71 @@ msgstr "Wilt u toch deze instellingen opslaan?"
 
 msgid "serverValidationSuccess"
 msgstr "Server werd gevalideerd."
+
+msgid "authenticationFailed"
+msgstr "Niet in staat om te authenticeren bij server."
+
+msgid "WeekViewPreferences"
+msgstr ""
+
+msgid "checkServer"
+msgstr ""
+
+msgid "checkServer_Connecting"
+msgstr ""
+
+msgid "checkServer_Internet"
+msgstr ""
+
+msgid "checkServer_ProbePorts"
+msgstr ""
+
+msgid "checkServer_SearchingPrincipal"
+msgstr ""
+
+msgid "checkServer_CheckingCapabilities"
+msgstr ""
+
+msgid "newEventFromThis"
+msgstr ""
+
+msgid "Delete"
+msgstr ""
+
+msgid "deleteAllInstances"
+msgstr ""
+
+msgid "deleteThisInstance"
+msgstr ""
+
+msgid "deleteThisAndFuture"
+msgstr ""
+
+msgid "newAllDayEventOn"
+msgstr ""
+
+msgid "newHourEventAt"
+msgstr ""
+
+msgid "editSomeEvent"
+msgstr ""
+
+msgid "copySomeEvent"
+msgstr ""
+
+msgid "deleteSomeEvent"
+msgstr ""
+
+msgid "noCollectionsFound"
+msgstr ""
+
+msgid "aCalVersionChanges"
+msgstr ""
+
+msgid "newWithVersion"
+msgstr ""
+
+msgid "newVersionSeen"
+msgstr ""
+
+

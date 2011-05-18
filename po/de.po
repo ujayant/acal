@@ -1,16 +1,15 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 # 
 msgid ""
 msgstr ""
 "Project-Id-Version: aCal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-04-06 17:49+1200\n"
-"PO-Revision-Date: 2011-04-07 00:00+0000\n"
+"POT-Creation-Date: 2011-05-19 09:05+1200\n"
+"PO-Revision-Date: 2011-05-18 21:21+0000\n"
 "Last-Translator: SunTsu <transifex.20.suntsu@spamgourmet.com>\n"
-"Language-Team: German <>\n"
+"Language-Team: German (http://www.transifex.net/projects/p/acal/team/de/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -87,6 +86,9 @@ msgstr "Farbe"
 msgid "Default_timezone"
 msgstr "Standard Zeitzone"
 
+msgid "DefaultAlarmTone"
+msgstr "Default Alarmton"
+
 msgid "Server_Path"
 msgstr "Serverpfad"
 
@@ -151,9 +153,6 @@ msgstr "Debug-Einstellungen"
 
 msgid "appActivitySettings"
 msgstr "Einstellungen"
-
-msgid "appActivityYearView"
-msgstr "aCal - Jahresansicht"
 
 msgid "appActivityPreference"
 msgstr "Einstellungen"
@@ -350,6 +349,14 @@ msgstr "Nov"
 msgid "thDec"
 msgstr "Dez"
 
+# If the user is displaying AM/PM we need a single character to display e.g.
+# 1p for 1:00pm
+msgid "oneCharMorning"
+msgstr "a"
+
+msgid "oneCharAfternoon"
+msgstr "p"
+
 msgid "YearViewSize_PrefTitle"
 msgstr "Anzahl der Monate in der Jahresansicht"
 
@@ -376,6 +383,30 @@ msgstr "Standard Erinnerungsmelodie"
 msgid "DefaultAlarmTone_PrefSummary"
 msgstr "Standard Erinnerungsmelodie für Benachrichtigungen"
 
+msgid "prefWorkdayStart_Title"
+msgstr "Beginn des Arbeitstages"
+
+msgid "prefWorkdayStart_Summary"
+msgstr "Die Anfangszeit des Arbeitstages"
+
+msgid "prefWorkdayFinish_Title"
+msgstr "Ende des Arbeitstages"
+
+msgid "prefWorkdayFinish_Summary"
+msgstr "Die Endzeit des Arbeitstages"
+
+msgid "prefWeekViewLinesPerHour_Title"
+msgstr "Zeilenhöhe"
+
+msgid "prefWeekViewLinesPerHour_Summary"
+msgstr "Die Höhe jeder Stunde eines Tages in der Wochen Ansicht"
+
+msgid "prefWeekViewDayWidth_Title"
+msgstr "Spaltenbreite"
+
+msgid "prefWeekViewDayWidth_Summary"
+msgstr "Die Breite der Tagesspalte in der Wochenansicht"
+
 msgid "Today"
 msgstr "Heute"
 
@@ -384,6 +415,9 @@ msgstr "Jahr"
 
 msgid "Month"
 msgstr "Monat"
+
+msgid "Week"
+msgstr "Woche"
 
 msgid "Edit"
 msgstr "Bearbeiten"
@@ -500,6 +534,9 @@ msgstr "An jedem %s des Monats"
 msgid "EveryMonthOnTheNthSomeday"
 msgstr "Am %s jeden Monats"
 
+msgid "CustomRepeatRule"
+msgstr "selbstdefinierte Wiederholung"
+
 msgid "EventSaved"
 msgstr "Ereignis gespeichert"
 
@@ -516,6 +553,9 @@ msgstr ""
 
 msgid "ErrorSavingEvent"
 msgstr "Fehler beim Speichern - bitte versuchen Sie es erneut."
+
+msgid "NewEventTitle"
+msgstr "Neues Ereignis"
 
 msgid "ChooseACollection"
 msgstr "Eine Sammlung auswählen"
@@ -535,6 +575,9 @@ msgstr "Alarm hinzufügen"
 msgid "errorMustHaveActiveCalendar"
 msgstr "Kann Ereignis nicht ohne aktiven Kalender editieren."
 
+msgid "errorSavingServerConfig"
+msgstr "Fehler beim Speichern der Serverkonfiguration"
+
 msgid "errorSavingFile"
 msgstr "Fehler beim speichern der Datei"
 
@@ -549,6 +592,12 @@ msgstr "Server Informationen manuell eingeben"
 
 msgid "SavedServerConfigurationBlurb"
 msgstr "eine gespeicherte Server-Konfiguration"
+
+msgid "AllDaysInPeriod"
+msgstr "Ganzer Tag, von %1$s bis %2$s"
+
+msgid "ForTheWholeDay"
+msgstr "Ganzer Tag"
 
 msgid "alarmAtEventTime"
 msgstr "Zu Ereignissbeginn"
@@ -570,6 +619,12 @@ msgstr "12 Stunden vorher"
 
 msgid "alarm1DayPrior"
 msgstr "Einen Tag vorher"
+
+msgid "alarmCustom"
+msgstr "selbstdefinierter Alarm"
+
+msgid "alarmsDisabledNote"
+msgstr ""
 
 msgid "changeThisInstance"
 msgstr "Ausschließlich dieses Vorkommen"
@@ -608,3 +663,71 @@ msgstr "Möchten Sie diese Einstellungen trotzdem speichern?"
 
 msgid "serverValidationSuccess"
 msgstr "Serverüberprüfung war erfolgreich."
+
+msgid "authenticationFailed"
+msgstr "Authentifizierung mit Server fehlgeschlagen"
+
+msgid "WeekViewPreferences"
+msgstr "Einstellungen Wochenansicht"
+
+msgid "checkServer"
+msgstr "Verifiziere Server"
+
+msgid "checkServer_Connecting"
+msgstr "Verbinde zum Server, bitte warten..."
+
+msgid "checkServer_Internet"
+msgstr "Überprüfe Internetverbindung"
+
+msgid "checkServer_ProbePorts"
+msgstr "Teste Serververbindung auf Port %1$d mittels %2$s Protokoll"
+
+msgid "checkServer_SearchingPrincipal"
+msgstr "Suche \"Principal\" Pfad unter &quot;%s&quot;"
+
+msgid "checkServer_CheckingCapabilities"
+msgstr "Überprüfe Serverfähigkeiten"
+
+msgid "newEventFromThis"
+msgstr "Kopiere als neues Event"
+
+msgid "Delete"
+msgstr "Löschen"
+
+msgid "deleteAllInstances"
+msgstr "Alle Vorkommnisse löschen"
+
+msgid "deleteThisInstance"
+msgstr "Dieses Vorkommnis löschen"
+
+msgid "deleteThisAndFuture"
+msgstr "Dieses Vorkommnis und alle zukünftigen löschen"
+
+msgid "newAllDayEventOn"
+msgstr ""
+
+msgid "newHourEventAt"
+msgstr ""
+
+msgid "editSomeEvent"
+msgstr ""
+
+msgid "copySomeEvent"
+msgstr ""
+
+msgid "deleteSomeEvent"
+msgstr ""
+
+msgid "noCollectionsFound"
+msgstr ""
+
+msgid "aCalVersionChanges"
+msgstr ""
+
+msgid "newWithVersion"
+msgstr ""
+
+msgid "newVersionSeen"
+msgstr ""
+
+
