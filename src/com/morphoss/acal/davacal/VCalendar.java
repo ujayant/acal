@@ -248,6 +248,7 @@ public class VCalendar extends VComponent {
 	}
 
 	public AcalDateTime getRangeEnd() {
+		if ( dateRange == null ) return null;
 		return dateRange.end;
 	}
 
