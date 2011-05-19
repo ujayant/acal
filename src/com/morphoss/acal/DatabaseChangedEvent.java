@@ -18,6 +18,9 @@
 
 package com.morphoss.acal;
 
+import com.morphoss.acal.providers.DavResources;
+import com.morphoss.acal.service.aCalService;
+
 import android.content.ContentValues;
 
 public class DatabaseChangedEvent {
@@ -53,5 +56,13 @@ public class DatabaseChangedEvent {
 		this.eventType = eventType;
 		this.table = table;
 		this.data = data;
+	}
+
+	public static void beginResourceChanges() {
+		aCalService.databaseDispatcher.dispatchEvent(new DatabaseChangedEvent(DatabaseChangedEvent.DATABASE_BEGIN_RESOURCE_CHANGES, DavResources.class, null));
+	}
+
+	public static void endResourceChanges() {
+		aCalService.databaseDispatcher.dispatchEvent(new DatabaseChangedEvent(DatabaseChangedEvent.DATABASE_END_RESOURCE_CHANGES, DavResources.class, null));
 	}
 }
