@@ -19,11 +19,13 @@
 package com.morphoss.acal.providers;
 
 import android.content.ContentProvider;
+import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
@@ -31,6 +33,7 @@ import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.morphoss.acal.Constants;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.database.AcalDBHelper;
 
@@ -54,6 +57,8 @@ import com.morphoss.acal.database.AcalDBHelper;
  */
 public class PendingChanges extends ContentProvider {
 
+	public static final String		TAG							= "aCal PendingChanges";
+
 	// Authority must match one defined in manifest!
 	public static final String		AUTHORITY					= "pendingchanges";
 	public static final Uri			CONTENT_URI					= Uri.parse("content://" + AUTHORITY);
@@ -65,7 +70,8 @@ public class PendingChanges extends ContentProvider {
 	// Path definitions
 	private static final int		ROOT						= 0;
 	private static final int		ALLSETS						= 1;
-	private static final int		BY_RESOURCE_ID				= 2;
+	private static final int		BY_PENDING_ID				= 2;
+	private static final int		BY_RESOURCE_ID				= 3;
 	private static final int		BEGIN_TRANSACTION			= 5;
 	private static final int		END_TRANSACTION				= 6;
 	private static final int		APPROVE_TRANSACTION			= 7;
@@ -74,7 +80,8 @@ public class PendingChanges extends ContentProvider {
     public static final UriMatcher uriMatcher = new UriMatcher(ROOT);
     static{
          uriMatcher.addURI(AUTHORITY, null, ALLSETS);
-         uriMatcher.addURI(AUTHORITY, "#", BY_RESOURCE_ID);
+         uriMatcher.addURI(AUTHORITY, "#", BY_PENDING_ID);
+         uriMatcher.addURI(AUTHORITY, "resource/#", BY_RESOURCE_ID);
          uriMatcher.addURI(AUTHORITY, "begin", BEGIN_TRANSACTION);
          uriMatcher.addURI(AUTHORITY, "commit", END_TRANSACTION);
          uriMatcher.addURI(AUTHORITY, "approve", APPROVE_TRANSACTION);
@@ -104,7 +111,7 @@ public class PendingChanges extends ContentProvider {
 					selection,
 					selectionArgs);
 			break;
-		case BY_RESOURCE_ID:
+		case BY_PENDING_ID:
 			String row_id = uri.getPathSegments().get(0);
 			count = AcalDB.delete(
 					DATABASE_TABLE,
@@ -113,6 +120,7 @@ public class PendingChanges extends ContentProvider {
 							selection + ')' : ""),
 							selectionArgs);
 			break;
+		case BY_RESOURCE_ID:
 		default: throw new IllegalArgumentException(
 				"Unknown URI " + uri);
 		}
@@ -130,6 +138,7 @@ public class PendingChanges extends ContentProvider {
 		//Get all Servers
 		case ALLSETS:
 		case BY_RESOURCE_ID:
+		case BY_PENDING_ID:
 			return "vnd.android.cursor.dir/vnd.morphoss.pending_change";
 		default:
 			throw new IllegalArgumentException("Unsupported URI: "+uri);
@@ -186,9 +195,12 @@ public class PendingChanges extends ContentProvider {
 		
 		String groupBy = null;
 
-		if (uriMatcher.match(uri) == BY_RESOURCE_ID)
-			//---if getting a particular server---
+		if (uriMatcher.match(uri) == BY_PENDING_ID)
+			//---if getting a particular pending change---
 			sqlBuilder.appendWhere(_ID + " = " + uri.getPathSegments().get(0));
+		else if (uriMatcher.match(uri) == BY_RESOURCE_ID)
+			//---if getting changes for a particular resource---
+			sqlBuilder.appendWhere(RESOURCE_ID + " = " + uri.getPathSegments().get(1));
 
 		// We always group by resource_id
 		groupBy = RESOURCE_ID;
@@ -224,7 +236,7 @@ public class PendingChanges extends ContentProvider {
 					selection,
 					selectionArgs);
 			break;
-		case BY_RESOURCE_ID:
+		case BY_PENDING_ID:
 			count = AcalDB.update(
 					DATABASE_TABLE,
 					values,
@@ -249,6 +261,7 @@ public class PendingChanges extends ContentProvider {
 			if (!AcalDB.inTransaction()) return 0;
 			AcalDB.setTransactionSuccessful();
 			return 1;
+		case BY_RESOURCE_ID:
 		default: throw new IllegalArgumentException(
 				"Unknown URI " + uri);
 		}
@@ -275,5 +288,39 @@ public class PendingChanges extends ContentProvider {
 			db.close();
 		}
 
+	}
+
+	/**
+	 * Static method to retrieve a particular database row for a given resource ID.
+	 * @param resourceId
+	 * @param contentResolver
+	 * @return A ContentValues which is the pending_changes row, or null
+	 */
+	public static ContentValues getByResource(Integer resourceId, ContentResolver contentResolver) {
+		ContentValues resourceData = null;
+		Cursor c = null;
+		try {
+			c = contentResolver.query(Uri.withAppendedPath(CONTENT_URI, "resource/"+resourceId),
+						null, null, null, null);
+			if ( !c.moveToFirst() ) {
+				if ( Constants.LOG_DEBUG )
+					Log.d(TAG, "No pending_changes row for resource " + Long.toString(resourceId));
+				c.close();
+				return null;
+			}
+			resourceData = new ContentValues();
+			DatabaseUtils.cursorRowToContentValues(c,resourceData);
+		}
+		catch (Exception e) {
+			// Error getting data
+			Log.e(TAG, "Error getting pending_changes data from DB: " + e.getMessage());
+			Log.e(TAG, Log.getStackTraceString(e));
+			c.close();
+			return null;
+		}
+
+		c.close();
+
+		return resourceData;
 	}
 }
