@@ -24,7 +24,6 @@ import org.apache.http.message.BasicHeader;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
 import com.morphoss.acal.Constants;
@@ -163,57 +162,6 @@ public class SynchronisationJobs extends ServiceJob {
 
 
 
-	/**
-	 * <p>
-	 * Writes the modified resource back to the database, creating, updating or deleting depending on the
-	 * action requested.  After it's written to the database we notify the CalendarDataService of the new
-	 * event data.
-	 * </p>
-	 * 
-	 * @param db
-	 * @param action
-	 * @param resourceValues
-	 * @throws Exception 
-	 */
-	public static void writeResource( SQLiteDatabase db, WriteActions action, ContentValues resourceValues ) {
-
-		String data = resourceValues.getAsString(DavResources.RESOURCE_DATA);
-
-		if ( action == WriteActions.UPDATE || action == WriteActions.INSERT ) {
-			updateInstanceRange(resourceValues);
-		}
-
-		Integer resourceId = resourceValues.getAsInteger(DavResources._ID);
-		Log.i(TAG, "Writing Resource with " + action + " on resource ID "
-					+ (resourceId == null ? "new" : Integer.toString(resourceId)));
-		switch (action) {
-			case UPDATE:
-				db.update(DavResources.DATABASE_TABLE, resourceValues, DavResources._ID + " = ?",
-							new String[] { Integer.toString(resourceId) });
-				if (data != null)
-					aCalService.databaseDispatcher.dispatchEvent(new DatabaseChangedEvent(
-								DatabaseChangedEvent.DATABASE_RECORD_UPDATED, DavResources.class, resourceValues));
-				break;
-			case INSERT:
-				resourceId = (int) db.insert(DavResources.DATABASE_TABLE, null, resourceValues);
-				resourceValues.put(DavResources._ID, resourceId);
-				if (data != null)
-					aCalService.databaseDispatcher.dispatchEvent(new DatabaseChangedEvent(
-								DatabaseChangedEvent.DATABASE_RECORD_INSERTED, DavResources.class, resourceValues));
-				break;
-			case DELETE:
-				if (Constants.LOG_DEBUG)
-					Log.d(TAG,"Deleting resources with ResourceId = " + Integer.toString(resourceId) );
-				db.delete(DavResources.DATABASE_TABLE, DavResources._ID + " = ?",
-							new String[] { Integer.toString(resourceId) });
-				aCalService.databaseDispatcher.dispatchEvent(new DatabaseChangedEvent(
-								DatabaseChangedEvent.DATABASE_RECORD_DELETED, DavResources.class, resourceValues));
-				break;
-		}
-
-	}
-
-	
 	private static void updateInstanceRange(ContentValues resourceValues) {
 		VComponent vCal = null;
 		try {
