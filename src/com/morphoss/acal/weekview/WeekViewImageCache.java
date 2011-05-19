@@ -126,15 +126,15 @@ public class WeekViewImageCache {
 			String text = "";
 
 			if (WeekViewActivity.TIME_24_HOUR) {
-				if (half) text=":30";
-				else text = hour+"";
+				if (half) text=":30 ";
+				else text = hour+" ";
 			} else {
-				if (half) text=":30";
-				else if (hour == 0)text="12 "+am;
+				if (half) text=":30 ";
+				else if (hour == 0)text="12 "+am+" ";
 				else {
 					int hd = hour;
 					if (hour >= 13) hd-=12; 
-					text=(int)hd+" "+(hour<12?am:pm);
+					text=(int)hd+" "+(hour<12?am:pm)+" ";
 				}
 			}
 			
