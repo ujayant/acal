@@ -106,7 +106,10 @@ public class ResourceModification {
 		}
 	}
 
-	
+
+	/**
+	 * Sends a notification of this change to the dataservice, if needed.
+	 */
 	public void notifyChange() {
 		if ( dbChangeNotification == null ) {
 			if ( Constants.LOG_VERBOSE ) Log.v(TAG,"No change to notify to databaseDispatcher");
@@ -115,7 +118,11 @@ public class ResourceModification {
 		aCalService.databaseDispatcher.dispatchEvent(dbChangeNotification);
 	}
 
-	
+	/**
+	 * Gets the ID of the resource being committed.  After a new resource is created this
+	 * will return the resourceID it was created as.
+	 * @return
+	 */
 	public Integer getResourceId() {
 		return resourceId;
 	}
