@@ -30,6 +30,8 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.morphoss.acal.Constants;
+
 public class DavNode {
 
 	private final static Pattern splitNsTag = Pattern.compile("^(.*):([^:]+)$"); 
@@ -167,8 +169,7 @@ public class DavNode {
 		String name = getFirstNodeText(path);
 		if ( name == null ) return null;
 
-		Pattern p = Pattern.compile("([^/]+)$");
-		Matcher m = p.matcher(name);
+		Matcher m = Constants.matchSegmentName.matcher(name);
 		if (m.find()) name = m.group(1);
 		return name;
 	}
