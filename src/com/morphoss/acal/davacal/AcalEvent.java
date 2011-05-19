@@ -31,10 +31,12 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
 
+import com.morphoss.acal.Constants;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.providers.DavResources;
+import com.morphoss.acal.providers.PendingChanges;
 
 /**
  * 
@@ -109,9 +111,19 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 	 */
 	public static AcalEvent fromDatabase( Context context, int resourceId, AcalDateTime dtStart ) {
 		ContentValues resourceValues = DavResources.getRow(resourceId, context.getContentResolver());
+		ContentValues pendingValues = PendingChanges.getByResource(resourceId, context.getContentResolver());
+		if ( pendingValues != null ) {
+			String newData = pendingValues.getAsString(PendingChanges.NEW_DATA);
+			if ( newData == null ) newData = "";
+			resourceValues.put(DavResources.RESOURCE_DATA, newData);
+			resourceValues.put(DavResources.IS_PENDING, 1);
+			if ( Constants.LOG_DEBUG )
+				Log.i(TAG,"Using pending change record for AcalEvent fromDatabase.");
+		}
+
 		VComponent vc;
 		try {
-			vc = VComponent.createComponentFromResource(resourceValues,
+			vc = VComponent.createComponentFromResource( resourceValues,
 						AcalCollection.fromDatabase(context, resourceValues.getAsLong(DavResources.COLLECTION_ID)));
 		}
 		catch (VComponentCreationException e) {
@@ -119,7 +131,7 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 			return null;
 		}
 		if ( ! (vc instanceof VCalendar) ) {
-			Log.w(TAG,"Trying to build AcalEvent but resource "+resourceId+" is not a VCalendar");
+			Log.w(TAG,"Trying to build AcalEvent but resource "+resourceId+" is not a VCalendar it is a "+vc.name );
 			return null;
 		}
 		Masterable event = ((VCalendar) vc).getMasterChild();

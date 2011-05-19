@@ -113,6 +113,10 @@ CREATE TABLE dav_resource (
 	public static final String EARLIEST_START="earliest_start";
 	public static final String LATEST_END="latest_end";
 
+	// This is not a field, but we sometimes put this into the ContentValues as if
+	// it were, when there is a pending change for this resource.
+	public static final String IS_PENDING="is_pending";
+	
 	/*
 	 * <p>Delete matching rows from the dav_resource table</p>
 	 * 
@@ -387,14 +391,14 @@ CREATE TABLE dav_resource (
 		}
 		catch (Exception e) {
 			// Error getting data
-			Log.e(TAG, "Error getting server data from DB: " + e.getMessage());
+			Log.e(TAG, "Error getting dav_resources data from DB: " + e.getMessage());
 			Log.e(TAG, Log.getStackTraceString(e));
 			c.close();
 			return null;
 		}
-		finally {
-			c.close();
-		}
+
+		c.close();
+
 		return resourceData;
 	}
 }
