@@ -1,14 +1,19 @@
 package com.morphoss.acal;
 
+import java.util.List;
+
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
+import com.morphoss.acal.database.AcalDBHelper;
 import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VComponent;
 import com.morphoss.acal.providers.DavResources;
+import com.morphoss.acal.providers.PendingChanges;
 import com.morphoss.acal.service.aCalService;
 import com.morphoss.acal.service.SynchronisationJobs.WriteActions;
 
@@ -18,6 +23,7 @@ public class ResourceModification {
 	private final WriteActions modificationAction;
 	private final ContentValues resourceValues;
 	private final Integer pendingId;
+	private Integer resourceId = null;
 	private DatabaseChangedEvent dbChangeNotification = null;
 	
 	public ResourceModification(WriteActions action, ContentValues inResourceValues, Integer pendingId) {
@@ -46,10 +52,16 @@ public class ResourceModification {
 		this.modificationAction = action;
 		this.resourceValues = inResourceValues;
 		this.pendingId = pendingId;
+		this.resourceId = resourceValues.getAsInteger(DavResources._ID);
 	}
 
+
+	/**
+	 * Commit this change to the dav_resource table.
+	 * @param db The database handle to use for the commit
+	 */
 	public void commit( SQLiteDatabase db ) {
-		Integer resourceId = resourceValues.getAsInteger(DavResources._ID);
+		getResourceId();
 
 		if ( Constants.LOG_DEBUG )
 			Log.d(TAG, "Writing Resource with " + modificationAction + " on resource ID "
@@ -79,9 +91,22 @@ public class ResourceModification {
 								DavResources.class, resourceValues);
 				break;
 		}
-		
+
+		if ( pendingId != null ) {
+			// We can retire this change now
+			int removed = db.delete(PendingChanges.DATABASE_TABLE,
+					  PendingChanges._ID+"=?",
+					  new String[] { Integer.toString(pendingId) });
+			if ( Constants.LOG_DEBUG )
+				Log.d(TAG, "Deleted "+removed+" one pending_change record ID="+pendingId+" for resourceId="+resourceId);
+
+			ContentValues pending = new ContentValues();
+			pending.put(PendingChanges._ID, pendingId);
+			aCalService.databaseDispatcher.dispatchEvent(new DatabaseChangedEvent(DatabaseChangedEvent.DATABASE_RECORD_DELETED, PendingChanges.class, pending));
+		}
 	}
 
+	
 	public void notifyChange() {
 		if ( dbChangeNotification == null ) {
 			if ( Constants.LOG_VERBOSE ) Log.v(TAG,"No change to notify to databaseDispatcher");
@@ -89,4 +114,61 @@ public class ResourceModification {
 		}
 		aCalService.databaseDispatcher.dispatchEvent(dbChangeNotification);
 	}
+
+	
+	public Integer getResourceId() {
+		return resourceId;
+	}
+
+	
+	public Integer getPendingId() {
+		return pendingId;
+	}
+
+	/**
+	 * Use this to apply the resource modifications to the database.  In this case you
+	 * will need to commit the database transaction afterwards
+	 * @param changeList The List of ResourceModification objects to be applied
+	 */
+	public static boolean applyChangeList(SQLiteDatabase db, List<ResourceModification> changeList) {
+		boolean completed =false;
+		try {
+
+			for ( ResourceModification changeUnit : changeList ) {
+				changeUnit.commit(db);
+				db.yieldIfContendedSafely();
+			}
+			completed = true;
+		}
+		catch (Exception e) {
+			Log.e(TAG, "Exception updating resources DB: " + e.getMessage());
+			Log.e(TAG, Log.getStackTraceString(e));
+		}
+		return completed;
+	}
+
+	
+	/**
+	 * Use this to actually commit our resource modifications to the database.
+	 * @param changeList The List of ResourceModification objects to be committed
+	 */
+	public static void commitChangeList(Context c, List<ResourceModification> changeList) {
+		AcalDBHelper dbHelper = new AcalDBHelper(c);
+		SQLiteDatabase db = dbHelper.getWritableDatabase();
+		db.beginTransaction();
+
+		boolean successful = applyChangeList(db,changeList); 
+		if ( successful ) db.setTransactionSuccessful();
+
+		db.endTransaction();
+		db.close();
+		if ( successful ) {
+			DatabaseChangedEvent.beginResourceChanges();
+			for ( ResourceModification changeUnit : changeList ) {
+				changeUnit.notifyChange();
+			}
+			DatabaseChangedEvent.endResourceChanges();
+		}
+	}
+	
 }

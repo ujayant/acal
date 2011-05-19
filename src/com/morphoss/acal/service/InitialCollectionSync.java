@@ -18,9 +18,11 @@
 
 package com.morphoss.acal.service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
@@ -37,6 +39,7 @@ import android.util.Log;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.DatabaseChangedEvent;
 import com.morphoss.acal.HashCodeUtil;
+import com.morphoss.acal.ResourceModification;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.database.AcalDBHelper;
 import com.morphoss.acal.providers.DavCollections;
@@ -237,7 +240,6 @@ public class InitialCollectionSync extends ServiceJob {
 			Map<String, ContentValues> serverList = new HashMap<String,ContentValues>();
 			List<DavNode> responseList = root.getNodesFromPath("multistatus/response");
 
-			int numRowsToSync = responseList.size() - databaseList.size();
 			if ( Constants.LOG_VERBOSE ) {
 				Log.v(TAG,"Database list has "+databaseList.size()+" rows.");
 				Log.v(TAG,"Response list has "+responseList.size()+" rows.");
@@ -270,26 +272,41 @@ public class InitialCollectionSync extends ServiceJob {
 			//Remove all duplicates
 			removeDuplicates(databaseList, serverList);
 
-			// Start a transaction for the writes to the database
+			List<ResourceModification> changeList = new ArrayList<ResourceModification>(databaseList.size());
+			for ( Entry<String,ContentValues> e : databaseList.entrySet() ) {
+				changeList.add(new ResourceModification(WriteActions.DELETE, e.getValue(), null));
+			}
+			String id;
+			ContentValues cv;
+			for ( Entry<String,ContentValues> e : serverList.entrySet() ) {
+				cv = e.getValue();
+				id = cv.getAsString(DavResources._ID);
+				changeList.add(new ResourceModification((id == null || id.equals("")
+															? WriteActions.INSERT
+															: WriteActions.UPDATE),
+							cv, null));
+			}
+
 			db.beginTransaction();
 
-			//Delete those that have been removed
-			int deleted = deleteRecords(db, databaseList);
-			int updated = updateRecords(db, serverList);
+			boolean successful = ResourceModification.applyChangeList(db,changeList); 
+			if ( successful ) db.setTransactionSuccessful();
 
 			if ( root != null ) {
 				//Update sync token
-				ContentValues cv = new ContentValues();
+				cv = new ContentValues();
 				String syncToken = root.getFirstNodeText("multistatus/sync-token");
 				cv.put(DavCollections.SYNC_TOKEN, syncToken);
-				db.update(DavCollections.DATABASE_TABLE, cv, DavCollections._ID+"=?", new String[] {Integer.toString(collectionId)});
+				db.update(DavCollections.DATABASE_TABLE, cv,
+							DavCollections._ID+"=?", new String[] {Integer.toString(collectionId)});
 			}
 				
 			// Finish the transaction, as soon as possible
 			db.setTransactionSuccessful();
 			db.endTransaction();
 
-			if (Constants.LOG_VERBOSE) Log.v(TAG, deleted + " records deleted, " + updated + " updated");			
+			if (Constants.LOG_VERBOSE)
+				Log.v(TAG, databaseList.size() + " records deleted, " + serverList.size() + " updated");			
 
 			if ( collectionValues.getAsInteger(DavCollections.ACTIVE_EVENTS) == 1 ) {
 				syncRecentEvents(db);
@@ -320,55 +337,35 @@ public class InitialCollectionSync extends ServiceJob {
 		DavNode root = requestor.doXmlRequest("REPORT", collectionPath, SynchronisationJobs.getReportHeaders(1),
 					String.format(calendarQuery, from.fmtIcal(), until.fmtIcal()));
 
-		boolean resourcesWereSynchronized = false;
-		db.beginTransaction();
+		ArrayList<ResourceModification> changeList = new ArrayList<ResourceModification>(); 
 
-		try {
-			// step 1c parse response
-			if (Constants.LOG_VERBOSE) Log.v(TAG, "Start processing response");
-			long start2 = System.currentTimeMillis();
-			List<DavNode> responses = root.getNodesFromPath("multistatus/response");
+		List<DavNode> responses = root.getNodesFromPath("multistatus/response");
 
-			for (DavNode response : responses) {
-				String name = response.segmentFromFirstHref("href");
-				ContentValues cv = null;
-				Cursor c = db.query(DavResources.DATABASE_TABLE, null,
-							DavResources.COLLECTION_ID+"=? AND "+DavResources.RESOURCE_NAME+"=?",
-							new String[] {Integer.toString(collectionId), name}, null, null, null);
-				if ( c.moveToFirst() ) {
-					cv = new ContentValues();
-					DatabaseUtils.cursorRowToContentValues(c, cv);
-				}
-				c.close();
-				
-				WriteActions action = WriteActions.UPDATE;
-				if ( cv == null ) {
-					cv = new ContentValues();
-					cv.put(DavResources.COLLECTION_ID, collectionId);
-					cv.put(DavResources.RESOURCE_NAME, name);
-					action = WriteActions.INSERT;
-				}
-				if ( !parseResponseNode(response, cv) ) continue;
-				
-				try {
-					SynchronisationJobs.writeResource(db,action,cv);
-					resourcesWereSynchronized = true;
-					db.yieldIfContendedSafely();
-				}
-				catch ( Exception e ) {
-					Log.w(TAG,"Exception during initial content sync with calendar-query.");
-					throw e; // So we give up on this update.
-				}
+		for (DavNode response : responses) {
+			String name = response.segmentFromFirstHref("href");
+			ContentValues cv = null;
+			Cursor c = db.query(DavResources.DATABASE_TABLE, null,
+						DavResources.COLLECTION_ID+"=? AND "+DavResources.RESOURCE_NAME+"=?",
+						new String[] {Integer.toString(collectionId), name}, null, null, null);
+			if ( c.moveToFirst() ) {
+				cv = new ContentValues();
+				DatabaseUtils.cursorRowToContentValues(c, cv);
 			}
-			db.setTransactionSuccessful();
-
-			if (Constants.LOG_VERBOSE)	Log.v(TAG, "Completed processing in completed in " + (System.currentTimeMillis() - start2) + "ms");
+			c.close();
+			
+			WriteActions action = WriteActions.UPDATE;
+			if ( cv == null ) {
+				cv = new ContentValues();
+				cv.put(DavResources.COLLECTION_ID, collectionId);
+				cv.put(DavResources.RESOURCE_NAME, name);
+				action = WriteActions.INSERT;
+			}
+			if ( !parseResponseNode(response, cv) ) continue;
+			
+			changeList.add( new ResourceModification(action,cv,null));
 		}
-		catch (Exception e) {
-			Log.e(TAG, "Exception updating resources DB: " + e.getMessage());
-			Log.e(TAG, Log.getStackTraceString(e));
-		}
-		db.endTransaction();
+		
+		ResourceModification.commitChangeList(context, changeList);
 		
 	}
 
@@ -478,6 +475,7 @@ public class InitialCollectionSync extends ServiceJob {
 		return db.delete( DavResources.DATABASE_TABLE, DavResources._ID+" IN ("+delIds+")", new String[] {  });
 	}
 	
+/*
 	public int updateRecords(SQLiteDatabase db, Map<String, ContentValues> toUpdate) {
 		String names[] = new String[toUpdate.size()];
 		toUpdate.keySet().toArray(names);
@@ -501,7 +499,8 @@ public class InitialCollectionSync extends ServiceJob {
 		}
 		return names.length;
 	}
-
+*/
+	
 	@Override
 	public String getDescription() {
 		return "Initial collection sync on "

@@ -91,9 +91,9 @@ public class SyncChangesToServer extends ServiceJob {
 		
 		if ( marshallCollectionsToSync() ) {
 			try {
-				ContentValues pendingChange;
-				while( (pendingChange = getChangeToSync()) != null ) {
-					updateCollectionProperties(pendingChange);
+				ContentValues collectionValues;
+				while( (collectionValues = getChangeToSync()) != null ) {
+					updateCollectionProperties(collectionValues);
 				}
 			}
 			catch( Exception e ) {
@@ -102,14 +102,15 @@ public class SyncChangesToServer extends ServiceJob {
 		}
 
 		if ( !marshallChangesToSync() ) {
-			if (Constants.LOG_VERBOSE) Log.v(TAG, "No local changes to synchronise.");
+			if (Constants.LOG_DEBUG) Log.d(TAG, "No local changes to synchronise.");
 			return; // without rescheduling
 		}
 		else if ( !connectivityAvailable() ) {
 			if (Constants.LOG_DEBUG) Log.d(TAG, "No connectivity available to sync local changes.");
 		}
 		else {
-			if (Constants.LOG_DEBUG) Log.d(TAG, "Starting sync of local changes");
+			if (Constants.LOG_DEBUG)
+				Log.d(TAG, "Starting sync of local changes");
 			
 			collectionsToSync = new HashSet<Integer>();
 	
@@ -320,10 +321,6 @@ public class SyncChangesToServer extends ServiceJob {
 					// Attempting to keep our transaction as narrow as possible.
 					db.beginTransaction();
 					changeUnit.commit(db);
-					// We can retire this change now
-					db.delete(PendingChanges.DATABASE_TABLE,
-							  PendingChanges._ID+"=?",
-							  new String[] { Integer.toString(pendingId) });
 					db.setTransactionSuccessful();
 					completed = true;
 				}
@@ -335,10 +332,8 @@ public class SyncChangesToServer extends ServiceJob {
 					db.endTransaction();
 					db.close();
 					
-					if ( completed ) {
-						aCalService.databaseDispatcher.dispatchEvent(new DatabaseChangedEvent(DatabaseChangedEvent.DATABASE_RECORD_DELETED, PendingChanges.class, pending));
-						changeUnit.notifyChange();
-					}
+					if ( completed ) changeUnit.notifyChange();
+
 				}
 				break;
 
@@ -440,12 +435,12 @@ public class SyncChangesToServer extends ServiceJob {
 		" </set>\n"+
 		"</propertyupdate>\n";
 
+	
 	private void updateCollectionProperties( ContentValues collectionData ) {
 		String proppatchRequest = String.format(baseProppatch,
 					collectionData.getAsString(DavCollections.COLOUR)
 				);
 
-		InputStream in = null;
 		try {
 			ContentValues serverData = Servers.getRow(collectionData.getAsInteger(DavCollections.SERVER_ID), cr);
 			requestor.applyFromServer(serverData);

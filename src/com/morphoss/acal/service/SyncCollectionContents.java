@@ -20,13 +20,16 @@ package com.morphoss.acal.service;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+
+import javax.net.ssl.SSLException;
 
 import org.apache.http.Header;
-import org.apache.http.message.BasicHeader;
 
 import android.app.ActivityManager;
 import android.content.ContentQueryMap;
@@ -34,7 +37,6 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -46,12 +48,12 @@ import com.morphoss.acal.DatabaseChangedEvent;
 import com.morphoss.acal.HashCodeUtil;
 import com.morphoss.acal.ResourceModification;
 import com.morphoss.acal.acaltime.AcalDateTime;
-import com.morphoss.acal.database.AcalDBHelper;
 import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.providers.DavResources;
 import com.morphoss.acal.providers.Servers;
 import com.morphoss.acal.service.SynchronisationJobs.WriteActions;
 import com.morphoss.acal.service.connector.AcalRequestor;
+import com.morphoss.acal.service.connector.SendRequestFailedException;
 import com.morphoss.acal.xml.DavNode;
 
 public class SyncCollectionContents extends ServiceJob {
@@ -234,6 +236,7 @@ public class SyncCollectionContents extends ServiceJob {
 		return true;
 	}
 
+
 	/**
 	 * <p>
 	 * Do a sync run using a sync-collection REPORT against the collection, hopefully retrieving the -data
@@ -282,6 +285,7 @@ public class SyncCollectionContents extends ServiceJob {
 				cv.put(DavResources.NEEDS_SYNC, true );
 				action = WriteActions.INSERT;
 			}
+			String oldEtag = cv.getAsString(DavResources.ETAG);
 			
 			List<DavNode> aNode = response.getNodesFromPath("status");
 			if ( aNode.isEmpty()
@@ -292,6 +296,16 @@ public class SyncCollectionContents extends ServiceJob {
 				// We are dealing with an update or insert
 				if ( !parseResponseNode(response, cv) ) continue;
 				if ( cv.getAsBoolean(DavResources.NEEDS_SYNC) ) needSyncAfterwards = true; 
+
+				if ( oldEtag != null && cv.getAsString(DavResources.ETAG) != null ) {
+					if ( oldEtag.equals(cv.getAsString(DavResources.ETAG)) ) {
+						// Resource in both places, but is unchanged.
+						Log.d(TAG,"Notified of change to resource but etag already matches!");
+						continue;
+					}
+					if ( Constants.LOG_DEBUG )
+						Log.d(TAG,"Old etag="+oldEtag+", new etag="+cv.getAsString(DavResources.ETAG));
+				}
 			}
 			else if ( action == WriteActions.INSERT ) {
 				// It looked like an INSERT because it's not in our DB, but in fact
@@ -316,33 +330,8 @@ public class SyncCollectionContents extends ServiceJob {
 				Log.v(TAG, "Completed processing in completed in " + (System.currentTimeMillis() - start2) + "ms");
 		}
 
+		ResourceModification.commitChangeList(context, changeList);
 		
-		AcalDBHelper dbHelper = new AcalDBHelper(this.context);
-		SQLiteDatabase db = dbHelper.getWritableDatabase();
-		db.beginTransaction();
-		boolean completed =false;
-		try {
-
-			for ( ResourceModification changeUnit : changeList ) {
-				changeUnit.commit(db);
-			}
-			db.setTransactionSuccessful();
-			completed = true;
-		}
-		catch (Exception e) {
-			Log.e(TAG, "Exception updating resources DB: " + e.getMessage());
-			Log.e(TAG, Log.getStackTraceString(e));
-		}
-		finally {
-			db.endTransaction();
-			db.close();
-			if ( completed ) {
-				for ( ResourceModification changeUnit : changeList ) {
-					changeUnit.notifyChange();
-				}
-			}
-		}
-
 		return needSyncAfterwards;
 	}
 
@@ -376,11 +365,8 @@ public class SyncCollectionContents extends ServiceJob {
 		}
 
 		Map<String, ContentValues> ourResourceMap = getCurrentResourceMap();
+		ArrayList<ResourceModification> changeList = new ArrayList<ResourceModification>(); 
 
-		AcalDBHelper dbHelper = new AcalDBHelper(this.context);
-		SQLiteDatabase db = dbHelper.getWritableDatabase();
-		db.beginTransaction();
-		
 		try {
 			if (Constants.LOG_VERBOSE) Log.v(TAG, "Start processing PROPFIND response");
 			long start2 = System.currentTimeMillis();
@@ -406,14 +392,10 @@ public class SyncCollectionContents extends ServiceJob {
 				
 				if ( !parseResponseNode(response, cv) ) continue;
 
-				if ( cv.getAsString(DavResources.ETAG) != null && oldEtag.equals(cv.getAsString(DavResources.ETAG)) ) {
-					// Resource in both places, but is unchanged.
-					continue;
-				}
 				needSyncAfterwards = true; 
 				cv.put(DavResources.NEEDS_SYNC, true);
 
-				writeResource(db, action, cv);
+				changeList.add( new ResourceModification(action, cv, null) );
 			}
 			
 			if ( ourResourceMap != null ) {
@@ -421,23 +403,19 @@ public class SyncCollectionContents extends ServiceJob {
 				Set<String> names = ourResourceMap.keySet();
 				for( String name : names ) {
 					ContentValues cv = ourResourceMap.get(name);
-					writeResource(db, WriteActions.DELETE, cv );
+					changeList.add( new ResourceModification(WriteActions.DELETE, cv, null) );
 				}
 			}
-
-			db.setTransactionSuccessful();
-			db.endTransaction();
-			db.close();
 			
-			if (Constants.LOG_VERBOSE)	Log.v(TAG, "Completed processing in completed in " + (System.currentTimeMillis() - start2) + "ms");
+			if (Constants.LOG_VERBOSE)	Log.v(TAG, "Completed processing of PROPFIND sync in " + (System.currentTimeMillis() - start2) + "ms");
 		}
 		catch (Exception e) {
-			Log.e(TAG, "Exception updating resources DB: " + e.getMessage());
+			Log.e(TAG, "Exception processing PROPFIND response: " + e.getMessage());
 			Log.e(TAG, Log.getStackTraceString(e));
-			db.endTransaction();
-			db.close();
 		}
 
+		ResourceModification.commitChangeList(context, changeList);
+		
 		return needSyncAfterwards;
 	}
 
@@ -575,7 +553,6 @@ public class SyncCollectionContents extends ServiceJob {
 	 *            </p>
 	 */
 	private void syncWithMultiget(Map<String, ContentValues> originalData, Object[] hrefs) {
-		long fullMethod = System.currentTimeMillis();
 
 		String baseXml = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>"
 			+ "<" + multigetReportTag + " xmlns=\"" + nameSpace + "\" xmlns:D=\"DAV:\">\n"
@@ -587,16 +564,27 @@ public class SyncCollectionContents extends ServiceJob {
 				+ "</D:prop>\n"
 				+ "%s"
 				+ "</" + multigetReportTag + ">";
-		
+
+		ArrayList<String> toBeRemoved = new ArrayList<String>(hrefs.length);
+		for( Object o : hrefs ) {
+			Matcher m = Constants.matchSegmentName.matcher(o.toString());
+			if ( m.find() ) toBeRemoved.add(m.group(1));
+		}
+
+		int limit;
+		StringBuilder hrefList; 
 		for (int hrefIndex = 0; hrefIndex < hrefs.length; hrefIndex += nPerMultiget) {
-			int limit = nPerMultiget + hrefIndex;
+			limit = nPerMultiget + hrefIndex;
 			if ( limit > hrefs.length ) limit = hrefs.length;
-			StringBuilder hrefList = new StringBuilder();
+			
+			hrefList = new StringBuilder();
 			for (int i = hrefIndex; i < limit; i++) {
 				hrefList.append(String.format("<D:href>%s</D:href>", collectionPath + hrefs[i].toString()));
 			}
 		
-			if (Constants.LOG_DEBUG) Log.d(TAG, "Requesting " + multigetReportTag + " for " + nPerMultiget + " resources out of "+hrefs.length+"." );
+			if (Constants.LOG_DEBUG)
+				Log.d(TAG, "Requesting " + multigetReportTag + " for " + nPerMultiget + " resources out of "+hrefs.length+"." );
+
 			DavNode root = doCalendarRequest( "REPORT", 1, String.format(baseXml,hrefList.toString()) );
 
 			if (root == null) {
@@ -604,41 +592,37 @@ public class SyncCollectionContents extends ServiceJob {
 							+ " - no data from server).");
 				return;
 			}
-			AcalDBHelper dbHelper = new AcalDBHelper(this.context);
-			SQLiteDatabase db = dbHelper.getWritableDatabase();
-			db.beginTransaction();
-			try {
-				// step 1c parse response
-				if (Constants.LOG_VERBOSE) Log.v(TAG, "Start processing response");
-				long start2 = System.currentTimeMillis();
-				List<DavNode> responses = root.getNodesFromPath("multistatus/response");
 
-				for (DavNode response : responses) {
-					String name = response.segmentFromFirstHref("href");
-					ContentValues cv = originalData.get(name);
-					WriteActions action = WriteActions.UPDATE;
-					if ( cv == null ) {
-						cv = new ContentValues();
-						cv.put(DavResources.COLLECTION_ID, collectionId);
-						cv.put(DavResources.RESOURCE_NAME, name);
-						action = WriteActions.INSERT;
-					}
-					if ( !parseResponseNode(response, cv) ) continue;
-					
-					writeResource( db, action, cv);
+			if (Constants.LOG_VERBOSE) Log.v(TAG, "Start processing response");
+			List<DavNode> responses = root.getNodesFromPath("multistatus/response");
+			List<ResourceModification> changeList = new ArrayList<ResourceModification>(hrefList.length());
+
+			for (DavNode response : responses) {
+				String name = response.segmentFromFirstHref("href");
+				if ( toBeRemoved.contains(name) ) {
+					Log.v(TAG,"Found href in our list.");
+					toBeRemoved.remove(name);
 				}
-				db.setTransactionSuccessful();
-				db.endTransaction();
-				db.close();
 
-				if (Constants.LOG_VERBOSE)	Log.v(TAG, "Completed processing in completed in " + (System.currentTimeMillis() - start2) + "ms");
+				ContentValues cv = originalData.get(name);
+				WriteActions action = WriteActions.UPDATE;
+				if ( cv == null ) {
+					cv = new ContentValues();
+					cv.put(DavResources.COLLECTION_ID, collectionId);
+					cv.put(DavResources.RESOURCE_NAME, name);
+					action = WriteActions.INSERT;
+				}
+				parseResponseNode(response, cv);
+				if ( cv.getAsString("COLLECTION") != null ) continue;
+
+				if (Constants.LOG_DEBUG)
+					Log.d(TAG, "Multiget response needs sync="+cv.getAsString(DavResources.NEEDS_SYNC)+" for "+name );
+				
+				changeList.add( new ResourceModification(action, cv, null) );
 			}
-			catch (Exception e) {
-				Log.e(TAG, "Exception updating resources DB: " + e.getMessage());
-				Log.e(TAG, Log.getStackTraceString(e));
-				db.endTransaction();
-				db.close();
-			}
+
+			ResourceModification.commitChangeList(context, changeList);
+			
 			if ( hrefIndex + nPerMultiget < hrefs.length ) {
 				Debug.MemoryInfo mi = new Debug.MemoryInfo();
 				try {
@@ -665,13 +649,16 @@ public class SyncCollectionContents extends ServiceJob {
 					return;
 				}
 			}
+
+			for( String href : toBeRemoved ) {
+				Log.v(TAG,"Did not find +"+href+"+ in the list.");
+			}
+			if ( toBeRemoved.size() > 0 ) {
+				doRegularSyncPropfind();
+				return;
+			}
 		}
 
-		long dbstart = System.currentTimeMillis();
-
-		if (Constants.LOG_VERBOSE)
-			Log.v(TAG, "DB transaction write completed in " + (System.currentTimeMillis() - dbstart) + "ms");
-		if (Constants.LOG_VERBOSE) Log.v(TAG, "checkResources() completed in " + (System.currentTimeMillis() - fullMethod) + "ms");
 		return;
 	}
 
@@ -707,64 +694,62 @@ public class SyncCollectionContents extends ServiceJob {
 	 * @return true If we need to write to the database, false otherwise.
 	 */
 	private boolean parseResponseNode(DavNode responseNode, ContentValues cv) {
-		long start = System.currentTimeMillis();
-		// long href = System.currentTimeMillis();
-		// if (Constants.LOG_VERBOSE) Log.v(TAG,
-		// "href nodes retrieved in  "+(System.currentTimeMillis()-href)+"ms");
+		boolean answer = true;
 
-		// long props = System.currentTimeMillis();
-		List<DavNode> propstats = responseNode.getNodesFromPath("propstat");
-		if ( propstats.size() < 1 ) return false;
-		// if (Constants.LOG_VERBOSE) Log.v(TAG,
-		// propstats.size()+"propstat nodes retrieved in  "+(System.currentTimeMillis()-props)+"ms");
-
-		for (DavNode propstat : propstats) {
-			String statusText = propstat.getFirstNodeText("status"); 
-			if ( !statusText.equalsIgnoreCase("HTTP/1.1 200 OK") || !statusText.equalsIgnoreCase("HTTP/1.1 201 Created")) {
-				responseNode.removeSubTree(propstat);
-				continue;
+		DavNode propstat = null;
+		for ( DavNode testPs : responseNode.getNodesFromPath("propstat")) {
+			String statusText = testPs.getFirstNodeText("status"); 
+			if ( statusText.equalsIgnoreCase("HTTP/1.1 200 OK") || statusText.equalsIgnoreCase("HTTP/1.1 201 Created")) {
+				propstat = testPs;
+				break;
 			}
-
-			DavNode prop = propstat.getNodesFromPath("prop").get(0);
-			String ctag = prop.getFirstNodeText("getctag");
-			if ( ctag != null ) {
-				collectionChanged = (collectionData.getAsString(DavCollections.COLLECTION_TAG) == null
-									|| ctag.equals(collectionData.getAsString(DavCollections.COLLECTION_TAG)));
-				if ( collectionChanged )
-					collectionData.put(DavCollections.COLLECTION_TAG, ctag);
-
-				return false;
-			}
-
-			String etag = prop.getFirstNodeText("getetag");
-			String data = prop.getFirstNodeText(dataType + "-data");
-			String last_modified = prop.getFirstNodeText("getlastmodified");
-			String content_type = prop.getFirstNodeText("getcontenttype");
-			
-			String oldEtag = cv.getAsString(DavResources.ETAG);
-			String oldData = cv.getAsString(DavResources.RESOURCE_DATA);
-			
-			if ( etag != null && oldEtag != null && oldEtag.equals(etag)
-						&& ( (data == null && oldData == null)
-							 || (data != null && oldData != null && oldData.equals(data) ) )
-							 ) {
-				cv.put(DavResources.NEEDS_SYNC, (oldData == null ? "1" : "0") );
-				return false;
-			}
-
-			if ( etag != null ) cv.put(DavResources.ETAG, etag);
-			if ( data != null ) cv.put(DavResources.RESOURCE_DATA, data); 
-			if ( last_modified != null ) cv.put(DavResources.LAST_MODIFIED, last_modified);
-			if ( content_type != null ) cv.put(DavResources.CONTENT_TYPE, content_type);
-			cv.put(DavResources.NEEDS_SYNC, (data == null || etag == null) );
 		}
 
-		// We remove our references to this now, since we've finished with it.
+		DavNode prop = propstat.getNodesFromPath("prop").get(0);
+		String s = prop.getFirstNodeText("getctag");
+		if ( s != null ) {
+			collectionChanged = (collectionData.getAsString(DavCollections.COLLECTION_TAG) == null
+								|| s.equals(collectionData.getAsString(DavCollections.COLLECTION_TAG)));
+			if ( collectionChanged ) collectionData.put(DavCollections.COLLECTION_TAG, s);
+			answer = false;
+			cv.put("COLLECTION", true);
+		}
+
+		if ( answer ) {
+			String etag = prop.getFirstNodeText("getetag");
+			
+			if ( etag != null ) {
+				cv.put(DavResources.ETAG, etag);
+				String oldEtag = cv.getAsString(DavResources.ETAG);
+				if ( oldEtag != null && oldEtag.equals(etag) ) {
+					cv.put(DavResources.NEEDS_SYNC, 0);
+					answer = false;
+				}
+				else {
+					if ( Constants.LOG_DEBUG )
+						Log.d(TAG,"Etags not equal: old="+oldEtag+", new="+etag+", proposing to sync.");
+					cv.put(DavResources.NEEDS_SYNC, 1);
+				}
+			}
+		}
+		
+		if ( answer ) {
+			String data = prop.getFirstNodeText(dataType + "-data");
+			if ( data != null ) { 
+				cv.put(DavResources.RESOURCE_DATA, data);
+				cv.put(DavResources.NEEDS_SYNC, 0);
+			}
+			s = prop.getFirstNodeText("getlastmodified");
+			if ( s != null ) cv.put(DavResources.LAST_MODIFIED, s);
+
+			s = prop.getFirstNodeText("getcontenttype");
+			if ( s != null ) cv.put(DavResources.CONTENT_TYPE, s);
+		}
+
+		// Remove our references to this now that we've finished with it.
 		responseNode.getParent().removeSubTree(responseNode);
 
-		if (Constants.debugSyncCollectionContents && Constants.LOG_VERBOSE)
-			Log.v(TAG, "Single response process time: completed in " + (System.currentTimeMillis() - start) + "ms");
-		return true;
+		return answer;
 	}
 
 	/**
@@ -786,74 +771,61 @@ public class SyncCollectionContents extends ServiceJob {
 		long fullMethod = System.currentTimeMillis();
 
 		Header[] headers = new Header[] {};
-
-		AcalDBHelper dbHelper = new AcalDBHelper(this.context);
-		SQLiteDatabase db = dbHelper.getWritableDatabase();
-		db.beginTransaction();
+		List<ResourceModification> changeList = new ArrayList<ResourceModification>(hrefs.length);
+		String path;
+		InputStream in;
+		int status;
 
 		for (int hrefIndex = 0; hrefIndex < hrefs.length; hrefIndex++) {
+			path = collectionPath + hrefs[hrefIndex];
+
 			try {
-				String path = collectionPath + hrefs[hrefIndex];
-
-				InputStream in = requestor.doRequest("GET", path, headers, "");
-				if (in == null) {
-					if (Constants.LOG_DEBUG) Log.d(TAG, "Error - Unable to get data stream from server.");
-					db.endTransaction();
-					db.close();
-					return;
-				}
-				else {
-					int status = requestor.getStatusCode();
-					switch (status) {
-						case 200: // Status O.K.
-							ContentValues cv = originalData.get(hrefs[hrefIndex]);
-							cv.put(DavResources.RESOURCE_DATA, in.toString());
-							for (Header hdr : requestor.getResponseHeaders()) {
-								if (hdr.getName().equalsIgnoreCase("ETag")) {
-									cv.put(DavResources.ETAG, hdr.getValue());
-									cv.put(DavResources.NEEDS_SYNC, false);
-									break;
-								}
-							}
-							writeResource( db, WriteActions.UPDATE, cv);
-							break;
-
-						default: // Unknown code
-							Log.w(TAG, "Status " + status + " on GET request for " + path);
-					}
-				}
+				in = requestor.doRequest("GET", path, headers, "");
 			}
-			catch (Exception e) {
-				Log.e(TAG, "Exception GETting resource to DB: " + e.getMessage());
-				Log.e(TAG, Log.getStackTraceString(e));
+			catch (SendRequestFailedException e) {
+				Log.i(TAG,"SendRequestFailedException ("+e.getMessage()+") on GET from "+path);
+				continue;
+			}
+			catch (SSLException e) {
+				Log.i(TAG,"SSLException on GET from "+path);
+				continue;
+			}
+			if (in == null) {
+				if (Constants.LOG_DEBUG) Log.d(TAG, "Error - Unable to get data stream from server.");
+				continue;
+			}
+			else {
+				status = requestor.getStatusCode();
+				switch (status) {
+					case 200: // Status O.K.
+						ContentValues cv = originalData.get(hrefs[hrefIndex]);
+						cv.put(DavResources.RESOURCE_DATA, in.toString());
+						for (Header hdr : requestor.getResponseHeaders()) {
+							if (hdr.getName().equalsIgnoreCase("ETag")) {
+								cv.put(DavResources.ETAG, hdr.getValue());
+								break;
+							}
+						}
+						cv.put(DavResources.NEEDS_SYNC, 0);
+						changeList.add( new ResourceModification(WriteActions.UPDATE, cv, null) );
+						if (Constants.LOG_DEBUG)
+							Log.d(TAG, "Multiget response needs sync="+cv.getAsString(DavResources.NEEDS_SYNC)+" for "+hrefs[hrefIndex] );
+						break;
+
+					default: // Unknown code
+						Log.w(TAG, "Status " + status + " on GET request for " + path);
+				}
 			}
 		}
-		db.setTransactionSuccessful();
-		db.endTransaction();
-		db.close();
+
+		ResourceModification.commitChangeList(context, changeList);
 
 		if (Constants.LOG_VERBOSE)	Log.v(TAG, "syncWithGet() for " + hrefs.length + " resources took "
 						+ (System.currentTimeMillis() - fullMethod) + "ms");
 		return;
 	}
 
-	
-	private void writeResource( SQLiteDatabase db, WriteActions action, ContentValues resourceValues ) throws Exception {
-		try {
-			SynchronisationJobs.writeResource(db,action,resourceValues);
-			resourcesWereSynchronized = true;
-			db.yieldIfContendedSafely();
-		}
-		catch ( Exception e ) {
-			Log.w(TAG,"Exception during collection contents sync: requesting full resync of collection.");
-			Log.w(TAG,Log.getStackTraceString(e));
-			ServiceJob job = new InitialCollectionSync( serverId, collectionPath);
-			context.addWorkerJob(job);
-			throw e; // So we give up on this update.
-		}
-	}
-
-	
+		
 
 	private boolean timeToRun() {
 		if ( synchronisationForced ) {
