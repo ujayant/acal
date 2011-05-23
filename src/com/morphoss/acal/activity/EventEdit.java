@@ -514,7 +514,14 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		};
 		String repeatRuleString = event.getRepetition();
 		if (repeatRuleString == null) repeatRuleString = "";
-		AcalRepeatRule RRule = new AcalRepeatRule(start, repeatRuleString); 
+		AcalRepeatRule RRule;
+		try {
+			RRule = new AcalRepeatRule(start, repeatRuleString); 
+		}
+		catch( IllegalArgumentException  e ) {
+			Log.i(TAG,"Illegal repeat rule: '"+repeatRuleString+"'");
+			RRule = new AcalRepeatRule(start, null ); 
+		}
 		String rr = RRule.repeatRule.toPrettyString(this);
 		if (rr == null || rr.equals("")) rr = getString(R.string.OnlyOnce);
 		repeatsView.setText(rr);

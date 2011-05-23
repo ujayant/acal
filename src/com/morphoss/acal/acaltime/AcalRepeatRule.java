@@ -200,7 +200,7 @@ public class AcalRepeatRule {
 
 		private final static Pattern	freqPattern	= Pattern.compile(
 						".*FREQ=((?:WEEK|DAI|YEAR|MONTH|HOUR|MINUTE|SECOND)LY).*",
-						Pattern.CASE_INSENSITIVE);
+						Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 		
 		/**
 		 * <p>
