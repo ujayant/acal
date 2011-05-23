@@ -2,13 +2,14 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # 
+# Samuel Vale <srcvale@minaslivre.org>, 2011
 msgid ""
 msgstr ""
 "Project-Id-Version: aCal\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-05-19 09:05+1200\n"
-"PO-Revision-Date: 2011-05-18 21:21+0000\n"
-"Last-Translator: Samuel Ribeiro da Costa Vale <srcvale@minaslivre.org>\n"
+"PO-Revision-Date: 2011-05-20 00:07+0000\n"
+"Last-Translator: svale <srcvale@minaslivre.org>\n"
 "Language-Team: Portuguese (Brazilian) (http://www.transifex.net/projects/p/acal/team/pt_BR/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -87,7 +88,7 @@ msgid "Default_timezone"
 msgstr "Fuso horário padrão"
 
 msgid "DefaultAlarmTone"
-msgstr ""
+msgstr "Toque Padrão do Alarme"
 
 msgid "Server_Path"
 msgstr "Caminho do servidor"
@@ -400,10 +401,10 @@ msgid "prefWeekViewLinesPerHour_Summary"
 msgstr "A largura de cada hora do dia, na visualização de semana."
 
 msgid "prefWeekViewDayWidth_Title"
-msgstr ""
+msgstr "Largura da Coluna"
 
 msgid "prefWeekViewDayWidth_Summary"
-msgstr ""
+msgstr "A largura da coluna de dia na visualização de semana"
 
 msgid "Today"
 msgstr "Hoje"
@@ -571,7 +572,7 @@ msgid "errorMustHaveActiveCalendar"
 msgstr "Não é possível editar compromisso sem uma agenda ativa."
 
 msgid "errorSavingServerConfig"
-msgstr ""
+msgstr "Erro ao salvar a configuração do servidor"
 
 msgid "errorSavingFile"
 msgstr "Erro ao salvar arquivo"
@@ -589,10 +590,10 @@ msgid "SavedServerConfigurationBlurb"
 msgstr "Uma configuração de servidor gravada"
 
 msgid "AllDaysInPeriod"
-msgstr ""
+msgstr "O dia todo, de %1$s até %2$s"
 
 msgid "ForTheWholeDay"
-msgstr ""
+msgstr "O dia todo"
 
 msgid "alarmAtEventTime"
 msgstr "Na hora do compromisso"
@@ -661,40 +662,40 @@ msgid "authenticationFailed"
 msgstr "Não foi possível autenticar no servidor."
 
 msgid "WeekViewPreferences"
-msgstr ""
+msgstr "Preferências da Visualização de Semana"
 
 msgid "checkServer"
-msgstr ""
+msgstr "Validando o servidor"
 
 msgid "checkServer_Connecting"
-msgstr ""
+msgstr "Conectando ao servidor, aguarde..."
 
 msgid "checkServer_Internet"
-msgstr ""
+msgstr "Verificando a conexão com a internet"
 
 msgid "checkServer_ProbePorts"
-msgstr ""
+msgstr "Testando o servidor na porta %1$d usando o protocolo %2$s"
 
 msgid "checkServer_SearchingPrincipal"
-msgstr ""
+msgstr "Buscando o caminho principal em &quot;%s&quot;"
 
 msgid "checkServer_CheckingCapabilities"
-msgstr ""
+msgstr "Verificando capacidade do servidor"
 
 msgid "newEventFromThis"
-msgstr ""
+msgstr "Copiar para Novo Evento"
 
 msgid "Delete"
-msgstr ""
+msgstr "Apagar"
 
 msgid "deleteAllInstances"
-msgstr ""
+msgstr "Apagar todas as instâncias"
 
 msgid "deleteThisInstance"
-msgstr ""
+msgstr "Apagar esta instância"
 
 msgid "deleteThisAndFuture"
-msgstr ""
+msgstr "Apagar esta instância e as futuras"
 
 msgid "newAllDayEventOn"
 msgstr ""

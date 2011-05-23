@@ -2,12 +2,13 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # 
+#   <zenlord@gmail.com>, 2011
 msgid ""
 msgstr ""
 "Project-Id-Version: aCal\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-05-19 09:05+1200\n"
-"PO-Revision-Date: 2011-05-18 21:21+0000\n"
+"PO-Revision-Date: 2011-05-20 00:07+0000\n"
 "Last-Translator: zenlord <zenlord@gmail.com>\n"
 "Language-Team: Dutch (Belgium/Flemish) (http://www.transifex.net/projects/p/acal/team/nl_BE/)\n"
 "MIME-Version: 1.0\n"
@@ -87,7 +88,7 @@ msgid "Default_timezone"
 msgstr "Standaard Tijdzone"
 
 msgid "DefaultAlarmTone"
-msgstr ""
+msgstr "Standaard alarmgeluid"
 
 msgid "Server_Path"
 msgstr "Server-pad"
@@ -402,10 +403,10 @@ msgid "prefWeekViewLinesPerHour_Summary"
 msgstr "De hoogte van ieder uur van de dag in week-view"
 
 msgid "prefWeekViewDayWidth_Title"
-msgstr ""
+msgstr "Kolombreedte"
 
 msgid "prefWeekViewDayWidth_Summary"
-msgstr ""
+msgstr "De breedte van elke dag-kolom in de week-weergave"
 
 msgid "Today"
 msgstr "Vandaag"
@@ -573,7 +574,7 @@ msgid "errorMustHaveActiveCalendar"
 msgstr "Kan gebeurtenis niet bewerken zonder een actieve kalender."
 
 msgid "errorSavingServerConfig"
-msgstr ""
+msgstr "Fout bij opslaan van server configuratie"
 
 msgid "errorSavingFile"
 msgstr "Fout bij opslaan bestand"
@@ -591,10 +592,10 @@ msgid "SavedServerConfigurationBlurb"
 msgstr "Een opgeslagen server configuratie"
 
 msgid "AllDaysInPeriod"
-msgstr ""
+msgstr "De hele dag, van %1$s tot %2$s"
 
 msgid "ForTheWholeDay"
-msgstr ""
+msgstr "De hele dag"
 
 msgid "alarmAtEventTime"
 msgstr "Op het ogenblik van de gebeurtenis"
@@ -664,40 +665,40 @@ msgid "authenticationFailed"
 msgstr "Niet in staat om te authenticeren bij server."
 
 msgid "WeekViewPreferences"
-msgstr ""
+msgstr "Week Weergave-instellingen"
 
 msgid "checkServer"
-msgstr ""
+msgstr "Validatie-server"
 
 msgid "checkServer_Connecting"
-msgstr ""
+msgstr "Verbinding maken met server. Even geduld aub ..."
 
 msgid "checkServer_Internet"
-msgstr ""
+msgstr "Controle van internet connectiviteit"
 
 msgid "checkServer_ProbePorts"
-msgstr ""
+msgstr "Server zoeken op poort %1$d met behulp van %2$s protocol"
 
 msgid "checkServer_SearchingPrincipal"
-msgstr ""
+msgstr "Principaal pad zoeken op &quot;%s&quot;"
 
 msgid "checkServer_CheckingCapabilities"
-msgstr ""
+msgstr "Controle server-mogelijkheden"
 
 msgid "newEventFromThis"
-msgstr ""
+msgstr "Kopiëren naar een nieuwe gebeurtenis"
 
 msgid "Delete"
-msgstr ""
+msgstr "Verwijderen"
 
 msgid "deleteAllInstances"
-msgstr ""
+msgstr "Verwijder alle gevallen"
 
 msgid "deleteThisInstance"
-msgstr ""
+msgstr "Verwijder enkel dit geval"
 
 msgid "deleteThisAndFuture"
-msgstr ""
+msgstr "Verwijder deze en toekomstige gevallen"
 
 msgid "newAllDayEventOn"
 msgstr ""
