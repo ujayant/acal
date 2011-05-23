@@ -22,6 +22,7 @@
 <string name="Collection_Options">Opções da coleção</string>
 <string name="Colour">Cor</string>
 <string name="Default_timezone">Fuso horário padrão</string>
+<string name="DefaultAlarmTone">Toque Padrão do Alarme</string>
 <string name="Server_Path">Caminho do servidor</string>
 <string name="Server_Port">Porta do servidor</string>
 <string name="Summary">Resumo</string>
@@ -116,6 +117,8 @@
 <string name="prefWorkdayFinish_Summary">A hora do fim do dia útil.</string>
 <string name="prefWeekViewLinesPerHour_Title">Largura das linhas</string>
 <string name="prefWeekViewLinesPerHour_Summary">A largura de cada hora do dia, na visualização de semana.</string>
+<string name="prefWeekViewDayWidth_Title">Largura da Coluna</string>
+<string name="prefWeekViewDayWidth_Summary">A largura da coluna de dia na visualização de semana</string>
 <string name="Today">Hoje</string>
 <string name="Year">Ano</string>
 <string name="Month">Mês</string>
@@ -169,11 +172,14 @@
 <string name="ChooseRepeatFrequency">Escolha a frequência de repetição</string>
 <string name="Add_Alarm">Adicionar Alarme</string>
 <string name="errorMustHaveActiveCalendar">Não é possível editar compromisso sem uma agenda ativa.</string>
+<string name="errorSavingServerConfig">Erro ao salvar a configuração do servidor</string>
 <string name="errorSavingFile">Erro ao salvar arquivo</string>
 <string name="ServerDataSaved">Dados do servidor gravados. Arquivo: </string>
 <string name="NewManualServerConfiguration">Configuração manual</string>
 <string name="ManualServerConfigurationBlurb">Entrar manualmente as informações do servidor</string>
 <string name="SavedServerConfigurationBlurb">Uma configuração de servidor gravada</string>
+<string name="AllDaysInPeriod">O dia todo, de %1$s até %2$s</string>
+<string name="ForTheWholeDay">O dia todo</string>
 <string name="alarmAtEventTime">Na hora do compromisso</string>
 <string name="alarm10MinutesPrior">10 minutos antes</string>
 <string name="alarm30MinutesPrior">30 minutos antes</string>
@@ -195,4 +201,16 @@
 <string name="saveSettingsAnyway">Gostaria de salvar as configurações de qualquer modo?</string>
 <string name="serverValidationSuccess">Servidor validado com sucesso.</string>
 <string name="authenticationFailed">Não foi possível autenticar no servidor.</string>
+<string name="WeekViewPreferences">Preferências da Visualização de Semana</string>
+<string name="checkServer">Validando o servidor</string>
+<string name="checkServer_Connecting">Conectando ao servidor, aguarde...</string>
+<string name="checkServer_Internet">Verificando a conexão com a internet</string>
+<string name="checkServer_ProbePorts">Testando o servidor na porta %1$d usando o protocolo %2$s</string>
+<string name="checkServer_SearchingPrincipal">Buscando o caminho principal em &quot;%s&quot;</string>
+<string name="checkServer_CheckingCapabilities">Verificando capacidade do servidor</string>
+<string name="newEventFromThis">Copiar para Novo Evento</string>
+<string name="Delete">Apagar</string>
+<string name="deleteAllInstances">Apagar todas as instâncias</string>
+<string name="deleteThisInstance">Apagar esta instância</string>
+<string name="deleteThisAndFuture">Apagar esta instância e as futuras</string>
 </resources>

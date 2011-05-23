@@ -22,6 +22,7 @@
 <string name="Collection_Options">Collectie-opties</string>
 <string name="Colour">Kleur</string>
 <string name="Default_timezone">Standaard Tijdzone</string>
+<string name="DefaultAlarmTone">Standaard alarmgeluid</string>
 <string name="Server_Path">Server-pad</string>
 <string name="Server_Port">Serverpoort</string>
 <string name="Summary">Samenvatting</string>
@@ -107,6 +108,8 @@
 <string name="prefWorkdayFinish_Summary">De werkdag eindigt om</string>
 <string name="prefWeekViewLinesPerHour_Title">Rijhoogte</string>
 <string name="prefWeekViewLinesPerHour_Summary">De hoogte van ieder uur van de dag in week-view</string>
+<string name="prefWeekViewDayWidth_Title">Kolombreedte</string>
+<string name="prefWeekViewDayWidth_Summary">De breedte van elke dag-kolom in de week-weergave</string>
 <string name="Today">Vandaag</string>
 <string name="Year">Jaar</string>
 <string name="Month">Maand</string>
@@ -160,11 +163,14 @@
 <string name="ChooseRepeatFrequency">Kies een Herhaal Frequentie</string>
 <string name="Add_Alarm">Melding toevoegen</string>
 <string name="errorMustHaveActiveCalendar">Kan gebeurtenis niet bewerken zonder een actieve kalender.</string>
+<string name="errorSavingServerConfig">Fout bij opslaan van server configuratie</string>
 <string name="errorSavingFile">Fout bij opslaan bestand</string>
 <string name="ServerDataSaved">Server-gegevens geschreven. Bestandsnaam:</string>
 <string name="NewManualServerConfiguration">Handmatige configuratie</string>
 <string name="ManualServerConfigurationBlurb">Handmatig invoeren van de server informatie</string>
 <string name="SavedServerConfigurationBlurb">Een opgeslagen server configuratie</string>
+<string name="AllDaysInPeriod">De hele dag, van %1$s tot %2$s</string>
+<string name="ForTheWholeDay">De hele dag</string>
 <string name="alarmAtEventTime">Op het ogenblik van de gebeurtenis</string>
 <string name="alarm10MinutesPrior">10 minuten op voorhand</string>
 <string name="alarm30MinutesPrior">30 minuten op voorhand</string>
@@ -186,4 +192,16 @@
 <string name="saveSettingsAnyway">Wilt u toch deze instellingen opslaan?</string>
 <string name="serverValidationSuccess">Server werd gevalideerd.</string>
 <string name="authenticationFailed">Niet in staat om te authenticeren bij server.</string>
+<string name="WeekViewPreferences">Week Weergave-instellingen</string>
+<string name="checkServer">Validatie-server</string>
+<string name="checkServer_Connecting">Verbinding maken met server. Even geduld aub ...</string>
+<string name="checkServer_Internet">Controle van internet connectiviteit</string>
+<string name="checkServer_ProbePorts">Server zoeken op poort %1$d met behulp van %2$s protocol</string>
+<string name="checkServer_SearchingPrincipal">Principaal pad zoeken op &quot;%s&quot;</string>
+<string name="checkServer_CheckingCapabilities">Controle server-mogelijkheden</string>
+<string name="newEventFromThis">Kopiëren naar een nieuwe gebeurtenis</string>
+<string name="Delete">Verwijderen</string>
+<string name="deleteAllInstances">Verwijder alle gevallen</string>
+<string name="deleteThisInstance">Verwijder enkel dit geval</string>
+<string name="deleteThisAndFuture">Verwijder deze en toekomstige gevallen</string>
 </resources>
