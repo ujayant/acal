@@ -261,29 +261,18 @@ public class MonthView extends Activity implements OnGestureListener,
 	public void onResume() {
 		super.onResume();
 		Log.v(TAG,TAG + " - onResume");
-		loadState();
+
+		selectedDate = new AcalDateTime().applyLocalTimeZone();
+		displayedMonth = new AcalDateTime().applyLocalTimeZone();
+		if ( prefs.getLong(getString(R.string.prefSavedSelectedDate), 0) > (System.currentTimeMillis() - (3600000L * 6))) {
+			selectedDate.setMillis(prefs.getLong(getString(R.string.prefSelectedDate), System.currentTimeMillis()));
+			displayedMonth.setMillis(prefs.getLong(getString(R.string.prefDisplayedMonth), System.currentTimeMillis()));
+		}
+		selectedDate.setDaySecond(0);
+		displayedMonth.setDaySecond(0).setMonthDay(1);
+
 		connectToService();
 	}
-
-	/*
-	 * private void loadRecentDates() { final Object data =
-	 * getLastNonConfigurationInstance();
-	 * 
-	 * // The activity is starting for the first time, load the state from our
-	 * file if (data == null) { //Set the current state to today by default
-	 * AcalDateTime currentDate = AcalDateTime.getInstance(); selectedDate =
-	 * currentDate; displayedMonth = currentDate;
-	 * changeSelectedDate(currentDate); changeDisplayedMonth(currentDate); }
-	 * else { // The activity was destroyed/created automatically, use the
-	 * date/month // from earlier. AcalDateTime[] dates = new AcalDateTime[2];
-	 * System.arraycopy((AcalDateTime[]) data, 0, dates, 0, 2);
-	 * changeSelectedDate(dates[0]); changeDisplayedMonth(dates[1]); } }
-	 * 
-	 * @Override public Object onRetainNonConfigurationInstance() { final
-	 * AcalDateTime[] saveDates = new AcalDateTime[2]; saveDates[0] =
-	 * this.selectedDate; saveDates[1] = this.displayedMonth; return saveDates;
-	 * }
-	 */
 
 	/**
 	 * <p>
@@ -313,6 +302,11 @@ public class MonthView extends Activity implements OnGestureListener,
 		}
 
 		// Save state
+		prefs.edit().putLong(getString(R.string.prefSavedSelectedDate), System.currentTimeMillis()).commit();
+		prefs.edit().putLong(getString(R.string.prefSelectedDate), selectedDate.getMillis()).commit();
+		prefs.edit().putLong(getString(R.string.prefDisplayedMonth), displayedMonth.getMillis()).commit();
+
+/*		
 		if (Constants.LOG_DEBUG)	Log.d(TAG, "Writing month view state to file.");
 		AcalDateTime now = new AcalDateTime().applyLocalTimeZone();
 		ObjectOutputStream outputStream = null;
@@ -342,6 +336,7 @@ public class MonthView extends Activity implements OnGestureListener,
 								+ ex.getMessage());
 			}
 		}
+*/
 	}
 
 	/****************************************************
@@ -449,69 +444,6 @@ public class MonthView extends Activity implements OnGestureListener,
 
 	/**
 	 * <p>
-	 * Attempts to load state information from file. If successful, updates this
-	 * Activities state with the loaded state.
-	 * </p>
-	 */
-	private void loadState() {
-		if (Constants.LOG_DEBUG) Log.d(TAG, "Loading month view state from file.");
-		ObjectInputStream inputStream = null;
-		Object sd = null;
-		Object dm = null;
-		Object writtenOut = null;
-		try {
-			File f = new File(STATE_FILE);
-			if (!f.exists()) {
-				// File does not exist.
-				if (Constants.LOG_DEBUG) Log.d(TAG, "No state file to load.");
-				return;
-			}
-			inputStream = new ObjectInputStream(new FileInputStream(STATE_FILE));
-			sd = inputStream.readObject();
-			dm = inputStream.readObject();
-			writtenOut = inputStream.readObject();
-		} catch (ClassNotFoundException ex) {
-			Log.w(TAG,
-					"Error loading MonthView State - Incomplete data: "
-							+ ex.getMessage());
-		} catch (FileNotFoundException ex) {
-			if (Constants.LOG_DEBUG) Log.d(TAG, "Error loading MonthView State - File Not Found: "
-						+ ex.getMessage());
-		} catch (IOException ex) {
-			Log.w(TAG,
-					"Error loading MonthView State - IO Error: "
-							+ ex.getMessage());
-		} finally {
-			// Close the ObjectOutputStream
-			try {
-				if (inputStream != null)
-					inputStream.close();
-			} catch (IOException ex) {
-				Log.w(TAG,
-						"Error closing MonthView file - IO Error: "
-								+ ex.getMessage());
-			}
-		}
-
-		
-		if ( writtenOut != null && writtenOut instanceof AcalDateTime ) {
-			// Only restore the displayed date if it was less than six hours since
-			// the user was looking at that screen.  Otherwise show today.
-			AcalDateTime testTime = new AcalDateTime().applyLocalTimeZone().addSeconds(-1 * (AcalDateTime.SECONDS_IN_DAY / 4));
-			Log.d(TAG, String.format("Testing if %s is before %s", ((AcalDateTime) writtenOut).fmtIcal(), testTime.fmtIcal()) );
-			if ( ((AcalDateTime) writtenOut).before(testTime) )
-				sd = dm = null;
-		}
-		if (sd != null && sd instanceof AcalDateTime) {
-			this.selectedDate = (AcalDateTime) sd;
-		}
-		if (dm != null && dm instanceof AcalDateTime) {
-			this.displayedMonth = (AcalDateTime) dm;
-		}
-	}
-
-	/**
-	 * <p>
 	 * Flips the current month view either forward or back depending on flip
 	 * amount parameter.
 	 * </p>
@@ -560,6 +492,7 @@ public class MonthView extends Activity implements OnGestureListener,
 		}
 	}
 
+	
 	/**
 	 * <p>
 	 * Flips the current Event view either forward or back depending on flip

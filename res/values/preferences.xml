@@ -11,5 +11,8 @@
 	<string name="prefWorkdayFinish">prefWorkdayFinish</string>
 	<string name="prefWeekViewLinesPerHour">prefWeekViewLinesPerHour</string>
 	<string name="prefWeekViewDayWidth">prefWeekViewDayWidth</string>
+	<string name="prefSelectedDate">prefSelectedDate</string>
+	<string name="prefDisplayedMonth">prefDisplayedMonth</string>
+	<string name="prefSavedSelectedDate">prefSavedSelectedDate</string>
 
 </resources>

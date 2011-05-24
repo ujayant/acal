@@ -183,8 +183,14 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	}
 	
 	private void loadPrefs() {
-		//Load Prefs
+		
 		prefs = PreferenceManager.getDefaultSharedPreferences(this);
+
+		selectedDate = new AcalDateTime().applyLocalTimeZone();
+		if ( prefs.getLong(getString(R.string.prefSavedSelectedDate), 0) > (System.currentTimeMillis() - (3600000L * 6)))
+			selectedDate.setMillis(prefs.getLong(getString(R.string.prefSelectedDate), System.currentTimeMillis()));
+		selectedDate.setDaySecond(0);
+
 		TIME_24_HOUR = prefs.getBoolean(this.getString(R.string.prefTwelveTwentyfour), false);
 		try {
 			FIRST_DAY_OF_WEEK = Integer.parseInt(prefs.getString(getString(R.string.firstDayOfWeek), "0"));
@@ -306,6 +312,9 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	@Override 
 	public void onPause() {
 		super.onPause();
+		prefs.edit().putLong(getString(R.string.prefSelectedDate), selectedDate.getMillis()).commit();
+		prefs.edit().putLong(getString(R.string.prefSavedSelectedDate), System.currentTimeMillis()).commit();
+		
 		try {
 			if (dataRequest != null) {
 				dataRequest.flushCache();
@@ -328,6 +337,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		days.dimensionsChanged();  // User may have been in the preferences screen, maybe indirectly.
 		connectToService(); // which will refresh when it's ready
 	}
+
 	
 	public boolean daysInitialized(){ return days.isInitialized(); }
 	
