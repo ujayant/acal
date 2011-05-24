@@ -6,3 +6,7 @@ Improved handling of very large calendars
 Various improvements to Month View
 Many, many bug fixes
 List of changes displayed on upgrade
+v28=1.21
+Fix handling of some invalid repeat rules
+Save/restore viewed date across Week/Month Views
+Updated Spanish & Catalan translations
