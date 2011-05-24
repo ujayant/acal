@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: aCal\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-05-19 09:05+1200\n"
-"PO-Revision-Date: 2011-05-18 21:21+0000\n"
+"PO-Revision-Date: 2011-05-23 23:09+0000\n"
 "Last-Translator: marc0s <marc0s@fsfe.org>\n"
 "Language-Team: Catalan (http://www.transifex.net/projects/p/acal/team/ca/)\n"
 "MIME-Version: 1.0\n"
@@ -87,7 +87,7 @@ msgid "Default_timezone"
 msgstr "Zona horària predeterminada"
 
 msgid "DefaultAlarmTone"
-msgstr ""
+msgstr "So d'alarma predeterminat"
 
 msgid "Server_Path"
 msgstr "Camí al servidor"
@@ -351,10 +351,10 @@ msgstr "Des"
 # If the user is displaying AM/PM we need a single character to display e.g.
 # 1p for 1:00pm
 msgid "oneCharMorning"
-msgstr ""
+msgstr "a"
 
 msgid "oneCharAfternoon"
-msgstr ""
+msgstr "p"
 
 msgid "YearViewSize_PrefTitle"
 msgstr "Nombre de mesos a la vista anual"
@@ -383,28 +383,28 @@ msgid "DefaultAlarmTone_PrefSummary"
 msgstr "El so a utilitzar per les alarmes de forma predeterminada"
 
 msgid "prefWorkdayStart_Title"
-msgstr ""
+msgstr "Inici de la jornada laboral"
 
 msgid "prefWorkdayStart_Summary"
-msgstr ""
+msgstr "Quan començar la jornada laboral"
 
 msgid "prefWorkdayFinish_Title"
-msgstr ""
+msgstr "Final de la jornada laboral"
 
 msgid "prefWorkdayFinish_Summary"
-msgstr ""
+msgstr "Quan acabar la jornada laboral"
 
 msgid "prefWeekViewLinesPerHour_Title"
-msgstr ""
+msgstr "Alçada de les files"
 
 msgid "prefWeekViewLinesPerHour_Summary"
-msgstr ""
+msgstr "L'alçada de cada una de les hores del dia a la vista setmanal"
 
 msgid "prefWeekViewDayWidth_Title"
-msgstr ""
+msgstr "Amplada de columna"
 
 msgid "prefWeekViewDayWidth_Summary"
-msgstr ""
+msgstr "L'amplada de cada un dels dies a la vista setmanal"
 
 msgid "Today"
 msgstr "Avui"
@@ -416,7 +416,7 @@ msgid "Month"
 msgstr "Mes"
 
 msgid "Week"
-msgstr ""
+msgstr "Setmana"
 
 msgid "Edit"
 msgstr "Editar"
@@ -533,7 +533,7 @@ msgid "EveryMonthOnTheNthSomeday"
 msgstr "El %s de cada mes"
 
 msgid "CustomRepeatRule"
-msgstr ""
+msgstr "Repetició personalitzada"
 
 msgid "EventSaved"
 msgstr "Cita guardada."
@@ -551,7 +551,7 @@ msgid "ErrorSavingEvent"
 msgstr "Error guardant cita - si us plau torneu-ho a intentar."
 
 msgid "NewEventTitle"
-msgstr ""
+msgstr "Nova cita"
 
 msgid "ChooseACollection"
 msgstr "Escull una col·lecció"
@@ -572,7 +572,7 @@ msgid "errorMustHaveActiveCalendar"
 msgstr "No es pot editar una cita sense un calendari actiu."
 
 msgid "errorSavingServerConfig"
-msgstr ""
+msgstr "Error guardant configuració del servidor"
 
 msgid "errorSavingFile"
 msgstr "Error guardant fitxer"
@@ -590,10 +590,10 @@ msgid "SavedServerConfigurationBlurb"
 msgstr "Una configuració de servidor guardada"
 
 msgid "AllDaysInPeriod"
-msgstr ""
+msgstr "Tot el dia, desde %1$s fins a %2$s"
 
 msgid "ForTheWholeDay"
-msgstr ""
+msgstr "Tot el dia"
 
 msgid "alarmAtEventTime"
 msgstr "A l'hora de la cita"
@@ -617,10 +617,10 @@ msgid "alarm1DayPrior"
 msgstr "Un dia abans"
 
 msgid "alarmCustom"
-msgstr ""
+msgstr "Alarma personalitzada"
 
 msgid "alarmsDisabledNote"
-msgstr ""
+msgstr "(totes les alarmes deshabilitades per aquest calendari)"
 
 msgid "changeThisInstance"
 msgstr "Només aquesta instància"
@@ -660,69 +660,69 @@ msgid "serverValidationSuccess"
 msgstr "La validació del servidor ha estat satisfactòria."
 
 msgid "authenticationFailed"
-msgstr ""
+msgstr "Impossible d'autenticar amb el servidor"
 
 msgid "WeekViewPreferences"
-msgstr ""
+msgstr "Configuració de la vista setmanal"
 
 msgid "checkServer"
-msgstr ""
+msgstr "Validant servidor"
 
 msgid "checkServer_Connecting"
-msgstr ""
+msgstr "Connectant al servidor, sisplau espereu..."
 
 msgid "checkServer_Internet"
-msgstr ""
+msgstr "Comprovant connectivitat a internet"
 
 msgid "checkServer_ProbePorts"
-msgstr ""
+msgstr "Provant servidor utilitzant port %1$d i protocol %2$s"
 
 msgid "checkServer_SearchingPrincipal"
-msgstr ""
+msgstr "Cercant per la ruta d'identitat a &quot;%s&quot; "
 
 msgid "checkServer_CheckingCapabilities"
-msgstr ""
+msgstr "Comprovant capacitat del servidor"
 
 msgid "newEventFromThis"
-msgstr ""
+msgstr "Copiar a nova cita"
 
 msgid "Delete"
-msgstr ""
+msgstr "Esborrar"
 
 msgid "deleteAllInstances"
-msgstr ""
+msgstr "Esborrar totes les instàncies"
 
 msgid "deleteThisInstance"
-msgstr ""
+msgstr "Esborrar aquesta instància"
 
 msgid "deleteThisAndFuture"
-msgstr ""
+msgstr "Esborrar aquesta instància i les futures"
 
 msgid "newAllDayEventOn"
-msgstr ""
+msgstr "Nova cita el %s"
 
 msgid "newHourEventAt"
-msgstr ""
+msgstr "Nova cita a les %s"
 
 msgid "editSomeEvent"
-msgstr ""
+msgstr "Editar: %s"
 
 msgid "copySomeEvent"
-msgstr ""
+msgstr "Copiar: %s"
 
 msgid "deleteSomeEvent"
-msgstr ""
+msgstr "Esborrar: %s"
 
 msgid "noCollectionsFound"
-msgstr ""
+msgstr "No s'ha trobat cap calendari"
 
 msgid "aCalVersionChanges"
-msgstr ""
+msgstr "Benvingut a la nova versió d'aCal!"
 
 msgid "newWithVersion"
-msgstr ""
+msgstr "Canvis a la versió %s"
 
 msgid "newVersionSeen"
-msgstr ""
+msgstr "Gràcies, ensenya'm el calendari!"
 
 

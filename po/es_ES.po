@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: aCal\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-05-19 09:05+1200\n"
-"PO-Revision-Date: 2011-05-18 21:21+0000\n"
+"PO-Revision-Date: 2011-05-23 23:19+0000\n"
 "Last-Translator: marc0s <marc0s@fsfe.org>\n"
 "Language-Team: Spanish (Spain) (http://www.transifex.net/projects/p/acal/team/es_ES/)\n"
 "MIME-Version: 1.0\n"
@@ -87,7 +87,7 @@ msgid "Default_timezone"
 msgstr "Zona horaria por defecto"
 
 msgid "DefaultAlarmTone"
-msgstr ""
+msgstr "Tono de alarma predeterminado"
 
 msgid "Server_Path"
 msgstr "Ruta del servidor"
@@ -350,10 +350,10 @@ msgstr "Dic"
 # If the user is displaying AM/PM we need a single character to display e.g.
 # 1p for 1:00pm
 msgid "oneCharMorning"
-msgstr ""
+msgstr "a"
 
 msgid "oneCharAfternoon"
-msgstr ""
+msgstr "p"
 
 msgid "YearViewSize_PrefTitle"
 msgstr "Número de meses en vista anual"
@@ -380,28 +380,28 @@ msgid "DefaultAlarmTone_PrefSummary"
 msgstr "El tono de alarma predeterminado"
 
 msgid "prefWorkdayStart_Title"
-msgstr ""
+msgstr "Inicio de la jornada laboral"
 
 msgid "prefWorkdayStart_Summary"
-msgstr ""
+msgstr "La hora de inicio de la jornada laboral"
 
 msgid "prefWorkdayFinish_Title"
-msgstr ""
+msgstr "Fin de la jornada laboral"
 
 msgid "prefWorkdayFinish_Summary"
-msgstr ""
+msgstr "Hora de fin de la jornada laboral"
 
 msgid "prefWeekViewLinesPerHour_Title"
-msgstr ""
+msgstr "Altura de las filas"
 
 msgid "prefWeekViewLinesPerHour_Summary"
-msgstr ""
+msgstr "La altura de cada hora del dia en la vista semanal"
 
 msgid "prefWeekViewDayWidth_Title"
-msgstr ""
+msgstr "Ancho de columna"
 
 msgid "prefWeekViewDayWidth_Summary"
-msgstr ""
+msgstr "Ancho de cada dia en la vista semanal"
 
 msgid "Today"
 msgstr "Hoy"
@@ -413,7 +413,7 @@ msgid "Month"
 msgstr "Mes"
 
 msgid "Week"
-msgstr ""
+msgstr "Semana"
 
 msgid "Edit"
 msgstr "Editar"
@@ -530,7 +530,7 @@ msgid "EveryMonthOnTheNthSomeday"
 msgstr "Cada %s de cada mes"
 
 msgid "CustomRepeatRule"
-msgstr ""
+msgstr "Regla de repetición personalizada"
 
 msgid "EventSaved"
 msgstr "Cita guardada"
@@ -548,7 +548,7 @@ msgid "ErrorSavingEvent"
 msgstr "Error guardando cita - porfavor prueba de nuevo."
 
 msgid "NewEventTitle"
-msgstr ""
+msgstr "Nueva cita"
 
 msgid "ChooseACollection"
 msgstr "Elige una colección"
@@ -569,7 +569,7 @@ msgid "errorMustHaveActiveCalendar"
 msgstr "No se puede editar la cita sin un calendario activo."
 
 msgid "errorSavingServerConfig"
-msgstr ""
+msgstr "Error guardando configuración de servidor"
 
 msgid "errorSavingFile"
 msgstr "Error guardando fichero."
@@ -587,10 +587,10 @@ msgid "SavedServerConfigurationBlurb"
 msgstr "Una configuración de servidor guardada"
 
 msgid "AllDaysInPeriod"
-msgstr ""
+msgstr "Todo el díaa, del %1$s al %2$s"
 
 msgid "ForTheWholeDay"
-msgstr ""
+msgstr "Todo el día"
 
 msgid "alarmAtEventTime"
 msgstr "A la hora de la cita"
@@ -614,10 +614,10 @@ msgid "alarm1DayPrior"
 msgstr "Un dia antes"
 
 msgid "alarmCustom"
-msgstr ""
+msgstr "Alarma personalizada"
 
 msgid "alarmsDisabledNote"
-msgstr ""
+msgstr "(todas las alarmas de este calendario están deshabilitadas)"
 
 msgid "changeThisInstance"
 msgstr "Sólo esta instancia"
@@ -658,69 +658,69 @@ msgid "serverValidationSuccess"
 msgstr "La validación del serivdor ha sido satisfactoria."
 
 msgid "authenticationFailed"
-msgstr ""
+msgstr "Error de autenticación"
 
 msgid "WeekViewPreferences"
-msgstr ""
+msgstr "Preferencias de vista semanal"
 
 msgid "checkServer"
-msgstr ""
+msgstr "Validando servidor"
 
 msgid "checkServer_Connecting"
-msgstr ""
+msgstr "Conectando a servidor, por favor espere..."
 
 msgid "checkServer_Internet"
-msgstr ""
+msgstr "Comprobando conexión a internet"
 
 msgid "checkServer_ProbePorts"
-msgstr ""
+msgstr "Comprobando servidor en el puerto %1$d usando el protocolo %2$s"
 
 msgid "checkServer_SearchingPrincipal"
-msgstr ""
+msgstr "Buscando identidad en la ruta quot;%s&quot;"
 
 msgid "checkServer_CheckingCapabilities"
-msgstr ""
+msgstr "Comprobando características del servidor"
 
 msgid "newEventFromThis"
-msgstr ""
+msgstr "Copiar a nueva cita"
 
 msgid "Delete"
-msgstr ""
+msgstr "Borrar"
 
 msgid "deleteAllInstances"
-msgstr ""
+msgstr "Borrar todas las instancias"
 
 msgid "deleteThisInstance"
-msgstr ""
+msgstr "Borrar esta instancia"
 
 msgid "deleteThisAndFuture"
-msgstr ""
+msgstr "Borrar esta instancia y las siguientes"
 
 msgid "newAllDayEventOn"
-msgstr ""
+msgstr "Nueva cita para el día %s"
 
 msgid "newHourEventAt"
-msgstr ""
+msgstr "Nueva cita para las %s"
 
 msgid "editSomeEvent"
-msgstr ""
+msgstr "Editar: %s"
 
 msgid "copySomeEvent"
-msgstr ""
+msgstr "Copiar: %s"
 
 msgid "deleteSomeEvent"
-msgstr ""
+msgstr "Borrar: %s"
 
 msgid "noCollectionsFound"
-msgstr ""
+msgstr "No se ha encontrado ningún calendario"
 
 msgid "aCalVersionChanges"
-msgstr ""
+msgstr "Bienvenido a la nueva versión de aCal!"
 
 msgid "newWithVersion"
-msgstr ""
+msgstr "Cambios en la versión %s"
 
 msgid "newVersionSeen"
-msgstr ""
+msgstr "Gracias, ¡muéstrame el calendario!"
 
 
