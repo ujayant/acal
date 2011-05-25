@@ -273,6 +273,7 @@ public class HomeSetsUpdate extends ServiceJob {
 		}
 
 		if ( !addressBook.isEmpty()) {
+			serverHasMultiget = 1;
 			holds_addressbook = true;  // There is an addressbook node			
 		}
 		else {
@@ -289,6 +290,16 @@ public class HomeSetsUpdate extends ServiceJob {
 					else if (curComp.equalsIgnoreCase("VJOURNAL")) {
 						holds_journal = true;
 					}
+				}
+			}
+
+			if ( !calendar.isEmpty() ) {
+				serverHasMultiget = 1;
+				if ( comps.isEmpty() ) {
+					// It is a calendar, but they appear not to support the supported-calendar-component-set property
+					holds_events = true;
+					holds_tasks = true;
+					holds_journal = true;
 				}
 			}
 
@@ -369,6 +380,7 @@ public class HomeSetsUpdate extends ServiceJob {
 				cv.put(DavCollections.ACTIVE_TASKS, holds_tasks);
 				cv.put(DavCollections.ACTIVE_JOURNAL, holds_journal);
 				cv.put(DavCollections.ACTIVE_ADDRESSBOOK, holds_addressbook);
+				
 				cv.put(DavCollections.USE_ALARMS, alarming);
 				cv.put(DavCollections.IS_VISIBLE, true);
 				cv.put(DavCollections.MAX_SYNC_AGE_WIFI, Constants.DEFAULT_MAX_AGE_WIFI);
