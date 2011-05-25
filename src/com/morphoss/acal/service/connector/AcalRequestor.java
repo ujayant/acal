@@ -390,7 +390,7 @@ public class AcalRequestor {
 				String response = md5(responseString);
 				authValue = String.format("Digest realm=\"%s\", username=\"%s\", nonce=\"%s\", uri=\"%s\""
 							+ ", response=\"%s\", algorithm=\"MD5\", cnonce=\"%s\", opaque=\"%s\", nc=\"%s\""
-							+ ", qop=\"auth\"",
+							+ (qop == null ? "" : ", qop=\"auth\""),
 							authRealm, username, nonce, path,
 							response, cnonce, opaque, printNC );
 				break;
