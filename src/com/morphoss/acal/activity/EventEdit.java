@@ -720,7 +720,8 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 			builder.setTitle(getString(R.string.ChooseAlarmTime));
 			builder.setItems(alarmRelativeTimeStrings, new DialogInterface.OnClickListener() {
 			    public void onClick(DialogInterface dialog, int item) {
-			    	//translate item to equal alarmValue index 
+			    	//translate item to equal alarmValue index
+			    	if ( item < 0 || item >= alarmValues.length ) return;
 			    	alarmList.add(
 			    			new AcalAlarm(
 			    					true, 
