@@ -530,12 +530,23 @@ public class AcalRequestor {
 
 	
 	private Header getAuthHeader() {
+		Header selectedAuthHeader = null;
 		for( Header h : responseHeaders ) {
 			if (Constants.LOG_VERBOSE && Constants.debugDavCommunication)
 				Log.v(TAG, "Header: " + h.getName() + ":" + h.getValue());
-			if ( h.getName().equalsIgnoreCase("WWW-Authenticate") ) return h;
+			if ( h.getName().equalsIgnoreCase("WWW-Authenticate") ) {
+				// If this is a digest Auth header we will return with it
+				for( HeaderElement he : h.getElements() ) {
+					if ( he.getName().equalsIgnoreCase("Digest realm") ) {
+						return h;
+					}
+					else if ( he.getName().equalsIgnoreCase("Basic realm") ) { 
+						if ( selectedAuthHeader == null ) selectedAuthHeader = h;
+					}
+				}
 		}
-		return null;
+		}
+		return selectedAuthHeader;
 	}
 
 	
