@@ -18,9 +18,11 @@
 
 package com.morphoss.acal.service;
 
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -154,7 +156,7 @@ public class SyncCollectionContents extends ServiceJob {
 				return;
 			}
 
-			if ((1 == serverData.getAsInteger(Servers.HAS_SYNC))) {
+			if ( serverData.getAsInteger(Servers.HAS_SYNC) != null && (1 == serverData.getAsInteger(Servers.HAS_SYNC))) {
 				if (doRegularSyncReport()) syncMarkedResources();
 			}
 			else {
@@ -353,7 +355,7 @@ public class SyncCollectionContents extends ServiceJob {
 					+ "<propfind xmlns=\"DAV:\" xmlns:CS=\"http://calendarserver.org/ns/\">"
 						+ "<prop>"
 							+ "<getetag/>"
-								+ "<CS:getctag/>"
+							+ "<CS:getctag/>"
 						+ "</prop>"
 					+ "</propfind>"
 				);
@@ -530,7 +532,7 @@ public class SyncCollectionContents extends ServiceJob {
 		Set<String> hrefSet = originalData.keySet();
 		Object[] hrefs = hrefSet.toArray();
 
-		if (1 == serverData.getAsInteger(Servers.HAS_MULTIGET)) {
+		if (serverData.getAsInteger(Servers.HAS_MULTIGET) != null && 1 == serverData.getAsInteger(Servers.HAS_MULTIGET)) {
 			syncWithMultiget(originalData, hrefs);
 		}
 		else {
@@ -694,36 +696,34 @@ public class SyncCollectionContents extends ServiceJob {
 	 * @return true If we need to write to the database, false otherwise.
 	 */
 	private boolean parseResponseNode(DavNode responseNode, ContentValues cv) {
-		boolean answer = true;
+		boolean validResourceResponse = true;
 
-		DavNode propstat = null;
+		DavNode prop = null;
 		for ( DavNode testPs : responseNode.getNodesFromPath("propstat")) {
 			String statusText = testPs.getFirstNodeText("status"); 
 			if ( statusText.equalsIgnoreCase("HTTP/1.1 200 OK") || statusText.equalsIgnoreCase("HTTP/1.1 201 Created")) {
-				propstat = testPs;
+				prop = testPs.getNodesFromPath("prop").get(0);
 				break;
 			}
 		}
 
-		DavNode prop = propstat.getNodesFromPath("prop").get(0);
 		String s = prop.getFirstNodeText("getctag");
 		if ( s != null ) {
 			collectionChanged = (collectionData.getAsString(DavCollections.COLLECTION_TAG) == null
 								|| s.equals(collectionData.getAsString(DavCollections.COLLECTION_TAG)));
 			if ( collectionChanged ) collectionData.put(DavCollections.COLLECTION_TAG, s);
-			answer = false;
+			validResourceResponse = false;
 			cv.put("COLLECTION", true);
 		}
 
-		if ( answer ) {
+		if ( validResourceResponse ) {
 			String etag = prop.getFirstNodeText("getetag");
 			
 			if ( etag != null ) {
-				cv.put(DavResources.ETAG, etag);
 				String oldEtag = cv.getAsString(DavResources.ETAG);
 				if ( oldEtag != null && oldEtag.equals(etag) ) {
 					cv.put(DavResources.NEEDS_SYNC, 0);
-					answer = false;
+					validResourceResponse = false;
 				}
 				else {
 					if ( Constants.LOG_DEBUG )
@@ -733,7 +733,7 @@ public class SyncCollectionContents extends ServiceJob {
 			}
 		}
 		
-		if ( answer ) {
+		if ( validResourceResponse ) {
 			String data = prop.getFirstNodeText(dataType + "-data");
 			if ( data != null ) { 
 				cv.put(DavResources.RESOURCE_DATA, data);
@@ -749,7 +749,7 @@ public class SyncCollectionContents extends ServiceJob {
 		// Remove our references to this now that we've finished with it.
 		responseNode.getParent().removeSubTree(responseNode);
 
-		return answer;
+		return validResourceResponse;
 	}
 
 	/**
@@ -798,8 +798,20 @@ public class SyncCollectionContents extends ServiceJob {
 				status = requestor.getStatusCode();
 				switch (status) {
 					case 200: // Status O.K.
+						StringBuilder resourceData = new StringBuilder();
+						BufferedReader r = new BufferedReader(new InputStreamReader(in));
+						String line;
+						try {
+							while ((line = r.readLine() ) != null) {
+								resourceData.append(line);
+								resourceData.append("\n");
+							}
+						}
+						catch (IOException e) {
+							Log.i(TAG,Log.getStackTraceString(e));
+						}
 						ContentValues cv = originalData.get(hrefs[hrefIndex]);
-						cv.put(DavResources.RESOURCE_DATA, in.toString());
+						cv.put(DavResources.RESOURCE_DATA, resourceData.toString() );
 						for (Header hdr : requestor.getResponseHeaders()) {
 							if (hdr.getName().equalsIgnoreCase("ETag")) {
 								cv.put(DavResources.ETAG, hdr.getValue());
