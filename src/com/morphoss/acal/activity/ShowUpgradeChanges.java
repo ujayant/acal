@@ -55,14 +55,14 @@ public class ShowUpgradeChanges extends Activity implements OnClickListener {
 		seenEm = (Button) this.findViewById(R.id.FinishedWithUpgradeNotes);
 		prefs = PreferenceManager.getDefaultSharedPreferences(this);
 		
-		int lastRevision = prefs.getInt(Constants.lastRevisionPreference, 0);
-		thisRevision = lastRevision + 1;
+		thisRevision = 1;
 		try {
 			thisRevision = getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
 		}
 		catch (NameNotFoundException e) {
 			Log.e(aCal.TAG,Log.getStackTraceString(e));
 		}
+		int lastRevision = prefs.getInt(Constants.lastRevisionPreference, thisRevision - 1);
 		
 		StringBuilder upNotes = new StringBuilder("<html><head>" +
 					"<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">" +
