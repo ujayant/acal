@@ -353,18 +353,13 @@ public class AcalRequestor {
 				name = name.substring(7);
 			}
 			else if ( name.length() > 5 && name.substring(0, 6).equalsIgnoreCase("Basic ") ) {
-				authType = Servers.AUTH_DIGEST;
+				authType = Servers.AUTH_BASIC;
 				name = name.substring(6);
 			}
 
 			if ( name.equalsIgnoreCase("realm") ) { 
 				authRealm = he.getValue();
 				if ( Constants.LOG_VERBOSE ) Log.v(TAG,"Found '"+getAuthTypeName(authType)+"' auth, realm: "+authRealm);
-			}
-			else if ( name.equalsIgnoreCase("Basic realm") ) { 
-				authType = Servers.AUTH_BASIC;
-				authRealm = he.getValue();
-				if ( Constants.LOG_VERBOSE ) Log.v(TAG,"Found 'Basic' auth, realm: "+authRealm);
 			}
 			else if ( name.equalsIgnoreCase("qop") ) {
 				qop = "auth";
