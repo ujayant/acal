@@ -404,13 +404,10 @@ public class ServerConfiguration extends PreferenceActivity implements OnPrefere
         togglePref.setOnPreferenceChangeListener(this); 
         preferenceHelper(togglePref, getString(R.string.Active), Servers.ACTIVE, defaultSummaries.get(Servers.ACTIVE));
 
-        boolean authEnabled = serverData.getAsInteger(Servers.AUTH_TYPE)!=0;
-        
         //username
         username = new EditTextPreference(this);
         username.setDialogTitle(getString(R.string.Username));
         username.setDefaultValue(serverData.getAsString(Servers.USERNAME));
-        username.setEnabled(authEnabled);
         username.setOnPreferenceChangeListener(this); 
         preferenceHelper(username, getString(R.string.Username), Servers.USERNAME,  defaultSummaries.get(Servers.USERNAME));
         
@@ -421,7 +418,6 @@ public class ServerConfiguration extends PreferenceActivity implements OnPrefere
         password.setDialogTitle(getString(R.string.Password));
         password.setDefaultValue(serverData.get(Servers.PASSWORD));
         password.setOnPreferenceChangeListener(this);
-        password.setEnabled(authEnabled);
         preferenceHelper(password, getString(R.string.Password), Servers.PASSWORD, defaultSummaries.get(Servers.PASSWORD));
 
 //        if (this.iface != INTERFACE_SIMPLE) {
@@ -625,17 +621,6 @@ public class ServerConfiguration extends PreferenceActivity implements OnPrefere
 	}
 
 	private boolean validateAuth(Preference p, Object v) {
-		//Are we switching to none or from none? If so we may need to enable.disable username/password fields
-		int newVal = Integer.parseInt((String)v);
-		int oldVal = serverData.getAsInteger(Servers.AUTH_TYPE);
-		if (oldVal == 0 && newVal > 0) {
-			username.setEnabled(true);
-			password.setEnabled(true);
-		}
-		else if (newVal == 0 && oldVal != 0) {
-			username.setEnabled(false);
-			password.setEnabled(false);
-		}
 		serverData.put(Servers.AUTH_TYPE, Integer.parseInt((String)v));
 		return true;
 	}
