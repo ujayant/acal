@@ -157,7 +157,8 @@ public class VCalendar extends VComponent {
 			mast.removeProperties( new String[] {"DTSTART", "DTEND", "DURATION",
 					"SUMMARY", "LOCATION", "DESCRIPTION", "RRULE" } );
 
-			AcalDateTime dtStart = action.getStart();
+			AcalDateTime dtStart = action.getStart().clone().applyLocalTimeZone();
+			dtStart.setTimeZone(null);
 			mast.addProperty( AcalProperty.fromString( dtStart.toPropertyString("DTSTART")));
 
 			mast.addProperty(new AcalProperty("DURATION", action.getDuration().toString() ) );
