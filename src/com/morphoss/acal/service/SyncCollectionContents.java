@@ -680,7 +680,10 @@ public class SyncCollectionContents extends ServiceJob {
 		start = System.currentTimeMillis();
 
 		Cursor mCursor = this.cr.query(
-					Uri.parse(DavResources.CONTENT_URI.toString() + "/collection/" + this.collectionId), new String[] { }, DavResources.NEEDS_SYNC + " = 1", null, null);
+					Uri.parse(DavResources.CONTENT_URI.toString() + "/collection/" + this.collectionId),
+					null,
+					DavResources.NEEDS_SYNC + " = 1 OR "+DavResources.RESOURCE_DATA+" IS NULL",
+					null, null);
 		ContentQueryMap cqm = new ContentQueryMap(mCursor, DavResources.RESOURCE_NAME, false, null);
 		cqm.requery();
 		originalData = cqm.getRows();
@@ -716,14 +719,14 @@ public class SyncCollectionContents extends ServiceJob {
 			cv.put("COLLECTION", true);
 		}
 
+		String etag = null;
 		if ( validResourceResponse ) {
-			String etag = prop.getFirstNodeText("getetag");
+			etag = prop.getFirstNodeText("getetag");
 			
 			if ( etag != null ) {
 				String oldEtag = cv.getAsString(DavResources.ETAG);
 				if ( oldEtag != null && oldEtag.equals(etag) ) {
 					cv.put(DavResources.NEEDS_SYNC, 0);
-					validResourceResponse = false;
 				}
 				else {
 					if ( Constants.LOG_DEBUG )
@@ -731,12 +734,11 @@ public class SyncCollectionContents extends ServiceJob {
 					cv.put(DavResources.NEEDS_SYNC, 1);
 				}
 			}
-		}
-		
-		if ( validResourceResponse ) {
+
 			String data = prop.getFirstNodeText(dataType + "-data");
 			if ( data != null ) { 
 				cv.put(DavResources.RESOURCE_DATA, data);
+				cv.put(DavResources.ETAG, etag);
 				cv.put(DavResources.NEEDS_SYNC, 0);
 			}
 			s = prop.getFirstNodeText("getlastmodified");
