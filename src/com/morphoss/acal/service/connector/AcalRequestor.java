@@ -138,6 +138,21 @@ public class AcalRequestor {
 
 	/**
 	 * Construct a new AcalRequestor from the values in a ContentValues which has been read
+	 * from a Server row in the database.  In this case the hostname / path will be set from
+	 * the 'simple' configuration values.
+	 * @param cvServerData
+	 * @return
+	 */
+	public static AcalRequestor fromSimpleValues( ContentValues cvServerData ) {
+		AcalRequestor result = new AcalRequestor();
+		result.applyFromServer(cvServerData, true);
+		result.authType  = Servers.AUTH_NONE;
+		return result;
+	}
+
+
+	/**
+	 * Construct a new AcalRequestor from the values in a ContentValues which has been read
 	 * from a Server row in the database.  The path will be set to the principal-path value
 	 * so you may need to specify a different path on the actual request(s).
 	 * @param cvServerData
@@ -145,7 +160,7 @@ public class AcalRequestor {
 	 */
 	public static AcalRequestor fromServerValues( ContentValues cvServerData ) {
 		AcalRequestor result = new AcalRequestor();
-		result.applyFromServer(cvServerData);
+		result.applyFromServer(cvServerData, false);
 		return result;
 	}
 
@@ -155,22 +170,27 @@ public class AcalRequestor {
 	 * from a Server row in the database.  The path will be set to the principal-path value
 	 * so you may need to specify a different path on the actual request(s)
 	 * @param cvServerData
+	 * @param simpleSetup true/false whether to use only the 'simple' values to initialise from
 	 */
-	public void applyFromServer( ContentValues cvServerData ) {
+	public void applyFromServer( ContentValues cvServerData, boolean simpleSetup ) {
 		String hostName = cvServerData.getAsString(Servers.HOSTNAME);
-		if ( hostName == null || hostName.equals("") ) {
+		if ( simpleSetup || hostName == null || hostName.equals("") ) {
 			hostName = cvServerData.getAsString(Servers.SUPPLIED_DOMAIN);
 		}
 
 		String requestPath = cvServerData.getAsString(Servers.PRINCIPAL_PATH);
-		if ( requestPath == null || requestPath.equals("") )
+		if ( simpleSetup || requestPath == null || requestPath.equals("") )
 			requestPath = cvServerData.getAsString(Servers.SUPPLIED_PATH);
 
 		this.hostName = hostName;
 		setPath(requestPath);
 		setPortProtocol(cvServerData.getAsInteger(Servers.PORT),cvServerData.getAsInteger(Servers.USE_SSL));
 
-		setAuthType(cvServerData.getAsInteger(Servers.AUTH_TYPE));
+		if ( simpleSetup )
+			authType = Servers.AUTH_NONE;
+		else
+			setAuthType(cvServerData.getAsInteger(Servers.AUTH_TYPE));
+
 		authRequired = ( authType != Servers.AUTH_NONE );
 		username = cvServerData.getAsString(Servers.USERNAME);
 		password = cvServerData.getAsString(Servers.PASSWORD);
@@ -323,29 +343,39 @@ public class AcalRequestor {
 		if ( Constants.LOG_VERBOSE )
 			Log.v(TAG,"Interpreting '"+authRequestHeader+"'");
 
+		String name;
 		for( HeaderElement he : authRequestHeader.getElements() ) {
 			if ( Constants.LOG_VERBOSE )
 				Log.v(TAG,"Interpreting Element: '"+he.toString()+"' ("+he.getName()+":"+he.getValue()+")");
-			if ( he.getName().equalsIgnoreCase("Digest realm") ) { 
+			name = he.getName();
+			if ( name.length() > 6 && name.substring(0, 7).equalsIgnoreCase("Digest ") ) {
 				authType = Servers.AUTH_DIGEST;
-				authRealm = he.getValue();
-				if ( Constants.LOG_VERBOSE ) Log.v(TAG,"Found 'Digest' auth, realm: "+authRealm);
+				name = name.substring(7);
 			}
-			else if ( he.getName().equalsIgnoreCase("Basic realm") ) { 
+			else if ( name.length() > 5 && name.substring(0, 6).equalsIgnoreCase("Basic ") ) {
+				authType = Servers.AUTH_DIGEST;
+				name = name.substring(6);
+			}
+
+			if ( name.equalsIgnoreCase("realm") ) { 
+				authRealm = he.getValue();
+				if ( Constants.LOG_VERBOSE ) Log.v(TAG,"Found '"+getAuthTypeName(authType)+"' auth, realm: "+authRealm);
+			}
+			else if ( name.equalsIgnoreCase("Basic realm") ) { 
 				authType = Servers.AUTH_BASIC;
 				authRealm = he.getValue();
 				if ( Constants.LOG_VERBOSE ) Log.v(TAG,"Found 'Basic' auth, realm: "+authRealm);
 			}
-			else if ( he.getName().equalsIgnoreCase("qop") ) {
+			else if ( name.equalsIgnoreCase("qop") ) {
 				qop = "auth";
 			}
-			else if ( he.getName().equalsIgnoreCase("nonce") ) {
+			else if ( name.equalsIgnoreCase("nonce") ) {
 				nonce = he.getValue();
 			}
-			else if ( he.getName().equalsIgnoreCase("opaque") ) {
+			else if ( name.equalsIgnoreCase("opaque") ) {
 				opaque = he.getValue();
 			}
-			else if ( he.getName().equalsIgnoreCase("algorithm") ) {
+			else if ( name.equalsIgnoreCase("algorithm") ) {
 				algorithm = "MD5";
 			}
 			
@@ -508,8 +538,8 @@ public class AcalRequestor {
 	 * Retrieve the unlocalised name of the authentication scheme currently in effect.
 	 * @return
 	 */
-	public String getAuthTypeName() {
-		switch (authType) {
+	public static String getAuthTypeName(int authCode) {
+		switch (authCode) {
 			// Only used in debug logging so don't need l10n
 			case Servers.AUTH_BASIC:	return "Basic";
 			case Servers.AUTH_DIGEST:	return "Digest";
@@ -521,7 +551,7 @@ public class AcalRequestor {
 	private String getLocationHeader() {
 		for( Header h : responseHeaders ) {
 			if (Constants.LOG_VERBOSE && Constants.debugDavCommunication)
-				Log.v(TAG, "Header: " + h.getName() + ":" + h.getValue());
+				Log.v(TAG, "Looking for redirect in Header: " + h.getName() + ":" + h.getValue());
 			if (h.getName().equalsIgnoreCase("Location"))
 				return h.getValue();
 		}
@@ -533,14 +563,15 @@ public class AcalRequestor {
 		Header selectedAuthHeader = null;
 		for( Header h : responseHeaders ) {
 			if (Constants.LOG_VERBOSE && Constants.debugDavCommunication)
-				Log.v(TAG, "Header: " + h.getName() + ":" + h.getValue());
+				Log.v(TAG, "Looking for auth in Header: " + h.getName() + ":" + h.getValue());
 			if ( h.getName().equalsIgnoreCase("WWW-Authenticate") ) {
 				// If this is a digest Auth header we will return with it
 				for( HeaderElement he : h.getElements() ) {
-					if ( he.getName().equalsIgnoreCase("Digest realm") ) {
+					
+					if ( he.getName().substring(0, 7).equalsIgnoreCase("Digest ") ) {
 						return h;
 					}
-					else if ( he.getName().equalsIgnoreCase("Basic realm") ) { 
+					else if ( he.getName().substring(0, 6).equalsIgnoreCase("Basic ") ) { 
 						if ( selectedAuthHeader == null ) selectedAuthHeader = h;
 					}
 				}
