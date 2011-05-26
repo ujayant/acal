@@ -10,3 +10,8 @@ v28=1.21
 Fix handling of some invalid repeat rules
 Save/restore viewed date across Week/Month Views
 Updated Spanish & Catalan translations
+v29=1.22
+Fix Digest Authentication against Apple Calendarserver
+Fix various sync issues, especially for Bedework and Apple Calendarserver
+Fix force close when choosing 'Cancel' while modifying an alarm.
+Fix force close in calculating image widths in week view.
