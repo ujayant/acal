@@ -170,6 +170,7 @@ public class WeekViewImageCache {
 			eventQueue.offer(hash);	//re prioritise
 			Bitmap base = eventMap.get(hash);
 			if (base.getHeight() < height) height = base.getHeight();
+			if (base.getWidth() < width) width = base.getWidth();
 			return Bitmap.createBitmap(base, 0, 0, width, height, null, false);
 		}
 		if (eventMap.size() > 100) eventQueue.poll(); //make space
