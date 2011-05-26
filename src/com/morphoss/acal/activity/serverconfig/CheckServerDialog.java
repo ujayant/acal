@@ -133,7 +133,10 @@ public class CheckServerDialog implements Runnable {
 		//we must remove any values that may have leaked through from XML that are not part of the DB table
 		ServerConfigData.removeNonDBFields(serverData);
 		this.serverData = serverData;
-		this.requestor = AcalRequestor.fromServerValues(serverData);
+		if ( advancedMode )
+			this.requestor = AcalRequestor.fromServerValues(serverData);
+		else
+			this.requestor = AcalRequestor.fromSimpleValues(serverData);
 	}
 	
 	public void start() {
