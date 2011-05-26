@@ -250,22 +250,30 @@ public class InitialCollectionSync extends ServiceJob {
 			List<DavNode> propstats;
 			String name;
 			String etag;
+			DavNode prop = null;
 
 			//iterate through each response and add to serverList
 			for (DavNode response : responseList) {
 				//get each prop
+				prop = null;
 				propstats = response.getNodesFromPath("propstat");
+				name = response.segmentFromFirstHref("href");
 				for (DavNode propstat : propstats) {
 					if ( !propstat.getFirstNodeText("status").equalsIgnoreCase("HTTP/1.1 200 OK") ) continue;
-					
-					name = response.segmentFromFirstHref("href");
-					etag = propstat.getFirstNodeText("prop/getetag");
-
-					ContentValues cv = new ContentValues();
-					if ( name != null ) cv.put(DavResources.RESOURCE_NAME, name);
-					if ( etag != null ) cv.put(DavResources.ETAG, etag);
-					serverList.put(name, cv);
+					prop = propstat.getNodesFromPath("prop").get(0); 
 				}
+				if ( name == null || prop == null ) continue;
+
+				ContentValues cv = new ContentValues();
+				cv.put(DavResources.COLLECTION_ID, collectionId);
+				cv.put(DavResources.RESOURCE_NAME, name);
+				cv.put(DavResources.NEEDS_SYNC, 1);
+
+				etag = prop.getFirstNodeText("getetag");
+
+				if ( etag != null ) cv.put(DavResources.ETAG, etag);
+				serverList.put(name, cv);
+
 				//Remove subtree to free up memory
 				root.removeSubTree(response);
 			}
@@ -290,7 +298,6 @@ public class InitialCollectionSync extends ServiceJob {
 			db.beginTransaction();
 
 			boolean successful = ResourceModification.applyChangeList(db,changeList); 
-			if ( successful ) db.setTransactionSuccessful();
 
 			if ( root != null ) {
 				//Update sync token
@@ -302,7 +309,7 @@ public class InitialCollectionSync extends ServiceJob {
 			}
 				
 			// Finish the transaction, as soon as possible
-			db.setTransactionSuccessful();
+			if ( successful ) db.setTransactionSuccessful();
 			db.endTransaction();
 
 			if (Constants.LOG_VERBOSE)
@@ -334,6 +341,10 @@ public class InitialCollectionSync extends ServiceJob {
 	private void syncRecentEvents(SQLiteDatabase db) {
 		AcalDateTime from = new AcalDateTime().applyLocalTimeZone().addDays(-32).shiftTimeZone("UTC");
 		AcalDateTime until = new AcalDateTime().applyLocalTimeZone().addDays(+68).shiftTimeZone("UTC");
+
+		if (Constants.LOG_DEBUG)
+			Log.d(TAG, "Doing a recent sync of events from "+from.toString()+" to "+until.toString());			
+		
 		DavNode root = requestor.doXmlRequest("REPORT", collectionPath, SynchronisationJobs.getReportHeaders(1),
 					String.format(calendarQuery, from.fmtIcal(), until.fmtIcal()));
 
@@ -358,6 +369,7 @@ public class InitialCollectionSync extends ServiceJob {
 				cv = new ContentValues();
 				cv.put(DavResources.COLLECTION_ID, collectionId);
 				cv.put(DavResources.RESOURCE_NAME, name);
+				cv.put(DavResources.NEEDS_SYNC, 1);
 				action = WriteActions.INSERT;
 			}
 			if ( !parseResponseNode(response, cv) ) continue;
@@ -396,21 +408,24 @@ public class InitialCollectionSync extends ServiceJob {
 			if ( etag == null || data == null ) return false;
 			
 			String oldEtag = cv.getAsString(DavResources.ETAG);
-			String oldData = cv.getAsString(DavResources.RESOURCE_DATA);
 			
-			if ( etag != null && oldEtag != null && oldEtag.equals(etag)
-						&& ( (data == null && oldData == null)
-							 || (data != null && oldData != null && oldData.equals(data) ) )
-							 ) {
-				cv.put(DavResources.NEEDS_SYNC, (oldData == null ? "1" : "0") );
+			if ( oldEtag != null && oldEtag.equals(etag) ) {
+				if ( Constants.LOG_VERBOSE ) Log.v(TAG,"ETag matches existing record, so no need to sync.");
+				cv.put(DavResources.NEEDS_SYNC, 0 );
 				return false;
 			}
 
-			if ( etag != null ) cv.put(DavResources.ETAG, etag);
-			if ( data != null ) cv.put(DavResources.RESOURCE_DATA, data); 
 			if ( last_modified != null ) cv.put(DavResources.LAST_MODIFIED, last_modified);
 			if ( content_type != null ) cv.put(DavResources.CONTENT_TYPE, content_type);
-			cv.put(DavResources.NEEDS_SYNC, (data == null || etag == null) );
+			if ( data != null ) {
+				cv.put(DavResources.RESOURCE_DATA, data); 
+				cv.put(DavResources.ETAG, etag);
+				cv.put(DavResources.NEEDS_SYNC, 0 );
+				if ( Constants.LOG_VERBOSE ) Log.v(TAG,"Got data now, so no need to sync later.");
+				return true;
+			}
+			if ( Constants.LOG_VERBOSE ) Log.v(TAG,"Need to sync "+cv.getAsString(DavResources.RESOURCE_NAME));
+			cv.put(DavResources.NEEDS_SYNC, 1 );
 		}
 
 		// We remove our references to this now, since we've finished with it.
