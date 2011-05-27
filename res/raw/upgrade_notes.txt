@@ -20,3 +20,4 @@ Improve server discovery timeout problems
 Improve sync speed for larger calendars
 Trigger immediate 'should we sync' if sync times are changed
 Add Support for sync with Google Calendar via CalDAV
+Increase server discovery timeouts to try and improve resilience 
