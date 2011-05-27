@@ -51,8 +51,8 @@ import com.morphoss.acal.xml.DavNode;
 
 public class InitialCollectionSync extends ServiceJob {
 
-	private int collectionId = -1;
-	private int serverId = -1;
+	private int collectionId = -2;
+	private int serverId = -2;
 	private String collectionPath = null;
 	ContentValues collectionValues = null;
 	private boolean isCollectionIdAssigned = false;
@@ -110,6 +110,8 @@ public class InitialCollectionSync extends ServiceJob {
 		this.collectionId = collectionId;
 		this.serverId = serverId;
 		this.collectionPath = collectionPath;
+		if ( collectionPath == null || serverId < 0 || collectionId < 0 )
+			throw new IllegalArgumentException("collectionPath, serverId and collectionId should be assigned real values!");
 		this.isCollectionIdAssigned = true;
 	}
 
@@ -148,6 +150,13 @@ public class InitialCollectionSync extends ServiceJob {
 		if ( null == serverData.getAsInteger(Servers.HAS_SYNC) || 0 == serverData.getAsInteger(Servers.HAS_SYNC) ) {
 			Log.i(TAG, "Skipping initial sync process since server does not support WebDAV synchronisation");
 			collectionNeedsSync = true;
+
+			if ( collectionValues.getAsInteger(DavCollections.ACTIVE_EVENTS) == 1 ) {
+				AcalDBHelper dbHelper = new AcalDBHelper(this.context);
+				SQLiteDatabase db = dbHelper.getWritableDatabase();
+				syncRecentEvents(db);
+				db.close();
+			}
 		}
 		else {
 	
@@ -178,9 +187,9 @@ public class InitialCollectionSync extends ServiceJob {
 			if ( collectionPath == null ) {
 				collectionValues = DavCollections.getRow(collectionId, cr);
 				if ( collectionValues != null ) {
-					isCollectionIdAssigned = true;
 					serverId = collectionValues.getAsInteger(DavCollections.SERVER_ID);
 					collectionPath = collectionValues.getAsString(DavCollections.COLLECTION_PATH);
+					isCollectionIdAssigned = true;
 				}
 				else {
 					Log.e(TAG,"Cannot find collection ID "+collectionId+" which I should sync!");
@@ -191,10 +200,10 @@ public class InitialCollectionSync extends ServiceJob {
 							DavCollections.SERVER_ID + "=? AND " + DavCollections.COLLECTION_PATH + "=?",
 							new String[] { "" + serverId, collectionPath }, null);
 				if ( cursor.moveToFirst() ) {
-					isCollectionIdAssigned = true;
 					collectionValues = new ContentValues();
 					DatabaseUtils.cursorRowToContentValues(cursor, collectionValues);
 					collectionId = collectionValues.getAsInteger(DavCollections._ID);
+					isCollectionIdAssigned = true;
 				}
 				else {
 					Log.e(TAG,"Cannot find collection "+collectionPath+" which I should sync!");
@@ -227,7 +236,7 @@ public class InitialCollectionSync extends ServiceJob {
 
 			// Get a map of all existing records where Name is the key.
 			resourceCursor = db.query(DavResources.DATABASE_TABLE,
-						new String[] { DavResources.RESOURCE_NAME, DavResources._ID, DavResources.ETAG },
+						null,
 						DavResources.COLLECTION_ID+"=?", new String[] { Integer.toString(collectionId) },
 						null, null, null);
 			resourceCursor.moveToFirst();
@@ -249,7 +258,6 @@ public class InitialCollectionSync extends ServiceJob {
 			// we allocate variables here and re-use inside loop for performance.
 			List<DavNode> propstats;
 			String name;
-			String etag;
 			DavNode prop = null;
 
 			//iterate through each response and add to serverList
@@ -269,9 +277,6 @@ public class InitialCollectionSync extends ServiceJob {
 				cv.put(DavResources.RESOURCE_NAME, name);
 				cv.put(DavResources.NEEDS_SYNC, 1);
 
-				etag = prop.getFirstNodeText("getetag");
-
-				if ( etag != null ) cv.put(DavResources.ETAG, etag);
 				serverList.put(name, cv);
 
 				//Remove subtree to free up memory
@@ -462,7 +467,8 @@ public class InitialCollectionSync extends ServiceJob {
 			if (!db.containsKey(name)) continue;	//New value from server
 			if (db.get(name).getAsString(DavResources.ETAG).equals(server.get(name).getAsString(DavResources.ETAG)))  { //records match, remove from both
 				server.remove(name);
-			} else {
+			}
+			else {
 				server.get(name).put(DavResources._ID, db.get(name).getAsString(DavResources._ID));	//record to be updated. Insert ID
 			}
 			db.remove(name);
