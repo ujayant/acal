@@ -87,6 +87,8 @@ public class Servers extends ContentProvider {
 	public static final String		HAS_SYNC		= "has_sync";
 	public static final String		ACTIVE			= "active";
 	public static final String		USE_SSL			= "use_ssl";
+	public static final String		USE_ADVANCED	= "use_advanced";
+	public static final String		PREPARED_CONFIG	= "prepared_config";
 
 	// Possible values for authentication
 	public static final int			AUTH_NONE		= 0;
@@ -296,6 +298,8 @@ public class Servers extends ContentProvider {
 		StaticHelpers.copyContentValue(cloned, serverData, HAS_SYNC);
 		StaticHelpers.copyContentValue(cloned, serverData, ACTIVE);
 		StaticHelpers.copyContentValue(cloned, serverData, USE_SSL);
+		StaticHelpers.copyContentValue(cloned, serverData, USE_ADVANCED);
+		StaticHelpers.copyContentValue(cloned, serverData, PREPARED_CONFIG);
 		return cloned;
 	}
 
