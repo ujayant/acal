@@ -365,7 +365,7 @@ public class CheckServerDialog implements Runnable {
 
 		// If the port wasn't given use standard ports as first probe
 		if ( p == null || p < 1 || p > 65535 ) p = (protocol == 0 ? 80 : 443);
-		if ( tryPort(p, protocol, 10000 ) ) {
+		if ( tryPort(p, protocol, 15000 ) ) {
 			workingPorts.add(p);
 			return true;
 		}
@@ -380,23 +380,23 @@ public class CheckServerDialog implements Runnable {
 		// Try initially with a very short timeout
 		if ( p == null || p == 1 ) {
 			for( int port : portsToTrySSL )
-				if ( tryPort(port, 1, 2500 ) ) return true;
+				if ( tryPort(port, 1, 3500 ) ) return true;
 		}
 
 		if ( p == null || p == 0 ) {
 			for( int port : portsToTryHttp )
-				if ( tryPort(port, 0, 1500 ) ) return true;
+				if ( tryPort(port, 0, 2500 ) ) return true;
 		}
 
 		// Try with longer timeouts.
 		if ( p == null || p == 1 ) {
 			for( int port : portsToTrySSL )
-				if ( tryPort(port, 1, 5000 ) ) return true;
+				if ( tryPort(port, 1, 10000 ) ) return true;
 		}
 
 		if ( p == null || p == 0 ) {
 			for( int port : portsToTryHttp )
-				if ( tryPort(port, 0, 5000 ) ) return true;
+				if ( tryPort(port, 0, 10000 ) ) return true;
 		}
 
 		return false;
