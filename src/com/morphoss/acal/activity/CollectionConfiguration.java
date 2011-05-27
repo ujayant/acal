@@ -48,7 +48,9 @@ import com.morphoss.acal.DatabaseChangedEvent;
 import com.morphoss.acal.R;
 import com.morphoss.acal.ServiceManager;
 import com.morphoss.acal.providers.DavCollections;
+import com.morphoss.acal.service.ServiceJob;
 import com.morphoss.acal.service.SyncChangesToServer;
+import com.morphoss.acal.service.SyncCollectionContents;
 import com.morphoss.acal.service.WorkerClass;
 import com.morphoss.acal.service.aCalService;
 
@@ -235,9 +237,15 @@ public class CollectionConfiguration extends PreferenceActivity implements OnPre
 		res.putExtra("UpdateRequired",collectionData.getAsInteger(DavCollections._ID) );
 		this.setResult(RESULT_OK, res);
 
+		ServiceJob job = null;
 		if ( collectionData.getAsInteger(DavCollections.SYNC_METADATA) != null
 					&& collectionData.getAsInteger(DavCollections.SYNC_METADATA) == 1 )
-			WorkerClass.getExistingInstance().addJobAndWake(new SyncChangesToServer());
+			job = new SyncChangesToServer();
+		else
+			job = new SyncCollectionContents(collectionData.getAsInteger(DavCollections._ID));
+
+		WorkerClass.getExistingInstance().addJobAndWake(job);
+		
 	}
 	
 
@@ -252,9 +260,6 @@ public class CollectionConfiguration extends PreferenceActivity implements OnPre
 		//friendly_name
 		createPreferenceHierarchy();
 		checkTextSummary(displayName);
-//		checkTextSummary(colour);
-//		checkTextSummary(maxSyncAge3g);
-//		checkTextSummary(maxSyncAgeWifi);
 		setPreferenceScreen(this.preferenceRoot);
 	}
 	
