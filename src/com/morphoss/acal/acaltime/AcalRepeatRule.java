@@ -375,8 +375,8 @@ public class AcalRepeatRule {
 			try {
 				sourceVCalendar.setPersistentOn();
 				RecurrenceId ourRecurrenceId = (RecurrenceId) AcalProperty.fromString(endDate.toPropertyString("RECURRENCE-ID"));
-				VEvent ourVEvent = (VEvent) sourceVCalendar.getChildFromRecurrenceId(ourRecurrenceId);
-				EventInstance instance = getRecurrence(endDate,ourVEvent);
+				Masterable vMaster = sourceVCalendar.getChildFromRecurrenceId(ourRecurrenceId);
+				EventInstance instance = getRecurrence(endDate,vMaster);
 				eventTimes.put(endDate.getEpoch(), instance );
 				endDate = instance.dtend;
 			}
