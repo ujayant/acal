@@ -15,3 +15,8 @@ Fix Digest Authentication against Apple Calendarserver
 Fix various sync issues, especially for Bedework and Apple Calendarserver
 Fix force close when choosing 'Cancel' while modifying an alarm.
 Fix force close in calculating image widths in week view.
+v29=1.23
+Improve server discovery timeout problems
+Improve sync speed for larger calendars
+Trigger immediate 'should we sync' if sync times are changed
+Add Support for sync with Google Calendar via CalDAV
