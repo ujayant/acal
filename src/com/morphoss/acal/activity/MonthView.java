@@ -722,12 +722,12 @@ public class MonthView extends Activity implements OnGestureListener,
 		}
 	}
 
-	public void deleteSingleEvent(AcalDateTime day, int n) {
+	public void deleteEvent(AcalDateTime day, int n, int action ) {
 		if (dataRequest == null) return;
 		try {
 			SimpleAcalEvent sae = dataRequest.getNthEventForDay(day, n);
 			AcalEvent ae = AcalEvent.fromDatabase(this, sae.resourceId, new AcalDateTime().setEpoch(sae.start));
-			ae.setAction(AcalEvent.ACTION_DELETE_SINGLE);
+			ae.setAction(action);
 			this.dataRequest.eventChanged(ae);
 			dataRequest.deleteEvent(day, n);
 		} catch (RemoteException e) {
@@ -736,35 +736,7 @@ public class MonthView extends Activity implements OnGestureListener,
 		this.changeSelectedDate(this.selectedDate);
 	}
 
-	public void deleteAllEvent(AcalDateTime day, int n) {
-		if (dataRequest == null) return;
-		try {
-			SimpleAcalEvent sae = dataRequest.getNthEventForDay(day, n);
-			AcalEvent ae = AcalEvent.fromDatabase(this, sae.resourceId, new AcalDateTime().setEpoch(sae.start));
-			ae.setAction(AcalEvent.ACTION_DELETE_ALL);
-			this.dataRequest.eventChanged(ae);
-			dataRequest.deleteEvent(day, n);
-		} catch (RemoteException e) {
-			Log.e(TAG,"Error deleting event: "+e);
-		}
-		this.changeSelectedDate(this.selectedDate);
-	}
 	
-	public void deleteFutureEvent(AcalDateTime day, int n) {
-		if (dataRequest == null) return;
-		try {
-			SimpleAcalEvent sae = dataRequest.getNthEventForDay(day, n);
-			AcalEvent ae = AcalEvent.fromDatabase(this, sae.resourceId, new AcalDateTime().setEpoch(sae.start));
-			ae.setAction(AcalEvent.ACTION_DELETE_ALL_FUTURE);
-			this.dataRequest.eventChanged(ae);
-			dataRequest.deleteEvent(day, n);
-		} catch (RemoteException e) {
-			Log.e(TAG,"Error deleting event: "+e);
-			
-		}
-		this.changeSelectedDate(this.selectedDate);
-	}
-
 	/********************************************************************
 	 * Implemented Interface Overrides *
 	 ********************************************************************/
