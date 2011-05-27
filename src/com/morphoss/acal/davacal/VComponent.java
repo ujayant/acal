@@ -464,6 +464,7 @@ public abstract class VComponent {
 			int pos = 0;
 			int endPos = 0;
 			int thisFound = 0;
+			int loopLimiter = 0;
 			String props = "";
 			String componentName = "";
 			if( begin.find(pos) ) {
@@ -477,7 +478,7 @@ public abstract class VComponent {
 			else {
 				thisComponent = "";
 			}
-			while( begin.find(pos) ) {
+			while( begin.find(pos) && loopLimiter++ < 10000 ) {
 				thisFound = begin.start();
 				if ( thisFound > pos ) {
 					props += blob.substring(pos, thisFound - 1);
@@ -485,7 +486,7 @@ public abstract class VComponent {
 				}
 				componentName = begin.group(1);
 				endPos = pos;
-				while( end.find(endPos) ) {
+				while( end.find(endPos) && loopLimiter++ < 10000 ) {
 					if ( end.group(1).equals(componentName) ) {
 						PartInfo info = new PartInfo(componentName, pos, end.end()); 
 						partInfo.add( info );
