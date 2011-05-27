@@ -70,7 +70,7 @@ public class DavNode {
 		for (int i = 0; i<nl.getLength(); i++) {
 			Node item = nl.item(i);
 			if (item.getNodeType() == Node.TEXT_NODE || item.getNodeType() == Node.CDATA_SECTION_NODE )
-				text += item.getNodeValue().trim();
+				text += item.getNodeValue();
 		}
 		NamedNodeMap attr = n.getAttributes();
 		for (int i = 0; i<attr.getLength(); i++) {
