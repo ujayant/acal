@@ -166,8 +166,6 @@ public class AddServerListAdapter extends BaseAdapter {
 		
 		final ContentValues item;
 		boolean preconfig=false;
-		boolean other=false;
- 
 		item = data.get(position);
 
 		preconfig = (position >= this.lastSavedConfig);
@@ -177,8 +175,8 @@ public class AddServerListAdapter extends BaseAdapter {
 			icon.setBackgroundDrawable(context.getResources().getDrawable(R.drawable.icon));
 			title.setText(item.getAsString(Servers.FRIENDLY_NAME));
 			StringBuilder blurbString = new StringBuilder("");
-			if ( item.getAsString(Servers.HOSTNAME) != null ) blurbString.append(item.getAsString(Servers.HOSTNAME));
-			else if ( item.getAsString(Servers.SUPPLIED_DOMAIN) != null ) blurbString.append(item.getAsString(Servers.HOSTNAME)); 
+			if ( item.getAsString(Servers.HOSTNAME) != null && !item.getAsString(Servers.HOSTNAME).equals("null")) blurbString.append(item.getAsString(Servers.HOSTNAME));
+			else if ( item.getAsString(Servers.SUPPLIED_DOMAIN) != null && !item.getAsString(Servers.SUPPLIED_DOMAIN).equals("null") ) blurbString.append(item.getAsString(Servers.SUPPLIED_DOMAIN)); 
 			if ( item.getAsString(Servers.PRINCIPAL_PATH) != null ) blurbString.append(item.getAsString(Servers.PRINCIPAL_PATH));
 			else if ( item.getAsString(Servers.SUPPLIED_PATH) != null )  blurbString.append(item.getAsString(Servers.SUPPLIED_PATH));
 			
