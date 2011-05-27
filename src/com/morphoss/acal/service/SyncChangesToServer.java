@@ -43,7 +43,6 @@ import android.net.Uri;
 import android.util.Log;
 
 import com.morphoss.acal.Constants;
-import com.morphoss.acal.DatabaseChangedEvent;
 import com.morphoss.acal.ResourceModification;
 import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.database.AcalDBHelper;
