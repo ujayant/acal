@@ -29,7 +29,6 @@ import android.util.Log;
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDuration;
-import com.morphoss.acal.activity.EventView;
 
 
 /**

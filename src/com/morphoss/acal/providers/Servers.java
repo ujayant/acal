@@ -212,27 +212,24 @@ public class Servers extends ContentProvider {
 	@Override
 	public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
 		int count = 0;
-	
-		switch (uriMatcher.match(uri)){
-		case SERVERS:
-			count = AcalDB.update(
-					DATABASE_TABLE, 
-					values,
-					selection, 
-					selectionArgs);
-			break;
-		case SERVER_ID:                
-			count = AcalDB.update(
-					DATABASE_TABLE, 
-					values,
-					_ID + " = " + uri.getPathSegments().get(0) + 
-					(!TextUtils.isEmpty(selection) ? " AND (" + 
-							selection + ')' : ""), 
-							selectionArgs);
-			break;
-		default: throw new IllegalArgumentException(
-				"Unknown URI " + uri);    
-		}       
+
+		try {
+			switch (uriMatcher.match(uri)) {
+				case SERVERS:
+					count = AcalDB.update(DATABASE_TABLE, values, selection, selectionArgs);
+					break;
+				case SERVER_ID:
+					count = AcalDB.update(DATABASE_TABLE, values, _ID + " = " + uri.getPathSegments().get(0)
+								+ (!TextUtils.isEmpty(selection) ? " AND (" + selection + ')' : ""), selectionArgs);
+					break;
+				default:
+					throw new IllegalArgumentException("Unknown URI " + uri);
+			}
+		}
+		catch (NullPointerException npe) {
+			Log.e(TAG, Log.getStackTraceString(npe));
+			return 0;
+		}
 		getContext().getContentResolver().notifyChange(uri, null);
 		return count;
 	}
