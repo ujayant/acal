@@ -117,6 +117,8 @@
 <string name="prefWorkdayFinish_Summary">L\'heure de fin de la journée de travail.</string>
 <string name="prefWeekViewLinesPerHour_Title">Hauteur de ligne</string>
 <string name="prefWeekViewLinesPerHour_Summary">Hauteur de chaque heure de la journée en vue semaine.</string>
+<string name="prefWeekViewDayWidth_Title">Largeur de colonne</string>
+<string name="prefWeekViewDayWidth_Summary">Largeur de chaque colonne de jour dans la vue hebdomadaire.</string>
 <string name="Today">Aujourd\'hui</string>
 <string name="Year">Année</string>
 <string name="Month">Mois</string>
@@ -174,6 +176,7 @@
 <string name="NewManualServerConfiguration">Configuration manuelle</string>
 <string name="ManualServerConfigurationBlurb">Entrer manuellement les informations du serveur</string>
 <string name="SavedServerConfigurationBlurb">Une configuration de serveur sauvegardé</string>
+<string name="ForTheWholeDay">Toute la journée</string>
 <string name="alarmAtEventTime">A l\'heure</string>
 <string name="alarm10MinutesPrior">10 minutes avant</string>
 <string name="alarm30MinutesPrior">30 minutes avant</string>

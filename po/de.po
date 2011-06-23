@@ -2,13 +2,18 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # 
+#   <werner.heise@lessingstadt.de>, 2011.
+# Joerg Knoche <transifex@roerch.ping.de>, 2011.
+# SunTsu <transifex.20.suntsu@spamgourmet.com>, 2011.
+# Andrew McMillan <andrew@mcmillan.net.nz>, 2011.
+# fmms <mail@felixmoeller.de>, 2011.
 msgid ""
 msgstr ""
 "Project-Id-Version: aCal\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-05-19 09:05+1200\n"
-"PO-Revision-Date: 2011-05-18 21:21+0000\n"
-"Last-Translator: SunTsu <transifex.20.suntsu@spamgourmet.com>\n"
+"PO-Revision-Date: 2011-06-01 09:43+0000\n"
+"Last-Translator: derwerner <werner.heise@lessingstadt.de>\n"
 "Language-Team: German (http://www.transifex.net/projects/p/acal/team/de/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -624,7 +629,7 @@ msgid "alarmCustom"
 msgstr "selbstdefinierter Alarm"
 
 msgid "alarmsDisabledNote"
-msgstr ""
+msgstr "(alle Alarme für diesen Kalender sind ausgeschaltet)"
 
 msgid "changeThisInstance"
 msgstr "Ausschließlich dieses Vorkommen"
@@ -704,30 +709,30 @@ msgid "deleteThisAndFuture"
 msgstr "Dieses Vorkommnis und alle zukünftigen löschen"
 
 msgid "newAllDayEventOn"
-msgstr ""
+msgstr "Neues Ereignis am %s"
 
 msgid "newHourEventAt"
-msgstr ""
+msgstr "Neues Ereignis in %s"
 
 msgid "editSomeEvent"
-msgstr ""
+msgstr "Bearbeite: %s"
 
 msgid "copySomeEvent"
-msgstr ""
+msgstr "Kopiere: %s"
 
 msgid "deleteSomeEvent"
-msgstr ""
+msgstr "Lösche: %s"
 
 msgid "noCollectionsFound"
-msgstr ""
+msgstr "Keine Kalender gefunden"
 
 msgid "aCalVersionChanges"
-msgstr ""
+msgstr "Willkommen bei einer neuen Version von aCal!"
 
 msgid "newWithVersion"
-msgstr ""
+msgstr "Änderungen in Version %s"
 
 msgid "newVersionSeen"
-msgstr ""
+msgstr "Danke, nun zeig's mir!"
 
 

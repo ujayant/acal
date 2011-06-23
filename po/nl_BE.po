@@ -2,13 +2,14 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # 
-#   <zenlord@gmail.com>, 2011
+#   <zenlord@gmail.com>, 2011.
+# zenlord <zenlord@gmail.com>, 2011.
 msgid ""
 msgstr ""
 "Project-Id-Version: aCal\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-05-19 09:05+1200\n"
-"PO-Revision-Date: 2011-05-20 00:07+0000\n"
+"PO-Revision-Date: 2011-06-19 11:30+0000\n"
 "Last-Translator: zenlord <zenlord@gmail.com>\n"
 "Language-Team: Dutch (Belgium/Flemish) (http://www.transifex.net/projects/p/acal/team/nl_BE/)\n"
 "MIME-Version: 1.0\n"
@@ -32,9 +33,9 @@ msgstr "Annuleren"
 
 msgid "appDescription"
 msgstr ""
-"Een kalender voor Android die uw gebeurtenissen, taken, notities en "
-"contacten bewaart op een externe CalDAV / CardDAV server, zoals davical "
-"(Zie: www.davical.org)"
+"Een kalender voor Android die uw activiteiten, taken, notities en contacten "
+"bewaart op een externe CalDAV / CardDAV server, zoals davical (Zie: "
+"www.davical.org)"
 
 msgid "Active"
 msgstr "Actief"
@@ -55,7 +56,7 @@ msgid "Simple_Domain"
 msgstr "Eenvoudig Domein"
 
 msgid "Enter_a_brief_summary_of_the_event"
-msgstr "Geef een korte samenvatting van het evenement"
+msgstr "Geef een korte samenvatting van de activiteit"
 
 msgid "Name"
 msgstr "Naam"
@@ -67,7 +68,7 @@ msgid "Password"
 msgstr "Wachtwoord"
 
 msgid "Save"
-msgstr "Opslaan"
+msgstr "Bewaren"
 
 msgid "Settings"
 msgstr "Instellingen"
@@ -76,7 +77,7 @@ msgid "Server_Name"
 msgstr "Servernaam"
 
 msgid "Server_Options"
-msgstr "Server-opties"
+msgstr "Serveropties"
 
 msgid "Collection_Options"
 msgstr "Collectie-opties"
@@ -88,10 +89,10 @@ msgid "Default_timezone"
 msgstr "Standaard Tijdzone"
 
 msgid "DefaultAlarmTone"
-msgstr "Standaard alarmgeluid"
+msgstr "Standaard notificatiegeluid"
 
 msgid "Server_Path"
-msgstr "Server-pad"
+msgstr "Serverpad"
 
 msgid "Server_Port"
 msgstr "Serverpoort"
@@ -137,7 +138,7 @@ msgid "Whether_to_use_encryption"
 msgstr "Of encryptie moet gebruikt worden voor de verbinding met de server"
 
 msgid "appActivityEventCreate"
-msgstr "Nieuwe Gebeurtenis"
+msgstr "Nieuwe Activiteit"
 
 msgid "appActivityServerConfigList"
 msgstr "Servers"
@@ -164,16 +165,16 @@ msgid "A_name_for_this_collection"
 msgstr "Een naam voor deze collectie"
 
 msgid "pActive_addressbook"
-msgstr "Actief adresboek"
+msgstr "Gebruikt Adresboek"
 
 msgid "pActive_for_events"
-msgstr "Actief voor Gebeurtenissen"
+msgstr "Gebruikt voor Activiteiten"
 
 msgid "pActive_for_journal"
-msgstr "Actief voor Notes"
+msgstr "Gebruikt voor Notities"
 
 msgid "pActive_for_tasks"
-msgstr "Actief voor Taken"
+msgstr "Gebruikt voor Taken"
 
 msgid "pUse_Alarms"
 msgstr "Gebruik notificaties in deze collectie?"
@@ -182,23 +183,23 @@ msgid "Use_Alarms"
 msgstr "Notificaties ingeschakeld"
 
 msgid "Active_addressbook"
-msgstr "Wordt deze collectie gebruikt om contactpersonen op te slaan?"
+msgstr "Wordt deze collectie gebruikt om contactpersonen te bewaren?"
 
 msgid "Active_for_events"
-msgstr "Wordt deze collectie gebruikt om gebeurtenissen op te slaan?"
+msgstr "Wordt deze collectie gebruikt om activiteiten te bewaren?"
 
 msgid "Active_for_journal"
-msgstr "Wordt deze collectie gebruikt om notities op te slaan?"
+msgstr "Wordt deze collectie gebruikt om notities te bewaren?"
 
 msgid "Active_for_tasks"
-msgstr "Wordt deze collectie gebruikt om taken op te slaan?"
+msgstr "Wordt deze collectie gebruikt om taken te bewaren?"
 
 msgid "The_colour_associated_with_this_collection"
 msgstr "De kleur voor gegevens uit deze collectie"
 
 msgid "The_timezone_new_events_default_to"
 msgstr ""
-"De tijdzone die wordt gebruikt voor nieuwe gebeurtenissen in deze collectie"
+"De tijdzone die wordt gebruikt voor nieuwe activiteiten in deze collectie"
 
 msgid "pMax_age_on_3g"
 msgstr "Sync minuten op 3g"
@@ -279,40 +280,40 @@ msgid "chSun"
 msgstr "Z"
 
 msgid "January"
-msgstr "Januari"
+msgstr "januari"
 
 msgid "February"
-msgstr "Februari"
+msgstr "februari"
 
 msgid "March"
-msgstr "Maart"
+msgstr "maart"
 
 msgid "April"
-msgstr "April"
+msgstr "april"
 
 msgid "May"
-msgstr "Mei"
+msgstr "mei"
 
 msgid "June"
-msgstr "Juni"
+msgstr "juni"
 
 msgid "July"
-msgstr "Juli"
+msgstr "juli"
 
 msgid "August"
-msgstr "Augustus"
+msgstr "augustus"
 
 msgid "September"
-msgstr "September"
+msgstr "september"
 
 msgid "October"
-msgstr "Oktober"
+msgstr "oktober"
 
 msgid "November"
-msgstr "November"
+msgstr "november"
 
 msgid "December"
-msgstr "December"
+msgstr "december"
 
 msgid "thJan"
 msgstr "Jan"
@@ -359,13 +360,13 @@ msgid "oneCharAfternoon"
 msgstr "p"
 
 msgid "YearViewSize_PrefTitle"
-msgstr "Aantal zichtbare maanden in Jaar-view"
+msgstr "Aantal weer te geven maanden in Jaar-weergave"
 
 msgid "YearViewSize_PrefSummary"
-msgstr "Het aantal maanden dat zichtbaar is in Jaar-view"
+msgstr "Het aantal maanden dat wordt weergegeven in Jaar-weergave"
 
 msgid "Snooze_PrefTitle"
-msgstr "Snooze tijd"
+msgstr "Snooze-tijd"
 
 msgid "Snooze_PrefSummary"
 msgstr ""
@@ -376,7 +377,7 @@ msgid "DefaultCollection_PrefTitle"
 msgstr "Standaard Collectie"
 
 msgid "DefaultCollection_PrefSummary"
-msgstr "De standaard collectie om te gebruiken voor nieuwe gebeurtenissen"
+msgstr "De standaard collectie om te gebruiken voor nieuwe activiteiten"
 
 msgid "DefaultAlarmTone_PrefTitle"
 msgstr "Standaard alarmgeluid"
@@ -400,7 +401,7 @@ msgid "prefWeekViewLinesPerHour_Title"
 msgstr "Rijhoogte"
 
 msgid "prefWeekViewLinesPerHour_Summary"
-msgstr "De hoogte van ieder uur van de dag in week-view"
+msgstr "De hoogte van ieder uur van de dag in week-weergave"
 
 msgid "prefWeekViewDayWidth_Title"
 msgstr "Kolombreedte"
@@ -451,7 +452,7 @@ msgid "RepeatsPrompt"
 msgstr "Herhaling:"
 
 msgid "AllDayPrompt"
-msgstr "Gebeurtenis duurt hele dag:"
+msgstr "Activiteit duurt hele dag:"
 
 msgid "FromPrompt"
 msgstr "Van:"
@@ -463,7 +464,7 @@ msgid "defaultCalendar"
 msgstr "Standaard kalender"
 
 msgid "theCalendarForNewEvents"
-msgstr "De standaard kalender om te gebruiken voor nieuwe gebeurtenissen."
+msgstr "De standaard kalender om te gebruiken voor nieuwe activiteiten."
 
 msgid "TwelveTwentyfour_PrefTitle"
 msgstr "Gebruik 24-uurs formaat"
@@ -472,7 +473,7 @@ msgid "TwelveTwentyfour_OnSummary"
 msgstr "14:00"
 
 msgid "TwelveTwentyfour_OffSummary"
-msgstr "14:00"
+msgstr "2:00pm"
 
 msgid "OnlyOnce"
 msgstr "Geen herhaling"
@@ -538,28 +539,28 @@ msgid "CustomRepeatRule"
 msgstr "Aangepaste herhaling"
 
 msgid "EventSaved"
-msgstr "Gebeurtenis bewaard."
+msgstr "Activiteit bewaard."
 
 msgid "ModifiedAllInstances"
-msgstr "Alle instanties van deze gebeurtenis bewerkt."
+msgstr "Alle instanties van deze activiteit bijgewerkt."
 
 msgid "ModifiedOneInstance"
-msgstr "Eén instantie van deze gebeurtenis bewerkt."
+msgstr "Eén instantie van deze activiteit bijgewerkt."
 
 msgid "ModifiedThisAndFuture"
-msgstr "Deze en alle toekomstige instanties van deze gebeurtenis bewerkt."
+msgstr "Deze en alle toekomstige instanties van deze activiteit bijgewerkt."
 
 msgid "ErrorSavingEvent"
-msgstr "Fout bij het opslaan van gebeurtenis - probeer aub  opnieuw."
+msgstr "Fout bij het bewaren van activiteit - probeer opnieuw."
 
 msgid "NewEventTitle"
-msgstr "Nieuwe gebeurtenis"
+msgstr "Nieuwe Activiteit"
 
 msgid "ChooseACollection"
 msgstr "Kies een Collectie"
 
 msgid "ChooseAlarmTime"
-msgstr "Kies een Meldingstijd"
+msgstr "Tijdstip voor notificatie"
 
 msgid "ChooseInstancesToChange"
 msgstr "Welke instanties moeten worden gewijzigd?"
@@ -568,16 +569,16 @@ msgid "ChooseRepeatFrequency"
 msgstr "Kies een Herhaal Frequentie"
 
 msgid "Add_Alarm"
-msgstr "Melding toevoegen"
+msgstr "Notificatie toevoegen"
 
 msgid "errorMustHaveActiveCalendar"
-msgstr "Kan gebeurtenis niet bewerken zonder een actieve kalender."
+msgstr "Kan activiteit niet bijwerken zonder een actieve kalender."
 
 msgid "errorSavingServerConfig"
 msgstr "Fout bij opslaan van server configuratie"
 
 msgid "errorSavingFile"
-msgstr "Fout bij opslaan bestand"
+msgstr "Fout bij bewaren naar bestand"
 
 msgid "ServerDataSaved"
 msgstr "Server-gegevens geschreven. Bestandsnaam:"
@@ -589,7 +590,7 @@ msgid "ManualServerConfigurationBlurb"
 msgstr "Handmatig invoeren van de server informatie"
 
 msgid "SavedServerConfigurationBlurb"
-msgstr "Een opgeslagen server configuratie"
+msgstr "Een bewaarde serverconfiguratie"
 
 msgid "AllDaysInPeriod"
 msgstr "De hele dag, van %1$s tot %2$s"
@@ -598,31 +599,31 @@ msgid "ForTheWholeDay"
 msgstr "De hele dag"
 
 msgid "alarmAtEventTime"
-msgstr "Op het ogenblik van de gebeurtenis"
+msgstr "Bij aanvang van de activiteit"
 
 msgid "alarm10MinutesPrior"
-msgstr "10 minuten op voorhand"
+msgstr "10 minuten voor de activiteit"
 
 msgid "alarm30MinutesPrior"
-msgstr "30 minuten op voorhand"
+msgstr "30 minuten voor de activiteit"
 
 msgid "alarm1HourPrior"
-msgstr "1 uur op voorhand"
+msgstr "1 uur voor de activiteit"
 
 msgid "alarm2HoursPrior"
-msgstr "2 uren op voorhand"
+msgstr "2 uren voor de activiteit"
 
 msgid "alarm12HoursPrior"
-msgstr "12 uren op voorhand"
+msgstr "12 uren voor de activiteit"
 
 msgid "alarm1DayPrior"
-msgstr "1 dag op voorhand"
+msgstr "1 dag voor de activiteit"
 
 msgid "alarmCustom"
-msgstr "Aangepast alarm"
+msgstr "Aangepaste notificatie"
 
 msgid "alarmsDisabledNote"
-msgstr ""
+msgstr "(Alle notificaties zijn uitgeschakeld voor deze kalender)"
 
 msgid "changeThisInstance"
 msgstr "Enkel deze instantie"
@@ -656,7 +657,7 @@ msgid "serverFailedValidation"
 msgstr "Er is een fout opgetreden bij het valideren van de server:"
 
 msgid "saveSettingsAnyway"
-msgstr "Wilt u toch deze instellingen opslaan?"
+msgstr "Wilt u deze instellingen toch bewaren?"
 
 msgid "serverValidationSuccess"
 msgstr "Server werd gevalideerd."
@@ -665,7 +666,7 @@ msgid "authenticationFailed"
 msgstr "Niet in staat om te authenticeren bij server."
 
 msgid "WeekViewPreferences"
-msgstr "Week Weergave-instellingen"
+msgstr "Instellingen van Week-weergave"
 
 msgid "checkServer"
 msgstr "Validatie-server"
@@ -674,7 +675,7 @@ msgid "checkServer_Connecting"
 msgstr "Verbinding maken met server. Even geduld aub ..."
 
 msgid "checkServer_Internet"
-msgstr "Controle van internet connectiviteit"
+msgstr "Controle van de internetverbinding"
 
 msgid "checkServer_ProbePorts"
 msgstr "Server zoeken op poort %1$d met behulp van %2$s protocol"
@@ -686,7 +687,7 @@ msgid "checkServer_CheckingCapabilities"
 msgstr "Controle server-mogelijkheden"
 
 msgid "newEventFromThis"
-msgstr "Kopiëren naar een nieuwe gebeurtenis"
+msgstr "Kopiëren naar een nieuwe activiteit"
 
 msgid "Delete"
 msgstr "Verwijderen"
@@ -701,30 +702,30 @@ msgid "deleteThisAndFuture"
 msgstr "Verwijder deze en toekomstige gevallen"
 
 msgid "newAllDayEventOn"
-msgstr ""
+msgstr "Nieuwe activiteit op %s"
 
 msgid "newHourEventAt"
-msgstr ""
+msgstr "Nieuwe activiteit om %s"
 
 msgid "editSomeEvent"
-msgstr ""
+msgstr "Bewerk: %s"
 
 msgid "copySomeEvent"
-msgstr ""
+msgstr "Kopieer: %s"
 
 msgid "deleteSomeEvent"
-msgstr ""
+msgstr "Verwijder: %s"
 
 msgid "noCollectionsFound"
-msgstr ""
+msgstr "Geen agenda's gevonden"
 
 msgid "aCalVersionChanges"
-msgstr ""
+msgstr "Welkom bij een nieuwe versie van Acal!"
 
 msgid "newWithVersion"
-msgstr ""
+msgstr "Veranderingen in versie %s"
 
 msgid "newVersionSeen"
-msgstr ""
+msgstr "Bedankt, toon het me nu!"
 
 
