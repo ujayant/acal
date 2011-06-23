@@ -140,6 +140,8 @@ public abstract class VComponent {
 			return new VTodo(splitter,resourceId, collectionObject,null);
 		else if (splitter.thisComponent.equals(VALARM))
 			return new VAlarm(splitter,resourceId, collectionObject,null);
+		else if (splitter.thisComponent.equals(VTIMEZONE))
+			return new VTimezone(splitter,resourceId, collectionObject,null);
 		else
 			return new VGenericComponent(splitter,resourceId, collectionObject,null);
 	}
@@ -206,6 +208,11 @@ public abstract class VComponent {
 		} else if (this.persistenceCount < 0) throw new IllegalStateException("Persistence Count below 0 - NOT ALLOWED!");
 	}
 	
+
+	/**
+	 * Returns the name of this component type, such as "VCALENDAR", "VCARD", etc.
+	 * @return
+	 */
 	public synchronized String getName() {
 		return name;
 	}
