@@ -30,6 +30,7 @@ import android.app.ProgressDialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.database.sqlite.SQLiteConstraintException;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -298,16 +299,26 @@ public class CheckServerDialog implements Runnable {
 
 	private void showSuccessDialog(String msg) {
 
-		// Before we display the success dialog and especially before we start syncing it. 
-		sc.saveData(); 
-
-		// Display the success dialog
 		AlertDialog.Builder builder = new AlertDialog.Builder(sc);
-		builder.setMessage(msg + "\n\n" + context.getString(R.string.serverValidationSuccess));
-		
+
+		try {
+			// Before we display the success dialog and especially before we start syncing it.
+			sc.saveData();
+
+			builder.setMessage(msg + "\n\n" + context.getString(R.string.serverValidationSuccess));
+			
+		}
+		catch( SQLiteConstraintException e ) {
+			builder.setMessage(msg + "\n\n" + context.getString(R.string.serverValidationSuccess)
+						+ "\n\n" + context.getString(R.string.serverRecordAlreadyExists)
+				);
+		}
+
 		// We don't set a positive button here since we already saved, above, and
 		// the background actions may have already updated the server table further!
+		// Or worse: we couldn't save, so trying again would be futile...
 		builder.setNeutralButton(context.getString(android.R.string.ok), dialogClickListener);
+
 		// builder.setNegativeButton("No", dialogClickListener);
 		builder.show();
 	}
