@@ -1,0 +1,724 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# 
+msgid ""
+msgstr ""
+"Project-Id-Version: aCal\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2011-05-19 09:05+1200\n"
+"PO-Revision-Date: 2011-06-21 12:54+0000\n"
+"Last-Translator: butz <info@matteobusolin.com>\n"
+"Language-Team: Italian (http://www.transifex.net/projects/p/acal/team/it/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: it\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+
+# Strings that should not be localised belong in unlocalisable_strings.xml
+msgid "theDayEachWeekStartsWith"
+msgstr "La settimana inizia con"
+
+msgid "firstDayOfWeek"
+msgstr "Primo giorno della settimana"
+
+msgid "ok"
+msgstr "OK"
+
+msgid "cancel"
+msgstr "Cancel"
+
+msgid "appDescription"
+msgstr ""
+"Un calendario per Android per memorizzare appuntamenti, promemoria, note, "
+"contatti su un server CalDAV / CardDAV, come ad esempio DAViCal "
+"(www.davical.org)"
+
+msgid "Active"
+msgstr "Attivo"
+
+msgid "Add_Server"
+msgstr "Aggiungi Server"
+
+msgid "A_name_for_this_server_configuration"
+msgstr "Nome da usare per questa configurazione"
+
+msgid "Authentication_Type"
+msgstr "Tipo di Autenticazione"
+
+msgid "Simple_Path"
+msgstr "Percorso"
+
+msgid "Simple_Domain"
+msgstr "Dominio"
+
+msgid "Enter_a_brief_summary_of_the_event"
+msgstr "Inserire una breve descrizione dell'evento"
+
+msgid "Name"
+msgstr "Nome"
+
+msgid "Force_full_resync"
+msgstr "Forza la risincronizzazione"
+
+msgid "Password"
+msgstr "Password"
+
+msgid "Save"
+msgstr "Salva"
+
+msgid "Settings"
+msgstr "Impostazioni"
+
+msgid "Server_Name"
+msgstr "Nome Server"
+
+msgid "Server_Options"
+msgstr "Opzioni Server"
+
+msgid "Collection_Options"
+msgstr "Opzioni Gruppi"
+
+msgid "Colour"
+msgstr "Colore"
+
+msgid "Default_timezone"
+msgstr "Fuso Orario di Default"
+
+msgid "DefaultAlarmTone"
+msgstr "Allarme di Default"
+
+msgid "Server_Path"
+msgstr "Indirizzo Server"
+
+msgid "Server_Port"
+msgstr "Porta Server"
+
+msgid "Summary"
+msgstr "Riepologo"
+
+msgid "Sync_collection_now"
+msgstr "Sincronizza ora"
+
+msgid "Disable_collection"
+msgstr "Disabilita Gruppo"
+
+msgid "The_authentication_type_used"
+msgstr "Autenticazione usata dal server"
+
+msgid "The_password_to_use"
+msgstr "Password per l'autenticazione"
+
+msgid "The_path_on_the_server"
+msgstr "Indirizzo del server, es. &quot;/caldav.php/user/&quot;"
+
+msgid "The_domain_for_your_organisation"
+msgstr "Dominio dell'organizzazione, es. &quot;morphoss.com&quot;"
+
+msgid "The_servers_hostname"
+msgstr "Nome del Server, es. &quot;calendar.davical.com&quot;"
+
+msgid "The_username_to_use"
+msgstr "Nome Utente per l'autenticazione"
+
+msgid "Username"
+msgstr "Nome Utente"
+
+msgid "Use_SSL"
+msgstr "Usa SSL"
+
+msgid "Whether_this_server_is_active"
+msgstr "Se questo server dovrebbe essere usato attivamente"
+
+msgid "Whether_to_use_encryption"
+msgstr "Se bisogna usare una connessione sicura per il server"
+
+msgid "appActivityEventCreate"
+msgstr "Nuovo Appuntamento"
+
+msgid "appActivityServerConfigList"
+msgstr "Server"
+
+msgid "appActivityAddServerList"
+msgstr "Modelli Server"
+
+msgid "appActivityCollectionConfigList"
+msgstr "Calendari e Rubriche"
+
+msgid "appActivityDebugSettings"
+msgstr "Opzioni di Debug"
+
+msgid "appActivitySettings"
+msgstr "Opzioni"
+
+msgid "appActivityPreference"
+msgstr "Preferenze"
+
+msgid "The_port_to_connect_to"
+msgstr "Porta per la connessione al server"
+
+msgid "A_name_for_this_collection"
+msgstr "Nome per questo gruppo"
+
+msgid "pActive_addressbook"
+msgstr "Rubrica attiva"
+
+msgid "pActive_for_events"
+msgstr "Eventi attivi"
+
+msgid "pActive_for_journal"
+msgstr "Note attive"
+
+msgid "pActive_for_tasks"
+msgstr "Promemoria attivi"
+
+msgid "pUse_Alarms"
+msgstr "Usa l'allarme per questo gruppo"
+
+msgid "Use_Alarms"
+msgstr ""
+
+msgid "Active_addressbook"
+msgstr ""
+
+msgid "Active_for_events"
+msgstr ""
+
+msgid "Active_for_journal"
+msgstr ""
+
+msgid "Active_for_tasks"
+msgstr ""
+
+msgid "The_colour_associated_with_this_collection"
+msgstr ""
+
+msgid "The_timezone_new_events_default_to"
+msgstr ""
+
+msgid "pMax_age_on_3g"
+msgstr ""
+
+msgid "The_maximum_age_for_data_while_on_3g"
+msgstr ""
+
+msgid "pMax_age_on_wifi"
+msgstr ""
+
+msgid "The_maximum_age_for_data_while_on_wifi"
+msgstr ""
+
+msgid "Use_alarms_from_this_calendar"
+msgstr ""
+
+msgid "Monday"
+msgstr ""
+
+msgid "Tuesday"
+msgstr ""
+
+msgid "Wednesday"
+msgstr ""
+
+msgid "Thursday"
+msgstr ""
+
+msgid "Friday"
+msgstr ""
+
+msgid "Saturday"
+msgstr ""
+
+msgid "Sunday"
+msgstr ""
+
+msgid "Mon"
+msgstr ""
+
+msgid "Tue"
+msgstr ""
+
+msgid "Wed"
+msgstr ""
+
+msgid "Thu"
+msgstr ""
+
+msgid "Fri"
+msgstr ""
+
+msgid "Sat"
+msgstr ""
+
+msgid "Sun"
+msgstr ""
+
+msgid "chMon"
+msgstr ""
+
+msgid "chTue"
+msgstr ""
+
+msgid "chWed"
+msgstr ""
+
+msgid "chThu"
+msgstr ""
+
+msgid "chFri"
+msgstr ""
+
+msgid "chSat"
+msgstr ""
+
+msgid "chSun"
+msgstr ""
+
+msgid "January"
+msgstr ""
+
+msgid "February"
+msgstr ""
+
+msgid "March"
+msgstr ""
+
+msgid "April"
+msgstr ""
+
+msgid "May"
+msgstr ""
+
+msgid "June"
+msgstr ""
+
+msgid "July"
+msgstr ""
+
+msgid "August"
+msgstr ""
+
+msgid "September"
+msgstr ""
+
+msgid "October"
+msgstr ""
+
+msgid "November"
+msgstr ""
+
+msgid "December"
+msgstr ""
+
+msgid "thJan"
+msgstr ""
+
+msgid "thFeb"
+msgstr ""
+
+msgid "thMar"
+msgstr ""
+
+msgid "thApr"
+msgstr ""
+
+msgid "thMay"
+msgstr ""
+
+msgid "thJun"
+msgstr ""
+
+msgid "thJul"
+msgstr ""
+
+msgid "thAug"
+msgstr ""
+
+msgid "thSep"
+msgstr ""
+
+msgid "thOct"
+msgstr ""
+
+msgid "thNov"
+msgstr ""
+
+msgid "thDec"
+msgstr ""
+
+# If the user is displaying AM/PM we need a single character to display e.g.
+# 1p for 1:00pm
+msgid "oneCharMorning"
+msgstr ""
+
+msgid "oneCharAfternoon"
+msgstr ""
+
+msgid "YearViewSize_PrefTitle"
+msgstr ""
+
+msgid "YearViewSize_PrefSummary"
+msgstr ""
+
+msgid "Snooze_PrefTitle"
+msgstr ""
+
+msgid "Snooze_PrefSummary"
+msgstr ""
+
+msgid "DefaultCollection_PrefTitle"
+msgstr ""
+
+msgid "DefaultCollection_PrefSummary"
+msgstr ""
+
+msgid "DefaultAlarmTone_PrefTitle"
+msgstr ""
+
+msgid "DefaultAlarmTone_PrefSummary"
+msgstr ""
+
+msgid "prefWorkdayStart_Title"
+msgstr ""
+
+msgid "prefWorkdayStart_Summary"
+msgstr ""
+
+msgid "prefWorkdayFinish_Title"
+msgstr ""
+
+msgid "prefWorkdayFinish_Summary"
+msgstr ""
+
+msgid "prefWeekViewLinesPerHour_Title"
+msgstr ""
+
+msgid "prefWeekViewLinesPerHour_Summary"
+msgstr ""
+
+msgid "prefWeekViewDayWidth_Title"
+msgstr ""
+
+msgid "prefWeekViewDayWidth_Summary"
+msgstr ""
+
+msgid "Today"
+msgstr ""
+
+msgid "Year"
+msgstr ""
+
+msgid "Month"
+msgstr ""
+
+msgid "Week"
+msgstr ""
+
+msgid "Edit"
+msgstr ""
+
+msgid "Apply"
+msgstr ""
+
+msgid "Advanced"
+msgstr ""
+
+msgid "Simple"
+msgstr ""
+
+msgid "Add"
+msgstr ""
+
+msgid "UnNamedServer"
+msgstr ""
+
+msgid "LocationPrompt"
+msgstr ""
+
+msgid "NotesPrompt"
+msgstr ""
+
+msgid "AlarmsPrompt"
+msgstr ""
+
+msgid "RepeatsPrompt"
+msgstr ""
+
+msgid "AllDayPrompt"
+msgstr ""
+
+msgid "FromPrompt"
+msgstr ""
+
+msgid "UntilPrompt"
+msgstr ""
+
+msgid "defaultCalendar"
+msgstr ""
+
+msgid "theCalendarForNewEvents"
+msgstr ""
+
+msgid "TwelveTwentyfour_PrefTitle"
+msgstr ""
+
+msgid "TwelveTwentyfour_OnSummary"
+msgstr ""
+
+msgid "TwelveTwentyfour_OffSummary"
+msgstr ""
+
+msgid "OnlyOnce"
+msgstr ""
+
+msgid "EveryWeekday"
+msgstr ""
+
+msgid "EveryWeekend"
+msgstr ""
+
+msgid "EveryDay"
+msgstr ""
+
+msgid "EveryWeek"
+msgstr ""
+
+msgid "EveryMonth"
+msgstr ""
+
+msgid "EveryYear"
+msgstr ""
+
+msgid "EveryNDays"
+msgstr ""
+
+msgid "EveryNWeeks"
+msgstr ""
+
+msgid "EveryNMonths"
+msgstr ""
+
+msgid "EveryNYears"
+msgstr ""
+
+msgid "EveryMonday"
+msgstr ""
+
+msgid "EveryTuesday"
+msgstr ""
+
+msgid "EveryWednesday"
+msgstr ""
+
+msgid "EveryThursday"
+msgstr ""
+
+msgid "EveryFriday"
+msgstr ""
+
+msgid "EverySaturday"
+msgstr ""
+
+msgid "EverySunday"
+msgstr ""
+
+msgid "EveryNthOfTheMonth"
+msgstr ""
+
+msgid "EveryMonthOnTheNthSomeday"
+msgstr ""
+
+msgid "CustomRepeatRule"
+msgstr ""
+
+msgid "EventSaved"
+msgstr ""
+
+msgid "ModifiedAllInstances"
+msgstr ""
+
+msgid "ModifiedOneInstance"
+msgstr ""
+
+msgid "ModifiedThisAndFuture"
+msgstr ""
+
+msgid "ErrorSavingEvent"
+msgstr ""
+
+msgid "NewEventTitle"
+msgstr ""
+
+msgid "ChooseACollection"
+msgstr ""
+
+msgid "ChooseAlarmTime"
+msgstr ""
+
+msgid "ChooseInstancesToChange"
+msgstr ""
+
+msgid "ChooseRepeatFrequency"
+msgstr ""
+
+msgid "Add_Alarm"
+msgstr ""
+
+msgid "errorMustHaveActiveCalendar"
+msgstr ""
+
+msgid "errorSavingServerConfig"
+msgstr ""
+
+msgid "errorSavingFile"
+msgstr ""
+
+msgid "ServerDataSaved"
+msgstr ""
+
+msgid "NewManualServerConfiguration"
+msgstr ""
+
+msgid "ManualServerConfigurationBlurb"
+msgstr ""
+
+msgid "SavedServerConfigurationBlurb"
+msgstr ""
+
+msgid "AllDaysInPeriod"
+msgstr ""
+
+msgid "ForTheWholeDay"
+msgstr ""
+
+msgid "alarmAtEventTime"
+msgstr ""
+
+msgid "alarm10MinutesPrior"
+msgstr ""
+
+msgid "alarm30MinutesPrior"
+msgstr ""
+
+msgid "alarm1HourPrior"
+msgstr ""
+
+msgid "alarm2HoursPrior"
+msgstr ""
+
+msgid "alarm12HoursPrior"
+msgstr ""
+
+msgid "alarm1DayPrior"
+msgstr ""
+
+msgid "alarmCustom"
+msgstr ""
+
+msgid "alarmsDisabledNote"
+msgstr ""
+
+msgid "changeThisInstance"
+msgstr ""
+
+msgid "changeAllInstances"
+msgstr ""
+
+msgid "changeThisAndFuture"
+msgstr ""
+
+msgid "internetNotAvailable"
+msgstr ""
+
+msgid "couldNotDiscoverPort"
+msgstr ""
+
+msgid "couldNotDiscoverPrincipal"
+msgstr ""
+
+msgid "foundPrincipalPath"
+msgstr ""
+
+msgid "serverSupportsCalDAV"
+msgstr ""
+
+msgid "serverLacksCalDAV"
+msgstr ""
+
+msgid "serverFailedValidation"
+msgstr ""
+
+msgid "saveSettingsAnyway"
+msgstr ""
+
+msgid "serverValidationSuccess"
+msgstr ""
+
+msgid "authenticationFailed"
+msgstr ""
+
+msgid "WeekViewPreferences"
+msgstr ""
+
+msgid "checkServer"
+msgstr ""
+
+msgid "checkServer_Connecting"
+msgstr ""
+
+msgid "checkServer_Internet"
+msgstr ""
+
+msgid "checkServer_ProbePorts"
+msgstr ""
+
+msgid "checkServer_SearchingPrincipal"
+msgstr ""
+
+msgid "checkServer_CheckingCapabilities"
+msgstr ""
+
+msgid "newEventFromThis"
+msgstr ""
+
+msgid "Delete"
+msgstr ""
+
+msgid "deleteAllInstances"
+msgstr ""
+
+msgid "deleteThisInstance"
+msgstr ""
+
+msgid "deleteThisAndFuture"
+msgstr ""
+
+msgid "newAllDayEventOn"
+msgstr ""
+
+msgid "newHourEventAt"
+msgstr ""
+
+msgid "editSomeEvent"
+msgstr ""
+
+msgid "copySomeEvent"
+msgstr ""
+
+msgid "deleteSomeEvent"
+msgstr ""
+
+msgid "noCollectionsFound"
+msgstr ""
+
+msgid "aCalVersionChanges"
+msgstr ""
+
+msgid "newWithVersion"
+msgstr ""
+
+msgid "newVersionSeen"
+msgstr ""
+
+
