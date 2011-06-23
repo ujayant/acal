@@ -1317,11 +1317,14 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	 */
 	public String toPropertyString( String name ) {
 		StringBuilder ret = new StringBuilder(name);
-		if ( tz != null && !tzName.equals("UTC") ) {
+		if ( isDate ) {
+			ret.append(";VALUE=DATE");
+			// VALUE=DATE *MUST NOT* contain a TZID (RFC5545 3.2.19)
+		}
+		else if ( tz != null && !tzName.equals("UTC") ) {
 			ret.append(";TZID=");
 			ret.append(tzName);
 		}
-		if ( isDate ) ret.append(";VALUE=DATE");
 		ret.append(":");
 		ret.append(fmtIcal());
 		return ret.toString();
