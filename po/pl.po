@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: aCal\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-05-19 09:05+1200\n"
-"PO-Revision-Date: 2011-06-25 06:59+0000\n"
+"PO-Revision-Date: 2011-06-26 17:47+0000\n"
 "Last-Translator: dziobak <dziobak84@interia.pl>\n"
 "Language-Team: Polish (http://www.transifex.net/projects/p/acal/team/pl/)\n"
 "MIME-Version: 1.0\n"
@@ -19,7 +19,7 @@ msgstr ""
 
 # Strings that should not be localised belong in unlocalisable_strings.xml
 msgid "theDayEachWeekStartsWith"
-msgstr "Dzień, w którym rozpoczyna się tydzień"
+msgstr "Tydzień zaczyna się"
 
 msgid "firstDayOfWeek"
 msgstr "Pierwszy dzień tygodnia"
@@ -43,16 +43,16 @@ msgid "Add_Server"
 msgstr "Dodaj serwer"
 
 msgid "A_name_for_this_server_configuration"
-msgstr "Nazwa konfiguracji"
+msgstr "Nazwa konfiguracji serwera"
 
 msgid "Authentication_Type"
-msgstr "Metoda autentykacji"
+msgstr "Metoda uwierzystalnienia"
 
 msgid "Simple_Path"
-msgstr ""
+msgstr "Prosta ścieżka"
 
 msgid "Simple_Domain"
-msgstr ""
+msgstr "Prosta domena"
 
 msgid "Enter_a_brief_summary_of_the_event"
 msgstr "Wpisz krótki opis zdarzenia"
@@ -79,7 +79,7 @@ msgid "Server_Options"
 msgstr "Opcje serwera"
 
 msgid "Collection_Options"
-msgstr ""
+msgstr "Opcje kolekcji"
 
 msgid "Colour"
 msgstr "Kolor"
@@ -91,7 +91,7 @@ msgid "DefaultAlarmTone"
 msgstr "Domyślny dźwięk alarmu"
 
 msgid "Server_Path"
-msgstr ""
+msgstr "Ścieżka na serwerze"
 
 msgid "Server_Port"
 msgstr "Port serwera"
@@ -103,7 +103,7 @@ msgid "Sync_collection_now"
 msgstr "Synchronizuj"
 
 msgid "Disable_collection"
-msgstr ""
+msgstr "Wyłącz kolekcję"
 
 msgid "The_authentication_type_used"
 msgstr "Metoda autentykacji użyta przez serwer"
@@ -160,7 +160,7 @@ msgid "The_port_to_connect_to"
 msgstr "Port, na którym nasłuchuje serwer"
 
 msgid "A_name_for_this_collection"
-msgstr ""
+msgstr "Nazwa tej kolekcji"
 
 msgid "pActive_addressbook"
 msgstr "Aktywna książka adresowa"
@@ -175,28 +175,28 @@ msgid "pActive_for_tasks"
 msgstr "Aktywne dla zadań"
 
 msgid "pUse_Alarms"
-msgstr ""
+msgstr "Czy używać alarmów dla tej kolekcji?"
 
 msgid "Use_Alarms"
 msgstr "Alarmy włączone"
 
 msgid "Active_addressbook"
-msgstr ""
+msgstr "Czy ta kolekcja jest używana do przechowywania kontaktów?"
 
 msgid "Active_for_events"
-msgstr ""
+msgstr "Czy ta kolekcja jest używana do przechowywania zdarzeń?"
 
 msgid "Active_for_journal"
-msgstr ""
+msgstr "Czy ta kolekcja jest używana do przechowywania notatek?"
 
 msgid "Active_for_tasks"
-msgstr ""
+msgstr "Czy ta kolekcja jest używana do przechowywania zadań?"
 
 msgid "The_colour_associated_with_this_collection"
-msgstr ""
+msgstr "Kolor skojarzony z danymi z tej kolekcji"
 
 msgid "The_timezone_new_events_default_to"
-msgstr ""
+msgstr "Strefa czasowa dla nowych zdarzeń w tej kolekcji"
 
 msgid "pMax_age_on_3g"
 msgstr "Cykl synchronizacji przez 3G (w minutach)"
@@ -351,10 +351,10 @@ msgstr "Gru"
 # If the user is displaying AM/PM we need a single character to display e.g.
 # 1p for 1:00pm
 msgid "oneCharMorning"
-msgstr ""
+msgstr "r"
 
 msgid "oneCharAfternoon"
-msgstr ""
+msgstr "p"
 
 msgid "YearViewSize_PrefTitle"
 msgstr "Liczba miesięcy w widoku rocznym"
@@ -369,10 +369,10 @@ msgid "Snooze_PrefSummary"
 msgstr "Po ilu minutach ponowić alarm po naciśnięciu przycisku drzemki"
 
 msgid "DefaultCollection_PrefTitle"
-msgstr ""
+msgstr "Domyślna kolekcja"
 
 msgid "DefaultCollection_PrefSummary"
-msgstr ""
+msgstr "Domyślna kolekcja używana dla nowych zdarzeń"
 
 msgid "DefaultAlarmTone_PrefTitle"
 msgstr "Domyślny dźwięk dzwonka"
@@ -381,28 +381,28 @@ msgid "DefaultAlarmTone_PrefSummary"
 msgstr "Domyślny dźwięk używany do alarmów"
 
 msgid "prefWorkdayStart_Title"
-msgstr ""
+msgstr "Początek dni roboczych"
 
 msgid "prefWorkdayStart_Summary"
-msgstr ""
+msgstr "Czas rozpoczęcia dnia pracy."
 
 msgid "prefWorkdayFinish_Title"
-msgstr ""
+msgstr "Koniec dni roboczych"
 
 msgid "prefWorkdayFinish_Summary"
-msgstr ""
+msgstr "Czas końca dnia pracy."
 
 msgid "prefWeekViewLinesPerHour_Title"
-msgstr ""
+msgstr "Wysokość wierszy"
 
 msgid "prefWeekViewLinesPerHour_Summary"
-msgstr ""
+msgstr "Wysokość każdej godziny w dniu w widoku tygodnia."
 
 msgid "prefWeekViewDayWidth_Title"
 msgstr "Szerokość kolumny"
 
 msgid "prefWeekViewDayWidth_Summary"
-msgstr ""
+msgstr "Szerokość każdej kolumny dnia w widoku tygodnia."
 
 msgid "Today"
 msgstr "Dzisiaj"
@@ -471,16 +471,16 @@ msgid "TwelveTwentyfour_OffSummary"
 msgstr "2:00pm"
 
 msgid "OnlyOnce"
-msgstr ""
+msgstr "Jedno wystąpienie"
 
 msgid "EveryWeekday"
-msgstr ""
+msgstr "Każdy dzień tygodnia"
 
 msgid "EveryWeekend"
-msgstr ""
+msgstr "Każdy weekend"
 
 msgid "EveryDay"
-msgstr ""
+msgstr "Dziennie"
 
 msgid "EveryWeek"
 msgstr "Tygodniowo"
@@ -489,7 +489,7 @@ msgid "EveryMonth"
 msgstr "Miesięcznie"
 
 msgid "EveryYear"
-msgstr ""
+msgstr "Rocznie"
 
 msgid "EveryNDays"
 msgstr "Co %s dni"
@@ -504,88 +504,89 @@ msgid "EveryNYears"
 msgstr "Wszystkie %s lat"
 
 msgid "EveryMonday"
-msgstr ""
+msgstr "W każdy poniedziałek"
 
 msgid "EveryTuesday"
-msgstr ""
+msgstr "W każdy wtorek"
 
 msgid "EveryWednesday"
-msgstr ""
+msgstr "W każdą środę"
 
 msgid "EveryThursday"
-msgstr ""
+msgstr "W każdy czwartek"
 
 msgid "EveryFriday"
-msgstr ""
+msgstr "W każdy piątek"
 
 msgid "EverySaturday"
-msgstr ""
+msgstr "W każdą sobotę"
 
 msgid "EverySunday"
-msgstr ""
+msgstr "W każdą niedzielę"
 
 msgid "EveryNthOfTheMonth"
-msgstr ""
+msgstr "Każdy %s miesiąca"
 
 msgid "EveryMonthOnTheNthSomeday"
-msgstr ""
+msgstr "Każdego %s miesiąca"
 
 msgid "CustomRepeatRule"
-msgstr ""
+msgstr "Niestandardowe powtórzenie"
 
 msgid "EventSaved"
-msgstr ""
+msgstr "Zdarzenie zapisano"
 
 msgid "ModifiedAllInstances"
-msgstr ""
+msgstr "Wszystkie wystąpienia tego zdarzenia zostały zmodyfikowane."
 
 msgid "ModifiedOneInstance"
-msgstr ""
+msgstr "Jedno wystąpienie tego zdarzenia zostało zmodyfikowane"
 
 msgid "ModifiedThisAndFuture"
 msgstr ""
+"To i wszystkie przyszłe wystąpienia tego zdarzenia zostały zmodyfikowane."
 
 msgid "ErrorSavingEvent"
-msgstr ""
+msgstr "Błąd w zapisie zdarzenia - spróbuj ponownie."
 
 msgid "NewEventTitle"
 msgstr "Nowe zdarzenie"
 
 msgid "ChooseACollection"
-msgstr ""
+msgstr "Wybierz kolekcję"
 
 msgid "ChooseAlarmTime"
-msgstr ""
+msgstr "Wybierz typ alarmu"
 
 msgid "ChooseInstancesToChange"
-msgstr ""
+msgstr "Które wystąpienia zmodyfikować?"
 
 msgid "ChooseRepeatFrequency"
-msgstr ""
+msgstr "Wybierz częstotliwość powtarzania"
 
 msgid "Add_Alarm"
 msgstr "Dodaj alarm"
 
 msgid "errorMustHaveActiveCalendar"
-msgstr ""
+msgstr "Nie można edytować zdarzenia bez aktywnego kalendarza."
 
 msgid "errorSavingServerConfig"
-msgstr ""
+msgstr "Błąd w zapisie konfiguracji serwera"
 
 msgid "errorSavingFile"
 msgstr "Błąd w zapisie do pliku"
 
 msgid "ServerDataSaved"
-msgstr ""
+msgstr "Dane serwera zapisane. Nazwa pliku:"
 
 msgid "NewManualServerConfiguration"
 msgstr "Ręczna konfiguracja"
 
 msgid "ManualServerConfigurationBlurb"
-msgstr ""
+msgstr "Wprowadź ręcznie informacje o serwerze"
 
 msgid "SavedServerConfigurationBlurb"
-msgstr ""
+msgstr "Zapisana konfiguracja serwera"
 
 msgid "AllDaysInPeriod"
 msgstr "Wszystkie dni, od %1$s do %2$s"
@@ -594,10 +595,10 @@ msgid "ForTheWholeDay"
 msgstr "Cały dzień"
 
 msgid "alarmAtEventTime"
-msgstr ""
+msgstr "Na czas zdarzenia"
 
 msgid "alarm10MinutesPrior"
-msgstr ""
+msgstr "10 minut przed"
 
 msgid "alarm30MinutesPrior"
 msgstr "30 minut przed"
@@ -615,55 +616,55 @@ msgid "alarm1DayPrior"
 msgstr "Jeden dzień przed"
 
 msgid "alarmCustom"
-msgstr ""
+msgstr "Niestandardowy alarm"
 
 msgid "alarmsDisabledNote"
 msgstr "(wszystkie alarmy dla tego kalendarza są wyłączone)"
 
 msgid "changeThisInstance"
-msgstr ""
+msgstr "Tylko to wystąpienie"
 
 msgid "changeAllInstances"
-msgstr ""
+msgstr "Wszystkie wystąpienia"
 
 msgid "changeThisAndFuture"
-msgstr ""
+msgstr "To i wszystkie przyszłe"
 
 msgid "internetNotAvailable"
-msgstr ""
+msgstr "Internet nie jest aktualnie dostępny"
 
 msgid "couldNotDiscoverPort"
-msgstr ""
+msgstr "Nie można odkryć portu HTTP do serwera CalDAV"
 
 msgid "couldNotDiscoverPrincipal"
-msgstr ""
+msgstr "Nie można odkryć główne ścieżki - za pomocą dostarczonych wartości."
 
 msgid "foundPrincipalPath"
-msgstr ""
+msgstr "Znaleziono ścieżkę główną serwera na &quot;%s&quot;"
 
 msgid "serverSupportsCalDAV"
-msgstr ""
+msgstr "Serwer wspiera CalDAV."
 
 msgid "serverLacksCalDAV"
-msgstr ""
+msgstr "Serwer nie wspiera CalDAV."
 
 msgid "serverFailedValidation"
-msgstr ""
+msgstr "Wystąpił błąd podczas sprawdzania poprawności serwera:"
 
 msgid "saveSettingsAnyway"
-msgstr ""
+msgstr "Chcesz zapisać te ustawienia mimo wszystko?"
 
 msgid "serverValidationSuccess"
-msgstr ""
+msgstr "Sprawdzanie poprawności serwera zakończone sukcesem."
 
 msgid "authenticationFailed"
-msgstr ""
+msgstr "Nie można przeprowadzić autentykacji na serwerze."
 
 msgid "WeekViewPreferences"
-msgstr ""
+msgstr "Ustawienia widoku tygodnia"
 
 msgid "checkServer"
-msgstr ""
+msgstr "Sprawdzanie serwera"
 
 msgid "checkServer_Connecting"
 msgstr "Łączę z serwerem, proszę czekaj..."
@@ -672,10 +673,10 @@ msgid "checkServer_Internet"
 msgstr "Sprawdź łącze z internetem"
 
 msgid "checkServer_ProbePorts"
-msgstr ""
+msgstr "Sprawdzanie serwera na porcie %1$d używając protokołu %2$s "
 
 msgid "checkServer_SearchingPrincipal"
-msgstr ""
+msgstr "Wyszukiwanie głównej ścieżki na &quot;%s&quot;"
 
 msgid "checkServer_CheckingCapabilities"
 msgstr "Sprawdzanie możliwości serwera"
@@ -687,13 +688,13 @@ msgid "Delete"
 msgstr "Usuń"
 
 msgid "deleteAllInstances"
-msgstr ""
+msgstr "Usuń wszystkie wystąpienia"
 
 msgid "deleteThisInstance"
-msgstr ""
+msgstr "Usuń to wystąpienie"
 
 msgid "deleteThisAndFuture"
-msgstr ""
+msgstr "Usuń to i przyszłe wystąpienia"
 
 msgid "newAllDayEventOn"
 msgstr "Nowe zdarzenie w %s"
@@ -720,6 +721,6 @@ msgid "newWithVersion"
 msgstr "Zmiany w wersji %s"
 
 msgid "newVersionSeen"
-msgstr "Dzięku, teraz mi pokaż!"
+msgstr "Dziękuje, teraz mi pokaż!"
 
 
