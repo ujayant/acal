@@ -358,16 +358,29 @@ public class CollectionConfiguration extends PreferenceActivity implements OnPre
 
     	// sync age
         maxSyncAge3g = new EditTextPreference(this);
+        int currentSyncAge = 3600000;
+        try {
+        	currentSyncAge = collectionData.getAsInteger(DavCollections.MAX_SYNC_AGE_3G);
+        }
+        catch( Exception e ) {
+        	currentSyncAge = 3600000;
+        }
         maxSyncAge3g.getEditText().setInputType(InputType.TYPE_CLASS_NUMBER);
         maxSyncAge3g.setDialogTitle(getString(R.string.pMax_age_on_3g));
-        maxSyncAge3g.setDefaultValue(Integer.toString(collectionData.getAsInteger(DavCollections.MAX_SYNC_AGE_3G) / 60000));
+        maxSyncAge3g.setDefaultValue(Integer.toString( currentSyncAge / 60000));
         maxSyncAge3g.setText(Integer.toString(collectionData.getAsInteger(DavCollections.MAX_SYNC_AGE_3G) / 60000));
     	preferenceHelper(maxSyncAge3g, getString(R.string.pMax_age_on_3g), DavCollections.MAX_SYNC_AGE_3G, defaultSummaries.get(DavCollections.MAX_SYNC_AGE_3G));
 
         maxSyncAgeWifi = new EditTextPreference(this);
+        try {
+        	currentSyncAge = collectionData.getAsInteger(DavCollections.MAX_SYNC_AGE_WIFI);
+        }
+        catch( Exception e ) {
+        	currentSyncAge = 300000;
+        }
         maxSyncAgeWifi.getEditText().setInputType(InputType.TYPE_CLASS_NUMBER);
         maxSyncAgeWifi.setDialogTitle(getString(R.string.pMax_age_on_wifi));
-        maxSyncAgeWifi.setDefaultValue(Integer.toString(collectionData.getAsInteger(DavCollections.MAX_SYNC_AGE_WIFI)/ 60000));
+        maxSyncAgeWifi.setDefaultValue(currentSyncAge / 60000);
         maxSyncAgeWifi.setText(Integer.toString(collectionData.getAsInteger(DavCollections.MAX_SYNC_AGE_WIFI)/ 60000));
     	preferenceHelper(maxSyncAgeWifi, getString(R.string.pMax_age_on_wifi), DavCollections.MAX_SYNC_AGE_WIFI, defaultSummaries.get(DavCollections.MAX_SYNC_AGE_WIFI));
     	
