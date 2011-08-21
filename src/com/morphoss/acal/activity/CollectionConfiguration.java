@@ -500,12 +500,14 @@ public class CollectionConfiguration extends PreferenceActivity implements OnPre
 		else {
 			long syncAge;
 			try {
-				syncAge = Integer.parseInt(value) * 60000L;
+				syncAge = Long.parseLong(value) * 60000L;
 			} catch (Exception e) {
 				//Can't parse port!
 				return false;
 			}
-			if (syncAge < 0) return false;
+			if ( syncAge <= 0 || syncAge > Integer.MAX_VALUE ) {
+				syncAge = Integer.MAX_VALUE;
+			}
 			collectionData.put(field, syncAge);
 			return true;
 		}
