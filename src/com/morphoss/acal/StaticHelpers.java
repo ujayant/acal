@@ -22,6 +22,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import android.content.ContentValues;
+import android.os.Parcel;
 
 
 public final class StaticHelpers {
@@ -175,5 +176,29 @@ public final class StaticHelpers {
 		}
 		return escaped.toString();
 	}
+
+	
+	/**
+	 * Sometimes we are writing Long values which may be null into parcels
+	 * @param dest The Parcel
+	 * @param l The Long
+	 */
+	public static void writeNullableLong( Parcel dest, Long l) {
+		dest.writeByte((byte)  (l == null ? 'N' : '+'));
+		if ( l == null ) return;
+		dest.writeLong(l);
+	}
+
+	/**
+	 * Sometimes we are reading Long values which may be null from parcels
+	 * @param dest The Parcel
+	 * @param l The Long
+	 */
+	public static Long readNullableLong( Parcel src ) {
+		byte b = src.readByte();
+		if ( b == 'N' ) return null;
+		return src.readLong();
+	}
+	
 	
 }
