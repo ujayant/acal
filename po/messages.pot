@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-05-19 09:05+1200\n"
+"POT-Creation-Date: 2011-08-22 21:42+1200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -35,6 +35,11 @@ msgstr ""
 "A Calendar for Android which will store your events, tasks, notes and "
 "contacts on a remote CalDAV / CardDAV server, such as DAViCal (See: www."
 "davical.org)"
+
+msgid "appDescriptionTasks"
+msgstr ""
+"A Task List for Android which will store your tasks on a remote CalDAV / "
+"CardDAV server, such as DAViCal (See: www.davical.org)"
 
 msgid "Active"
 msgstr "Active"
@@ -454,6 +459,12 @@ msgstr "From:"
 msgid "UntilPrompt"
 msgstr "Until:"
 
+msgid "DuePrompt"
+msgstr "Due:"
+
+msgid "CompletedPrompt"
+msgstr "Completed:"
+
 msgid "defaultCalendar"
 msgstr "Default Calendar"
 
@@ -679,6 +690,10 @@ msgstr "Searching for principal path at &quot;%s&quot;"
 msgid "checkServer_CheckingCapabilities"
 msgstr "Checking server capabilities"
 
+msgid "serverRecordAlreadyExists"
+msgstr ""
+"A server already exists for that protocol, port, host, path &amp; username"
+
 msgid "newEventFromThis"
 msgstr "Copy to New Event"
 
@@ -720,3 +735,39 @@ msgstr "Changes in version %s"
 
 msgid "newVersionSeen"
 msgstr "Thanks, now show me!"
+
+msgid "Due"
+msgstr "Due"
+
+msgid "All"
+msgstr "All"
+
+msgid "Todo"
+msgstr "Todo"
+
+msgid "Events"
+msgstr "Events"
+
+msgid "Tasks"
+msgstr "Tasks"
+
+msgid "Unscheduled"
+msgstr "Unscheduled"
+
+msgid "ChooseAction"
+msgstr "Choose Action"
+
+msgid "SetCompleted"
+msgstr "Set Completed"
+
+msgid "newTaskFromThis"
+msgstr "Copy to New Task"
+
+msgid "dueTasksTitle"
+msgstr "Tasks due within a week"
+
+msgid "incompleteTasksTitle"
+msgstr "Incomplete Tasks"
+
+msgid "allTasksTitle"
+msgstr "All Tasks"
