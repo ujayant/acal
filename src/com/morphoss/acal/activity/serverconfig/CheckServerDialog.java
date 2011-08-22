@@ -85,6 +85,7 @@ public class CheckServerDialog implements Runnable {
 														"<prop>"+
 															"<principal-collection-set/>"+
 															"<current-user-principal/>"+
+															"<resourcetype/>"+
 														"</prop>"+
 													"</propfind>";
 	private static final Header[] pPathHeaders = new Header[] {
@@ -466,7 +467,16 @@ public class CheckServerDialog implements Runnable {
 						requestor.setAuthType(Servers.AUTH_BASIC);
 						if ( Constants.LOG_DEBUG ) Log.d(TAG, "Guessing Basic Authentication");
 					}
+					else if ( requestor.getAuthType() == Servers.AUTH_BASIC ) {
+						requestor.setAuthType(Servers.AUTH_DIGEST);
+						if ( Constants.LOG_DEBUG ) Log.d(TAG, "Guessing Digest Authentication");
+					}
 					return doPropfindPrincipal(requestPath);
+				}
+				for ( DavNode href : root.getNodesFromPath("multistatus/response/propstat/prop/resourcetype/principal") ) {
+					if ( Constants.LOG_DEBUG ) Log.d(TAG, "This is a principal URL :-)");
+					requestor.interpretUriString(href.getText());
+					return true;
 				}
 				for ( DavNode href : root.getNodesFromPath("multistatus/response/propstat/prop/current-user-principal/href") ) {
 					if ( Constants.LOG_DEBUG ) Log.d(TAG, "Found principal URL :-)");
