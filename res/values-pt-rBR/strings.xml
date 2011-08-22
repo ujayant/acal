@@ -188,6 +188,7 @@
 <string name="alarm12HoursPrior">12 horas antes</string>
 <string name="alarm1DayPrior">Um dia antes</string>
 <string name="alarmCustom">Alarme Personalizado</string>
+<string name="alarmsDisabledNote">(todos os alarmes estão desabilitados para este calendário)</string>
 <string name="changeThisInstance">Esta instância apenas</string>
 <string name="changeAllInstances">Todas as instâncias</string>
 <string name="changeThisAndFuture">Esta e todas as instâncias futuras</string>
@@ -213,4 +214,13 @@
 <string name="deleteAllInstances">Apagar todas as instâncias</string>
 <string name="deleteThisInstance">Apagar esta instância</string>
 <string name="deleteThisAndFuture">Apagar esta instância e as futuras</string>
+<string name="newAllDayEventOn">Novo compromisso no(a) %s</string>
+<string name="newHourEventAt">Novo compromisso às %s</string>
+<string name="editSomeEvent">Editar: %s</string>
+<string name="copySomeEvent">Copiar: %s</string>
+<string name="deleteSomeEvent">Apagar: %s</string>
+<string name="noCollectionsFound">Nenhum Calendário Encontrado</string>
+<string name="aCalVersionChanges">Bem-vindo a uma nova versão do aCal!</string>
+<string name="newWithVersion">Alterações na versão %s</string>
+<string name="newVersionSeen">Obrigado, agora mostre-me!</string>
 </resources>

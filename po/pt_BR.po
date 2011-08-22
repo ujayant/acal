@@ -2,13 +2,14 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # 
-# Samuel Vale <srcvale@minaslivre.org>, 2011
+# Samuel Vale <srcvale@minaslivre.org>, 2011.
+# Andrew McMillan <andrew@mcmillan.net.nz>, 2011.
 msgid ""
 msgstr ""
 "Project-Id-Version: aCal\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-05-19 09:05+1200\n"
-"PO-Revision-Date: 2011-05-20 00:07+0000\n"
+"PO-Revision-Date: 2011-06-28 22:05+0000\n"
 "Last-Translator: svale <srcvale@minaslivre.org>\n"
 "Language-Team: Portuguese (Brazilian) (http://www.transifex.net/projects/p/acal/team/pt_BR/)\n"
 "MIME-Version: 1.0\n"
@@ -620,7 +621,7 @@ msgid "alarmCustom"
 msgstr "Alarme Personalizado"
 
 msgid "alarmsDisabledNote"
-msgstr ""
+msgstr "(todos os alarmes estão desabilitados para este calendário)"
 
 msgid "changeThisInstance"
 msgstr "Esta instância apenas"
@@ -698,30 +699,30 @@ msgid "deleteThisAndFuture"
 msgstr "Apagar esta instância e as futuras"
 
 msgid "newAllDayEventOn"
-msgstr ""
+msgstr "Novo compromisso no(a) %s"
 
 msgid "newHourEventAt"
-msgstr ""
+msgstr "Novo compromisso às %s"
 
 msgid "editSomeEvent"
-msgstr ""
+msgstr "Editar: %s"
 
 msgid "copySomeEvent"
-msgstr ""
+msgstr "Copiar: %s"
 
 msgid "deleteSomeEvent"
-msgstr ""
+msgstr "Apagar: %s"
 
 msgid "noCollectionsFound"
-msgstr ""
+msgstr "Nenhum Calendário Encontrado"
 
 msgid "aCalVersionChanges"
-msgstr ""
+msgstr "Bem-vindo a uma nova versão do aCal!"
 
 msgid "newWithVersion"
-msgstr ""
+msgstr "Alterações na versão %s"
 
 msgid "newVersionSeen"
-msgstr ""
+msgstr "Obrigado, agora mostre-me!"
 
 
