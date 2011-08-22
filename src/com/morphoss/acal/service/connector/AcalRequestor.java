@@ -40,6 +40,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.params.ClientPNames;
+import org.apache.http.conn.params.ConnManagerPNames;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
@@ -586,7 +587,12 @@ public class AcalRequestor {
 		params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT, socketTimeOut);
 		params.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, connectionTimeOut);
 		params.setBooleanParameter(ClientPNames.HANDLE_REDIRECTS, false);
-		
+
+		params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK, false);
+		params.setIntParameter(CoreConnectionPNames.SO_LINGER, socketTimeOut);
+		params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT, socketTimeOut);
+		params.setLongParameter(ConnManagerPNames.TIMEOUT, connectionTimeOut + 1000 ); 	
+
 		return params;
 	}
 
