@@ -195,6 +195,7 @@ public class VCalendar extends VComponent {
 		this.repeatRule.appendAlarmInstancesBetween(alarmList, rangeRequested);
 		return true;
 	}
+
 	public boolean appendEventInstancesBetween(List<AcalEvent> eventList, AcalDateRange rangeRequested, boolean isPending) {
 		if (isPending) {
 			this.isPending = true;

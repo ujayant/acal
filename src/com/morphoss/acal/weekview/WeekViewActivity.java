@@ -38,17 +38,17 @@ import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.GestureDetector;
+import android.view.GestureDetector.OnGestureListener;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.Window;
-import android.view.ContextMenu.ContextMenuInfo;
-import android.view.GestureDetector.OnGestureListener;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
+import android.view.Window;
 import android.widget.Button;
 
 import com.morphoss.acal.Constants;
@@ -58,6 +58,7 @@ import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.activity.EventEdit;
 import com.morphoss.acal.activity.EventView;
 import com.morphoss.acal.activity.MonthView;
+import com.morphoss.acal.activity.TodoListView;
 import com.morphoss.acal.activity.YearView;
 import com.morphoss.acal.dataservice.CalendarDataService;
 import com.morphoss.acal.dataservice.DataRequest;
@@ -89,6 +90,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	private WeekViewDays	days;
 
 	private SharedPreferences prefs = null; 
+	private boolean invokedFromView = false;
 
 	//Text Size - some sizes differ, but are relative to this
 	public static final float TEXT_SIZE = 11f;	//SP
@@ -149,6 +151,10 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	 */
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
+		Bundle b = this.getIntent().getExtras();
+		if ( b != null && b.containsKey("InvokedFromView") )
+			invokedFromView = true;
 
 		this.setContentView(R.layout.week_view);
 		header 	= (WeekViewHeader) 	this.findViewById(R.id.week_view_header);
@@ -347,12 +353,34 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	 * Activity.
 	 * </p>
 	 */
-	private void settings() {
+	private void startSettings() {
 		Intent settingsIntent = new Intent();
 		settingsIntent.setClassName("com.morphoss.acal",
 				"com.morphoss.acal.activity.Settings");
 		this.startActivity(settingsIntent);
 	}
+
+
+	/**
+	 * <p>
+	 * Called when user has selected 'Tasks' from menu. Starts TodoListView
+	 * Activity.
+	 * </p>
+	 */
+	private void startTodoList() {
+		if ( invokedFromView )
+			this.finish();
+		else {
+			Intent todoListIntent = new Intent();
+			Bundle bundle = new Bundle();
+			bundle.putInt("InvokedFromView",1);
+			todoListIntent.putExtras(bundle);
+			todoListIntent.setClassName("com.morphoss.acal",
+					"com.morphoss.acal.activity.TodoListView");
+			this.startActivity(todoListIntent);
+		}
+	}
+
 	
 	/**
 	 * Methods for managing event structure
@@ -408,7 +436,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		MenuInflater inflater = getMenuInflater();
-		inflater.inflate(R.menu.main_options_menu, menu);
+		inflater.inflate(R.menu.events_options_menu, menu);
 		return true;
 	}
 	/**
@@ -424,7 +452,10 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		// Handle item selection
 		switch (item.getItemId()) {
 		case R.id.settingsMenuItem:
-			settings();
+			startSettings();
+			return true;
+		case R.id.tasksMenuItem:
+			startTodoList();
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);

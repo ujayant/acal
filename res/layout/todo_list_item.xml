@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:id="@+id/TodoListItem"
+	android:orientation="horizontal" 
+	android:layout_width="fill_parent" android:layout_height="wrap_content">
+
+	<LinearLayout 
+		android:id="@+id/TodoListItemColorBar" 
+		android:layout_width="fill_parent" 
+		android:layout_height="fill_parent" 
+		android:layout_weight="20" 
+		android:background="#0000FF">
+	</LinearLayout>
+
+	<LinearLayout 
+		android:id="@+id/TodoListItemText" 
+		android:layout_height="fill_parent" 
+		android:layout_weight="1" 
+		android:layout_width="fill_parent" 
+		android:background="#FFFFFFFF"
+		android:orientation="vertical">
+	
+		<RelativeLayout
+			android:id="@+id/TodoListItemTitleFields" 
+			android:layout_width="fill_parent" 
+			android:layout_height="wrap_content"
+			android:layout_gravity="right"
+			android:gravity="right">
+			<LinearLayout
+				android:id="@+id/TodoListItemIcons" 
+				android:layout_width="wrap_content" 
+				android:layout_height="wrap_content"
+				android:layout_gravity="right"
+				android:layout_alignParentRight="true"
+				android:gravity="right">
+				<CheckBox android:text=""
+					android:id="@+id/TodoListItemCompleted"
+					android:layout_height="24sp"
+					android:layout_width="34sp"
+					android:checked="true"/>
+				<ImageView
+					android:id="@+id/TodoListItemAlarmBell"
+					android:layout_height="26sp"
+					android:layout_width="26sp"
+					android:visibility="gone"
+					android:layout_gravity="right"
+					android:layout_toLeftOf="@id/TodoListItemCompleted"
+					android:src="@drawable/alarmbell"/>
+				<ImageView
+					android:id="@+id/TodoListItemRepeating"
+					android:layout_height="26sp"
+					android:layout_width="26sp"
+					android:layout_gravity="right"
+					android:layout_toLeftOf="@id/TodoListItemAlarmBell"
+					android:visibility="gone"
+					android:src="@drawable/repeating"/>
+			</LinearLayout> 
+			<TextView 
+				android:id="@+id/TodoListItemTitle" 
+				android:layout_height="wrap_content" 
+				android:text="Flu vaccination" 
+				android:textColor="#0000FF" 
+				android:textSize="24sp" 
+				android:paddingLeft="10sp"
+				android:layout_width="fill_parent"
+				android:layout_toLeftOf="@id/TodoListItemIcons"
+				android:layout_weight="1"/>
+		</RelativeLayout>
+
+		<TextView 
+			android:id="@+id/TodoListItemTime" 
+			android:layout_height="wrap_content" 
+			android:layout_width="fill_parent" 
+			android:paddingLeft="10sp" 
+			android:text="10:00 am - 10:30 am" 
+			android:textColor="#000000" 
+			android:textSize="18sp"/>
+	
+		<TextView 
+			android:id="@+id/TodoListItemLocation" 
+			android:layout_height="wrap_content" 
+			android:layout_width="fill_parent" 
+			android:paddingLeft="10sp"
+			android:textSize="16sp"
+			android:text="Puddleby on the Marsh"
+			android:textColor="#000000"/>
+	
+	</LinearLayout>
+</LinearLayout>

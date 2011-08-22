@@ -99,23 +99,34 @@ CREATE TABLE dav_resource (
   last_modified DATETIME,
   content_type TEXT, 
   data BLOB,
+  needs_sync BOOLEAN,
+  earliest_start NUMERIC,
+  latest_end NUMERIC,
+  effective_type TEXT,
   UNIQUE(collection_id,name)
 );
      */
-	public static final String _ID = "_id";
-	public static final String COLLECTION_ID="collection_id";
-	public static final String RESOURCE_NAME="name";
-	public static final String ETAG="etag";
-	public static final String LAST_MODIFIED="last_modified";
-	public static final String CONTENT_TYPE="content_type";
-	public static final String RESOURCE_DATA="data";
-	public static final String NEEDS_SYNC="needs_sync";
-	public static final String EARLIEST_START="earliest_start";
-	public static final String LATEST_END="latest_end";
+	public static final String		_ID					= "_id";
+	public static final String		COLLECTION_ID		= "collection_id";
+	public static final String		RESOURCE_NAME		= "name";
+	public static final String		ETAG				= "etag";
+	public static final String		LAST_MODIFIED		= "last_modified";
+	public static final String		CONTENT_TYPE		= "content_type";
+	public static final String		RESOURCE_DATA		= "data";
+	public static final String		NEEDS_SYNC			= "needs_sync";
+	public static final String		EARLIEST_START		= "earliest_start";
+	public static final String		LATEST_END			= "latest_end";
+	public static final String		EFFECTIVE_TYPE		= "effective_type";
 
 	// This is not a field, but we sometimes put this into the ContentValues as if
 	// it were, when there is a pending change for this resource.
 	public static final String IS_PENDING="is_pending";
+
+
+	public static final String TYPE_EVENT="'VEVENT'";
+	public static final String TYPE_TASK="'VTODO'";
+	public static final String TYPE_JOURNAL="'VJOURNAL'";
+	public static final String TYPE_ADDRESS="'VCARD'";
 	
 	/*
 	 * <p>Delete matching rows from the dav_resource table</p>
@@ -199,7 +210,7 @@ CREATE TABLE dav_resource (
 	public Uri insert(Uri uri, ContentValues values) {
 		//---add a new server---
 		long rowID = AcalDB.insert(
-				DATABASE_TABLE, "", values);
+				DATABASE_TABLE, null, values);
 
 		//---if added successfully---
 		if (rowID>0)

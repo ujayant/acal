@@ -142,6 +142,8 @@ public abstract class VComponent {
 			return new VAlarm(splitter,resourceId, collectionObject,null);
 		else if (splitter.thisComponent.equals(VTIMEZONE))
 			return new VTimezone(splitter,resourceId, collectionObject,null);
+		else if (splitter.thisComponent.equals(VJOURNAL))
+			return new VJournal(splitter,resourceId, collectionObject,null);
 		else
 			return new VGenericComponent(splitter,resourceId, collectionObject,null);
 	}

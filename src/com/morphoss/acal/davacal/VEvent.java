@@ -31,7 +31,7 @@ public class VEvent extends Masterable {
 	}
 
 	public VEvent( VCalendar parent ) {
-		super( "VEVENT", parent.collectionData, parent );
+		super( VComponent.VEVENT, parent.collectionData, parent );
 		try { setPersistentOn(); } catch (YouMustSurroundThisMethodInTryCatchOrIllEatYouException e) { }
 		addProperty(new AcalProperty("UID",UUID.randomUUID().toString()));
 		AcalDateTime creation = new AcalDateTime();

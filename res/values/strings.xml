@@ -7,6 +7,7 @@
 <string name="ok">OK</string>
 <string name="cancel">Cancel</string>
 <string name="appDescription">A Calendar for Android which will store your events, tasks, notes and contacts on a remote CalDAV / CardDAV server, such as DAViCal (See: www.davical.org)</string>
+<string name="appDescriptionTasks">A Task List for Android which will store your tasks on a remote CalDAV / CardDAV server, such as DAViCal (See: www.davical.org)</string>
 
 
 <string name="Active">Active</string>
@@ -166,6 +167,8 @@
 <string name="AllDayPrompt">All Day:</string>
 <string name="FromPrompt">From:</string>
 <string name="UntilPrompt">Until:</string>
+<string name="DuePrompt">Due:</string>
+<string name="CompletedPrompt">Completed:</string>
 
 <string name="defaultCalendar">Default Calendar</string>
 <string name="theCalendarForNewEvents">The calendar to be used by default for new events.</string>
@@ -256,6 +259,7 @@
 <string name="checkServer_ProbePorts">Probing server on port %1$d using %2$s protocol</string>
 <string name="checkServer_SearchingPrincipal">Searching for principal path at &quot;%s&quot;</string>
 <string name="checkServer_CheckingCapabilities">Checking server capabilities</string>
+<string name="serverRecordAlreadyExists">A server already exists for that protocol, port, host, path &amp; username</string>
 
 <string name="newEventFromThis">Copy to New Event</string>
 <string name="Delete">Delete</string>
@@ -273,5 +277,20 @@
 <string name="aCalVersionChanges">Welcome to a new version of aCal!</string>
 <string name="newWithVersion">Changes in version %s</string>
 <string name="newVersionSeen">Thanks, now show me!</string>
+
+<string name="Due">Due</string>
+<string name="All">All</string>
+<string name="Todo">Todo</string>
+<string name="Events">Events</string>
+<string name="Tasks">Tasks</string>
+<string name="Unscheduled">Unscheduled</string>
+
+<string name="ChooseAction">Choose Action</string>
+<string name="SetCompleted">Set Completed</string>
+<string name="newTaskFromThis">Copy to New Task</string>
+
+<string name="dueTasksTitle">Tasks due within a week</string>
+<string name="incompleteTasksTitle">Incomplete Tasks</string>
+<string name="allTasksTitle">All Tasks</string>
 
 </resources>

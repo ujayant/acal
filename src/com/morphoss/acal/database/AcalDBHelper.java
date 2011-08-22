@@ -46,7 +46,7 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 	/**
 	 * The version of this database. Used to determine if an upgrade is required.
 	 */
-	public static final int DB_VERSION = 11;
+	public static final int DB_VERSION = 12;
 	
 	/**
 	 * <p>The dav_server Table as stated in the specification.</p>
@@ -142,8 +142,18 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 			  	+",needs_sync BOOLEAN"
 			  	+",earliest_start NUMERIC"
 			  	+",latest_end NUMERIC"
+			  	+",effective_type TEXT"
 			  	+",UNIQUE(collection_id,name)"
 			+");";
+	
+	
+	/**
+	 * <p>Some indexes</p> 
+	 */
+	public static final String EVENT_INDEX_SQL =
+		"CREATE UNIQUE INDEX event_select_idx ON dav_resource ( effective_type, collection_id, latest_end, _id );";
+	public static final String TODO_INDEX_SQL =
+		"CREATE UNIQUE INDEX todo_select_idx ON dav_resource ( effective_type, collection_id, _id );";
 	
 	
 	/**
@@ -200,6 +210,9 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 		db.execSQL(DAV_COLLECTION_TABLE_SQL);
 		db.execSQL(DAV_RESOURCE_TABLE_SQL);
 		db.execSQL(PENDING_CHANGE_TABLE_SQL);
+
+		db.execSQL(EVENT_INDEX_SQL);
+		db.execSQL(TODO_INDEX_SQL);
 		
 		db.setTransactionSuccessful();
 		db.endTransaction();
@@ -231,6 +244,16 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 			db.execSQL("ALTER TABLE dav_server ADD COLUMN prepared_config TEXT");
 			oldVersion++;
 		}
+		if ( oldVersion == 11 ) {
+			db.execSQL("ALTER TABLE dav_resource ADD COLUMN effective_type TEXT");
+			db.execSQL("UPDATE dav_resource SET effective_type = 'VCARD' WHERE lower(data) LIKE 'begin:vcard';");
+			db.execSQL("UPDATE dav_resource SET effective_type = 'VEVENT' WHERE lower(data) LIKE 'begin:vevent';");
+			db.execSQL("UPDATE dav_resource SET effective_type = 'VJOURNAL' WHERE lower(data) LIKE 'begin:vjournal';");
+			db.execSQL("UPDATE dav_resource SET effective_type = 'VTODO' WHERE lower(data) LIKE 'begin:vtodo';");
+			db.execSQL(EVENT_INDEX_SQL);
+			db.execSQL(TODO_INDEX_SQL);
+			oldVersion++;
+		}
 
 		if ( oldVersion != newVersion ) {
 			// Fallback to try and drop all tables, except the server table and
@@ -247,6 +270,8 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 				db.execSQL(DAV_COLLECTION_TABLE_SQL);
 				db.execSQL(DAV_RESOURCE_TABLE_SQL);
 				db.execSQL(PENDING_CHANGE_TABLE_SQL);
+				db.execSQL(EVENT_INDEX_SQL);
+				db.execSQL(TODO_INDEX_SQL);
 				db.setTransactionSuccessful();
 			}
 			catch( Exception e ) {

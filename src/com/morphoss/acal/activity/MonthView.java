@@ -118,6 +118,7 @@ public class MonthView extends Activity implements OnGestureListener,
 	public static final String STATE_FILE = "/data/data/com.morphoss.acal/monthview.dat";
 
 	private SharedPreferences prefs = null; 
+	private boolean invokedFromView = false;
 	
 	/* Fields relating to the Month View: */
 
@@ -195,6 +196,10 @@ public class MonthView extends Activity implements OnGestureListener,
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		this.setContentView(R.layout.month_view);
+
+		Bundle b = this.getIntent().getExtras();
+		if ( b != null && b.containsKey("InvokedFromView") )
+			invokedFromView = true;
 
 		prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
@@ -352,8 +357,7 @@ public class MonthView extends Activity implements OnGestureListener,
 	private void setupButton(int id, int val, String buttonLabel) {
 		Button myButton = (Button) this.findViewById(id);
 		if (myButton == null) {
-			Log.e(TAG, "Cannot find button '" + id + "' by ID, to set value '" + val + "'");
-			Log.i(TAG, Log.getStackTraceString(new Exception()));
+			Log.i(TAG, "Cannot find button '" + id + "' by ID, to set value '" + val + "'");
 		}
 		else {
 			myButton.setText(buttonLabel);
@@ -521,13 +525,35 @@ public class MonthView extends Activity implements OnGestureListener,
 	 * Activity.
 	 * </p>
 	 */
-	private void settings() {
+	private void startSettings() {
 		Intent settingsIntent = new Intent();
 		settingsIntent.setClassName("com.morphoss.acal",
 				"com.morphoss.acal.activity.Settings");
 		this.startActivity(settingsIntent);
 	}
 
+
+	/**
+	 * <p>
+	 * Called when user has selected 'Tasks' from menu. Starts TodoListView
+	 * Activity.
+	 * </p>
+	 */
+	private void startTodoList() {
+		if ( invokedFromView )
+			this.finish();
+		else {
+			Intent todoListIntent = new Intent();
+			Bundle bundle = new Bundle();
+			bundle.putInt("InvokedFromView",1);
+			todoListIntent.putExtras(bundle);
+			todoListIntent.setClassName("com.morphoss.acal",
+					"com.morphoss.acal.activity.TodoListView");
+			this.startActivity(todoListIntent);
+		}
+	}
+
+	
 	/**
 	 * <p>
 	 * Responsible for nice animation when ViewFlipper changes from one View to
@@ -751,7 +777,7 @@ public class MonthView extends Activity implements OnGestureListener,
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		MenuInflater inflater = getMenuInflater();
-		inflater.inflate(R.menu.main_options_menu, menu);
+		inflater.inflate(R.menu.events_options_menu, menu);
 		return true;
 	}
 
@@ -801,7 +827,10 @@ public class MonthView extends Activity implements OnGestureListener,
 		// Handle item selection
 		switch (item.getItemId()) {
 		case R.id.settingsMenuItem:
-			settings();
+			startSettings();
+			return true;
+		case R.id.tasksMenuItem:
+			startTodoList();
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);

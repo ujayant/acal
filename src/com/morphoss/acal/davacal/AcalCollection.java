@@ -32,12 +32,20 @@ public class AcalCollection {
 	private int collectionColour;
 	public boolean alarmsEnabled;
 	public final int collectionId;
+	public final boolean useForEvents;
+	public final boolean useForTasks;
+	public final boolean useForJournal;
+	public final boolean useForAddressbook;
 
 	public AcalCollection( ContentValues collectionRow ) {
 		cv = collectionRow;
 		setColour(cv.getAsString(DavCollections.COLOUR));
 		alarmsEnabled = (cv.getAsInteger(DavCollections.USE_ALARMS) == 1);
 		collectionId = cv.getAsInteger(DavCollections._ID);
+		useForEvents = (cv.getAsInteger(DavCollections.ACTIVE_EVENTS) == 1);
+		useForTasks = (cv.getAsInteger(DavCollections.ACTIVE_TASKS) == 1);
+		useForJournal = (cv.getAsInteger(DavCollections.ACTIVE_JOURNAL) == 1);
+		useForAddressbook = (cv.getAsInteger(DavCollections.ACTIVE_ADDRESSBOOK) == 1);
 	}
 
 	public static AcalCollection fromDatabase( Context context, long collectionId ) {

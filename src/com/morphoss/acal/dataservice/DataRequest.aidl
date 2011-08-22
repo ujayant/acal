@@ -6,6 +6,7 @@ import com.morphoss.acal.davacal.AcalAlarm;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.davacal.AcalEvent;
 import com.morphoss.acal.davacal.SimpleAcalEvent;
+import com.morphoss.acal.davacal.SimpleAcalTodo;
 
 interface DataRequest {
 	void resetCache();
@@ -23,6 +24,12 @@ interface DataRequest {
 	int getNumberEventsForDay(in AcalDateTime day);
 	SimpleAcalEvent getNthEventForDay(in AcalDateTime day, int n);
 	void deleteEvent(in AcalDateTime day, int n);
+	List<SimpleAcalTodo> getTodos(in boolean listCompleted, in boolean listFuture);
+	void todoChanged(in SimpleAcalTodo action);
+	int getNumberTodos(in boolean listCompleted, in boolean listFuture);
+	SimpleAcalTodo getNthTodo(in boolean listCompleted, in boolean listFuture, int n);
+	void deleteTodo(in boolean listCompleted, in boolean listFuture, int n);
+	void completeTodo(in boolean listCompleted, in boolean listFuture, int n);
 	void flushCache();
 	void flushDay(in AcalDateTime day);
 }

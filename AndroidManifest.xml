@@ -17,6 +17,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name="aCalTasks"
+        	android:label="@string/appNameTasks"
+	    	android:icon="@drawable/icon_tasks" 
+	    	android:description="@string/appDescriptionTasks">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
         <activity android:name=".activity.MonthView" android:label="@string/appActivityMonthView">
             <intent-filter>
              <action android:name="com.morphoss.acal.activity.MonthView" />
@@ -92,6 +101,12 @@
         <activity android:launchMode="standard" android:name=".activity.EventEdit">
             <intent-filter>
 	             <action android:name="com.morphoss.acal.activity.EventEdit" />
+    	         <category android:name="android.intent.category.DEFAULT" />
+			</intent-filter>
+        </activity>
+        <activity android:launchMode="standard" android:name=".activity.TodoListView">
+            <intent-filter>
+	             <action android:name="com.morphoss.acal.activity.TodoListView" />
     	         <category android:name="android.intent.category.DEFAULT" />
 			</intent-filter>
         </activity>

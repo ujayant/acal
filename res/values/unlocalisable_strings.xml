@@ -4,7 +4,8 @@
 <string name="applyButton">applyButton</string>
 <string name="cancelButton">cancelButton</string>
 
-<string name="appName">aCal</string>
+<string name="appName">aCalEvents</string>
+<string name="appNameTasks">aCalTasks</string>
 <string name="appActivityMonthView">aCal - Month View</string>
 <string name="appActivityYearView">aCal - Year View</string>
 <string name="appActivityWeekView">aCal - Week View</string>
@@ -32,4 +33,6 @@
 <color name="WeekViewSidebarBorder">#333333</color>
 <color name="WeekViewDayGridBorder">#AAAAAA</color>
 <color name="WeekViewDayGridWorkTimeBG">#90F6F6D0</color>
+<color name="OverdueTask">#FFFF8060</color>
+<color name="CompletedTask">#FF60FFB0</color>
 </resources>

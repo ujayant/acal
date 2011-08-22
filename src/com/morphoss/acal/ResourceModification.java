@@ -10,7 +10,9 @@ import android.util.Log;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
 import com.morphoss.acal.database.AcalDBHelper;
+import com.morphoss.acal.davacal.Masterable;
 import com.morphoss.acal.davacal.VCalendar;
+import com.morphoss.acal.davacal.VCard;
 import com.morphoss.acal.davacal.VComponent;
 import com.morphoss.acal.providers.DavResources;
 import com.morphoss.acal.providers.PendingChanges;
@@ -31,21 +33,30 @@ public class ResourceModification {
 			VComponent vCal = null;
 			try {
 				vCal = VCalendar.createComponentFromResource(inResourceValues, null);
-				try {
-					AcalRepeatRule rRule = AcalRepeatRule.fromVCalendar((VCalendar) vCal);
-					AcalDateRange instancesRange = rRule.getInstancesRange();
-				
-					inResourceValues.put(DavResources.EARLIEST_START, instancesRange.start.getMillis());
-					if ( instancesRange.end == null )
-						inResourceValues.putNull(DavResources.LATEST_END);
-					else
-						inResourceValues.put(DavResources.LATEST_END, instancesRange.end.getMillis());
-				}
-				catch ( Exception e ) {
+				String effectiveType = "OTHER";
+				if ( vCal instanceof VCard )
+					effectiveType = "VCARD";
+				else if ( vCal instanceof VCalendar ) {
+					try {
+						Masterable firstMaster = ((VCalendar) vCal).getMasterChild();
+						effectiveType = firstMaster.getName();
+						AcalRepeatRule rRule = AcalRepeatRule.fromVCalendar((VCalendar) vCal);
+						AcalDateRange instancesRange = rRule.getInstancesRange();
 					
+						inResourceValues.put(DavResources.EARLIEST_START, instancesRange.start.getMillis());
+						if ( instancesRange.end == null )
+							inResourceValues.putNull(DavResources.LATEST_END);
+						else
+							inResourceValues.put(DavResources.LATEST_END, instancesRange.end.getMillis());
+					}
+					catch ( Exception e ) {
+						Log.i(TAG,Log.getStackTraceString(e));
+					}
 				}
+				inResourceValues.put(DavResources.EFFECTIVE_TYPE, effectiveType);
 			}
 			catch (Exception e) {
+				Log.w(TAG,Log.getStackTraceString(e));
 			}
 		}
 
@@ -64,7 +75,8 @@ public class ResourceModification {
 		getResourceId();
 
 		if ( Constants.LOG_DEBUG )
-			Log.d(TAG, "Writing Resource with " + modificationAction + " on resource ID "
+			Log.d(TAG, "Writing '"+resourceValues.getAsString(DavResources.EFFECTIVE_TYPE)
+						+ "' resource with " + modificationAction + " on resource ID "
 						+ (resourceId == null ? "new" : Integer.toString(resourceId)));
 
 		switch (modificationAction) {

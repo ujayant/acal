@@ -29,10 +29,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
-import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -64,10 +64,13 @@ import com.morphoss.acal.activity.AlarmActivity;
 import com.morphoss.acal.davacal.AcalAlarm;
 import com.morphoss.acal.davacal.AcalCollection;
 import com.morphoss.acal.davacal.AcalEvent;
+import com.morphoss.acal.davacal.Masterable;
 import com.morphoss.acal.davacal.SimpleAcalEvent;
+import com.morphoss.acal.davacal.SimpleAcalTodo;
 import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VComponent;
 import com.morphoss.acal.davacal.VComponentCreationException;
+import com.morphoss.acal.davacal.VTodo;
 import com.morphoss.acal.davacal.YouMustSurroundThisMethodInTryCatchOrIllEatYouException;
 import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.providers.DavResources;
@@ -629,7 +632,12 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 
 		AcalCollection c = new AcalCollection(collectionData);
 		collections.put(collectionId, c);
-		addResourcesForCollection(collectionId);
+		if ( c.useForEvents )
+			addEventsForCollection(collectionId);
+		if ( c.useForTasks )
+			addTodosForCollection(collectionId);
+		if ( c.useForJournal )
+			addJournalsForCollection(collectionId);
 	}
 
 
@@ -692,10 +700,51 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 	}
 
 
-	private void addResourcesForCollection( int collectionId ) {
+	private void addEventsForCollection( int collectionId ) {
+		//get all current VEVENT resources and add them to the queue
+		Cursor cursor = this.getContentResolver().query(DavResources.CONTENT_URI, null,
+				DavResources.COLLECTION_ID+"="+collectionId
+				+" AND "+DavResources.EFFECTIVE_TYPE+"="+DavResources.TYPE_EVENT
+				+" AND (latest_end > "+Long.toString(earlyTimeStamp.getMillis())+" OR latest_end IS NULL)",
+				null, null);
+		if (Constants.debugCalendarDataService && Constants.LOG_DEBUG) Log.d(TAG, "Adding "+cursor.getCount()+" resources to pending queue.");
+		for( cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext() ) {
+			ContentValues cv = new ContentValues();
+			DatabaseUtils.cursorRowToContentValues(cursor, cv);
+			String blob = cursor.getString(cursor.getColumnIndex(DavResources.RESOURCE_DATA));
+			if (blob != null && !blob.equalsIgnoreCase("")) {
+				resourcesPending.offer(cv);
+			}
+		}
+		cursor.close();
+	}
+
+
+	private void addTodosForCollection( int collectionId ) {
 		//get all current resources and add them to the queue
 		Cursor cursor = this.getContentResolver().query(DavResources.CONTENT_URI, null,
 				DavResources.COLLECTION_ID+"="+collectionId
+				+" AND "+DavResources.EFFECTIVE_TYPE+"="+DavResources.TYPE_TASK
+				+" AND (latest_end > "+Long.toString(earlyTimeStamp.getMillis())+" OR latest_end IS NULL)",
+				null, null);
+		if (Constants.debugCalendarDataService && Constants.LOG_DEBUG) Log.d(TAG, "Adding "+cursor.getCount()+" resources to pending queue.");
+		for( cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext() ) {
+			ContentValues cv = new ContentValues();
+			DatabaseUtils.cursorRowToContentValues(cursor, cv);
+			String blob = cursor.getString(cursor.getColumnIndex(DavResources.RESOURCE_DATA));
+			if (blob != null && !blob.equalsIgnoreCase("")) {
+				resourcesPending.offer(cv);
+			}
+		}
+		cursor.close();
+	}
+
+
+	private void addJournalsForCollection( int collectionId ) {
+		//get all current resources and add them to the queue
+		Cursor cursor = this.getContentResolver().query(DavResources.CONTENT_URI, null,
+				DavResources.COLLECTION_ID+"="+collectionId
+				+" AND "+DavResources.EFFECTIVE_TYPE+"="+DavResources.TYPE_JOURNAL
 				+" AND (latest_end > "+Long.toString(earlyTimeStamp.getMillis())+" OR latest_end IS NULL)",
 				null, null);
 		if (Constants.debugCalendarDataService && Constants.LOG_DEBUG) Log.d(TAG, "Adding "+cursor.getCount()+" resources to pending queue.");
@@ -1140,6 +1189,59 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 			snoozeQueue.offer(alarm);
 			setNextAlarmTrigger();
 			saveState();
+		}
+
+		
+		private TodoList todoItems = new TodoList();
+		
+		@Override
+		public List<SimpleAcalTodo> getTodos(boolean listCompleted, boolean listFuture) throws RemoteException {
+			int processed = 0;
+			int skipped = 0;
+			long startProcessing = System.currentTimeMillis();
+			todoItems.reset();
+			for (VCalendar vc : calendars.values() ) {
+				Masterable master = vc.getMasterChild();
+				if ( master instanceof VTodo ) {
+					todoItems.add( new SimpleAcalTodo(master, false) );
+					processed++;
+				}
+				else
+					skipped++;
+			}
+
+			if ( Constants.LOG_DEBUG ) 
+				Log.d(TAG, "Got "+todoItems.count(listCompleted, listFuture)+" tasks for range ("
+						+processed+", skipped "+skipped+" in "
+						+(System.currentTimeMillis() - startProcessing)+"ms");
+
+			return todoItems.getList(listCompleted, listFuture);
+		}
+
+		
+		@Override
+		public void deleteTodo(boolean listCompleted, boolean listFuture, int n) throws RemoteException {
+			// TODO Auto-generated method stub
+		}
+
+		@Override
+		public void completeTodo(boolean listCompleted, boolean listFuture, int n) throws RemoteException {
+			// TODO Auto-generated method stub
+		}
+
+		@Override
+		public SimpleAcalTodo getNthTodo(boolean listCompleted, boolean listFuture, int n) throws RemoteException {
+			return todoItems.getNth(listCompleted, listFuture,n);
+		}
+
+		@Override
+		public int getNumberTodos(boolean listCompleted, boolean listFuture) throws RemoteException {
+			return todoItems.count(listCompleted, listFuture);
+		}
+
+		@Override
+		public void todoChanged(SimpleAcalTodo action) throws RemoteException {
+			// TODO Auto-generated method stub
 		}
 	}
 }
