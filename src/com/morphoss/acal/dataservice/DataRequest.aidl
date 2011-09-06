@@ -7,6 +7,7 @@ import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.davacal.AcalEvent;
 import com.morphoss.acal.davacal.SimpleAcalEvent;
 import com.morphoss.acal.davacal.SimpleAcalTodo;
+import com.morphoss.acal.davacal.VCalendar;
 
 interface DataRequest {
 	void resetCache();
@@ -25,7 +26,7 @@ interface DataRequest {
 	SimpleAcalEvent getNthEventForDay(in AcalDateTime day, int n);
 	void deleteEvent(in AcalDateTime day, int n);
 	List<SimpleAcalTodo> getTodos(in boolean listCompleted, in boolean listFuture);
-	void todoChanged(in SimpleAcalTodo action);
+	void todoChanged(in VCalendar changedResource, in int action);
 	int getNumberTodos(in boolean listCompleted, in boolean listFuture);
 	SimpleAcalTodo getNthTodo(in boolean listCompleted, in boolean listFuture, int n);
 	void deleteTodo(in boolean listCompleted, in boolean listFuture, int n);

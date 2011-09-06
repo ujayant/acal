@@ -23,6 +23,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.TimeZone;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Log;
 
 import com.morphoss.acal.Constants;
@@ -330,4 +332,20 @@ public class VCalendar extends VComponent {
 		this.hasAlarms = false;
 		return false;
 	}
+
+	
+	public VCalendar(Parcel in) {
+		super(in);
+	}
+
+	public static final Parcelable.Creator<VCalendar> CREATOR = new Parcelable.Creator<VCalendar>() {
+		public VCalendar createFromParcel(Parcel in) {
+			return new VCalendar(in);
+		}
+
+		public VCalendar[] newArray(int size) {
+			return new VCalendar[size];
+		}
+	};
+
 }

@@ -52,5 +52,11 @@
 		<item>@string/changeThisAndFuture</item>
 </string-array>
 
+<string-array 
+	name="TodoChangeAffecting">
+		<item>@string/changeThisInstance</item>
+		<item>@string/changeAllInstances</item>
+		<item>@string/changeThisAndFuture</item>
+</string-array>
 
 </resources>

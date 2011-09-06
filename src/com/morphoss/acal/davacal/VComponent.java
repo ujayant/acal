@@ -28,6 +28,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import android.content.ContentValues;
+import android.content.Context;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Log;
 
 import com.morphoss.acal.Constants;
@@ -48,7 +51,7 @@ import com.morphoss.acal.providers.DavResources;
  * @author Morphoss Ltd
  * 
  */
-public abstract class VComponent {
+public abstract class VComponent implements Parcelable {
 
 	public static final String TAG = "aCal VComponent";
 	
@@ -62,10 +65,10 @@ public abstract class VComponent {
 
 	public final String					name;
 
-	protected final AcalCollection		collectionData;
+	protected AcalCollection			collectionData;
 	protected ComponentParts			content;	
 	
-	protected final VComponent 			parent;
+	protected VComponent 				parent;
 
 	// Patterns used for matching begin:component and end:component lines. Note that we explicitly
 	// match the case choices since that is faster than using a case insensitive match
@@ -101,6 +104,17 @@ public abstract class VComponent {
 		this.parent = parent;
 	}
 
+	protected VComponent(String typeName, VComponent parent) {
+		this.name = typeName;
+		this.parent = parent;
+		this.collectionData = parent.collectionData;
+		this.content = null;
+		this.children = new ArrayList<VComponent>();
+		this.properties = new HashMap<String,AcalProperty>();
+		this.childrenSet = true;
+		this.propertiesSet = true;
+		this.resourceId = null;
+	}
 
 	protected VComponent(String typeName, AcalCollection collectionObject, VComponent parent) {
 		this.collectionData = collectionObject;
@@ -166,6 +180,11 @@ public abstract class VComponent {
 		return this.collectionData.collectionId;
 	}
 
+	public synchronized void setCollection(AcalCollection newCollection) {
+		if ( newCollection != null )
+			this.collectionData = newCollection;
+	}
+
 	public synchronized int size() {
 		if ( content != null ) return content.partInfo.size();
 		populateChildren();
@@ -210,6 +229,12 @@ public abstract class VComponent {
 		} else if (this.persistenceCount < 0) throw new IllegalStateException("Persistence Count below 0 - NOT ALLOWED!");
 	}
 	
+	public synchronized void setEditable() {
+		if ( persistenceCount < 1000 ) {
+			this.persistenceCount = 100000;
+			populateRecursively();
+		}
+	}
 
 	/**
 	 * Returns the name of this component type, such as "VCALENDAR", "VCARD", etc.
@@ -420,6 +445,15 @@ public abstract class VComponent {
 		properties = null;
 	}
 
+
+	protected synchronized void populateRecursively() {
+		populateProperties();
+		populateChildren();
+		for( VComponent child : children ) {
+			child.populateRecursively();
+		}
+	}
+
 	
 	/**
 	 * <p>
@@ -514,15 +548,8 @@ public abstract class VComponent {
 		return buildContent();
 	}
 
-/*
-	private void setParent(VComponent newParent) {
-		this.parent = newParent;
-	}
-*/
-
 	public boolean addChild(VComponent child) {
 		if (!childrenSet) throw new IllegalStateException("Children must be set with persistence on to add child to vcomp");
-//		child.setParent(this);
 		return this.children.add(child);
 	}
 	
@@ -541,10 +568,49 @@ public abstract class VComponent {
 		return this.properties.remove(name);
 	}
 
+	public AcalProperty setUniqueProperty(AcalProperty property) {
+		if (!propertiesSet) throw new IllegalStateException("Properties must be set with persistence on to add prop to vcomp");
+		this.properties.remove(property.getName());
+		return this.properties.put(property.getName(), property);
+	}
+	
 	public void removeProperties( String[] names ) {
 		if (!propertiesSet) throw new IllegalStateException("Properties must be set with persistence on to rem prop to vcomp");
 		for ( String n : names ) {
 			properties.remove(n);
 		}
 	}
+
+
+	public static VComponent fromDatabase(Context context, int resourceId) throws VComponentCreationException {
+		ContentValues res = DavResources.getRow(resourceId, context.getContentResolver());
+		AcalCollection collection = AcalCollection.fromDatabase(context, res.getAsInteger(DavResources.COLLECTION_ID));
+		return createComponentFromResource(res, collection);
+	}
+
+	public VComponent(Parcel in) {
+		this.resourceId = in.readInt();
+		this.name = in.readString();
+		String original = in.readString();
+		ComponentParts origParts = null;
+		if ( original != null ) origParts = new ComponentParts(original);
+		content = new ComponentParts(in.readString());
+		setEditable();
+		content = origParts;
+	}
+
+	@Override
+	public void writeToParcel(Parcel dest, int flags) {
+		dest.writeInt(resourceId);
+		dest.writeString(name);
+		dest.writeString(content == null ? null : content.componentString);
+		dest.writeString(getCurrentBlob());
+	}
+
+	@Override
+	public int describeContents() {
+		// @todo Auto-generated method stub
+		return 0;
+	}
+
 }

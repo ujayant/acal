@@ -1240,8 +1240,62 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 		}
 
 		@Override
-		public void todoChanged(SimpleAcalTodo action) throws RemoteException {
-			// TODO Auto-generated method stub
+		public void todoChanged(VCalendar changedResource, int action) throws RemoteException {
+			int collectionId = changedResource.getCollectionId();
+
+			switch (action) {
+				case AcalEvent.ACTION_CREATE: {
+					ContentValues cv = new ContentValues();
+					cv.put(PendingChanges.COLLECTION_ID, collectionId);
+					cv.put(PendingChanges.OLD_DATA, "");
+					cv.put(PendingChanges.NEW_DATA, changedResource.getCurrentBlob());
+					Uri row = getContentResolver().insert(PendingChanges.CONTENT_URI, cv);
+					int r = Integer.parseInt(row.getLastPathSegment());
+					// add to pending map
+					newResources.put(r, changedResource);
+					break;
+				}
+				case AcalEvent.ACTION_MODIFY_ALL:
+				case AcalEvent.ACTION_MODIFY_SINGLE:
+				case AcalEvent.ACTION_MODIFY_ALL_FUTURE:
+				case AcalEvent.ACTION_DELETE_SINGLE:
+				case AcalEvent.ACTION_DELETE_ALL_FUTURE: {
+					int rid = changedResource.getResourceId();
+					VCalendar original = calendars.get(rid);
+					String newBlob = changedResource.getCurrentBlob();
+					if (newBlob == null || newBlob.equalsIgnoreCase(""))
+						throw new IllegalStateException(
+									"Blob creation resulted in null or empty string during modify event");
+					ContentValues cv = new ContentValues();
+					cv.put(PendingChanges.COLLECTION_ID, collectionId);
+					cv.put(PendingChanges.RESOURCE_ID, rid);
+					cv.put(PendingChanges.OLD_DATA, original.getOriginalBlob());
+					cv.put(PendingChanges.NEW_DATA, newBlob);
+					getContentResolver().insert(PendingChanges.CONTENT_URI, cv);
+					break;
+				}
+				case AcalEvent.ACTION_DELETE_ALL: {
+					int rid = changedResource.getResourceId();
+					ContentValues cv = new ContentValues();
+					cv.put(PendingChanges.COLLECTION_ID, collectionId);
+					cv.put(PendingChanges.RESOURCE_ID, rid);
+					cv.put(PendingChanges.OLD_DATA, changedResource.getOriginalBlob());
+					cv.putNull(PendingChanges.NEW_DATA);
+					getContentResolver().insert(PendingChanges.CONTENT_URI, cv);
+					break;
+				}
+				default:
+					throw new IllegalArgumentException("Invalid change action");
+			}
+
+			try {
+				ServiceJob sj = new SyncChangesToServer();
+				sj.TIME_TO_EXECUTE = 1;
+				WorkerClass.getExistingInstance().addJobAndWake(sj);
+			}
+			catch (Exception e) {
+				Log.e(TAG, "Error starting sync job for event modification.");
+			}
 		}
 	}
 }

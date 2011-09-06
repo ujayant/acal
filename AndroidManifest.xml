@@ -110,6 +110,18 @@
     	         <category android:name="android.intent.category.DEFAULT" />
 			</intent-filter>
         </activity>
+        <activity android:launchMode="standard" android:name=".activity.TodoView">
+            <intent-filter>
+	             <action android:name="com.morphoss.acal.activity.TodoView" />
+    	         <category android:name="android.intent.category.DEFAULT" />
+			</intent-filter>
+        </activity>
+        <activity android:launchMode="standard" android:name=".activity.TodoEdit">
+            <intent-filter>
+	             <action android:name="com.morphoss.acal.activity.TodoEdit" />
+    	         <category android:name="android.intent.category.DEFAULT" />
+			</intent-filter>
+        </activity>
         <activity android:launchMode="standard" android:name=".activity.ShowUpgradeChanges">
             <intent-filter>
 	             <action android:name="com.morphoss.acal.activity.ShowUpgradeChanges" />

@@ -31,15 +31,7 @@ public class VEvent extends Masterable {
 	}
 
 	public VEvent( VCalendar parent ) {
-		super( VComponent.VEVENT, parent.collectionData, parent );
-		try { setPersistentOn(); } catch (YouMustSurroundThisMethodInTryCatchOrIllEatYouException e) { }
-		addProperty(new AcalProperty("UID",UUID.randomUUID().toString()));
-		AcalDateTime creation = new AcalDateTime();
-		creation.setTimeZone(TimeZone.getDefault().getID());
-		creation.shiftTimeZone("UTC");
-		addProperty(new AcalProperty("DTSTAMP",creation.fmtIcal()));
-		addProperty(new AcalProperty("CREATED",creation.fmtIcal()));
-		addProperty(new AcalProperty("LAST-MODIFIED",creation.fmtIcal()));
+		super( VComponent.VEVENT, parent );
 	}
 
 	public VEvent fromMasterEvent( VEvent master ) {

@@ -322,6 +322,10 @@ import com.morphoss.acal.davacal.AcalProperty;
 		}
 		return null;
 	}
+	
+	public AcalProperty asProperty( String propertyName ) {
+		return new AcalProperty(propertyName,toString());
+	}
 
 	public void writeToParcel(Parcel out, int flags) {
 		out.writeInt(days);

@@ -20,7 +20,6 @@ package com.morphoss.acal.activity;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,21 +36,22 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
-import android.graphics.Color;
+import android.opengl.Visibility;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.GestureDetector.OnGestureListener;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.GestureDetector.OnGestureListener;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.DatePicker;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -60,7 +60,6 @@ import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
-import android.widget.CompoundButton.OnCheckedChangeListener;
 
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
@@ -71,21 +70,38 @@ import com.morphoss.acal.acaltime.AcalRepeatRule;
 import com.morphoss.acal.dataservice.CalendarDataService;
 import com.morphoss.acal.dataservice.DataRequest;
 import com.morphoss.acal.davacal.AcalAlarm;
-import com.morphoss.acal.davacal.AcalEvent;
-import com.morphoss.acal.davacal.SimpleAcalEvent;
 import com.morphoss.acal.davacal.AcalAlarm.ActionType;
-import com.morphoss.acal.davacal.AcalEvent.EVENT_FIELD;
+import com.morphoss.acal.davacal.AcalCollection;
+import com.morphoss.acal.davacal.AcalProperty;
+import com.morphoss.acal.davacal.SimpleAcalTodo;
+import com.morphoss.acal.davacal.VCalendar;
+import com.morphoss.acal.davacal.VComponent;
+import com.morphoss.acal.davacal.VTodo;
+import com.morphoss.acal.davacal.VTodo.TODO_FIELD;
 import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.service.aCalService;
 
-public class EventEdit extends Activity implements OnGestureListener, OnTouchListener, OnClickListener, OnCheckedChangeListener {
+public class TodoEdit extends Activity implements OnGestureListener, OnTouchListener, OnClickListener, OnCheckedChangeListener {
 
-	public static final String TAG = "aCal EventEdit";
+	public static final String TAG = "aCal TodoEdit";
 	public static final int APPLY = 0;
 	public static final int CANCEL = 1;
 
-	private SimpleAcalEvent sae;
-	private AcalEvent event;
+	private SimpleAcalTodo sat;
+	private VTodo todo;
+
+	public static final int ACTION_NONE = -1;
+	public static final int ACTION_CREATE = 0;
+	public static final int ACTION_MODIFY_SINGLE = 1;
+	public static final int ACTION_MODIFY_ALL = 2;
+	public static final int ACTION_MODIFY_ALL_FUTURE = 3;
+	public static final int ACTION_DELETE_SINGLE = 4;
+	public static final int ACTION_DELETE_ALL = 5;
+	public static final int ACTION_DELETE_ALL_FUTURE = 6;
+
+	private int action = ACTION_NONE;
+	
+	
 	private static final int FROM_DATE_DIALOG = 0;
 	private static final int FROM_TIME_DIALOG = 1;
 	private static final int UNTIL_DATE_DIALOG = 2;
@@ -93,13 +109,13 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 	private static final int SELECT_COLLECTION_DIALOG = 4;
 	private static final int ADD_ALARM_DIALOG = 5;
 	private static final int SET_REPEAT_RULE_DIALOG = 6;
-	private static final int WHICH_EVENT_DIALOG = 7;
+	private static final int WHICH_TODO_DIALOG = 7;
 
 	private SharedPreferences prefs;
 	boolean prefer24hourFormat = false;
 	
 	private String[] repeatRules;
-	private String[] eventChangeRanges; // See strings.xml R.array.EventChangeAffecting
+	private String[] todoChangeRanges; // See strings.xml R.array.TodoChangeAffecting
 		
 	// Must match R.array.RelativeAlarmTimes (strings.xml)
 	private String[] alarmRelativeTimeStrings;
@@ -126,7 +142,7 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 	private Button untilTime;	
 	private Button applyButton;	
 	private LinearLayout sidebar;
-	private TextView eventName;
+	private TextView todoName;
 	private TextView titlebar;
 	private TextView locationView;
 	private TextView notesView;
@@ -134,7 +150,7 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 	private Button repeatsView;
 	private Button alarmsView;
 	private Button collection;
-	private CheckBox allDayEvent;
+	private CheckBox allDayTodo;
 	
 	//Active collections for create mode
 	private ContentValues[] activeCollections;
@@ -148,7 +164,7 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 	
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		this.setContentView(R.layout.event_edit);
+		this.setContentView(R.layout.todo_edit);
 
 		//Ensure service is actually running
 		startService(new Intent(this, aCalService.class));
@@ -159,30 +175,32 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		prefer24hourFormat = prefs.getBoolean(getString(R.string.prefTwelveTwentyfour), false);
 
 		alarmRelativeTimeStrings = getResources().getStringArray(R.array.RelativeAlarmTimes);
-		eventChangeRanges = getResources().getStringArray(R.array.EventChangeAffecting);
+		todoChangeRanges = getResources().getStringArray(R.array.TodoChangeAffecting);
 		
 		//Set up buttons
-		this.setupButton(R.id.event_apply_button, APPLY);
-		this.setupButton(R.id.event_cancel_button, CANCEL);
+		this.setupButton(R.id.todo_apply_button, APPLY);
+		this.setupButton(R.id.todo_cancel_button, CANCEL);
 
 		Bundle b = this.getIntent().getExtras();
-		getEventAction(b);
-		if ( this.event == null ) {
-			Log.d(TAG,"Unable to create AcalEvent object");
+		getTodoAction(b);
+		if ( this.todo == null ) {
+			Log.d(TAG,"Unable to create VTodo object");
 			return;
 		}
 		this.populateLayout();
 	}
 
 	
-	private AcalEvent getEventAction(Bundle b) {
-		int operation = SimpleAcalEvent.EVENT_OPERATION_EDIT;
-		if ( b.containsKey("SimpleAcalEvent") ) {
-			SimpleAcalEvent sae = ((SimpleAcalEvent) b.getParcelable("SimpleAcalEvent"));
-			operation = sae.operation;
-			this.sae = (SimpleAcalEvent) b.getParcelable("SimpleAcalEvent");
+	private VTodo getTodoAction(Bundle b) {
+		int operation = SimpleAcalTodo.TODO_OPERATION_EDIT;
+		if ( b != null && b.containsKey("SimpleAcalTodo") ) {
+			this.sat = (SimpleAcalTodo) b.getParcelable("SimpleAcalTodo");
+			operation = sat.operation;
 			try {
-				this.event = sae.getAcalEvent(this);
+				if (Constants.LOG_DEBUG)
+					Log.d(TAG, "Loading Todo: "+sat.summary );
+				VComponent vc = VComponent.fromDatabase(this, sat.resourceId);
+				this.todo = (VTodo) ((VCalendar) vc).getMasterChild();
 			}
 			catch( Exception e ) {
 				Log.e(TAG,Log.getStackTraceString(e));
@@ -190,7 +208,7 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		}
 
 		//Get collection data
-		activeCollections = DavCollections.getCollections( getContentResolver(), DavCollections.INCLUDE_EVENTS );
+		activeCollections = DavCollections.getCollections( getContentResolver(), DavCollections.INCLUDE_TASKS );
 		int collectionId = -1;
 		if ( activeCollections.length > 0 )
 			collectionId = activeCollections[0].getAsInteger(DavCollections._ID);
@@ -199,100 +217,6 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 			this.finish();	// can't work if no active collections
 			return null;
 		}
-		
-		if ( operation == SimpleAcalEvent.EVENT_OPERATION_EDIT ) {
-			try {
-				collectionId = (Integer) this.event.getCollectionId();
-				this.event.setAction(AcalEvent.ACTION_MODIFY_ALL);
-				if ( event.isModifyAction() ) {
-					String rr = (String)  this.event.getRepetition();
-					if (rr != null && !rr.equals("") && !rr.equals(AcalRepeatRule.SINGLE_INSTANCE)) {
-						this.originalHasOccurrence = true;
-						this.originalOccurence = rr;
-					}
-					if (this.originalHasOccurrence) {
-						this.event.setAction(AcalEvent.ACTION_MODIFY_SINGLE);
-					}
-					else {
-						this.event.setAction(AcalEvent.ACTION_MODIFY_ALL);
-					}
-				}
-			}
-			catch (Exception e) {
-				if (Constants.LOG_DEBUG)Log.d(TAG, "Error getting data from caller: "+e.getMessage());
-			}
-		}
-		else if ( operation == SimpleAcalEvent.EVENT_OPERATION_COPY ) {
-			// Duplicate the event into a new one.
-			try {
-				collectionId = event.getCollectionId();
-			}
-			catch (Exception e) {
-				if (Constants.LOG_DEBUG)Log.d(TAG, "Error getting data from caller: "+e.getMessage());
-			}
-			this.event.setAction(AcalEvent.ACTION_CREATE);
-		}
-
-		if ( this.event == null ) {
-			AcalDateTime start; 
-			
-			try {
-				start = (AcalDateTime) b.getParcelable("DATE");
-			} catch (Exception e) {
-				start = new AcalDateTime().applyLocalTimeZone();
-			}
-			AcalDuration duration = new AcalDuration("PT1H");
-			AcalAlarm defaultAlarm = new AcalAlarm( true, "", new AcalDuration("-PT15M"),
-						ActionType.AUDIO, start, AcalDateTime.addDuration(start, duration));
-
-			if ( b.containsKey("ALLDAY") && b.getBoolean("ALLDAY", true) ) {
-				start.setDaySecond(0);
-				duration = new AcalDuration("PT24H");
-				defaultAlarm = new AcalAlarm( true, "", new AcalDuration("-PT12H"),
-							ActionType.AUDIO, start, AcalDateTime.addDuration(start, duration));
-			}
-			else if ( b.containsKey("TIME") ) {
-				start.setDaySecond((b.getInt("TIME") / 1800) * 1800);
-			}
-			else {
-				// Default to "in the next hour"
-				AcalDateTime now = new AcalDateTime().applyLocalTimeZone();
-				start.setHour(now.getHour());
-				start.setSecond(0);
-				start.setMinute(0);
-				start.addSeconds(AcalDateTime.SECONDS_IN_HOUR);
-			}
-
-			Map<EVENT_FIELD,Object> defaults = new HashMap<EVENT_FIELD,Object>(10);
-
-			defaults.put( EVENT_FIELD.startDate, start );
-			defaults.put( EVENT_FIELD.duration, duration );
-			defaults.put( EVENT_FIELD.summary, getString(R.string.NewEventTitle) );
-			defaults.put( EVENT_FIELD.location, "" );
-			defaults.put( EVENT_FIELD.description, "" );
-			
-			ContentValues collectionData = DavCollections.getRow(collectionId, getContentResolver());
-			Integer preferredCollectionId = Integer.parseInt(prefs.getString(getString(R.string.DefaultCollection_PrefKey), "-1"));
-			if ( preferredCollectionId != -1 ) {
-				for( ContentValues aCollection : activeCollections ) {
-					if ( preferredCollectionId == aCollection.getAsInteger(DavCollections._ID) ) {
-						collectionId = preferredCollectionId;
-						collectionData = aCollection;
-						break;
-					}
-				}
-			}
-			defaults.put(EVENT_FIELD.collectionId, collectionId);
-			defaults.put(EVENT_FIELD.colour, Color.parseColor(collectionData.getAsString(DavCollections.COLOUR)));
-
-			List<AcalAlarm> alarmList = new ArrayList<AcalAlarm>();
-			alarmList.add(defaultAlarm);
-			defaults.put(EVENT_FIELD.alarmList, alarmList );
-
-			this.event = new AcalEvent(defaults);
-			this.event.setAction(AcalEvent.ACTION_CREATE);
-
-		}
 		this.collectionsArray = new String[activeCollections.length];
 		int count = 0;
 		for (ContentValues cv : activeCollections) {
@@ -300,7 +224,62 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 			collectionsArray[count++] = cv.getAsString(DavCollections.DISPLAYNAME);
 		}
 		
-		return event;
+		if ( operation == SimpleAcalTodo.TODO_OPERATION_EDIT ) {
+			try {
+				collectionId = (Integer) this.todo.getCollectionId();
+				this.action = ACTION_MODIFY_ALL;
+				if ( isModifyAction() ) {
+					String rr = (String)  this.todo.getRepetition();
+					if (rr != null && !rr.equals("") && !rr.equals(AcalRepeatRule.SINGLE_INSTANCE)) {
+						this.originalHasOccurrence = true;
+						this.originalOccurence = rr;
+					}
+					if (this.originalHasOccurrence) {
+						this.action = ACTION_MODIFY_SINGLE;
+					}
+					else {
+						this.action = ACTION_MODIFY_ALL;
+					}
+				}
+			}
+			catch (Exception e) {
+				if (Constants.LOG_DEBUG)Log.d(TAG, "Error getting data from caller: "+e.getMessage());
+			}
+		}
+		else if ( operation == SimpleAcalTodo.TODO_OPERATION_COPY ) {
+			// Duplicate the todo into a new one.
+			try {
+				collectionId = todo.getCollectionId();
+			}
+			catch (Exception e) {
+				if (Constants.LOG_DEBUG)Log.d(TAG, "Error getting data from caller: "+e.getMessage());
+			}
+			this.action = ACTION_CREATE;
+		}
+
+		if ( this.todo == null ) {
+
+			Map<TODO_FIELD,Object> defaults = new HashMap<TODO_FIELD,Object>(10);
+			defaults.put( TODO_FIELD.summary, getString(R.string.NewTaskTitle) );
+
+			Integer preferredCollectionId = Integer.parseInt(prefs.getString(getString(R.string.DefaultCollection_PrefKey), "-1"));
+			if ( preferredCollectionId != -1 ) {
+				for( ContentValues aCollection : activeCollections ) {
+					if ( preferredCollectionId == aCollection.getAsInteger(DavCollections._ID) ) {
+						collectionId = preferredCollectionId;
+						break;
+					}
+				}
+			}
+			AcalCollection collection = AcalCollection.fromDatabase(this, collectionId);
+			defaults.put(TODO_FIELD.collectionId, collectionId);
+
+			this.todo = new VTodo(collection);
+			this.action = ACTION_CREATE;
+
+		}
+		
+		return todo;
 	}
 
 	
@@ -310,27 +289,29 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 				this.currentCollection = cv; break;
 			}
 		}
-		this.event.setField(EVENT_FIELD.collectionId, this.currentCollection.getAsInteger(DavCollections._ID));
-		this.collection.setText(this.currentCollection.getAsString(DavCollections.DISPLAYNAME));
-		sidebar.setBackgroundColor(Color.parseColor(this.currentCollection.getAsString(DavCollections.COLOUR)));
-		this.event.setField(EVENT_FIELD.colour, Color.parseColor(currentCollection.getAsString(DavCollections.COLOUR)));
+		AcalCollection collection = new AcalCollection(currentCollection);
+		VCalendar vc = (VCalendar) this.todo.getTopParent();
+		vc.setCollection(collection);
+
+		this.collection.setText(name);
+		sidebar.setBackgroundColor(collection.getColour());
 		this.updateLayout();
 	}
 
 	
 	private void populateLayout() {
 
-		//Event Colour
-		sidebar = (LinearLayout)this.findViewById(R.id.EventEditColourBar);
+		//Todo Colour
+		sidebar = (LinearLayout)this.findViewById(R.id.TodoEditColourBar);
 
 		//Title
-		this.eventName = (TextView) this.findViewById(R.id.EventName);
-		if ( event == null || event.getAction() == AcalEvent.ACTION_CREATE ) {
-			eventName.setSelectAllOnFocus(true);
+		this.todoName = (TextView) this.findViewById(R.id.TodoName);
+		if ( todo == null || action == ACTION_CREATE ) {
+			todoName.setSelectAllOnFocus(true);
 		}
 
 		//Collection
-		this.collection = (Button) this.findViewById(R.id.EventEditCollectionButton);
+		this.collection = (Button) this.findViewById(R.id.TodoEditCollectionButton);
 		if (this.activeCollections.length < 2) {
 			this.collection.setEnabled(false);
 			this.collection.setHeight(0);
@@ -343,29 +324,29 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		
 		
 		//date/time fields
-		fromLabel = (TextView) this.findViewById(R.id.EventFromLabel);
-		untilLabel = (TextView) this.findViewById(R.id.EventUntilLabel);
-		allDayEvent = (CheckBox) this.findViewById(R.id.EventAllDay);
-		fromDate = (Button) this.findViewById(R.id.EventFromDate);
-		fromTime = (Button) this.findViewById(R.id.EventFromTime);
-		untilDate = (Button) this.findViewById(R.id.EventUntilDate);
-		untilTime = (Button) this.findViewById(R.id.EventUntilTime);
+		fromLabel = (TextView) this.findViewById(R.id.TodoFromLabel);
+		untilLabel = (TextView) this.findViewById(R.id.TodoUntilLabel);
+		allDayTodo = (CheckBox) this.findViewById(R.id.TodoAllDay);
+		fromDate = (Button) this.findViewById(R.id.TodoFromDate);
+		fromTime = (Button) this.findViewById(R.id.TodoFromTime);
+		untilDate = (Button) this.findViewById(R.id.TodoUntilDate);
+		untilTime = (Button) this.findViewById(R.id.TodoUntilTime);
 
-		applyButton = (Button) this.findViewById(R.id.event_apply_button);
+		applyButton = (Button) this.findViewById(R.id.todo_apply_button);
 
 		//Title bar
-		titlebar = (TextView)this.findViewById(R.id.EventEditTitle);
+		titlebar = (TextView)this.findViewById(R.id.TodoEditTitle);
 
-		locationView = (TextView) this.findViewById(R.id.EventLocationContent);
+		locationView = (TextView) this.findViewById(R.id.TodoLocationContent);
 		
 
-		notesView = (TextView) this.findViewById(R.id.EventNotesContent);
+		notesView = (TextView) this.findViewById(R.id.TodoNotesContent);
 		
 
 		alarmsList = (TableLayout) this.findViewById(R.id.alarms_list_table);
-		alarmsView = (Button) this.findViewById(R.id.EventAlarmsButton);
+		alarmsView = (Button) this.findViewById(R.id.TodoAlarmsButton);
 		
-		repeatsView = (Button) this.findViewById(R.id.EventRepeatsContent);
+		repeatsView = (Button) this.findViewById(R.id.TodoRepeatsContent);
 		
 		
 		//Button listeners
@@ -375,19 +356,19 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		setListen(untilTime,UNTIL_TIME_DIALOG);
 		setListen(alarmsView,ADD_ALARM_DIALOG);
 		setListen(repeatsView,SET_REPEAT_RULE_DIALOG);
-		allDayEvent.setOnCheckedChangeListener(this);
-		if ( this.event.getDuration().getDurationMillis() == 60L*60L*24L*1000L ){
-			allDayEvent.setChecked(true);
+		allDayTodo.setOnCheckedChangeListener(this);
+		if ( this.todo.getDuration().getDurationMillis() == 60L*60L*24L*1000L ){
+			allDayTodo.setChecked(true);
 		}
 
 		
-		String title = event.getSummary();
-		eventName.setText(title);
+		String title = todo.getSummary();
+		todoName.setText(title);
 
-		String location = event.getLocation();
+		String location = todo.getLocation();
 		locationView.setText(location);
 
-		String description = event.getDescription();
+		String description = todo.getDescription();
 		notesView.setText(description);
 		
 		updateLayout();
@@ -395,21 +376,27 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 
 	
 	private void updateLayout() {
-		AcalDateTime start = event.getStart().applyLocalTimeZone();
-		AcalDateTime end = event.getEnd().applyLocalTimeZone();
+		AcalDateTime start = todo.getStart();
+		if ( start != null) start.applyLocalTimeZone();
+		AcalDateTime end = todo.getEnd();
+		if ( end != null) end.applyLocalTimeZone();
+		AcalDateTime due = todo.getDue();
+		if ( due != null) due.applyLocalTimeZone();
 
-		Integer colour = event.getColour();
+		Integer colour = todo.getCollectionColour();
 		if ( colour == null ) colour = getResources().getColor(android.R.color.black);
 		sidebar.setBackgroundColor(colour);
-		eventName.setTextColor(colour);
+		todoName.setTextColor(colour);
 		
 		this.collection.setText(this.currentCollection.getAsString(DavCollections.DISPLAYNAME));
 		
-		this.applyButton.setText((event.isModifyAction() ? getString(R.string.Apply) : getString(R.string.Add)));
+		this.applyButton.setText((isModifyAction() ? getString(R.string.Apply) : getString(R.string.Add)));
 		
-		boolean allDay = allDayEvent.isChecked();
-		
-		fromDate.setText(AcalDateTime.fmtDayMonthYear(start));
+		boolean allDay = allDayTodo.isChecked();
+
+		if ( start != null )
+			fromDate.setText(AcalDateTime.fmtDayMonthYear(start));
+
 		
 		if (allDay) {
 			fromLabel.setVisibility(View.GONE);
@@ -420,116 +407,120 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 			fromTime.setVisibility(View.GONE);
 			untilTime.setText(""); 
 			untilTime.setVisibility(View.GONE); 
-
-			titlebar.setText(fromDate.getText());
 		}
 		else {
 			fromLabel.setVisibility(View.VISIBLE);
 			untilLabel.setVisibility(View.VISIBLE);
-			untilDate.setText(AcalDateTime.fmtDayMonthYear(end));
+			if ( end != null )
+				untilDate.setText(AcalDateTime.fmtDayMonthYear(end));
 			untilDate.setVisibility(View.VISIBLE);
 
 			DateFormat formatter = new SimpleDateFormat(prefer24hourFormat?"HH:mm":"hh:mmaa");
-			fromTime.setText(formatter.format(start.toJavaDate()));
+			if ( start != null )
+				fromTime.setText(formatter.format(start.toJavaDate()));
 			fromTime.setVisibility(View.VISIBLE);
-			untilTime.setText(formatter.format(end.toJavaDate()));
+			if ( end != null )
+				untilTime.setText(formatter.format(end.toJavaDate()));
 			untilTime.setVisibility(View.VISIBLE);
-
-			formatter = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.SHORT);
-			titlebar.setText(StaticHelpers.capitaliseWords(formatter.format(start.toJavaDate())));
-
 		}
 		
 		
 		//Display Alarms
-		alarmList = event.getAlarms();
+		alarmList = todo.getAlarms();
 		this.alarmsList.removeAllViews();
 		for (AcalAlarm alarm : alarmList) {
 			this.alarmsList.addView(this.getAlarmItem(alarm, alarmsList));
 		}
 		
 		//set repeat options
-		int dow = start.getWeekDay();
-		int weekNum = start.getMonthWeek();
-		String dowStr = "";
-		String dowLongString = "";
-		String everyDowString = "";
-		switch (dow) {
-			case 0:
-				dowStr="MO";
-				dowLongString = getString(R.string.Monday);
-				everyDowString = getString(R.string.EveryMonday);
-				break;
-			case 1:
-				dowStr="TU";
-				dowLongString = getString(R.string.Tuesday);
-				everyDowString = getString(R.string.EveryTuesday);
-				break;
-			case 2:
-				dowStr="WE";
-				dowLongString = getString(R.string.Wednesday);
-				everyDowString = getString(R.string.EveryWednesday);
-				break;
-			case 3:
-				dowStr="TH";
-				dowLongString = getString(R.string.Thursday);
-				everyDowString = getString(R.string.EveryThursday);
-				break;
-			case 4:
-				dowStr="FR";
-				dowLongString = getString(R.string.Friday); 
-				everyDowString = getString(R.string.EveryFriday);
-				break;
-			case 5:
-				dowStr="SA";
-				dowLongString = getString(R.string.Saturday); 
-				everyDowString = getString(R.string.EverySaturday);
-				break;
-			case 6:
-				dowStr="SU";
-				dowLongString = getString(R.string.Sunday); 	
-				everyDowString = getString(R.string.EverySunday);
-				break;
+		if ( start == null && due == null ) {
+			repeatsView.setVisibility(View.GONE);
 		}
-		String dailyRepeatName = getString(R.string.EveryWeekday);
-		String dailyRepeatRule = "FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR;COUNT=260";
-		if (start.get(AcalDateTime.DAY_OF_WEEK) == AcalDateTime.SATURDAY || start.get(AcalDateTime.DAY_OF_WEEK) == AcalDateTime.SUNDAY) {
-			dailyRepeatName = getString(R.string.EveryWeekend);
-			dailyRepeatRule = "FREQ=WEEKLY;BYDAY=SA,SU;COUNT=104";
-		}
+		else {
+			AcalDateTime relativeTo = (start == null ? due : start);
+			int dow = relativeTo.getWeekDay();;
+			int weekNum = relativeTo.getMonthWeek();
 
-		this.repeatRules = new String[] {
-					getString(R.string.OnlyOnce),
-					getString(R.string.EveryDay),
-					dailyRepeatName,
-					everyDowString,
-					String.format(this.getString(R.string.EveryNthOfTheMonth),
-								start.getMonthDay()+AcalDateTime.getSuffix(start.getMonthDay())),
-					String.format(this.getString(R.string.EveryMonthOnTheNthSomeday),
-								weekNum+AcalDateTime.getSuffix(weekNum)+" "+dowLongString),
-					getString(R.string.EveryYear)
-		};
-		this.repeatRulesValues = new String[] {
-				"FREQ=DAILY;COUNT=400",
-				dailyRepeatRule,
-				"FREQ=WEEKLY;BYDAY="+dowStr,
-				"FREQ=MONTHLY;COUNT=60",
-				"FREQ=MONTHLY;COUNT=60;BYDAY="+weekNum+dowStr,
-				"FREQ=YEARLY"
-		};
-		String repeatRuleString = event.getRepetition();
-		if (repeatRuleString == null) repeatRuleString = "";
-		AcalRepeatRule RRule;
-		try {
-			RRule = new AcalRepeatRule(start, repeatRuleString); 
+			String dowStr = "";
+			String dowLongString = "";
+			String everyDowString = "";
+			switch (dow) {
+				case 0:
+					dowStr="MO";
+					dowLongString = getString(R.string.Monday);
+					everyDowString = getString(R.string.EveryMonday);
+					break;
+				case 1:
+					dowStr="TU";
+					dowLongString = getString(R.string.Tuesday);
+					everyDowString = getString(R.string.EveryTuesday);
+					break;
+				case 2:
+					dowStr="WE";
+					dowLongString = getString(R.string.Wednesday);
+					everyDowString = getString(R.string.EveryWednesday);
+					break;
+				case 3:
+					dowStr="TH";
+					dowLongString = getString(R.string.Thursday);
+					everyDowString = getString(R.string.EveryThursday);
+					break;
+				case 4:
+					dowStr="FR";
+					dowLongString = getString(R.string.Friday); 
+					everyDowString = getString(R.string.EveryFriday);
+					break;
+				case 5:
+					dowStr="SA";
+					dowLongString = getString(R.string.Saturday); 
+					everyDowString = getString(R.string.EverySaturday);
+					break;
+				case 6:
+					dowStr="SU";
+					dowLongString = getString(R.string.Sunday); 	
+					everyDowString = getString(R.string.EverySunday);
+					break;
+			}
+			String dailyRepeatName = getString(R.string.EveryWeekday);
+			String dailyRepeatRule = "FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR;COUNT=260";
+			if (relativeTo.get(AcalDateTime.DAY_OF_WEEK) == AcalDateTime.SATURDAY || relativeTo.get(AcalDateTime.DAY_OF_WEEK) == AcalDateTime.SUNDAY) {
+				dailyRepeatName = getString(R.string.EveryWeekend);
+				dailyRepeatRule = "FREQ=WEEKLY;BYDAY=SA,SU;COUNT=104";
+			}
+	
+			this.repeatRules = new String[] {
+						getString(R.string.OnlyOnce),
+						getString(R.string.EveryDay),
+						dailyRepeatName,
+						everyDowString,
+						String.format(this.getString(R.string.EveryNthOfTheMonth),
+								relativeTo.getMonthDay()+AcalDateTime.getSuffix(relativeTo.getMonthDay())),
+						String.format(this.getString(R.string.EveryMonthOnTheNthSomeday),
+									weekNum+AcalDateTime.getSuffix(weekNum)+" "+dowLongString),
+						getString(R.string.EveryYear)
+			};
+			this.repeatRulesValues = new String[] {
+					"FREQ=DAILY;COUNT=400",
+					dailyRepeatRule,
+					"FREQ=WEEKLY;BYDAY="+dowStr,
+					"FREQ=MONTHLY;COUNT=60",
+					"FREQ=MONTHLY;COUNT=60;BYDAY="+weekNum+dowStr,
+					"FREQ=YEARLY"
+			};
+			String repeatRuleString = todo.getRepetition();
+			if (repeatRuleString == null) repeatRuleString = "";
+			AcalRepeatRule RRule;
+			try {
+				RRule = new AcalRepeatRule(relativeTo, repeatRuleString); 
+			}
+			catch( IllegalArgumentException  e ) {
+				Log.i(TAG,"Illegal repeat rule: '"+repeatRuleString+"'");
+				RRule = new AcalRepeatRule(relativeTo, null ); 
+			}
+			String rr = RRule.repeatRule.toPrettyString(this);
+			if (rr == null || rr.equals("")) rr = getString(R.string.OnlyOnce);
+			repeatsView.setText(rr);
 		}
-		catch( IllegalArgumentException  e ) {
-			Log.i(TAG,"Illegal repeat rule: '"+repeatRuleString+"'");
-			RRule = new AcalRepeatRule(start, null ); 
-		}
-		String rr = RRule.repeatRule.toPrettyString(this);
-		if (rr == null || rr.equals("")) rr = getString(R.string.OnlyOnce);
-		repeatsView.setText(rr);
 	}
 
 	private void setListen(Button b, final int dialog) {
@@ -547,38 +538,39 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 	public void applyChanges() {
 		//check if text fields changed
 		//summary
-		String oldSum = event.getSummary();
-		String newSum = this.eventName.getText().toString() ;
-		String oldLoc = event.getLocation();
+		String oldSum = todo.getSummary();
+		String newSum = this.todoName.getText().toString() ;
+		String oldLoc = todo.getLocation();
 		String newLoc = this.locationView.getText().toString();
-		String oldDesc = event.getDescription();
+		String oldDesc = todo.getDescription();
 		String newDesc = this.notesView.getText().toString() ;
 		
-		if (!oldSum.equals(newSum)) event.setField(EVENT_FIELD.summary, newSum);
-		if (!oldLoc.equals(newLoc)) event.setField(EVENT_FIELD.location, newLoc);
-		if (!oldDesc.equals(newDesc)) event.setField(EVENT_FIELD.description, newDesc);
+		if (!oldSum.equals(newSum)) todo.setSummary(newSum);
+		if (!oldLoc.equals(newLoc)) todo.setLocation(newLoc);
+		if (!oldDesc.equals(newDesc)) todo.setDescription(newDesc);
 		
-		AcalDateTime start = event.getStart();
-		//check if all day
-		if (allDayEvent.isChecked()) {
-			start.setDaySecond(0);
-			start.setAsDate(true);
-			event.setField(EVENT_FIELD.startDate,start);
-			event.setField(EVENT_FIELD.duration,  new AcalDuration("PT24H"));
-		}
-
-		AcalDuration duration = event.getDuration();
-		// Ensure end is not before start
-		if ( duration.getDays() < 0 || duration.getTimeMillis() < 0 ) {
-			start = event.getStart();
-			AcalDateTime end = AcalDateTime.addDuration(start, duration);
-			while( end.before(start) ) end.addDays(1);
-			duration = start.getDurationTo(end);
-			event.setField(EVENT_FIELD.duration, duration);
+		AcalDateTime start = todo.getStart();
+		if ( start != null ) {
+			//check if all day
+			if (allDayTodo.isChecked()) {
+				start.setDaySecond(0);
+				start.setAsDate(true);
+				todo.setStart(start);
+				todo.setDuration(new AcalDuration("P1D"));
+			}
+	
+			AcalDuration duration = todo.getDuration();
+			// Ensure end is not before start
+			if ( duration.getDays() < 0 || duration.getTimeMillis() < 0 ) {
+				start = todo.getStart();
+				AcalDateTime end = AcalDateTime.addDuration(start, duration);
+				while( end.before(start) ) end.addDays(1);
+				duration = start.getDurationTo(end);
+				todo.setDuration(duration);
+			}
 		}
 		
-		if (event.getAction() == AcalEvent.ACTION_CREATE ||
-				event.getAction() == AcalEvent.ACTION_MODIFY_ALL) {
+		if (action == ACTION_CREATE || action == ACTION_MODIFY_ALL ) {
 			if ( !this.saveChanges() ){
 				Toast.makeText(this, "Save failed: retrying!", Toast.LENGTH_LONG).show();
 				this.saveChanges();
@@ -587,27 +579,27 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		}
 		
 		//ask the user which instance(s) to apply to
-		this.showDialog(WHICH_EVENT_DIALOG);
+		this.showDialog(WHICH_TODO_DIALOG);
 
 	}
 
 	private boolean saveChanges() {
 		
 		try {
-			this.dataRequest.eventChanged(event);
+			this.dataRequest.todoChanged(todo.getTopParent(), action);
 
-			Log.i(TAG,"Saving event with action " + event.getAction() );
-			if (event.getAction() == AcalEvent.ACTION_CREATE)
-				Toast.makeText(this, getString(R.string.EventSaved), Toast.LENGTH_LONG).show();
-			else if (event.getAction() == AcalEvent.ACTION_MODIFY_ALL)
-				Toast.makeText(this, getString(R.string.ModifiedAllInstances), Toast.LENGTH_LONG).show();
-			else if (event.getAction() == AcalEvent.ACTION_MODIFY_SINGLE)
-				Toast.makeText(this, getString(R.string.ModifiedOneInstance), Toast.LENGTH_LONG).show();
-			else if (event.getAction() == AcalEvent.ACTION_MODIFY_ALL_FUTURE)
-				Toast.makeText(this, getString(R.string.ModifiedThisAndFuture), Toast.LENGTH_LONG).show();
+			Log.i(TAG,"Saving todo with action " + action );
+			if ( action == ACTION_CREATE )
+				Toast.makeText(this, getString(R.string.TaskSaved), Toast.LENGTH_LONG).show();
+			else if (action == ACTION_MODIFY_ALL)
+				Toast.makeText(this, getString(R.string.TaskModifiedAll), Toast.LENGTH_LONG).show();
+			else if (action == ACTION_MODIFY_SINGLE)
+				Toast.makeText(this, getString(R.string.TaskModifiedOne), Toast.LENGTH_LONG).show();
+			else if (action == ACTION_MODIFY_ALL_FUTURE)
+				Toast.makeText(this, getString(R.string.TaskModifiedThisAndFuture), Toast.LENGTH_LONG).show();
 
 			Intent ret = new Intent();
-			ret.putExtra("changedEvent", sae);
+			ret.putExtra("changedTodo", sat);
 			this.setResult(RESULT_OK, ret);
 
 			this.finish();
@@ -615,7 +607,7 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		catch (Exception e) {
 			if ( e.getMessage() != null ) Log.d(TAG,e.getMessage());
 			if (Constants.LOG_DEBUG)Log.d(TAG,Log.getStackTraceString(e));
-			Toast.makeText(this, getString(R.string.ErrorSavingEvent), Toast.LENGTH_LONG).show();
+			Toast.makeText(this, getString(R.string.TaskErrorSaving), Toast.LENGTH_LONG).show();
 		}
 		return true;
 	}
@@ -686,8 +678,8 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 
 	//Dialogs
 	protected Dialog onCreateDialog(int id) {
-		AcalDateTime start = event.getStart();
-		AcalDateTime end = event.getEnd();
+		AcalDateTime start = todo.getStart();
+		AcalDateTime end = todo.getEnd();
 		switch (id) {
 		case FROM_DATE_DIALOG:
 			return new DatePickerDialog(this,fromDateListener,
@@ -730,27 +722,27 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 			    	alarmList.add(
 			    			new AcalAlarm(
 			    					true, 
-			    					event.getDescription(), 
+			    					todo.getDescription(), 
 			    					alarmValues[item], 
 			    					ActionType.AUDIO, 
-			    					event.getStart(), 
-			    					AcalDateTime.addDuration( event.getStart(), alarmValues[item] )
+			    					todo.getStart(), 
+			    					AcalDateTime.addDuration( todo.getStart(), alarmValues[item] )
 			    			)
 			    	);
-			    	event.setField(EVENT_FIELD.alarmList, alarmList);
+			    	todo.updateAlarmComponents(alarmList);
 			    	updateLayout();
 			    }
 			});
 			return builder.create();
-		case WHICH_EVENT_DIALOG:
+		case WHICH_TODO_DIALOG:
 			builder = new AlertDialog.Builder(this);
 			builder.setTitle(getString(R.string.ChooseInstancesToChange));
-			builder.setItems(eventChangeRanges, new DialogInterface.OnClickListener() {
+			builder.setItems(todoChangeRanges, new DialogInterface.OnClickListener() {
 			    public void onClick(DialogInterface dialog, int item) {
 			    	switch (item) {
-			    		case 0: event.setAction(AcalEvent.ACTION_MODIFY_SINGLE); saveChanges(); return;
-			    		case 1: event.setAction(AcalEvent.ACTION_MODIFY_ALL); saveChanges(); return;
-			    		case 2: event.setAction(AcalEvent.ACTION_MODIFY_ALL_FUTURE); saveChanges(); return;
+			    		case 0: action = ACTION_MODIFY_SINGLE; saveChanges(); return;
+			    		case 1: action = ACTION_MODIFY_ALL; saveChanges(); return;
+			    		case 2: action = ACTION_MODIFY_ALL_FUTURE; saveChanges(); return;
 			    	}
 			    }
 			});
@@ -765,14 +757,14 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 			    		item--;
 			    		newRule = repeatRulesValues[item];
 			    	}
-			    	if ( event.isModifyAction() ) {
-				    	if (EventEdit.this.originalHasOccurrence && !newRule.equals(EventEdit.this.originalOccurence)) {
-				    		event.setAction(AcalEvent.ACTION_MODIFY_ALL);
-				    	} else if (EventEdit.this.originalHasOccurrence) {
-				    		event.setAction(AcalEvent.ACTION_MODIFY_SINGLE);
+			    	if ( isModifyAction() ) {
+				    	if (TodoEdit.this.originalHasOccurrence && !newRule.equals(TodoEdit.this.originalOccurence)) {
+				    		action = ACTION_MODIFY_ALL;
+				    	} else if (TodoEdit.this.originalHasOccurrence) {
+				    		action = ACTION_MODIFY_SINGLE;
 				    	}
 			    	}
-			    	event.setField(EVENT_FIELD.repeatRule, newRule);
+			    	todo.setRepetition(newRule);
 			    	updateLayout();
 			    	
 			    }
@@ -788,9 +780,9 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		public void onDateSet(DatePicker view, int year, 
 				int monthOfYear, int dayOfMonth) {
 
-			AcalDateTime start = event.getStart().clone().applyLocalTimeZone();
+			AcalDateTime start = todo.getStart().clone().applyLocalTimeZone();
 			start.setYearMonthDay(year, monthOfYear + 1, dayOfMonth);
-			event.setField(EVENT_FIELD.startDate, start);
+			todo.setStart(start);
 			updateLayout();
 		}
 	};
@@ -804,10 +796,10 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		public void onDateSet(DatePicker view, int year, 
 				int monthOfYear, int dayOfMonth) {
 
-			AcalDateTime start = event.getStart().clone().applyLocalTimeZone();
-			AcalDateTime end = event.getEnd().clone().applyLocalTimeZone();
+			AcalDateTime start = todo.getStart().clone().applyLocalTimeZone();
+			AcalDateTime end = todo.getEnd().clone().applyLocalTimeZone();
 			end.setYearMonthDay(year, monthOfYear + 1, dayOfMonth);
-			event.setField(EVENT_FIELD.duration, start.getDurationTo(end));
+			todo.setDuration(start.getDurationTo(end));
 			updateLayout();
 		}
 	};
@@ -818,9 +810,9 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 
 		public void onTimeSet(TimePicker view, int hour, int minute) {
 
-			AcalDateTime start = event.getStart().clone().applyLocalTimeZone();
+			AcalDateTime start = todo.getStart().clone().applyLocalTimeZone();
 			start.setDaySecond(hour*3600 + minute*60);
-			event.setField(EVENT_FIELD.startDate,start);
+			todo.setStart(start);
 
 			SimpleDateFormat formatter = new SimpleDateFormat("hh:mma");
 			fromTime.setText(formatter.format(start.toJavaDate()));
@@ -834,11 +826,11 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 
 		public void onTimeSet(TimePicker view, int hour, int minute) {
 
-			AcalDateTime start = event.getStart().clone().applyLocalTimeZone();
-			AcalDateTime end = event.getEnd().clone().applyLocalTimeZone();
+			AcalDateTime start = todo.getStart().clone().applyLocalTimeZone();
+			AcalDateTime end = todo.getEnd().clone().applyLocalTimeZone();
 			end.setDaySecond(hour*3600 + minute*60);
 			AcalDuration duration = start.getDurationTo(end);
-			event.setField(EVENT_FIELD.duration, duration);
+			todo.setDuration(duration);
 			SimpleDateFormat formatter = new SimpleDateFormat("hh:mma");
 			untilTime.setText(formatter.format(start.toJavaDate()));
 			updateLayout();
@@ -927,5 +919,9 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		}
 	};
 
+
+	public boolean isModifyAction() {
+		return (action >= ACTION_CREATE && action <= ACTION_MODIFY_ALL_FUTURE);
+	}
 
 }

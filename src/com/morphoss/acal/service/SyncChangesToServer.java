@@ -361,7 +361,7 @@ public class SyncChangesToServer extends ServiceJob {
 
 	private String mergeAsyncChanges(String oldData, String latestDbData, String newData) {
 		/**
-		 * TODO Around here is where we should handle the case where latestDbData != oldData. We
+		 * @todo Around here is where we should handle the case where latestDbData != oldData. We
 		 * need to parse out both objects and work out what the differences are between oldData
 		 * and newData, and see if we can apply them to latestDbData without them overwriting
 		 * differences between oldData and latestDbData... 

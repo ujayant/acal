@@ -49,6 +49,9 @@ import com.morphoss.acal.dataservice.CalendarDataService;
 import com.morphoss.acal.dataservice.DataRequest;
 import com.morphoss.acal.dataservice.DataRequestCallBack;
 import com.morphoss.acal.davacal.SimpleAcalTodo;
+import com.morphoss.acal.davacal.VCalendar;
+import com.morphoss.acal.davacal.VComponent;
+import com.morphoss.acal.davacal.VComponentCreationException;
 import com.morphoss.acal.service.aCalService;
 
 /**
@@ -362,26 +365,30 @@ public class TodoListView extends Activity implements OnClickListener {
 	public void deleteTodo(boolean listCompleted, boolean listFuture, int n, int action ) {
 		if (dataRequest == null) return;
 		try {
-			SimpleAcalTodo sae = dataRequest.getNthTodo(listCompleted,listFuture, n);
-			sae.operation = action;
-			this.dataRequest.todoChanged(sae);
+			SimpleAcalTodo sat = dataRequest.getNthTodo(listCompleted,listFuture, n);
+			this.dataRequest.todoChanged((VCalendar) VComponent.fromDatabase(this, sat.resourceId), action);
 			dataRequest.deleteTodo(listCompleted,listFuture, n);
 		}
 		catch (RemoteException e) {
 			Log.e(TAG,"Error deleting task: "+e);
+		}
+		catch (VComponentCreationException e) {
+			Log.e(TAG,"Error reading task from database: "+e);
 		}
 	}
 
 	public void completeTodo(boolean listCompleted, boolean listFuture, int n, int action ) {
 		if (dataRequest == null) return;
 		try {
-			SimpleAcalTodo sae = dataRequest.getNthTodo(listCompleted,listFuture, n);
-			sae.operation = action;
-			this.dataRequest.todoChanged(sae);
+			SimpleAcalTodo sat = dataRequest.getNthTodo(listCompleted,listFuture, n);
+			this.dataRequest.todoChanged((VCalendar) VComponent.fromDatabase(this, sat.resourceId), action);
 			dataRequest.completeTodo(listCompleted,listFuture, n);
 		}
 		catch (RemoteException e) {
 			Log.e(TAG,"Error marking task completed: "+e);
+		}
+		catch (VComponentCreationException e) {
+			Log.e(TAG,"Error reading task from database: "+e);
 		}
 	}
 
@@ -447,11 +454,11 @@ public class TodoListView extends Activity implements OnClickListener {
 				this.setSelections();
 				break;
 			case ADD:
-				Intent eventEditIntent = new Intent(this, EventEdit.class);
-				this.startActivity(eventEditIntent);
+				Intent todoEditIntent = new Intent(this, TodoEdit.class);
+				this.startActivity(todoEditIntent);
 				break;
 			default:
-				Log.w(TAG, "Unrecognised button was pushed in MonthView.");
+				Log.w(TAG, "Unrecognised button was pushed in TodoListView.");
 		}
 	}
 

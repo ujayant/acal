@@ -79,7 +79,7 @@ public class AcalAlarm implements Serializable, Parcelable, Comparable<AcalAlarm
 			timeToFire = AcalDateTime.addDuration(end, relativeTime);
 	}
 	
-	AcalAlarm( VAlarm component, Masterable parent, AcalDateTime start, AcalDateTime end ) {
+	public AcalAlarm( VAlarm component, Masterable parent, AcalDateTime start, AcalDateTime end ) {
 		AcalProperty aProperty = component.getProperty("TRIGGER");
 		String related = null;
 		if ( aProperty != null )

@@ -180,8 +180,7 @@ public class ServerConfigList extends ListActivity implements OnClickListener {
 		
 		File newxmlfile = new File(Constants.PUBLIC_DATA_DIR+"/"+serverNames[id].replace(' ', '_')+".acal");
 		if (newxmlfile.exists()) {
-			//TODO
-			//we may wish to handle overwrites here
+			/** @todo we may wish to handle overwrites here */
 		}
 		try {
 			newxmlfile.createNewFile();

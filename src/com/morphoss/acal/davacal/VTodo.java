@@ -19,10 +19,31 @@
 package com.morphoss.acal.davacal;
 
 
+
 public class VTodo extends Masterable {
 	public static final String TAG = "aCal VTodo";
+
+	public static enum TODO_FIELD {
+			resourceId,
+			summary,
+			collectionId,
+			repeatRule,
+			alarmList,
+			dueDate,
+			percentComplete,
+			status
+	}
 	
 	public VTodo(ComponentParts splitter, Integer resourceId, AcalCollection collectionObject,VComponent parent) {
 		super(splitter, resourceId, collectionObject,parent);
 	}
+
+	public VTodo( VCalendar parent ) {
+		super(VComponent.VTODO, parent );
+	}
+
+	public VTodo( AcalCollection collection ) {
+		this( new VCalendar(collection) );
+	}
+
 }

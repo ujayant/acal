@@ -40,8 +40,6 @@ import android.widget.ListAdapter;
 import android.widget.TextView;
 
 import com.morphoss.acal.R;
-import com.morphoss.acal.davacal.AcalEvent;
-import com.morphoss.acal.davacal.SimpleAcalEvent;
 import com.morphoss.acal.davacal.SimpleAcalTodo;
 
 /**
@@ -224,7 +222,7 @@ public class TodoListAdapter extends BaseAdapter implements OnClickListener, Lis
 				//start event activity
 				Bundle bundle = new Bundle();
 				bundle.putParcelable("SimpleAcalTodo", (SimpleAcalTodo)tag);
-				Intent todoViewIntent = new Intent(context, EventView.class);
+				Intent todoViewIntent = new Intent(context, TodoView.class);
 				todoViewIntent.putExtras(bundle);
 				context.startActivity(todoViewIntent);
 			}
@@ -246,10 +244,10 @@ public class TodoListAdapter extends BaseAdapter implements OnClickListener, Lis
 				case CONTEXT_COPY:
 					todo.operation = SimpleAcalTodo.TODO_OPERATION_COPY;
 				case CONTEXT_EDIT:
-					//start EventEdit activity
+					//start TodoEdit activity
 					Bundle bundle = new Bundle();
 					bundle.putParcelable("SimpleAcalTodo", todo);
-					Intent todoViewIntent = new Intent(context, EventEdit.class);
+					Intent todoViewIntent = new Intent(context, TodoEdit.class);
 					todoViewIntent.putExtras(bundle);
 					context.startActivity(todoViewIntent);
 					return true;

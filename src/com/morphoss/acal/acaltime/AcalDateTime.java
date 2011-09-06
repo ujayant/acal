@@ -21,6 +21,7 @@ package com.morphoss.acal.acaltime;
 import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.TimeZone;
@@ -1684,6 +1685,14 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 		dest.writeByte((byte) (this.isDate ? 'D' : 'T'));
 		dest.writeByte((byte) (tzName == null ? '0' : '1'));
 		if ( tzName != null ) dest.writeString(tzName);
+	}
+
+
+	public AcalProperty asProperty(String propertyName) {
+		AcalProperty ret = new AcalProperty(propertyName, fmtIcal());
+		if ( isDate ) ret.setParam("VALUE", "DATE");
+		else if ( tz != null && !tzName.equals("UTC") )	ret.setParam("TZID",tzName);
+		return ret;
 	}
 
 
