@@ -14,7 +14,6 @@
 		
 		<TextView
 			android:id="@+id/AlarmTitle"
-			android:text="88:88"
 			android:layout_height="fill_parent"
 			android:layout_width="fill_parent"
 			android:textColor="#fff"
@@ -62,7 +61,6 @@
 					
 					<TextView
 						android:id="@+id/AlarmContentTitleTextView"
-						android:text="Event Title"
 						android:textColor="#00f"
 						android:gravity="center"
 						android:textSize="36dp"
@@ -85,10 +83,6 @@
 					
 						<TextView
 							android:id="@+id/AlarmContentLocationTextView1"
-							android:text=
-"A Street in the world
-A City in the world
-A Country in the world"
 							android:textColor="#000"
 							android:gravity="left"
 							android:textSize="20dp"
@@ -124,7 +118,6 @@ A Country in the world"
 					
 					<TextView
 							android:id="@+id/AlarmContentTimeTextView1"
-							android:text="Time: 88:88 xx - 88:88 xx"
 							android:textColor="#000"
 							android:gravity="left"
 							android:textSize="24dp"

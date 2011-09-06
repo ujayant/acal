@@ -71,7 +71,7 @@
 			<Button android:id="@+id/todo_add_button"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
-				android:text="+"
+				android:text="@string/plus"
 				android:width="70dp"
 				style="@style/bottom_add_button" android:gravity="center"/>
 		</LinearLayout>

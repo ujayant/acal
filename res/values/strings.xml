@@ -229,6 +229,7 @@
 
 <string name="alarmAtEventTime">At Event Time</string>
 <string name="alarm10MinutesPrior">10 minutes before</string>
+<string name="alarm15MinutesPrior">15 minutes before</string>
 <string name="alarm30MinutesPrior">30 minutes before</string>
 <string name="alarm1HourPrior">One hour before</string>
 <string name="alarm2HoursPrior">Two hours before</string>
@@ -300,4 +301,11 @@
 <string name="TaskModifiedThisAndFuture">Modified this and all future instances of this task.</string>
 <string name="TaskErrorSaving">Error saving task data - please try again.</string>
 
+<string name="username">Username:</string>
+<string name="password">Password:</string>
+<string name="setRepeatRule">Set Repeat Rule</string>
+<string name="eventName">Event Name</string>
+<string name="plus">+</string>
+<string name="url">URL:</string>
+<string name="todoName">Todo Name:</string>
 </resources>

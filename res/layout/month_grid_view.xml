@@ -6,7 +6,6 @@
 	android:layout_alignParentTop="true">
 
 	<TextView 
-		android:text="Octogre 1612" 
 		android:id="@+id/month_grid_title" 
 		android:layout_height="wrap_content" 
 		android:layout_width="fill_parent" 

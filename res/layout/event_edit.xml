@@ -155,7 +155,6 @@
 							style="@style/event_view_label"/>
 	
 						<EditText 
-							android:text="" 
 							android:id="@+id/EventLocationContent" 
 							android:layout_below="@+id/EventLocationLabel" 
 							android:layout_height="wrap_content"
@@ -247,7 +246,7 @@
 							android:layout_height="wrap_content"
 							android:layout_width="wrap_content"
 							android:layout_gravity="right|center_vertical"
-							android:text="Set Repeat Rule"
+							android:text="@string/setRepeatRule"
 							style="@style/event_view_content"/>
 					</LinearLayout>
 	

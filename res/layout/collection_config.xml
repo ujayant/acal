@@ -33,7 +33,7 @@
 				android:id="@+id/CollectionConfigApplyButton" 
 				android:layout_height="wrap_content" 
 				android:layout_width="fill_parent"
-				android:text="Apply"/>
+				android:text="@string/Apply"/>
 		</LinearLayout>
 
 		<LinearLayout 
@@ -46,7 +46,7 @@
 				android:id="@+id/CollectionConfigCancelButton" 
 				android:layout_height="wrap_content" 
 				android:layout_width="fill_parent" 
-				android:onClick="@string/cancelButton" android:text="Cancel"/>
+				android:onClick="@string/cancelButton" android:text="@string/cancel"/>
 		</LinearLayout>
 	</LinearLayout>
 </LinearLayout>

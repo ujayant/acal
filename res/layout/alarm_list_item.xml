@@ -16,7 +16,7 @@
 		<TextView android:id="@+id/AlarmListItemTitle"
 				android:layout_height="30sp" 
 				android:layout_width="fill_parent"
-				android:text="15 minutes before start." 
+				android:text="@string/alarm15MinutesPrior" 
 				android:textColor="#000"
 				android:textSize="20sp" 
 				android:paddingLeft="10sp"/>

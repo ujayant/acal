@@ -64,7 +64,7 @@
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
 				android:layout_gravity="center"
-				android:text="+"
+				android:text="@string/plus"
 				android:width="70sp"
 				style="@style/bottom_add_button" android:includeFontPadding="true" android:padding="0sp" android:gravity="center_horizontal|center_vertical"/>
 		</LinearLayout>
