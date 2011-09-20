@@ -94,7 +94,7 @@ public class AcalAlarm implements Serializable, Parcelable, Comparable<AcalAlarm
 		actionType = ( aProperty == null ? ActionType.IGNORED : ActionType.fromString(aProperty.getValue()));
 		
 		aProperty = component.getProperty("DESCRIPTION");
-		if ( aProperty == null ) {
+		if ( aProperty == null || aProperty.getValue().equalsIgnoreCase("Default Mozilla Description") ) {
 			aProperty = parent.getProperty("SUMMARY");
 		}
 		description = ( aProperty == null ? "Alarm" : aProperty.getValue());
