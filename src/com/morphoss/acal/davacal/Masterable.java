@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.TimeZone;
 import java.util.UUID;
 
-import android.os.Parcel;
 import android.util.Log;
 
 import com.morphoss.acal.Constants;
@@ -141,15 +140,16 @@ public abstract class Masterable extends VComponent {
 	 * @param alarmList the list of alarms.
 	 */
 	public void updateAlarmComponents( List<?> alarmList ) {
-		if ( alarmList != null && alarmList.size() > 0 ) {
-			setEditable();
+		setEditable();
 
-			List<VComponent> children = getChildren();
-			Iterator<VComponent> it = children.iterator();
-			while( it.hasNext() ) {
-				VComponent child = it.next();
-				if ( child instanceof VAlarm ) it.remove();
-			}
+		List<VComponent> children = getChildren();
+		Iterator<VComponent> it = children.iterator();
+		while( it.hasNext() ) {
+			VComponent child = it.next();
+			if ( child instanceof VAlarm ) it.remove();
+		}
+
+		if ( alarmList != null && alarmList.size() > 0 ) {
 			for( Object alarm : alarmList ) {
 				if ( alarm instanceof AcalAlarm )
 					addChild(((AcalAlarm) alarm).getVAlarm(this));
