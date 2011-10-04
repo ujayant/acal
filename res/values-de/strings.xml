@@ -101,6 +101,10 @@
 <string name="DefaultCollection_PrefSummary">Die Standardsammlung für neue Elemente</string>
 <string name="DefaultAlarmTone_PrefTitle">Standard Erinnerungsmelodie</string>
 <string name="DefaultAlarmTone_PrefSummary">Standard Erinnerungsmelodie für Benachrichtigungen</string>
+<string name="AlarmVolumeType_PrefTitle">Einstellungen für Erinnerungslautstärke</string>
+<string name="AlarmVolumeType_PrefSummary">Die Einstellung welche die Erinnerungslautstärke bestimmt</string>
+<string name="AlarmBellVolume">Weckerlautstärke</string>
+<string name="MediaPlayerVolume">Medienlautstärke</string>
 <string name="prefWorkdayStart_Title">Beginn des Arbeitstages</string>
 <string name="prefWorkdayStart_Summary">Die Anfangszeit des Arbeitstages</string>
 <string name="prefWorkdayFinish_Title">Ende des Arbeitstages</string>

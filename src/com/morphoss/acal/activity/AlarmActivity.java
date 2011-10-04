@@ -106,7 +106,7 @@ public class AlarmActivity extends Activity implements OnClickListener  {
 				);
 
 		this.setContentView(R.layout.alarm_activity);
-		
+
 		ns = Context.NOTIFICATION_SERVICE;
 		am = (AudioManager)this.getSystemService(Context.AUDIO_SERVICE);
 		v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
@@ -114,6 +114,12 @@ public class AlarmActivity extends Activity implements OnClickListener  {
 		prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
 
+		String volumeType = prefs.getString(getString(R.string.AlarmVolumeType_PrefKey), "null" );
+		if (volumeType.equals("null") || volumeType.equals("ALARM"))
+			this.setVolumeControlStream(AudioManager.STREAM_ALARM);
+		else
+			this.setVolumeControlStream(AudioManager.STREAM_MUSIC);
+		
 		//prepare gui elements
 		header = (TextView) this.findViewById(R.id.AlarmTitle);
 		title = (TextView) this.findViewById(R.id.AlarmContentTitleTextView);
@@ -201,10 +207,56 @@ public class AlarmActivity extends Activity implements OnClickListener  {
 		}
 		else {
 			String uri = prefs.getString(getString(R.string.DefaultAlarmTone_PrefKey), "null" );
-			if (uri.equals("null")) {
-				mp  = MediaPlayer.create(this, R.raw.assembly);
-			} else {
-				mp  = MediaPlayer.create(this, Uri.parse(uri));
+			mp = new MediaPlayer();
+			String volumeType = prefs.getString(getString(R.string.AlarmVolumeType_PrefKey), "null" );
+			if (volumeType.equals("null") || volumeType.equals("ALARM"))
+				mp.setAudioStreamType(AudioManager.STREAM_ALARM);
+			else
+				mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
+
+			try {
+				if (uri.equals("null")) {
+					// mp = MediaPlayer.create(this, R.raw.assembly);
+					Uri uriAss = Uri.parse("android.resource://com.morphoss.acal.activity/" + R.raw.assembly);
+					mp.setDataSource(this, uriAss);
+				} else {
+					// mp = MediaPlayer.create(this, Uri.parse(uri));
+					mp.setDataSource(this, Uri.parse(uri));
+				}
+				mp.prepare();
+			} catch (java.io.IOException ex) {
+				// something went wrong, most probaly we didn't find the ringtone
+				mp = null;
+				/* new AlertDialog.Builder(this)
+				.setTitle("Error")
+				.setMessage(ex.toString())
+				.setPositiveButton("OK", new OnClickListener() {
+				    public void onClick(DialogInterface arg0, int arg1) {
+					// Some stuff to do when ok got clicked
+				    }
+				})
+				.setNegativeButton("cancel", new OnClickListener() {
+				    public void onClick(DialogInterface arg0, int arg1) {
+					// Some stuff to do when cancel got clicked
+				    }
+				})
+				.show(); */
+			} catch (java.lang.IllegalArgumentException ex) {
+				mp = null;
+				/* new AlertDialog.Builder(this)
+				.setTitle("Error")
+				.setMessage(ex.toString())
+				.setPositiveButton("OK", new OnClickListener() {
+				    public void onClick(DialogInterface arg0, int arg1) {
+					// Some stuff to do when ok got clicked
+				    }
+				})
+				.setNegativeButton("cancel", new OnClickListener() {
+				    public void onClick(DialogInterface arg0, int arg1) {
+					// Some stuff to do when cancel got clicked
+				    }
+				})
+				.show(); */
 			}
 			if ( mp == null ) {
 				long[] pattern = { 0,1000, 2000,1000, 2000,1000, 2000,1000, 2000,1000, 2000,1000, 2000,1000, 2000,1000, 2000,1000, 2000,1000, 2000};
@@ -254,7 +306,10 @@ public class AlarmActivity extends Activity implements OnClickListener  {
 	@Override
 	public void onPause() {
 		super.onPause();
-		if (mp != null && mp.isPlaying()) mp.stop();
+		if (mp != null && mp.isPlaying()) {
+			mp.stop();
+			// mp.release();
+		}
 		v.cancel();
 
 		try {

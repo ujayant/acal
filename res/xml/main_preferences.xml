@@ -55,6 +55,17 @@
 		android:enabled="false">
 	</ListPreference>
 
+	<ListPreference
+		android:key="@string/AlarmVolumeType_PrefKey"
+		android:title="@string/AlarmVolumeType_PrefTitle"
+		android:summary="@string/AlarmVolumeType_PrefSummary"
+		android:selectable="true"
+		android:entries="@array/AlarmVolumeType_PrefEntries"
+		android:entryValues="@array/AlarmVolumeType_PrefValues"
+		android:enabled="true"
+		android:defaultValue="ALARM">
+	</ListPreference>
+
 	<CheckBoxPreference
 		android:key="@string/prefDefaultView"
 		android:title="aCal Opens in Week View"

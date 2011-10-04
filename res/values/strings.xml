@@ -137,6 +137,12 @@
 <string name="DefaultAlarmTone_PrefTitle">Default Alarm Tone</string>
 <string name="DefaultAlarmTone_PrefSummary">The default sound to use for alarms.</string>
  
+<string name="AlarmVolumeType_PrefTitle">Setting for Alarm Volume</string>
+<string name="AlarmVolumeType_PrefSummary">The setting used for the volume of the alarm tone</string>
+
+<string name="AlarmBellVolume">Alarm bell volume</string>
+<string name="MediaPlayerVolume">Media volume</string>
+
 <string name="prefWorkdayStart_Title">Workday Start</string>
 <string name="prefWorkdayStart_Summary">The start time for the working day.</string>
 

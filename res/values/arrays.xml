@@ -34,6 +34,18 @@
 </string-array>
 
 <string-array 
+	name="AlarmVolumeType_PrefEntries">
+	<item>@string/AlarmBellVolume</item>
+	<item>@string/MediaPlayerVolume</item>
+</string-array>
+
+<string-array 
+	name="AlarmVolumeType_PrefValues">
+	<item>ALARM</item>
+	<item>MEDIA</item>
+</string-array>
+
+<string-array 
 	name="RelativeAlarmTimes">
 		<item>@string/alarmAtEventTime</item>
 		<item>@string/alarm10MinutesPrior</item>
