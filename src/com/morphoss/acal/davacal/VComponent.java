@@ -96,7 +96,7 @@ public abstract class VComponent implements Parcelable {
 	 * @param resourceRow
 	 * @param collectionObject
 	 */
-	protected VComponent(ComponentParts splitter, int resId, AcalCollection collectionObject, VComponent parent) {
+	protected VComponent(ComponentParts splitter, Integer resId, AcalCollection collectionObject, VComponent parent) {
 		this.resourceId = resId;
 		this.collectionData = collectionObject;
 		this.content = splitter;
@@ -131,7 +131,8 @@ public abstract class VComponent implements Parcelable {
 	
 	public synchronized static VComponent createComponentFromResource(ContentValues resourceRow, AcalCollection collectionObject) throws VComponentCreationException {
 		String blob = resourceRow.getAsString(DavResources.RESOURCE_DATA);
-		int rid = resourceRow.getAsInteger(DavResources._ID);
+		if ( blob == null ) return null;
+		Integer rid = resourceRow.getAsInteger(DavResources._ID); // May be null
 		return createComponentFromBlob(blob,rid,collectionObject);
 	}
 
