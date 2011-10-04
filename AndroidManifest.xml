@@ -101,8 +101,17 @@
         <activity android:launchMode="standard" android:name=".activity.EventEdit">
             <intent-filter>
 	             <action android:name="com.morphoss.acal.activity.EventEdit" />
+		  <action android:name="android.intent.action.VIEW" />
     	         <category android:name="android.intent.category.DEFAULT" />
-			</intent-filter>
+		<data android:scheme="content" />
+                <data android:scheme="file" />
+                <data android:scheme="http" />
+                <data android:mimeType="application/ics" />
+                <data android:mimeType="text/calendar" />
+		<!-- the next two lines aren't working atm -->
+                <data android:mimeType="application/octet-stream" android:pathPattern=".*\\.ics" />
+                <data android:mimeType="text/*" android:pathPattern=".*\\.ics" />
+	</intent-filter>
         </activity>
         <activity android:launchMode="standard" android:name=".activity.TodoListView">
             <intent-filter>
