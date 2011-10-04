@@ -302,7 +302,11 @@ public class SyncChangesToServer extends ServiceJob {
 				if (Constants.LOG_DEBUG) Log.d(TAG, "Response "+status+" against "+path);
 				resourceData.put(DavResources.RESOURCE_DATA, newData);
 				resourceData.put(DavResources.NEEDS_SYNC, true);
-				resourceData.put(DavResources.ETAG, "");
+				resourceData.put(DavResources.ETAG, "unknown etag after PUT before sync");
+/**
+ * This is sadly unreliable.  Various servers will return an ETag and yet
+ * still change the event server-side.
+ * 
 				for (Header hdr : requestor.getResponseHeaders()) {
 					if (hdr.getName().equalsIgnoreCase("ETag")) {
 						resourceData.put(DavResources.ETAG, hdr.getValue());
@@ -310,7 +314,8 @@ public class SyncChangesToServer extends ServiceJob {
 						break;
 					}
 				}
-
+*/
+				
 				if (Constants.LOG_DEBUG) Log.d(TAG, "Applying resource modification to local database");
 				ResourceModification changeUnit = new ResourceModification( action, resourceData, pendingId);
 				AcalDBHelper dbHelper = new AcalDBHelper(this.context);
