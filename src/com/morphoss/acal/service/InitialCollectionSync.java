@@ -465,7 +465,9 @@ public class InitialCollectionSync extends ServiceJob {
 		server.keySet().toArray(names);
 		for (String name : names) {
 			if (!db.containsKey(name)) continue;	//New value from server
-			if (db.get(name).getAsString(DavResources.ETAG).equals(server.get(name).getAsString(DavResources.ETAG)))  { //records match, remove from both
+			if ( db.get(name).getAsString(DavResources.ETAG) != null && server.get(name).getAsString(DavResources.ETAG) != null
+					&& db.get(name).getAsString(DavResources.ETAG).equals(server.get(name).getAsString(DavResources.ETAG)))  {
+				//records match, remove from both
 				server.remove(name);
 			}
 			else {
