@@ -174,7 +174,7 @@ public class TodoListAdapter extends BaseAdapter implements OnClickListener, Lis
 		
 		
 		if ( todo.hasAlarm ) {
-			ImageView alarmed = (ImageView) rowLayout.findViewById(R.id.EventListItemAlarmBell);
+			ImageView alarmed = (ImageView) rowLayout.findViewById(R.id.TodoListItemAlarmBell);
 			alarmed.setVisibility(View.VISIBLE);
 			if ( ! todo.alarmEnabled ) alarmed.setBackgroundColor(Color.WHITE);
 		}
