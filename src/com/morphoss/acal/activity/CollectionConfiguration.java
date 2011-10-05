@@ -168,15 +168,15 @@ public class CollectionConfiguration extends PreferenceActivity implements OnPre
 		//TODO use R.String here
 		defaultSummaries.put(DavCollections.COLOUR, "The colour associated with this collection.");
 		
+		
+		//update summaries to values as required
+		updateSummaries();
+
 		//Create configuration screen
 		createPreferenceHierarchy();
 		setPreferenceScreen(this.preferenceRoot);
 		this.preferenceRoot.setOnPreferenceChangeListener(this);
-
 		
-		//update summaries to values as required
-		updateSummaries();
-	
 	}
 	
 	
@@ -268,8 +268,14 @@ public class CollectionConfiguration extends PreferenceActivity implements OnPre
 		preference.setTitle(title);
 		preference.setKey(key);
 		preference.setSummary(summary);
-		preference.setOnPreferenceChangeListener(this); 
-        this.preferenceRoot.addPreference(preference);
+		preference.setOnPreferenceChangeListener(this);
+		try {
+			this.preferenceRoot.addPreference(preference);
+		}
+		catch( Exception e ) {
+			Log.e(TAG,"Failed to set prereference for "+title+":::"+key+":::"+summary);
+			Log.e(TAG,Log.getStackTraceString(e));
+		}
 	}
 	
 	/**
