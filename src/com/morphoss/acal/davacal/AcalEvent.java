@@ -104,10 +104,11 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 
 	
 	/**
-	 * Construct an AcalEvent from a row from the database.  In case it is 
+	 * Construct an AcalEvent from a row from the database.  We optionally allow overwriting
+	 * the start date/time for the event.
 	 * @param context
 	 * @param resourceId
-	 * @return
+	 * @return The AcalEvent we read, or null.
 	 */
 	public static AcalEvent fromDatabase( Context context, int resourceId, AcalDateTime dtStart ) {
 		ContentValues resourceValues = DavResources.getRow(resourceId, context.getContentResolver());
