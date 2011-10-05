@@ -94,26 +94,35 @@ public class AcalAlarm implements Serializable, Parcelable, Comparable<AcalAlarm
 		actionType = ( aProperty == null ? ActionType.IGNORED : ActionType.fromString(aProperty.getValue()));
 		
 		aProperty = component.getProperty("DESCRIPTION");
-		if ( aProperty == null || aProperty.getValue().equalsIgnoreCase("Default Mozilla Description") ) {
+		if ( aProperty == null || aProperty.getValue().equals("") || aProperty.getValue().equalsIgnoreCase("Default Mozilla Description") ) {
 			aProperty = parent.getProperty("SUMMARY");
 		}
-		description = ( aProperty == null ? "Alarm" : aProperty.getValue());
+		description = ( aProperty == null || aProperty.getValue().equals("") ? "Alarm" : aProperty.getValue());
 	}
 
+	
 	public VAlarm getVAlarm( Masterable parent ) {
 		VAlarm ret = new VAlarm( parent );
 		String triggerValue = relativeTime.toString();;
 		
-		AcalProperty trigger = new AcalProperty("TRIGGER", triggerValue);
-		if ( ! relativeToStart ) trigger.setParam("RELATED", "END");
-		ret.addProperty(trigger);
+		AcalProperty aProperty = new AcalProperty("TRIGGER", triggerValue);
+		if ( ! relativeToStart ) aProperty.setParam("RELATED", "END");
+		ret.addProperty(aProperty);
 
-		AcalProperty action = new AcalProperty("ACTION", this.actionType.toString());
-		ret.addProperty(action);
+		aProperty = new AcalProperty("ACTION", this.actionType.toString());
+		ret.addProperty(aProperty);
+
+		aProperty = parent.getProperty("SUMMARY");
+		if ( description != null && !description.equals("") && aProperty.getValue() != null && !description.equals(aProperty.getValue())) {
+			ret.addProperty(new AcalProperty("DESCRIPTION", description));
+		}
+		else if ( this.actionType == ActionType.DISPLAY ) // Description is mandatory in this case
+			ret.addProperty(new AcalProperty("DESCRIPTION", ""));
 		
 		return ret;
 	}
 
+	
 	@Override
 	public int compareTo(AcalAlarm another) {
 		if ( this.getNextTimeToFire().before(another.getNextTimeToFire())) return -1;
