@@ -312,10 +312,8 @@ public class AcalRequestor {
 			else {
 				if ( Constants.LOG_DEBUG ) Log.d(TAG, "Using Uri class to process redirect...");
 				Uri newLocation = Uri.parse(uriString);
-				hostName = newLocation.getHost();
-				protocol = newLocation.getScheme();
-				port     = newLocation.getPort();
-				if ( port == -1 ) port = (protocol == null || protocol.equals("http") ? 80 : 443);
+				if ( newLocation.getHost() != null ) hostName = newLocation.getHost();
+				setPortProtocol( newLocation.getPort(), newLocation.getScheme());
 				setPath( newLocation.getPath() );
 				if ( Constants.LOG_VERBOSE ) Log.v(TAG,"Found new location at '"+fullUrl()+"'");
 				
@@ -451,7 +449,23 @@ public class AcalRequestor {
 	 * @param newProtocol
 	 */
 	public void setPortProtocol(Integer newPort, Integer newProtocol) {
-		protocol = (newProtocol == null || newProtocol != 1 ? "http" : "https");
+		protocol = (newProtocol == null || newProtocol == 1 ? "https" : "http");
+		if ( newPort == null || newPort < 1 || newPort > 65535 || newPort == 80 || newPort == 443 )
+			port = (protocol.equals("http") ? 80 : 443);
+		else
+			port = newPort;
+	}
+
+
+	/**
+	 * Set the port and protocol to the supplied values, with sanity checking.  If the supplied
+	 * newProtocol is null then we initially fall back to the current protocol, or http if that
+	 * is null.
+	 * @param newPort
+	 * @param newProtocol
+	 */
+	public void setPortProtocol(Integer newPort, String newProtocol) {
+		protocol = (newProtocol == null ? protocol : (newProtocol.equals("https") ? "https" : "http"));
 		if ( newPort == null || newPort < 1 || newPort > 65535 || newPort == 80 || newPort == 443 )
 			port = (protocol.equals("http") ? 80 : 443);
 		else
