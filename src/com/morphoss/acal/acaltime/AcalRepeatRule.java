@@ -111,19 +111,25 @@ public class AcalRepeatRule {
 			return null;
 		}
 
-		AcalProperty dtstart = firstEvent.getProperty("DTSTART");
-		if ( dtstart == null ) {
+		AcalProperty repeatFromDate = firstEvent.getProperty("DTSTART");
+		if ( repeatFromDate == null )
+			repeatFromDate = firstEvent.getProperty("DUE");
+		if ( repeatFromDate == null )
+			repeatFromDate = firstEvent.getProperty("COMPLETED");
+		if ( repeatFromDate == null )
+			repeatFromDate = firstEvent.getProperty("DTEND");
+		if ( repeatFromDate == null ) {
 			if ( Constants.debugRepeatRule && Constants.LOG_VERBOSE ) {
-				Log.v(TAG,"Cannot calculate instances of "+firstEvent.getName()+" without DTSTART inside " + vCal.getName() );
-				dtstart = firstEvent.getProperty("DTSTART");
+				Log.v(TAG,"Cannot calculate instances of "+firstEvent.getName()+" without DTSTART/DUE inside " + vCal.getName() );
+				repeatFromDate = firstEvent.getProperty("DTSTART");
 				firstEvent = vCal.getMasterChild();
-				dtstart = firstEvent.getProperty("DTSTART");
+				repeatFromDate = firstEvent.getProperty("DTSTART");
 				Log.v(TAG, "Original blob is\n"+vCal.getOriginalBlob() );
 			}
 			return null;
 		}
 
-		AcalRepeatRule ret = new AcalRepeatRule( dtstart, firstEvent.getProperty("RRULE") );
+		AcalRepeatRule ret = new AcalRepeatRule( repeatFromDate, firstEvent.getProperty("RRULE") );
 		ret.sourceVCalendar = vCal;
 		if (vCal.isPending()) ret.setPending(true);
 		
