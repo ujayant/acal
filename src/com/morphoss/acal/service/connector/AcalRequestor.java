@@ -315,7 +315,7 @@ public class AcalRequestor {
 				hostName = newLocation.getHost();
 				protocol = newLocation.getScheme();
 				port     = newLocation.getPort();
-				if ( port == -1 ) port = (protocol.equals("http") ? 80 : 443);
+				if ( port == -1 ) port = (protocol == null || protocol.equals("http") ? 80 : 443);
 				setPath( newLocation.getPath() );
 				if ( Constants.LOG_VERBOSE ) Log.v(TAG,"Found new location at '"+fullUrl()+"'");
 				
