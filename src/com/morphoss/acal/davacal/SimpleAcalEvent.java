@@ -59,6 +59,7 @@ public class SimpleAcalEvent implements Parcelable, Comparable<SimpleAcalEvent> 
 	public final boolean alarmEnabled;
 	public final int startDateHash;
 	public final int endDateHash;
+	public final String timezoneId;
 
 	final public static int  EVENT_OPERATION_NONE = 0;
 	final public static int  EVENT_OPERATION_VIEW = 1;
@@ -82,10 +83,11 @@ public class SimpleAcalEvent implements Parcelable, Comparable<SimpleAcalEvent> 
 	 * @param isRepetitive
 	 * @param allDayEvent
 	 * @param isPending
+	 * @param timezoneId - the TZID of the event we may be modifying
 	 */
 	public SimpleAcalEvent(long start, long end, int resourceId, String summary, String location, int colour,
 				boolean isAlarming, boolean isRepetitive, boolean allDayEvent, boolean isPending,
-				boolean alarmEnabled ) {
+				boolean alarmEnabled, String timezoneId ) {
 		this.start = start;
 		this.end = end;
 		this.resourceId = resourceId;
@@ -99,6 +101,7 @@ public class SimpleAcalEvent implements Parcelable, Comparable<SimpleAcalEvent> 
 		this.isPending = isPending;
 		this.startDateHash = getDateHash(start);
 		this.endDateHash = getDateHash(end - 1);
+		this.timezoneId = timezoneId;
 
 //		if ( Constants.LOG_VERBOSE ) {
 //			Log.v(TAG,"Event at " + fmtDebugDate.format(new Date(this.start*1000)) + " ("+this.start+")" +
@@ -150,7 +153,7 @@ public class SimpleAcalEvent implements Parcelable, Comparable<SimpleAcalEvent> 
 		return new SimpleAcalEvent(start.getEpoch(), finish, event.getResourceId(), event.getSummary(),
 					event.getLocation(), event.getColour(), 
 					event.hasAlarms(), event.getRepetition().length() > 0, allDayEvent, event.isPending,
-					event.getAlarmEnabled());
+					event.getAlarmEnabled(), start.getTimeZoneName());
 	}
 
 	
@@ -168,6 +171,7 @@ public class SimpleAcalEvent implements Parcelable, Comparable<SimpleAcalEvent> 
 
 		boolean allDayEvent = startDate.isDate();
 		boolean floating = startDate.isFloating();
+		timezoneId = startDate.getTimeZoneName();
 		startDate.applyLocalTimeZone();
 		startDateHash = getDateHash( startDate.getMonthDay(), startDate.getMonth(), startDate.getYear() );
 		start = startDate.getEpoch();
@@ -355,6 +359,7 @@ public class SimpleAcalEvent implements Parcelable, Comparable<SimpleAcalEvent> 
 		dest.writeInt(startDateHash);
 		dest.writeInt(endDateHash);
 		dest.writeInt(operation);
+		dest.writeString(timezoneId);
 	}
 
 	SimpleAcalEvent(Parcel src) {
@@ -373,6 +378,7 @@ public class SimpleAcalEvent implements Parcelable, Comparable<SimpleAcalEvent> 
 		startDateHash = src.readInt();
 		endDateHash = src.readInt();
 		operation = src.readInt();
+		timezoneId = src.readString();
 	}
 
 	public static final Parcelable.Creator<SimpleAcalEvent> CREATOR = new Parcelable.Creator<SimpleAcalEvent>() {
@@ -386,7 +392,9 @@ public class SimpleAcalEvent implements Parcelable, Comparable<SimpleAcalEvent> 
 	};
 
 	public AcalEvent getAcalEvent(Context c) {
-		return AcalEvent.fromDatabase(c, resourceId, new AcalDateTime().applyLocalTimeZone().setEpoch(start) );
+		AcalDateTime dtStart = new AcalDateTime().applyLocalTimeZone().setEpoch(start);
+		dtStart.setTimeZone(timezoneId);
+		return AcalEvent.fromDatabase(c, resourceId, dtStart );
 	}
 	
 }
