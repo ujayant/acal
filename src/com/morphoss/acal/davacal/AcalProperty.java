@@ -18,8 +18,10 @@
 
 package com.morphoss.acal.davacal;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -60,27 +62,81 @@ public class AcalProperty {
 	 * @return
 	 */
 	public static AcalProperty fromString(String blob) {
-		Matcher m = propertyValueSplit.matcher(blob);
 		String tmpblob;
 		String value;
 		String[] paramsBlob;
 		
-		if (m.matches()) {
-			value = blob.substring(m.start(2), m.end(2));
-			Matcher m2 = valueReplaceEscaped.matcher(value);
-			value = m2.replaceAll("$1");
-			value = value.replace("\\n", "\n");
-			value = value.replace("\\N", "\n");
-			tmpblob = blob.substring(m.start(1), m.end(1));
-		} else {
+		int splitPos = findNextUnescaped(':',0,blob);
+		if ( splitPos < blob.length() ) {
+			if ( (splitPos+1) == blob.length() ) {
+				value = "";
+			}
+			else {
+				value = blob.substring(splitPos + 1);
+				Matcher m2 = valueReplaceEscaped.matcher(value);
+				value = m2.replaceAll("$1");
+				value = value.replace("\\n", "\n");
+				value = value.replace("\\N", "\n");
+			}
+			tmpblob = blob.substring(0,splitPos);
+		}
+		else {
 			value = "";
 			tmpblob = blob;
 		}
-		paramsBlob = propertyParamSplit.split(tmpblob);
-		String name = paramsBlob[0].toUpperCase();
+
+		String name = null;
+		ArrayList<String> params = new ArrayList<String>();
+		splitPos = 0;
+		String pblob = tmpblob;
+		while( pblob != null ) {
+			splitPos = findNextUnescaped(';',++splitPos,pblob);
+			
+			if ( splitPos < pblob.length() ) {
+				tmpblob = pblob.substring(0,splitPos);
+				pblob = ((splitPos+1) == pblob.length() ? null : pblob.substring(splitPos + 1));
+			}
+			else {
+				tmpblob = pblob;
+				pblob = null;
+			}
+			if ( name == null ) {
+				name = tmpblob.toUpperCase(Locale.ENGLISH);
+			}
+			else {
+				params.add(tmpblob);
+			}
+			
+		}
 		
+		paramsBlob = ( params.size() > 0 ? params.toArray(new String[params.size()]) : new String[0]);
+
 		if (name.equals("RECURRENCE-ID")) return new RecurrenceId(name,value,paramsBlob);
 		return new AcalProperty(name,value,paramsBlob);
+	}
+
+	/**
+	 * Find the next unescaped 'c', start looking at 'startFrom' within 'blob'
+	 * @param c
+	 * @param startFrom
+	 * @param blob
+	 * @return The position we expect to find it at.
+	 */
+	private static int findNextUnescaped(char c, int startFrom, String blob) {
+		char ch;
+		int pos=startFrom;
+		boolean inQuotes = false;
+		while( pos < blob.length() ) {
+			ch = blob.charAt(pos);
+			if ( !inQuotes && ch == c )
+				break;
+			else if ( ch == '"' )
+				inQuotes = !inQuotes;
+			else if ( ch == '\\' )
+				pos++;
+			pos++;
+		}
+		return pos;
 	}
 
 	/**
@@ -93,15 +149,7 @@ public class AcalProperty {
 	protected AcalProperty(String name, String value, String[] paramsBlob) {
 		this.name = name;
 		this.value = value;
-		if ( paramsBlob[0].equals(name) ) {
-			this.paramsBlob = paramsBlob;
-		}
-		else {
-			String[] fixedParams = new String[paramsBlob.length + 1];
-			fixedParams[0] = name;
-			for( int i=0; i<paramsBlob.length; i++) fixedParams[i+1] = paramsBlob[i];
-			this.paramsBlob = fixedParams;
-		}
+		this.paramsBlob = paramsBlob;
 	}
 
 	/**
@@ -112,7 +160,7 @@ public class AcalProperty {
 	public AcalProperty(String name, String value) {
 		this.name = name;
 		this.value = value;
-		this.paramsBlob = null;
+		this.paramsBlob = new String[] { };
 		this.params = new HashMap<String,String>();
 	}
 
@@ -128,14 +176,13 @@ public class AcalProperty {
 	}
 
 	private synchronized void rebuildParamsBlob() {
-		if ( params == null ) {
-			paramsBlob = new String[] { name };
+		if ( params == null || params.isEmpty() ) {
+			paramsBlob = new String[] { };
 			return;
 		}
 
-		paramsBlob = new String[params.size() + 1];
-		paramsBlob[0] = name;
-		int i=1;
+		paramsBlob = new String[params.size()];
+		int i=0;
 		for( String p : params.keySet() ) {
 			StringBuilder builder = new StringBuilder(p.toUpperCase());
 			builder.append('=');
@@ -149,7 +196,7 @@ public class AcalProperty {
 		if (paramsSet) return;
 		if ( params == null ) params = new HashMap<String,String>();
 		if ( paramsBlob != null ) {
-			for (int i = 1; i< paramsBlob.length; i++) {
+			for (int i = 0; i< paramsBlob.length; i++) {
 				String[] param = paramsBlob[i].split("=");
 				if (param.length != 2) {
 					if (Constants.LOG_DEBUG) Log.d(TAG, "Error processing property: "+paramsBlob[i]);
@@ -164,7 +211,7 @@ public class AcalProperty {
 	}
 	
 	private synchronized void destroyParams() {
-		if (!paramsSet || paramsBlob == null ) return;
+		if ( !paramsSet ) return;
 		this.params = null;
 		this.paramsSet = false;
 
@@ -238,7 +285,7 @@ public class AcalProperty {
 	public synchronized String toRfcString() {
 		StringBuilder paramBuilder = new StringBuilder(name);
 		if ( paramsBlob == null ) rebuildParamsBlob();
-		for (int i = 1; i< paramsBlob.length; i++) {
+		for (int i = 0; i< paramsBlob.length; i++) {
 			paramBuilder.append(';');
 			paramBuilder.append(paramsBlob[i]);
 		}
