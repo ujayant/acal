@@ -33,7 +33,7 @@ public class ResourceModification {
 			VComponent vCal = null;
 			try {
 				vCal = VCalendar.createComponentFromResource(inResourceValues, null);
-				String effectiveType = "OTHER";
+				String effectiveType = null;
 				if ( vCal instanceof VCard )
 					effectiveType = "VCARD";
 				else if ( vCal instanceof VCalendar ) {
@@ -41,22 +41,32 @@ public class ResourceModification {
 						Masterable firstMaster = ((VCalendar) vCal).getMasterChild();
 						effectiveType = firstMaster.getName();
 						AcalRepeatRule rRule = AcalRepeatRule.fromVCalendar((VCalendar) vCal);
-						AcalDateRange instancesRange = rRule.getInstancesRange();
-					
-						inResourceValues.put(DavResources.EARLIEST_START, instancesRange.start.getMillis());
-						if ( instancesRange.end == null )
-							inResourceValues.putNull(DavResources.LATEST_END);
-						else
-							inResourceValues.put(DavResources.LATEST_END, instancesRange.end.getMillis());
+						try {
+							AcalDateRange instancesRange = rRule.getInstancesRange();
+						
+							inResourceValues.put(DavResources.EARLIEST_START, instancesRange.start.getMillis());
+							if ( instancesRange.end == null )
+								inResourceValues.putNull(DavResources.LATEST_END);
+							else
+								inResourceValues.put(DavResources.LATEST_END, instancesRange.end.getMillis());
+						}
+						catch ( Exception e ) {
+							Log.e(TAG,"Failed to get earliest_start / latest_end from resource of type: "+effectiveType );
+							Log.e(TAG,Log.getStackTraceString(e));
+						}
 					}
 					catch ( Exception e ) {
-						Log.i(TAG,Log.getStackTraceString(e));
+						Log.e(TAG,"Failed to get type for resource - assuming VEVENT");
+						Log.e(TAG,Log.getStackTraceString(e));
+						effectiveType = "VEVENT";
 					}
 				}
-				inResourceValues.put(DavResources.EFFECTIVE_TYPE, effectiveType);
+				if ( effectiveType != null )
+					inResourceValues.put(DavResources.EFFECTIVE_TYPE, effectiveType);
 			}
 			catch (Exception e) {
-				Log.w(TAG,Log.getStackTraceString(e));
+				Log.e(TAG,"Type of resource is just plain weird!");
+				Log.e(TAG,Log.getStackTraceString(e));
 			}
 		}
 
