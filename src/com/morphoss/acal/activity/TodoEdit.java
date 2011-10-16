@@ -36,7 +36,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
-import android.opengl.Visibility;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
@@ -55,6 +54,7 @@ import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.DatePicker;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -63,7 +63,6 @@ import android.widget.Toast;
 
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
-import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
@@ -72,7 +71,6 @@ import com.morphoss.acal.dataservice.DataRequest;
 import com.morphoss.acal.davacal.AcalAlarm;
 import com.morphoss.acal.davacal.AcalAlarm.ActionType;
 import com.morphoss.acal.davacal.AcalCollection;
-import com.morphoss.acal.davacal.AcalProperty;
 import com.morphoss.acal.davacal.SimpleAcalTodo;
 import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VComponent;
@@ -143,10 +141,10 @@ public class TodoEdit extends Activity implements OnGestureListener, OnTouchList
 	private Button applyButton;	
 	private LinearLayout sidebar;
 	private TextView todoName;
-	private TextView titlebar;
 	private TextView locationView;
 	private TextView notesView;
 	private TableLayout alarmsList;
+	private RelativeLayout alarmsLayout;
 	private Button repeatsView;
 	private Button alarmsView;
 	private Button collection;
@@ -334,15 +332,12 @@ public class TodoEdit extends Activity implements OnGestureListener, OnTouchList
 
 		applyButton = (Button) this.findViewById(R.id.todo_apply_button);
 
-		//Title bar
-		titlebar = (TextView)this.findViewById(R.id.TodoEditTitle);
-
 		locationView = (TextView) this.findViewById(R.id.TodoLocationContent);
 		
 
 		notesView = (TextView) this.findViewById(R.id.TodoNotesContent);
 		
-
+		alarmsLayout = (RelativeLayout) this.findViewById(R.id.TodoAlarmsLayout);
 		alarmsList = (TableLayout) this.findViewById(R.id.alarms_list_table);
 		alarmsView = (Button) this.findViewById(R.id.TodoAlarmsButton);
 		
@@ -424,12 +419,20 @@ public class TodoEdit extends Activity implements OnGestureListener, OnTouchList
 			untilTime.setVisibility(View.VISIBLE);
 		}
 		
-		
-		//Display Alarms
-		alarmList = todo.getAlarms();
-		this.alarmsList.removeAllViews();
-		for (AcalAlarm alarm : alarmList) {
-			this.alarmsList.addView(this.getAlarmItem(alarm, alarmsList));
+
+		if ( todo.getStart() == null ) {
+			alarmList = todo.getAlarms();
+			this.alarmsList.removeAllViews();
+			alarmsLayout.setVisibility(View.GONE);
+		}
+		else {
+			//Display Alarms
+			alarmList = todo.getAlarms();
+			this.alarmsList.removeAllViews();
+			for (AcalAlarm alarm : alarmList) {
+				this.alarmsList.addView(this.getAlarmItem(alarm, alarmsList));
+			}
+			alarmsLayout.setVisibility(View.VISIBLE);
 		}
 		
 		//set repeat options
@@ -718,7 +721,7 @@ public class TodoEdit extends Activity implements OnGestureListener, OnTouchList
 			builder.setItems(alarmRelativeTimeStrings, new DialogInterface.OnClickListener() {
 			    public void onClick(DialogInterface dialog, int item) {
 			    	//translate item to equal alarmValue index
-			    	if ( item < 0 || item >= alarmValues.length ) return;
+			    	if ( item < 0 || item >= alarmValues.length || todo.getStart() == null ) return;
 			    	alarmList.add(
 			    			new AcalAlarm(
 			    					true, 
