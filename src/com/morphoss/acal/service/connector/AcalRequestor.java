@@ -128,7 +128,7 @@ public class AcalRequestor {
 	 * @param pass
 	 */
 	public AcalRequestor( String hostIn, Integer proto, Integer portIn, String pathIn, String user, String pass ) {
-		hostName = hostIn;
+		setHostName(hostIn);
 		setPortProtocol(portIn,proto);
 		setPath(pathIn);
 		username = user;
@@ -174,17 +174,16 @@ public class AcalRequestor {
 	 * @param simpleSetup true/false whether to use only the 'simple' values to initialise from
 	 */
 	public void applyFromServer( ContentValues cvServerData, boolean simpleSetup ) {
-		String hostName = cvServerData.getAsString(Servers.HOSTNAME);
-		if ( simpleSetup || hostName == null || hostName.equals("") ) {
-			hostName = cvServerData.getAsString(Servers.SUPPLIED_DOMAIN);
-		}
+		String serverHostName = cvServerData.getAsString(Servers.HOSTNAME);
+		if ( simpleSetup || serverHostName == null || serverHostName.equals("") )
+			serverHostName = cvServerData.getAsString(Servers.SUPPLIED_DOMAIN);
+		setHostName(serverHostName);
 
 		String requestPath = cvServerData.getAsString(Servers.PRINCIPAL_PATH);
 		if ( simpleSetup || requestPath == null || requestPath.equals("") )
 			requestPath = cvServerData.getAsString(Servers.SUPPLIED_PATH);
-
-		this.hostName = hostName;
 		setPath(requestPath);
+
 		setPortProtocol(cvServerData.getAsInteger(Servers.PORT),cvServerData.getAsInteger(Servers.USE_SSL));
 
 		if ( simpleSetup )
@@ -288,7 +287,7 @@ public class AcalRequestor {
 			}
 			if ( m.group(2) != null ) {
 				if ( Constants.LOG_VERBOSE ) Log.v(TAG,"Found hostname '"+m.group(2)+"'");
-				hostName = m.group(2);
+				setHostName( m.group(2) );
 			}
 			if ( m.group(3) != null && !m.group(3).equals("") ) {
 				if ( Constants.LOG_VERBOSE ) Log.v(TAG,"Found port '"+m.group(3)+"'");
@@ -312,7 +311,7 @@ public class AcalRequestor {
 			else {
 				if ( Constants.LOG_DEBUG ) Log.d(TAG, "Using Uri class to process redirect...");
 				Uri newLocation = Uri.parse(uriString);
-				if ( newLocation.getHost() != null ) hostName = newLocation.getHost();
+				if ( newLocation.getHost() != null ) setHostName( newLocation.getHost() );
 				setPortProtocol( newLocation.getPort(), newLocation.getScheme());
 				setPath( newLocation.getPath() );
 				if ( Constants.LOG_VERBOSE ) Log.v(TAG,"Found new location at '"+fullUrl()+"'");
@@ -878,6 +877,12 @@ public class AcalRequestor {
 	 */
 	public String getHostName() {
 		return this.hostName;
+	}
+
+	public void setHostName(String hostIn) {
+		// This trick greatly reduces the occurrence of host not found errors. 
+		try { InetAddress.getByName(hostIn); } catch (UnknownHostException e1) { }
+		this.hostName = hostIn;
 	}
 
 	
