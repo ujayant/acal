@@ -872,5 +872,13 @@ public class AcalRequestor {
 		return root;
 	}
 
+	/**
+	 * Get the current hostname used for the last request, or recently set.
+	 * @return
+	 */
+	public String getHostName() {
+		return this.hostName;
+	}
+
 	
 }
