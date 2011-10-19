@@ -31,16 +31,16 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View.OnClickListener;
 import android.view.View.OnCreateContextMenuListener;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Toast;
-import android.widget.AdapterView.OnItemClickListener;
 
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
@@ -183,6 +183,9 @@ public class ServerConfigList extends ListActivity implements OnClickListener {
 			/** @todo we may wish to handle overwrites here */
 		}
 		try {
+			File publicDataDirectory = new File(Constants.PUBLIC_DATA_DIR);
+			if ( !publicDataDirectory.exists() ) publicDataDirectory.mkdirs();
+
 			newxmlfile.createNewFile();
 			
 		} catch (IOException e) {
