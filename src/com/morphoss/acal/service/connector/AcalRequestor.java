@@ -885,5 +885,12 @@ public class AcalRequestor {
 		this.hostName = hostIn;
 	}
 
+	public int getPort() {
+		return port;
+	}
+
+	public String getProtocol() {
+		return protocol;
+	}
 	
 }
