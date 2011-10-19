@@ -1,6 +1,7 @@
 package com.morphoss.acal.activity.serverconfig;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.http.Header;
@@ -41,21 +42,36 @@ public class TestPort {
 	private Boolean authOK;
 	private Boolean hasDAV;
 	private Boolean hasCalDAV;
-	private String principalUrl;
-	
-	TestPort(AcalRequestor requestor, int port, boolean useSSL) {
-		this.requestor = requestor;
+
+	/**
+	 * Construct based on values from the AcalRequestor
+	 * @param requestorIn
+	 */
+	public TestPort(AcalRequestor requestorIn) {
+		this.requestor = requestorIn;
 		this.path = requestor.getPath();
 		this.hostName = requestor.getHostName();
-		this.port = port;
-		this.useSSL = useSSL;
+		this.port = requestor.getPort();
+		this.useSSL = requestor.getProtocol().equals("https");
 		connectTimeOut = 200 + (useSSL ? 300 : 0);
 		socketTimeOut = 3000;
 		isOpen = null;
 		authOK = null;
 		hasDAV = null;
 		hasCalDAV = null;
-		principalUrl = null;
+	}
+
+
+	/**
+	 * Construct based on values from the AcalRequestor, but overriding port/SSL
+	 * @param requestorIn
+	 * @param port
+	 * @param useSSL
+	 */
+	TestPort(AcalRequestor requestorIn, int port, boolean useSSL) {
+		this(requestorIn);
+		this.port = port;
+		this.useSSL = useSSL;
 	}
 
 	
@@ -169,13 +185,11 @@ public class TestPort {
 				for ( DavNode href : root.getNodesFromPath("multistatus/response/propstat/prop/resourcetype/principal") ) {
 					if ( Constants.LOG_DEBUG ) Log.d(TAG, "This is a principal URL :-)");
 					requestor.interpretUriString(href.getText());
-					principalUrl = requestor.getPath();
 					return true;
 				}
 				for ( DavNode href : root.getNodesFromPath("multistatus/response/propstat/prop/current-user-principal/href") ) {
 					if ( Constants.LOG_DEBUG ) Log.d(TAG, "Found principal URL :-)");
 					requestor.interpretUriString(href.getText());
-					principalUrl = requestor.getPath();
 					return true;
 				}
 			}
@@ -199,8 +213,8 @@ public class TestPort {
 		if ( !isOpen() ) return false;
 		if ( hasDAV == null ) {
 			hasDAV = false;
-			if ( doPropfindPrincipal(this.path) ) 						hasDAV = true;
-			else if ( !hasDAV && doPropfindPrincipal("/.well-known/caldav") )		hasDAV = true;
+			if ( doPropfindPrincipal(this.path) ) 								hasDAV = true;
+			else if ( !hasDAV && doPropfindPrincipal("/.well-known/caldav") )	hasDAV = true;
 			else if ( !hasDAV && doPropfindPrincipal("/") )						hasDAV = true;
 		}
 		return hasDAV;
@@ -240,7 +254,7 @@ public class TestPort {
 	 * @return
 	 */
 	public boolean authOK() {
-		return (authOK == false ? false : true);
+		return (authOK == null || authOK == false ? false : true);
 	}
 	
 	/**
@@ -249,19 +263,31 @@ public class TestPort {
 	 * @param requestor The requestor which will be used for probing.
 	 * @return The ArrayList of default ports.
 	 */
-	public static ArrayList<TestPort> defaultList(AcalRequestor requestor) {
-		ArrayList<TestPort> r = new ArrayList<TestPort>(10);
-		r.add( new TestPort(requestor,443,true) );
-		r.add( new TestPort(requestor,8443,true) );
-		r.add( new TestPort(requestor,80,false) );
-		r.add( new TestPort(requestor,8008,false) );
-		r.add( new TestPort(requestor,8843,true) );
-		r.add( new TestPort(requestor,4443,true) );
-		r.add( new TestPort(requestor,8043,true) );
-		r.add( new TestPort(requestor,8800,false) );
-		r.add( new TestPort(requestor,8888,false) );
-		r.add( new TestPort(requestor,7777,false) );
+	private static ArrayList<TestPort> testPortSet = null;
+	public static Iterator<TestPort> defaultIterator(AcalRequestor requestor) {
+		if ( testPortSet == null )
+			testPortSet = new ArrayList<TestPort>(10);
+		testPortSet.add( new TestPort(requestor,443,true) );
+		testPortSet.add( new TestPort(requestor,8443,true) );
+		testPortSet.add( new TestPort(requestor,80,false) );
+		testPortSet.add( new TestPort(requestor,8008,false) );
+		testPortSet.add( new TestPort(requestor,8843,true) );
+		testPortSet.add( new TestPort(requestor,4443,true) );
+		testPortSet.add( new TestPort(requestor,8043,true) );
+		testPortSet.add( new TestPort(requestor,8800,false) );
+		testPortSet.add( new TestPort(requestor,8888,false) );
+		testPortSet.add( new TestPort(requestor,7777,false) );
 
-		return r;
+		return testPortSet.iterator();
 	}
+
+
+	/**
+	 * Return a URL Prefix like 'https://'
+	 * @return
+	 */
+	public String getProtocolUrlPrefix() {
+		return "http" + (useSSL?"s":"") + "://";
+	}
+	
 }
