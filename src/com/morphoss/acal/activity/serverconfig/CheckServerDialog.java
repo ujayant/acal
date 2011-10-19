@@ -19,11 +19,8 @@
 package com.morphoss.acal.activity.serverconfig;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
-
-import org.apache.http.Header;
-import org.apache.http.message.BasicHeader;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -44,8 +41,6 @@ import com.morphoss.acal.R;
 import com.morphoss.acal.ServiceManager;
 import com.morphoss.acal.providers.Servers;
 import com.morphoss.acal.service.connector.AcalRequestor;
-import com.morphoss.acal.service.connector.SendRequestFailedException;
-import com.morphoss.acal.xml.DavNode;
 
 
 /**
@@ -66,9 +61,7 @@ public class CheckServerDialog implements Runnable {
 	private final ServerConfiguration sc;
 	private final AcalRequestor requestor;
 	private ProgressDialog dialog;
-	
-	private ArrayList<Integer> foundPorts = null;
-	
+
 	private static final int SHOW_FAIL_DIALOG = 0;
 	private static final int CHECK_COMPLETE = 1;
 	private static final int REFRESH_PROGRESS = 2;
@@ -77,21 +70,7 @@ public class CheckServerDialog implements Runnable {
 	private static final String TYPE = "TYPE";
 
 	private List<String> successMessages = new ArrayList<String>();
-	private boolean hasCalendarAccess = false;
 	private boolean advancedMode = false;
-
-	private static final String pPathRequestData = "<?xml version=\"1.0\" encoding=\"utf-8\"?>"+
-													"<propfind xmlns=\"DAV:\">"+
-														"<prop>"+
-															"<principal-collection-set/>"+
-															"<current-user-principal/>"+
-															"<resourcetype/>"+
-														"</prop>"+
-													"</propfind>";
-	private static final Header[] pPathHeaders = new Header[] {
-		new BasicHeader("Depth","0"),
-		new BasicHeader("Content-Type","text/xml; charset=UTF-8")
-	};
 
 	
 	//dialog types
@@ -159,6 +138,7 @@ public class CheckServerDialog implements Runnable {
 	 * </p>
 	 */
 	private void checkServer() {
+		TestPort tester = null;
 		try {
 			// Step 1, check for internet connectivity
 			updateProgress(context.getString(R.string.checkServer_Internet));
@@ -166,75 +146,60 @@ public class CheckServerDialog implements Runnable {
 				throw new CheckServerFailedError(context.getString(R.string.internetNotAvailable));
 			}
 
-			if ( !advancedMode ) {
-				// Step 2, check we can connect to the server on the given port
-				if ( !probeServerPorts() ) {
-					throw new CheckServerFailedError(context.getString(R.string.couldNotDiscoverPort));
+			// Step 2, check we can connect to the server on the given port
+			if ( advancedMode ) {
+				tester = new TestPort(requestor);
+				updateProgress(context.getString(R.string.checkServer_SearchingForServer, requestor.fullUrl()));
+				if ( !tester.hasCalDAV() ) {
+					// Try harder!
+					requestor.applyFromServer(serverData, false);
+					tester.reProbe();
 				}
-			}
-
-			// Step 2, Try some PROPFIND requests to find a principal path
-			boolean discovered	= false;
-			boolean authOK		= false;
-			boolean authFailed	= false;
-			if ( serverData.getAsString(Servers.PRINCIPAL_PATH) != null ) {
-				updateProgress(context.getString(R.string.checkServer_SearchingPrincipal, serverData.getAsString(Servers.PRINCIPAL_PATH)));
-				discovered = doPropfindPrincipal(serverData.getAsString(Servers.PRINCIPAL_PATH));
-				if ( requestor.getStatusCode() < 300 ) authOK = true;
-				else if ( requestor.getStatusCode() == 401 ) authFailed = true;
-			}
-			if ( !discovered && serverData.getAsString(Servers.SUPPLIED_PATH) != null ) {
-				updateProgress(context.getString(R.string.checkServer_SearchingPrincipal, serverData.getAsString(Servers.SUPPLIED_PATH)));
-				discovered = doPropfindPrincipal(serverData.getAsString(Servers.SUPPLIED_PATH));
-				if ( requestor.getStatusCode() < 300 ) authOK = true; 
-				else if ( requestor.getStatusCode() == 401 ) authFailed = true;
-			}
-			if ( !discovered ) {
-				String[] tryForPaths = {
-							"/.well-known/caldav",
-							"/",
-//								"/principals/users/" + URLEncoder.encode(serverData.getAsString(Servers.USERNAME),Constants.URLEncoding),
-						};
-				for (int i = 0; !discovered && i < tryForPaths.length; i++) {
-					updateProgress(context.getString(R.string.checkServer_SearchingPrincipal,tryForPaths[i]));
-					discovered = doPropfindPrincipal(tryForPaths[i]);
-					if ( requestor.getStatusCode() < 300 ) authOK = true; 
-					else if ( requestor.getStatusCode() == 401 ) authFailed = true;
-				}
-			}
-
-			if ( !discovered ) {
-				successMessages.add(context.getString(R.string.couldNotDiscoverPrincipal));
-				if ( authFailed && !authOK )
-					successMessages.add(context.getString(R.string.authenticationFailed));
 			}
 			else {
+				Iterator<TestPort> testers = TestPort.defaultIterator(requestor);
+
+				do {
+					tester = testers.next();
+					requestor.applyFromServer(serverData, true);
+					updateProgress(context.getString(R.string.checkServer_SearchingForServer,
+							tester.getProtocolUrlPrefix() + serverData.getAsString(Servers.SUPPLIED_DOMAIN) + ":" + tester.port ));
+				} while( !tester.hasCalDAV() && testers.hasNext() );
+				if ( !tester.hasCalDAV() ) {
+					// Try harder!
+					testers = TestPort.defaultIterator(requestor);
+					do {
+						tester = testers.next();
+						requestor.applyFromServer(serverData, true);
+						tester.reProbe(); // Extend the timeout
+						updateProgress(context.getString(R.string.checkServer_SearchingForServer,
+								tester.getProtocolUrlPrefix() + serverData.getAsString(Servers.SUPPLIED_DOMAIN) + ":" + tester.port ));
+					} while( !tester.hasCalDAV() && testers.hasNext() );
+				}
+			}
+
+			if ( tester.hasCalDAV() ) {
+				Log.w(TAG, "Found CalDAV: " + requestor.fullUrl());
+				serverData.put(Servers.HAS_CALDAV, 1);
+				successMessages.add(context.getString(R.string.serverSupportsCalDAV));
 				successMessages.add(String.format(context.getString(R.string.foundPrincipalPath), requestor.fullUrl()));
 				requestor.applyToServerSettings(serverData);
 			}
-
-			if ( !hasCalendarAccess  && discovered ) {
-				updateProgress(context.getString(R.string.checkServer_CheckingCapabilities));
-				// Try an options request to see if we can get calendar-access
-				doOptions(requestor.getPath());
-			}
-
-			// Step 5, Update serverData
-			if ( hasCalendarAccess ) {
-				serverData.put(Servers.HAS_CALDAV, 1);
-				successMessages.add(context.getString(R.string.serverSupportsCalDAV));
+			else if ( !tester.authOK() ) {
+				Log.w(TAG, "Failed Auth: " + requestor.fullUrl());
+				successMessages.add(context.getString(R.string.authenticationFailed));
 			}
 			else {
-				if ( authOK || !authFailed ) {
-					serverData.put(Servers.HAS_CALDAV, 0);
-					successMessages.add(context.getString(R.string.serverLacksCalDAV));
-				}
+				Log.w(TAG, "Found no CalDAV");
+				serverData.put(Servers.HAS_CALDAV, 0);
+				successMessages.add(context.getString(R.string.serverLacksCalDAV));
 			}
+
 
 			// Step 6, Exit with success message
 			Message m = Message.obtain();
 			Bundle b = new Bundle();
-			b.putInt(TYPE, (hasCalendarAccess && discovered ? CHECK_COMPLETE : SHOW_FAIL_DIALOG));
+			b.putInt(TYPE, (tester.hasCalDAV() && tester.authOK() ? CHECK_COMPLETE : SHOW_FAIL_DIALOG));
 
 			StringBuilder successMessage = new StringBuilder("");
 			for( String msg : successMessages ) {
@@ -245,7 +210,6 @@ public class CheckServerDialog implements Runnable {
 
 			m.setData(b);
 			handler.sendMessage(m);
-			return;
 
 		}
 		catch (CheckServerFailedError e) {
@@ -263,7 +227,8 @@ public class CheckServerDialog implements Runnable {
 		}
 		catch (Exception e) {
 			// Something unknown went wrong
-			Log.w(TAG, "Connect failed: " + e.getMessage());
+			Log.w(TAG, "Unexpected Failure: " + e.getMessage());
+			Log.w(TAG, Log.getStackTraceString(e));
 			Message m = Message.obtain();
 			Bundle b = new Bundle();
 			b.putInt(TYPE, SHOW_FAIL_DIALOG);
@@ -360,184 +325,6 @@ public class CheckServerDialog implements Runnable {
 		}
 	}
 
-
-	private boolean probeServerPorts() {
-		// TODO It would be nice to do an SRV lookup in here, like:
-		//                 http://stackoverflow.com/questions/2695085
-		// As a hack, we *could* do this through a web request to a page that
-		// does an SRV lookup.
-		//
-
-		HashSet<Integer> workingPorts = new HashSet<Integer>();
-
-		// First attempt the port / SSL state we have been given, if possible
-		Integer p = serverData.getAsInteger(Servers.PORT);
-		Integer protocol = serverData.getAsInteger(Servers.USE_SSL); 
-		protocol = (protocol == null || protocol == 1 ? 1 : 0);
-
-		// If the port wasn't given use standard ports as first probe
-		if ( p == null || p < 1 || p > 65535 ) p = (protocol == 0 ? 80 : 443);
-		if ( tryPort(p, protocol, 15000 ) ) {
-			workingPorts.add(p);
-			return true;
-		}
-
-		// Fall back to probing various other commonly used ports.  It would be
-		// *really* nice to do these in parallel and collect a matrix of which
-		// ones are open since CalDAV might not be the *first* open one of these :-(
-		p = null;
-		int[] portsToTrySSL = { 8443, 8843, 4443, 8043, 443 };
-		int[] portsToTryHttp = { 8008, 8800, 8888, 7777, 80 }; 
-		
-		// Try initially with a very short timeout
-		if ( p == null || p == 1 ) {
-			for( int port : portsToTrySSL )
-				if ( tryPort(port, 1, 3500 ) ) return true;
-		}
-
-		if ( p == null || p == 0 ) {
-			for( int port : portsToTryHttp )
-				if ( tryPort(port, 0, 2500 ) ) return true;
-		}
-
-		// Try with longer timeouts.
-		if ( p == null || p == 1 ) {
-			for( int port : portsToTrySSL )
-				if ( tryPort(port, 1, 10000 ) ) return true;
-		}
-
-		if ( p == null || p == 0 ) {
-			for( int port : portsToTryHttp )
-				if ( tryPort(port, 0, 10000 ) ) return true;
-		}
-
-		return false;
-	}
-
-	
-	/**
-	 * <p>
-	 * Nothing fancy here.  We just quickly try a bunch of ports, and if we manage a response
-	 * other than an authentication failure then we will return true.
-	 * </p> 
-	 * @param port
-	 * @param protocol
-	 * @param timeOutMillis
-	 * @return
-	 */
-	private boolean tryPort( int port, int protocol, int timeOutMillis ) {
-		requestor.setTimeOuts(timeOutMillis,3000);
-		requestor.setPortProtocol( port, protocol );
-		updateProgress(context.getString(R.string.checkServer_ProbePorts, port, (protocol==0?"http":"https")));
-		Log.i(TAG, "Starting probe of "+requestor.fullUrl());
-		try {
-			requestor.doRequest("HEAD", null, null, null);
-
-			// No exception, so it worked?
-			Log.i(TAG, "Probe "+requestor.fullUrl()+" : status " + requestor.getStatusCode());
-
-			return (requestor.getStatusCode() != 401 );
-		}
-		catch (Exception e) {
-			Log.d(TAG, "Probe "+requestor.fullUrl()+" failed: " + e.getMessage());
-		}
-		return false;
-	}
-
-
-	
-	private boolean doPropfindPrincipal( String requestPath ) {
-		Log.i(TAG, "Doing PROPFIND for current-user-principal on " + requestor.fullUrl() );
-		try {
-			requestor.setTimeOuts(4000,15000);
-			DavNode root = requestor.doXmlRequest("PROPFIND", requestPath, pPathHeaders, pPathRequestData);
-			
-			int status = requestor.getStatusCode();
-			Log.d(TAG, "PROPFIND request " + status + " on " + requestor.fullUrl() );
-
-			checkCalendarAccess(requestor.getResponseHeaders());
-
-			if ( status == 207 ) {
-				if ( Constants.LOG_DEBUG ) Log.d(TAG, "Checking for principal path in response...");
-				for ( DavNode href : root.getNodesFromPath("multistatus/response/propstat/prop/current-user-principal/unauthenticated") ) {
-					if ( Constants.LOG_DEBUG ) Log.d(TAG, "Found unauthenticated principal");
-					requestor.setAuthRequired();
-					if ( Constants.LOG_DEBUG ) Log.d(TAG, "We are unauthenticated, so try forcing authentication on");
-					if ( requestor.getAuthType() == Servers.AUTH_NONE ) {
-						requestor.setAuthType(Servers.AUTH_BASIC);
-						if ( Constants.LOG_DEBUG ) Log.d(TAG, "Guessing Basic Authentication");
-					}
-					else if ( requestor.getAuthType() == Servers.AUTH_BASIC ) {
-						requestor.setAuthType(Servers.AUTH_DIGEST);
-						if ( Constants.LOG_DEBUG ) Log.d(TAG, "Guessing Digest Authentication");
-					}
-					return doPropfindPrincipal(requestPath);
-				}
-				for ( DavNode href : root.getNodesFromPath("multistatus/response/propstat/prop/resourcetype/principal") ) {
-					if ( Constants.LOG_DEBUG ) Log.d(TAG, "This is a principal URL :-)");
-					requestor.interpretUriString(href.getText());
-					return true;
-				}
-				for ( DavNode href : root.getNodesFromPath("multistatus/response/propstat/prop/current-user-principal/href") ) {
-					if ( Constants.LOG_DEBUG ) Log.d(TAG, "Found principal URL :-)");
-					requestor.interpretUriString(href.getText());
-					return true;
-				}
-			}
-		}
-		catch (Exception e) {
-			Log.e(TAG, "PROPFIND Error: " + e.getMessage());
-			Log.d(TAG, Log.getStackTraceString(e));
-		}
-		return false;
-	}
-
-	
-	private boolean doOptions( String requestPath ) {
-		requestor.setTimeOuts(4000,10000);
-		try {
-			Log.i(TAG, "Starting OPTIONS on "+requestor.fullUrl());
-			requestor.doRequest("OPTIONS", requestPath, null, null);
-			int status = requestor.getStatusCode();
-			Log.d(TAG, "OPTIONS request " + status + " on " + requestor.fullUrl() );
-			checkCalendarAccess(requestor.getResponseHeaders());
-			if ( status == 200 ) return true;
-		}
-		catch (SendRequestFailedException e) {
-			Log.d(TAG, "OPTIONS Error connecting to server: " + e.getMessage());
-		}
-		catch (Exception e) {
-			Log.e(TAG,"OPTIONS Error: " + e.getMessage());
-			Log.d(TAG,Log.getStackTraceString(e));
-		}
-		return false;
-	}
-	
-
-	/**
-	 * <p>
-	 * Checks whether the calendar supports CalDAV by looking through the headers for a "DAV:" header which
-	 * includes "calendar-access". Appends to the successMessage we will return to the user, as well as
-	 * setting the hasCalendarAccess for later update to the DB.
-	 * </p>
-	 * 
-	 * @param headers
-	 * @return true if the calendar does support CalDAV.
-	 */
-	public boolean checkCalendarAccess(Header[] headers) {
-		if ( headers != null ) {
-			for (Header h : headers) {
-				if (h.getName().equalsIgnoreCase("DAV")) {
-					if (h.getValue().toLowerCase().contains("calendar-access")) {
-						Log.i(TAG, "Discovered server supports CalDAV on URL "+requestor.fullUrl());
-						hasCalendarAccess = true;
-						return true;
-					}
-				}
-			}
-		}
-		return false;
-	}
 
 	
 }

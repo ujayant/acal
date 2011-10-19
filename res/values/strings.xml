@@ -263,9 +263,7 @@
 <string name="checkServer">Validating server</string>
 <string name="checkServer_Connecting">Connecting to server please wait...</string>
 <string name="checkServer_Internet">Checking internet connectivity</string>
-<string name="checkServer_ProbePorts">Probing server on port %1$d using %2$s protocol</string>
-<string name="checkServer_SearchingPrincipal">Searching for principal path at &quot;%s&quot;</string>
-<string name="checkServer_CheckingCapabilities">Checking server capabilities</string>
+<string name="checkServer_SearchingForServer">Searching for CalDAV server at &quot;%s&quot;</string>
 <string name="serverRecordAlreadyExists">A server already exists for that protocol, port, host, path &amp; username</string>
 
 <string name="newEventFromThis">Copy to New Event</string>
