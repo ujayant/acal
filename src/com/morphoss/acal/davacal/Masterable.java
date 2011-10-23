@@ -40,6 +40,7 @@ public abstract class Masterable extends VComponent {
 
 	protected Masterable(String typeName, VComponent parent) {
 		super(typeName,parent);
+		parent.addChild(this); 
 		setEditable();
 		addProperty(new AcalProperty("UID",UUID.randomUUID().toString()));
 		AcalDateTime creation = new AcalDateTime();

@@ -67,9 +67,7 @@ public class VCalendar extends VComponent {
 
 	public static VCalendar getGenericCalendar( AcalCollection collection, AcalEvent newEventData) {
 		VCalendar vcal = new VCalendar(collection);
-		VEvent event = new VEvent(vcal);
-		// TODO: addChild should really probably setParent() on the child as it does it
-		vcal.addChild(event); 
+		new VEvent(vcal);
 		return vcal;
 	}
 
