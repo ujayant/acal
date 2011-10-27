@@ -55,6 +55,7 @@ import com.morphoss.acal.providers.PendingChanges;
 import com.morphoss.acal.providers.Servers;
 import com.morphoss.acal.service.SynchronisationJobs.WriteActions;
 import com.morphoss.acal.service.connector.AcalRequestor;
+import com.morphoss.acal.service.connector.ConnectionFailedException;
 import com.morphoss.acal.service.connector.SendRequestFailedException;
 
 public class SyncChangesToServer extends ServiceJob {
@@ -290,8 +291,13 @@ public class SyncChangesToServer extends ServiceJob {
 			else
 				in = requestor.doRequest( "PUT", path, headers, newData);
 		}
+		catch (ConnectionFailedException e) {
+			Log.w(TAG,"HTTP Connection failed: "+e.getMessage());
+			return;
+		}
 		catch (SendRequestFailedException e) {
 			Log.w(TAG,"HTTP Request failed: "+e.getMessage());
+			return;
 		}
 			
 		int status = requestor.getStatusCode();

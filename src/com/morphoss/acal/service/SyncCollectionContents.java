@@ -49,13 +49,13 @@ import com.morphoss.acal.Constants;
 import com.morphoss.acal.DatabaseChangedEvent;
 import com.morphoss.acal.HashCodeUtil;
 import com.morphoss.acal.ResourceModification;
-import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.providers.DavResources;
 import com.morphoss.acal.providers.Servers;
 import com.morphoss.acal.service.SynchronisationJobs.WriteActions;
 import com.morphoss.acal.service.connector.AcalRequestor;
+import com.morphoss.acal.service.connector.ConnectionFailedException;
 import com.morphoss.acal.service.connector.SendRequestFailedException;
 import com.morphoss.acal.xml.DavNode;
 
@@ -798,6 +798,10 @@ public class SyncCollectionContents extends ServiceJob {
 
 			try {
 				in = requestor.doRequest("GET", path, headers, "");
+			}
+			catch (ConnectionFailedException e) {
+				Log.i(TAG,"ConnectionFailedException ("+e.getMessage()+") on GET from "+path);
+				continue;
 			}
 			catch (SendRequestFailedException e) {
 				Log.i(TAG,"SendRequestFailedException ("+e.getMessage()+") on GET from "+path);
