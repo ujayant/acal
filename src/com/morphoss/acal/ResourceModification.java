@@ -41,18 +41,19 @@ public class ResourceModification {
 						Masterable firstMaster = ((VCalendar) vCal).getMasterChild();
 						effectiveType = firstMaster.getName();
 						AcalRepeatRule rRule = AcalRepeatRule.fromVCalendar((VCalendar) vCal);
-						try {
-							AcalDateRange instancesRange = rRule.getInstancesRange();
-						
-							inResourceValues.put(DavResources.EARLIEST_START, instancesRange.start.getMillis());
-							if ( instancesRange.end == null )
-								inResourceValues.putNull(DavResources.LATEST_END);
-							else
-								inResourceValues.put(DavResources.LATEST_END, instancesRange.end.getMillis());
-						}
-						catch ( Exception e ) {
-							Log.e(TAG,"Failed to get earliest_start / latest_end from resource of type: "+effectiveType );
-							Log.e(TAG,Log.getStackTraceString(e));
+						if ( rRule != null ) {
+							try {
+								AcalDateRange instancesRange = rRule.getInstancesRange();
+							
+								inResourceValues.put(DavResources.EARLIEST_START, instancesRange.start.getMillis());
+								if ( instancesRange.end == null )
+									inResourceValues.putNull(DavResources.LATEST_END);
+								else
+									inResourceValues.put(DavResources.LATEST_END, instancesRange.end.getMillis());
+							}
+							catch ( Exception e ) {
+								Log.e(TAG,"Failed to get earliest_start / latest_end from resource of type: "+effectiveType, e );
+							}
 						}
 					}
 					catch ( Exception e ) {
