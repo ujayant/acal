@@ -44,9 +44,12 @@ public class Constants {
 	
 	/** How much stuff to spit out into the logs */
 	public static final boolean LOG_VERBOSE = false;		//Very verbose play by play execution information
-	public static final boolean LOG_DEBUG = true;			//Information relevant to debugging tasks.
-	public static final boolean DEBUG_SETTINGS = true;		// Does the debugging menu appear in Settings
+	public static final boolean LOG_DEBUG = false;			//Information relevant to debugging tasks.
+	public static final boolean DEBUG_SETTINGS = false;		// Does the debugging menu appear in Settings
 
+	/** Switch theme colour in debug builds */
+	public static final int themeColour = (DEBUG_SETTINGS ? 0xfff430b0 /* pink */ : 0xfff0a020 /* orange */ );
+	
 	/** And sometimes we want to really deeply debug specific bits */
 	public static final boolean	debugRepeatRule					= false;
 	public static final boolean	debugCalendar					= false;
