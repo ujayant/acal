@@ -40,8 +40,12 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.params.ClientPNames;
-import org.apache.http.conn.params.ConnManagerPNames;
 import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.conn.ConnectionPoolTimeoutException;
+import org.apache.http.conn.params.ConnManagerPNames;
+import org.apache.http.conn.params.ConnManagerParams;
+import org.apache.http.conn.params.ConnPerRoute;
+import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
@@ -184,7 +188,10 @@ public class AcalRequestor {
 			requestPath = cvServerData.getAsString(Servers.SUPPLIED_PATH);
 		setPath(requestPath);
 
-		setPortProtocol(cvServerData.getAsInteger(Servers.PORT),cvServerData.getAsInteger(Servers.USE_SSL));
+		String portString = cvServerData.getAsString(Servers.PORT);
+		int tmpPort = 0;
+		if ( portString != null && portString.length() > 0 ) tmpPort = Integer.parseInt(portString);
+		setPortProtocol(tmpPort, cvServerData.getAsInteger(Servers.USE_SSL));
 
 		if ( simpleSetup )
 			authType = Servers.AUTH_NONE;
@@ -444,8 +451,8 @@ public class AcalRequestor {
 	
 	/**
 	 * Set the port and protocol to the supplied values, with sanity checking.
-	 * @param newPort
-	 * @param newProtocol
+	 * @param newPort As an integer.  Numbers < 1 or > 65535 are ignored.
+	 * @param newProtocol As an integer where 1 is https and anything else is http
 	 */
 	public void setPortProtocol(Integer newPort, Integer newProtocol) {
 		protocol = (newProtocol == null || newProtocol == 1 ? "https" : "http");
@@ -460,8 +467,8 @@ public class AcalRequestor {
 	 * Set the port and protocol to the supplied values, with sanity checking.  If the supplied
 	 * newProtocol is null then we initially fall back to the current protocol, or http if that
 	 * is null.
-	 * @param newPort
-	 * @param newProtocol
+	 * @param newPort As an integer.  Numbers < 1 or > 65535 are ignored.
+	 * @param newProtocol As a string like 'http' or 'https'
 	 */
 	public void setPortProtocol(Integer newPort, String newProtocol) {
 		protocol = (newProtocol == null ? protocol : (newProtocol.equals("https") ? "https" : "http"));
@@ -531,15 +538,23 @@ public class AcalRequestor {
 
 	
 	/**
-	 * Return the current protocol/host/port/path as a URL.
+	 * Return the current protocol://host:port as the start of a URL.
 	 * @return
 	 */
-	public String fullUrl() {
+	public String protocolHostPort() {
 		return protocol
 				+ "://"
 				+ hostName
-				+ ((protocol.equals("http") && port == 80) || (protocol.equals("https") && port == 443) ? "" : ":"+Integer.toString(port))
-				+ path;
+				+ ((protocol.equals("http") && port == 80) || (protocol.equals("https") && port == 443) ? "" : ":"+Integer.toString(port));
+	}
+
+	
+	/**
+	 * Return the current protocol://host.example.com:port/path/to/resource as a URL.
+	 * @return
+	 */
+	public String fullUrl() {
+		return protocolHostPort() + path;
 	}
 
 	
@@ -606,13 +621,30 @@ public class AcalRequestor {
 		params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT, socketTimeOut);
 		params.setLongParameter(ConnManagerPNames.TIMEOUT, connectionTimeOut + 1000 ); 	
 
+		// We need to set the MaxConnectionsPerRoute to a higher value so that we
+		// don't get an inexplicable timeout on the third attempt.  We set this pretty
+		// high to discourage weird timeouts when we're going through the discovery.
+		// All credit to:
+		//   http://androidisland.blogspot.com/2010/11/httpclient-and-connectionpooltimeoutexc.html
+		// for the fix.
+		ConnManagerParams.setMaxConnectionsPerRoute(params, new ConnPerRoute() {
+		    @Override
+		    public int getMaxForRoute(HttpRoute httproute)
+		    {
+		        return 100;
+		    }
+		});
+
+		ConnManagerParams.setTimeout(params, 5000);
+
 		return params;
 	}
 
 
 	
 	private synchronized InputStream sendRequest( Header[] headers, String entityString )
-									throws SendRequestFailedException, SSLException, AuthenticationFailure {
+									throws SendRequestFailedException, SSLException, AuthenticationFailure,
+									ConnectionFailedException, ConnectionPoolTimeoutException {
 		long down = 0;
 		long up = 0;
 		long start = System.currentTimeMillis();
@@ -681,7 +713,14 @@ public class AcalRequestor {
 			// Send request and get response 
 			HttpResponse response = null;
 
-			response = httpClient.execute(host,request);
+			try {
+				response = httpClient.execute(host,request);
+			}
+			catch (ConnectionPoolTimeoutException e)		{
+				Log.i(TAG, e.getClass().getSimpleName() + ": " + e.getMessage() + " to " + fullUrl() );
+				Log.i(TAG, "Retrying...");
+				response = httpClient.execute(host,request);
+			}
 			this.responseHeaders = response.getAllHeaders();
 			this.statusCode = response.getStatusLine().getStatusCode();
 
@@ -754,13 +793,21 @@ public class AcalRequestor {
 				Log.d(TAG,Log.getStackTraceString(e));
 			throw e;
 		}
-		catch (SocketException se) {
-			Log.i(TAG,method + " " + fullUrl() + " :- SocketException: " + se.getMessage() );
-			throw new SendRequestFailedException(se.getMessage());
+		catch (SocketException e) {
+			Log.i(TAG, e.getClass().getSimpleName() + ": " + e.getMessage() + " to " + fullUrl() );
+			throw new ConnectionFailedException( e.getClass().getSimpleName() + ": " + fullUrl() );
+		}
+		catch (ConnectionPoolTimeoutException e)		{
+			Log.i(TAG, e.getClass().getSimpleName() + ": " + e.getMessage() + " to " + fullUrl() );
+			throw e;
 		}
 		catch (ConnectTimeoutException e)		{
-			Log.i(TAG,method + " " + fullUrl() + " :- ConnectTimeoutException: " + e.getMessage() );
-			throw new SendRequestFailedException(e.getMessage());
+			Log.i(TAG, e.getClass().getSimpleName() + ": " + e.getMessage() + " to " + fullUrl() );
+			throw new ConnectionFailedException( e.getClass().getSimpleName() + ": " + fullUrl() );
+		}
+		catch ( UnknownHostException e ) {
+			Log.i(TAG, e.getClass().getSimpleName() + ": " + e.getMessage() + " to " + fullUrl() );
+			throw new ConnectionFailedException( e.getClass().getSimpleName() + ": " + fullUrl() );
 		}
 		catch (Exception e) {
 			Log.d(TAG,Log.getStackTraceString(e));
@@ -786,8 +833,10 @@ public class AcalRequestor {
 	 * @return
 	 * @throws SendRequestFailedException
 	 * @throws SSLException
+	 * @throws ConnectionFailedException 
 	 */
-	public InputStream doRequest( String method, String path, Header[] headers, String entity ) throws SendRequestFailedException, SSLException {
+	public InputStream doRequest( String method, String path, Header[] headers, String entity )
+			throws SendRequestFailedException, SSLException, ConnectionFailedException {
 		InputStream result = null;
 		this.method = method;
 		if ( path != null ) this.path = path;
@@ -798,6 +847,8 @@ public class AcalRequestor {
 		}
 		catch (SSLException e) 					{ throw e; }
 		catch (SendRequestFailedException e)	{ throw e; }
+		catch (ConnectionFailedException e)		{ throw e; }
+		catch (AuthenticationFailure e1) 		{ statusCode = 401; }
 		catch (Exception e) {
 			Log.e(TAG,Log.getStackTraceString(e));
 		}
