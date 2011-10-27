@@ -348,6 +348,10 @@ public class CollectionConfigList extends PreferenceActivity
 		if (updateRequested) {
 			updateRequested = false;
 			if (updateId > 0) {
+				try {
+					if (serviceManager != null) serviceManager.close();
+				}
+				catch ( Exception e ) {};
 				this.serviceManager = new ServiceManager(this, new ServiceManagerCallBack() {
 
 					@Override
