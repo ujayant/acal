@@ -61,6 +61,7 @@ import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.activity.AlarmActivity;
+import com.morphoss.acal.activity.TodoEdit;
 import com.morphoss.acal.davacal.AcalAlarm;
 import com.morphoss.acal.davacal.AcalCollection;
 import com.morphoss.acal.davacal.AcalEvent;
@@ -1244,7 +1245,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 			int collectionId = changedResource.getCollectionId();
 
 			switch (action) {
-				case AcalEvent.ACTION_CREATE: {
+				case TodoEdit.ACTION_CREATE: {
 					ContentValues cv = new ContentValues();
 					cv.put(PendingChanges.COLLECTION_ID, collectionId);
 					cv.put(PendingChanges.OLD_DATA, "");
@@ -1255,11 +1256,11 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 					newResources.put(r, changedResource);
 					break;
 				}
-				case AcalEvent.ACTION_MODIFY_ALL:
-				case AcalEvent.ACTION_MODIFY_SINGLE:
-				case AcalEvent.ACTION_MODIFY_ALL_FUTURE:
-				case AcalEvent.ACTION_DELETE_SINGLE:
-				case AcalEvent.ACTION_DELETE_ALL_FUTURE: {
+				case TodoEdit.ACTION_MODIFY_ALL:
+				case TodoEdit.ACTION_MODIFY_SINGLE:
+				case TodoEdit.ACTION_MODIFY_ALL_FUTURE:
+				case TodoEdit.ACTION_DELETE_SINGLE:
+				case TodoEdit.ACTION_DELETE_ALL_FUTURE: {
 					int rid = changedResource.getResourceId();
 					VCalendar original = calendars.get(rid);
 					String newBlob = changedResource.getCurrentBlob();
@@ -1274,7 +1275,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 					getContentResolver().insert(PendingChanges.CONTENT_URI, cv);
 					break;
 				}
-				case AcalEvent.ACTION_DELETE_ALL: {
+				case TodoEdit.ACTION_DELETE_ALL: {
 					int rid = changedResource.getResourceId();
 					ContentValues cv = new ContentValues();
 					cv.put(PendingChanges.COLLECTION_ID, collectionId);
