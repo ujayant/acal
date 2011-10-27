@@ -18,22 +18,13 @@
 
 package com.morphoss.acal.davacal;
 
+import com.morphoss.acal.acaltime.AcalDateTime;
+
 
 
 public class VTodo extends Masterable {
 	public static final String TAG = "aCal VTodo";
 
-	public static enum TODO_FIELD {
-			resourceId,
-			summary,
-			collectionId,
-			repeatRule,
-			alarmList,
-			dueDate,
-			percentComplete,
-			status
-	}
-	
 	public VTodo(ComponentParts splitter, Integer resourceId, AcalCollection collectionObject,VComponent parent) {
 		super(splitter, resourceId, collectionObject,parent);
 	}
@@ -44,6 +35,37 @@ public class VTodo extends Masterable {
 
 	public VTodo( AcalCollection collection ) {
 		this( new VCalendar(collection) );
+	}
+
+	public AcalDateTime getDue() {
+		AcalProperty aProp = getProperty(PropertyName.DUE);
+		if ( aProp == null ) return null;
+		return AcalDateTime.fromAcalProperty(aProp);
+	}
+
+	
+	public void setDue( AcalDateTime newValue ) {
+		setUniqueProperty(newValue.asProperty(PropertyName.DUE));
+	}
+
+	public AcalDateTime getCompleted() {
+		AcalProperty aProp = getProperty(PropertyName.COMPLETED);
+		if ( aProp == null ) return null;
+		return AcalDateTime.fromAcalProperty(aProp);
+	}
+
+	public void setCompleted( AcalDateTime newValue ) {
+		setUniqueProperty(newValue.asProperty(PropertyName.COMPLETED));
+	}
+
+	public int getPercentComplete() {
+		AcalProperty aProp = getProperty(PropertyName.PERCENT_COMPLETE);
+		if ( aProp == null || aProp.getValue() == null ) return 0;
+		return Integer.parseInt(aProp.getValue());
+	}
+
+	public void setPercentComplete( int newValue ) {
+		setUniqueProperty(new AcalProperty(PropertyName.PERCENT_COMPLETE, Integer.toString(newValue)));
 	}
 
 }
