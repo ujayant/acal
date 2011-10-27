@@ -569,7 +569,8 @@ public class AcalRepeatRule {
 			this.dtstart = dtstart;
 			this.duration = duration;
 			this.isPending = isPending;
-			if ( duration.seconds < 0 || duration.days < 0 ) throw new IllegalArgumentException();
+			if ( duration.seconds < 0 || duration.days < 0 )
+				throw new IllegalArgumentException("Resource duration must be positive. UID: "+VEvent.getUID() );
 			if ( Constants.debugRepeatRule && duration.days > 10 ) {
 				throw new IllegalArgumentException();
 			}
