@@ -386,10 +386,9 @@ public class CollectionConfiguration extends PreferenceActivity implements OnPre
         }
         maxSyncAgeWifi.getEditText().setInputType(InputType.TYPE_CLASS_NUMBER);
         maxSyncAgeWifi.setDialogTitle(getString(R.string.pMax_age_on_wifi));
-        maxSyncAgeWifi.setDefaultValue(currentSyncAge / 60000);
+        maxSyncAgeWifi.setDefaultValue(Integer.toString( currentSyncAge / 60000));
         maxSyncAgeWifi.setText(Integer.toString(collectionData.getAsInteger(DavCollections.MAX_SYNC_AGE_WIFI)/ 60000));
     	preferenceHelper(maxSyncAgeWifi, getString(R.string.pMax_age_on_wifi), DavCollections.MAX_SYNC_AGE_WIFI, defaultSummaries.get(DavCollections.MAX_SYNC_AGE_WIFI));
-    	
 
 	}
 	
