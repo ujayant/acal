@@ -28,6 +28,7 @@ import android.os.Parcelable;
 import com.morphoss.acal.HashCodeUtil;
 import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.davacal.AcalProperty;
+import com.morphoss.acal.davacal.PropertyName;
 
 /**
  * <h2>
@@ -235,9 +236,11 @@ import com.morphoss.acal.davacal.AcalProperty;
 	
 	/**
 	 * Turn our duration internals back into a pretty string.
+	 * @param relatedPart The name of a related part like 'START' or 'END'. Or null.
+	 * @todo Should be localized, somehow, but these things are very tricky.
 	 */
 	public String toPrettyString( String relatedPart ) {
-		if ( days == 0 && seconds == 0 ) return "At the "+relatedPart+".";
+		if ( days == 0 && seconds == 0 ) return (relatedPart == null ? "" : "At the "+relatedPart+".");
 		StringBuilder result = new StringBuilder("");
 		if ( seconds == 0 && ((days / 7) * 7) == days ) {
 			result.append(Integer.toString((Math.abs(days) / 7)));
@@ -278,8 +281,10 @@ import com.morphoss.acal.davacal.AcalProperty;
 		}
 
 		result.append( days < 0 || seconds < 0 ? " before" : " after" );
-		result.append(" ");
-		result.append(relatedPart);
+		if ( relatedPart != null ) { 
+			result.append(" ");
+			result.append(relatedPart);
+		}
 		result.append(".");
 
 		return result.toString();
@@ -350,5 +355,10 @@ import com.morphoss.acal.davacal.AcalProperty;
 			return new AcalDuration[size];
 		}
 	};
+
+
+	public AcalProperty asProperty(PropertyName pName) {
+		return this.asProperty(pName.toString());
+	}
 	
 }
