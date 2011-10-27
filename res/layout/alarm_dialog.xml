@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+	android:orientation="vertical"
+	android:layout_width="fill_parent"
+	android:layout_height="wrap_content"
+	xmlns:android="http://schemas.android.com/apk/res/android">
+	<TextView
+    	android:textAppearance="?android:attr/textAppearanceLarge"
+    	android:layout_height="wrap_content"
+    	android:layout_width="fill_parent"
+    	android:gravity="center_horizontal"
+    	android:id="@+id/alarmTimeText"
+    	android:text="2011-03-21 17:45"
+    	android:paddingTop="5sp"
+    	android:paddingBottom="10sp"/>
+    <LinearLayout
+        android:id="@+id/RelativeDurationPromptLayout"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content">
+        <LinearLayout
+            android:id="@+id/RelativeDurationLayout"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content" android:orientation="vertical">
+            <SeekBar android:id="@+id/alarmAdjustDuration"
+            	android:layout_height="wrap_content"
+            	android:layout_width="fill_parent"
+            	android:paddingLeft="20sp"
+            	android:paddingRight="20sp"
+            	android:max="50"/>
+        </LinearLayout>
+    </LinearLayout>
+	<LinearLayout
+	    android:id="@+id/Description"
+	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content">
+
+		<TextView android:id="@+id/alarmRelativeDuration"
+			android:textAppearance="?android:attr/textAppearanceMedium"
+			android:layout_height="fill_parent"
+			android:layout_width="90sp"
+			android:layout_weight="1"
+			android:text="TextView"
+			android:gravity="center_vertical"/>
+
+	    <LinearLayout
+    	    android:id="@+id/BeforeButtonLayout"
+    	    android:layout_width="wrap_content"
+    	    android:layout_height="wrap_content"
+			android:background="@color/themed_button_colour"
+    	    >
+    		<Button android:id="@+id/AlarmBeforeButton"
+    			android:text="Before"
+    			android:layout_width="90sp"
+    			android:layout_height="wrap_content"
+				style="@style/themed_button"/>
+        </LinearLayout>
+    
+    	<LinearLayout
+    	    android:id="@+id/RelatedButtonLayout"
+    	    android:layout_width="wrap_content"
+    	    android:layout_height="wrap_content">
+    		<Button android:id="@+id/AlarmRelatedButton"
+    			android:text="Start"
+    			android:layout_width="90sp"
+    			android:layout_height="wrap_content"/>
+        </LinearLayout>
+	</LinearLayout>
+
+	<LinearLayout
+   	    android:id="@+id/OkCancelLayout"
+   	    android:layout_width="fill_parent"
+   	    android:layout_height="wrap_content"
+   	    android:gravity="center_horizontal"
+   	    android:paddingTop="10sp"
+   	    >
+		<Button
+			android:id="@+id/AlarmOkButton"
+   			android:text="@string/ok"
+   			android:layout_width="90sp"
+	   	    android:layout_height="wrap_content"/>
+		<Button
+			android:id="@+id/AlarmCancelButton"
+   			android:text="@string/cancel"
+   			android:layout_width="90sp"
+	   	    android:layout_height="wrap_content"/>
+	</LinearLayout>    
+
+</LinearLayout>
