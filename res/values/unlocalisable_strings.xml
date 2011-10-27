@@ -4,7 +4,7 @@
 <string name="applyButton">applyButton</string>
 <string name="cancelButton">cancelButton</string>
 
-<string name="appName">aCalEvents</string>
+<string name="appName">aCal</string>
 <string name="appNameTasks">aCalTasks</string>
 <string name="appActivityMonthView">aCal - Month View</string>
 <string name="appActivityYearView">aCal - Year View</string>

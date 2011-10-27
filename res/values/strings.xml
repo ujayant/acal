@@ -6,6 +6,7 @@
     
 <string name="ok">OK</string>
 <string name="cancel">Cancel</string>
+<string name="setButtonLabel">Set</string>
 <string name="appDescription">A Calendar for Android which will store your events, tasks, notes and contacts on a remote CalDAV / CardDAV server, such as DAViCal (See: www.davical.org)</string>
 <string name="appDescriptionTasks">A Task List for Android which will store your tasks on a remote CalDAV / CardDAV server, such as DAViCal (See: www.davical.org)</string>
 
@@ -124,6 +125,8 @@
 <!-- If the user is displaying AM/PM we need a single character to display e.g. 1p for 1:00pm -->
 <string name="oneCharMorning">a</string>
 <string name="oneCharAfternoon">p</string>
+<string name="abbrevMorning">am</string>
+<string name="abbrevAfternoon">pm</string>
 
 <string name="YearViewSize_PrefTitle">Number of Months in Year View</string>
 <string name="YearViewSize_PrefSummary">The number of months that are visible in the year view</string>
@@ -172,9 +175,14 @@
 <string name="RepeatsPrompt">Repeats:</string>
 <string name="AllDayPrompt">All Day:</string>
 <string name="FromPrompt">From:</string>
+<string name="TodoFromPrompt">Start On:</string>
 <string name="UntilPrompt">Until:</string>
 <string name="DuePrompt">Due:</string>
 <string name="CompletedPrompt">Completed:</string>
+<string name="DaysPrompt">Days:</string>
+<string name="StartPrompt">Start:</string>
+<string name="CompletePrompt">Complete:</string>
+<string name="CollectionPrompt">Calendar:</string>
 
 <string name="defaultCalendar">Default Calendar</string>
 <string name="theCalendarForNewEvents">The calendar to be used by default for new events.</string>
@@ -312,4 +320,12 @@
 <string name="plus">+</string>
 <string name="url">URL:</string>
 <string name="todoName">Todo Name:</string>
+
+<string name="NotSet">Not Set</string>
+<string name="Exactly">Exactly</string>
+<string name="Start">Start</string>
+<string name="Finish">Finish</string>
+<string name="Before">Before</string>
+<string name="After">After</string>
+<string name="Custom">Custom</string>
 </resources>
