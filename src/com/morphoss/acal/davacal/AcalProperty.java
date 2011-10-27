@@ -41,6 +41,7 @@ import com.morphoss.acal.Constants;
  */
 public class AcalProperty {
 	public static final String TAG = "aCal AcalProperty";
+	private static final boolean DEBUG = false; 
 	private static final Pattern propertyValueSplit = Pattern.compile("^(.*?)(?<!\\\\):(.*)",Pattern.DOTALL);
 	private static final Pattern propertyParamSplit = Pattern.compile("(?<!\\\\);");
 	private static final Pattern valueReplaceEscaped = Pattern.compile("\\\\([,;'\"\\\\])");
@@ -50,6 +51,7 @@ public class AcalProperty {
 				"|TRIGGER|RDATECOMPLETED|DTEND|DUE|DTSTART|DTSTAMP|LAST-MODIFIED|CREATED|EXDATE)$"
 				);
 	private Map<String, String> params;
+	private boolean paramsPersistent = false;
 	private boolean paramsSet = false;
 	private String name;
 	private String value;
@@ -164,23 +166,34 @@ public class AcalProperty {
 		this.params = new HashMap<String,String>();
 	}
 
+	public AcalProperty(PropertyName knownProperty, String pValue) {
+		this(knownProperty.toString(), pValue );
+	}
+
 	/**
 	 * Set the value of parameter "name" to "value" for this AcalProperty.
-	 * @param name
-	 * @param value
+	 * @param paramName
+	 * @param paramValue
 	 */
-	public synchronized void setParam(String name, String value) {
+	public synchronized void setParam(String paramName, String paramValue) {
+		paramsPersistent = true;
 		if (!paramsSet) populateParams();
 		paramsBlob = null;
-		params.put(name, value);
+		params.put(paramName, paramValue);
+		if ( DEBUG && Constants.LOG_VERBOSE )
+			Log.v(TAG,"Added to '"+name+"' parameter '"+paramName+"' = '"+paramValue+"'");
 	}
 
 	private synchronized void rebuildParamsBlob() {
 		if ( params == null || params.isEmpty() ) {
 			paramsBlob = new String[] { };
+			if ( DEBUG && Constants.LOG_VERBOSE )
+				Log.v(TAG,"Rebuilt empty paramsBlob for '"+name+"'");
 			return;
 		}
 
+		if ( DEBUG && Constants.LOG_VERBOSE )
+			Log.v(TAG,"Rebuilding paramsBlob for '"+name+"'");
 		paramsBlob = new String[params.size()];
 		int i=0;
 		for( String p : params.keySet() ) {
@@ -189,6 +202,8 @@ public class AcalProperty {
 			// Should really use pre-compiled regex here, but it should not be called often
 			builder.append(params.get(p).replaceAll("([:;,\\\\])", "\\\\$1").replaceAll("\n", "\\\\N"));
 			paramsBlob[i++] = builder.toString();
+			if ( DEBUG && Constants.LOG_VERBOSE )
+				Log.v(TAG,"Blob was'"+builder.toString()+"'");
 		}
 	}
 	
@@ -211,10 +226,14 @@ public class AcalProperty {
 	}
 	
 	private synchronized void destroyParams() {
-		if ( !paramsSet ) return;
+		if ( paramsPersistent || !paramsSet ) return;
 		this.params = null;
 		this.paramsSet = false;
-
+		
+		if ( DEBUG && Constants.LOG_VERBOSE ) {
+			Log.v(TAG,"Params destroyed for '"+name+"'");
+			Log.d(TAG, Log.getStackTraceString(new Exception()) );
+		}
 	}
 
 	/**
@@ -283,6 +302,9 @@ public class AcalProperty {
 	 * </p>
 	 */
 	public synchronized String toRfcString() {
+		if ( DEBUG && Constants.LOG_VERBOSE )
+			Log.v(TAG,"Building RFC String for '"+name+"'");
+
 		StringBuilder paramBuilder = new StringBuilder(name);
 		if ( paramsBlob == null ) rebuildParamsBlob();
 		for (int i = 0; i< paramsBlob.length; i++) {
@@ -307,7 +329,10 @@ public class AcalProperty {
 		    }
 		}
 
-    	return paramBuilder.append(escaped_value).toString();
+    	paramBuilder.append(escaped_value);
+		if ( DEBUG && Constants.LOG_VERBOSE )
+			Log.v(TAG, "AsBuilt>>>"+paramBuilder.toString() );
+    	return paramBuilder.toString();
 	}
 
 	/**
