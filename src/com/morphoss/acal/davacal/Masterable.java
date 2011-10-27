@@ -33,22 +33,22 @@ import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
 
 public abstract class Masterable extends VComponent {
-	
+
 	protected Masterable(ComponentParts splitter, Integer resourceId, AcalCollection collectionObject, VComponent parent) {
 		super(splitter,resourceId,collectionObject,parent);
 	}
 
 	protected Masterable(String typeName, VComponent parent) {
-		super(typeName,parent);
-		parent.addChild(this); 
+		super(typeName, parent);
+		parent.addChild(this);
 		setEditable();
-		addProperty(new AcalProperty("UID",UUID.randomUUID().toString()));
+		addProperty(new AcalProperty(PropertyName.UID, UUID.randomUUID().toString()));
 		AcalDateTime creation = new AcalDateTime();
 		creation.setTimeZone(TimeZone.getDefault().getID());
 		creation.shiftTimeZone("UTC");
-		addProperty(new AcalProperty("DTSTAMP",creation.fmtIcal()));
-		addProperty(new AcalProperty("CREATED",creation.fmtIcal()));
-		addProperty(new AcalProperty("LAST-MODIFIED",creation.fmtIcal()));
+		addProperty(new AcalProperty(PropertyName.DTSTAMP, creation.fmtIcal()));
+		addProperty(new AcalProperty(PropertyName.CREATED, creation.fmtIcal()));
+		addProperty(new AcalProperty(PropertyName.LAST_MODIFIED, creation.fmtIcal()));
 	}
 
 	public VCalendar getTopParent() {
@@ -65,21 +65,23 @@ public abstract class Masterable extends VComponent {
 	public AcalDuration getDuration() {
 		AcalDuration ret = null;
 
-		AcalProperty dProp = getProperty("DTSTART");
+		AcalProperty dProp = getProperty(PropertyName.DTSTART);
 		if ( dProp == null ) return new AcalDuration();
 
 		AcalDateTime dtstart = AcalDateTime.fromAcalProperty(dProp);
-		dProp = getProperty("DURATION");
+		dProp = getProperty(PropertyName.DURATION);
 		if ( dProp != null ) {
 			ret = AcalDuration.fromProperty(dProp);
-			if ( Constants.debugRepeatRule && Constants.LOG_VERBOSE ) Log.v(AcalRepeatRule.TAG,"Event Duration from DURATION is " + ret.toString() );
+			if ( Constants.debugRepeatRule && Constants.LOG_VERBOSE )
+				Log.v(AcalRepeatRule.TAG,"Event Duration from DURATION is " + ret.toString() );
 		}
 		else {
-			dProp = getProperty("DTEND");
+			dProp = getProperty(PropertyName.DTEND);
 			if ( dProp == null ) dProp = getProperty("DUE"); // VTodo
 			if ( dProp != null ) {
 				ret = dtstart.getDurationTo(AcalDateTime.fromAcalProperty(dProp));
-				if ( Constants.debugRepeatRule && Constants.LOG_VERBOSE ) Log.v(AcalRepeatRule.TAG,"Event Duration from DTEND/DUE is " + ret.toString() );
+				if ( Constants.debugRepeatRule && Constants.LOG_VERBOSE )
+					Log.v(AcalRepeatRule.TAG,"Event Duration from DTEND/DUE is " + ret.toString() );
 			}
 			else {
 				ret = new AcalDuration();
@@ -92,28 +94,25 @@ public abstract class Masterable extends VComponent {
 
 
 	public AcalDateTime getEnd() {
-		AcalProperty aProp = getProperty("END");
+		AcalProperty aProp = getProperty( (this instanceof VTodo ? PropertyName.DUE : PropertyName.DTEND));
 		if ( aProp != null ) return AcalDateTime.fromAcalProperty(aProp);
 		
-		aProp = getProperty("DTSTART");
+		aProp = getProperty(PropertyName.DTSTART);
 		if ( aProp == null ) return null;
+		AcalDateTime result = AcalDateTime.fromAcalProperty(aProp); 
 		
-		AcalProperty dProp = getProperty("DURATION");
-		if ( dProp == null ) return null;
+		AcalProperty dProp = getProperty(PropertyName.DURATION);
+		if ( dProp == null ) {
+			if ( result.isDate() ) result.applyLocalTimeZone().addDays(1);
+			return result;
+		}
 
 		return AcalDateTime.fromAcalProperty(aProp).addDuration(AcalDuration.fromProperty(dProp));
 	}
 
 	
-	public AcalDateTime getDue() {
-		AcalProperty aProp = getProperty("DUE");
-		if ( aProp == null ) return null;
-		return AcalDateTime.fromAcalProperty(aProp);
-	}
-
-	
 	public AcalDateTime getStart() {
-		AcalProperty aProp = getProperty("DTSTART");
+		AcalProperty aProp = getProperty(PropertyName.DTSTART);
 		if ( aProp == null ) return null;
 		return AcalDateTime.fromAcalProperty(aProp);
 	}
@@ -128,7 +127,8 @@ public abstract class Masterable extends VComponent {
 			Iterator<VComponent> it = children.iterator();
 			while( it.hasNext() ) {
 				VComponent child = it.next();
-				if ( child instanceof VAlarm ) alarms.add( new AcalAlarm((VAlarm) it, this, getStart(), getEnd()) );
+				if ( child instanceof VAlarm )
+					alarms.add( new AcalAlarm((VAlarm) child, this, getStart(), getEnd()) );
 			}
 		}
 		catch (YouMustSurroundThisMethodInTryCatchOrIllEatYouException e) { }
@@ -159,51 +159,51 @@ public abstract class Masterable extends VComponent {
 	}
 
 	public String getLocation() {
-		return safePropertyValue("LOCATION");
+		return safePropertyValue(PropertyName.LOCATION);
 	}
 
 	public String getSummary() {
-		return safePropertyValue("SUMMARY");
+		return safePropertyValue(PropertyName.SUMMARY);
 	}
 
 	public String getDescription() {
-		return safePropertyValue("DESCRIPTION");
+		return safePropertyValue(PropertyName.DESCRIPTION);
 	}
 
 	public String getRepetition() {
-		return safePropertyValue("RRULE");
+		return safePropertyValue(PropertyName.RRULE);
 	}
 
 	public void setSummary( String newValue ) {
-		setUniqueProperty(new AcalProperty("SUMMARY", newValue));
+		setUniqueProperty(new AcalProperty(PropertyName.SUMMARY, newValue));
 	}
 
 	public void setLocation( String newValue ) {
-		setUniqueProperty(new AcalProperty("LOCATION", newValue));
+		setUniqueProperty(new AcalProperty(PropertyName.LOCATION, newValue));
 	}
 
 	public void setDescription( String newValue ) {
-		setUniqueProperty(new AcalProperty("DESCRIPTION", newValue));
+		setUniqueProperty(new AcalProperty(PropertyName.DESCRIPTION, newValue));
 	}
 
 	public void setRepetition( String newValue ) {
-		setUniqueProperty(new AcalProperty("RRULE", newValue));
+		setUniqueProperty(new AcalProperty(PropertyName.RRULE, newValue));
 	}
 
 	public void setStart( AcalDateTime newValue ) {
-		setUniqueProperty(newValue.asProperty("DTSTART"));
+		setUniqueProperty(newValue.asProperty(PropertyName.DTSTART));
 	}
 
 	public void setEnd( AcalDateTime newValue ) {
-		setUniqueProperty(newValue.asProperty("DTEND"));
-	}
-
-	public void setDue( AcalDateTime newValue ) {
-		setUniqueProperty(newValue.asProperty("DUE"));
+		setUniqueProperty(newValue.asProperty(PropertyName.DTEND));
 	}
 
 	public void setDuration( AcalDuration newValue ) {
-		setUniqueProperty(newValue.asProperty("DURATION"));
+		setUniqueProperty(newValue.asProperty(PropertyName.DURATION));
+	}
+
+	public String getUID() {
+		return safePropertyValue(PropertyName.UID);
 	}
 
 }

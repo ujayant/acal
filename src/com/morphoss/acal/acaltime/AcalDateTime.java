@@ -36,6 +36,7 @@ import com.morphoss.acal.Constants;
 import com.morphoss.acal.HashCodeUtil;
 import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.davacal.AcalProperty;
+import com.morphoss.acal.davacal.PropertyName;
 
 /**
  * <h1>AcalDateTime</h1>
@@ -1776,6 +1777,11 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 		if ( isDate ) ret.setParam("VALUE", "DATE");
 		else if ( tz != null && !tzName.equals("UTC") )	ret.setParam("TZID",tzName);
 		return ret;
+	}
+
+
+	public AcalProperty asProperty(PropertyName pName) {
+		return asProperty(pName.toString());
 	}
 
 

@@ -265,6 +265,15 @@ public abstract class VComponent implements Parcelable {
 	}
 
 	/**
+	 * This can be useful if you want the value of a well-known unique property.  Otherwise, not so much.
+	 * @param pName
+	 * @return
+	 */
+	public AcalProperty getProperty(PropertyName pName) {
+		return getProperty(pName.toString());
+	}
+
+	/**
 	 * This can be useful if you know you don't have two properties of the same name.
 	 * @return
 	 */
@@ -392,6 +401,16 @@ public abstract class VComponent implements Parcelable {
 	}
 
 	
+	/**
+	 * Will always return a string, in response to a request for the value of a property. That
+	 * will be the empty string if the well-known property does not exist, or the like. 
+	 * @param pName
+	 * @return A string which is the value of the well-known property, or empty, if the property is not set.
+	 */
+	public String safePropertyValue(PropertyName pName) {
+		return safePropertyValue(pName.toString());
+	}
+
 	/**
 	 * Populates the array of children
 	 */
