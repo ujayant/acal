@@ -28,8 +28,9 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
@@ -126,10 +127,10 @@ public class MonthAdapter extends BaseAdapter {
 		if ( parent != null ) {
 			gridHeight = parent.getHeight();
 			int boxWidth = (parent.getWidth() / 7) - 1;
-			headerHeight = gridHeight / 12;
-			boxHeight = (gridHeight - headerHeight) / 6;
+			boxHeight = gridHeight / 7;
 			headerHeight = gridHeight - (boxHeight * 6);
-			boxHeight -= 1;  // Allow for vertical spacing
+			boxHeight--;  // Allow for vertical spacing
+			headerHeight--;
 			if ( boxWidth > (boxHeight * 1.3) ) boxScaleFactor = 1.2f;
 			else if ( boxWidth < (boxHeight * 0.9) )  boxScaleFactor = 0.9f;
 		}
@@ -153,12 +154,20 @@ public class MonthAdapter extends BaseAdapter {
 				case AcalDateTime.SUNDAY: colText=(context.getString(R.string.Sun)); break;
 			}
 			dayColumnHeader.setText(colText);
-			dayColumnHeader.setTextSize( TypedValue.COMPLEX_UNIT_PX, (float) 0.55 * boxScaleFactor * headerHeight);
+			dayColumnHeader.setTextSize( TypedValue.COMPLEX_UNIT_PX, (float) 0.50 * boxScaleFactor * headerHeight);
+			
+			ViewParent vp = dayColumnHeader.getParent();
+			if ( vp instanceof View ) {
+				((View) vp).setBackgroundColor(Constants.themeColour);
+				dayColumnHeader.setBackgroundDrawable(context.getResources().getDrawable(R.drawable.dayheadings_fg));
+			}
 			
 			if ( headerHeight != 0 ) dayColumnHeader.setHeight(headerHeight - dayColumnHeader.getCompoundPaddingBottom());
+
 			dayColumnHeader.setVisibility(View.VISIBLE);
 			return v;
 		}
+
 		position -=7;
 		//we need to correct for offset
 		int offset = this.firstOffset - this.firstCol;
