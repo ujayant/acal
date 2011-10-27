@@ -54,6 +54,7 @@
 		<item>@string/alarm2HoursPrior</item>
 		<item>@string/alarm12HoursPrior</item>
 		<item>@string/alarm1DayPrior</item>
+		<item>@string/Custom</item>
 		<item>@string/cancel</item>
 </string-array>
 

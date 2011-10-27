@@ -18,17 +18,11 @@
 
 package com.morphoss.acal.activity;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.DatePickerDialog;
 import android.app.Dialog;
-import android.app.TimePickerDialog;
 import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Context;
@@ -40,51 +34,51 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.view.GestureDetector.OnGestureListener;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
-import android.widget.DatePicker;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
-import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateTime;
+import com.morphoss.acal.acaltime.AcalDateTimeFormatter;
 import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
 import com.morphoss.acal.dataservice.CalendarDataService;
 import com.morphoss.acal.dataservice.DataRequest;
 import com.morphoss.acal.davacal.AcalAlarm;
 import com.morphoss.acal.davacal.AcalAlarm.ActionType;
+import com.morphoss.acal.davacal.AcalAlarm.RelateWith;
 import com.morphoss.acal.davacal.AcalCollection;
 import com.morphoss.acal.davacal.SimpleAcalTodo;
 import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VComponent;
 import com.morphoss.acal.davacal.VTodo;
-import com.morphoss.acal.davacal.VTodo.TODO_FIELD;
 import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.service.aCalService;
+import com.morphoss.acal.widget.AlarmDialog;
+import com.morphoss.acal.widget.DateTimeDialog;
+import com.morphoss.acal.widget.DateTimeSetListener;
 
-public class TodoEdit extends Activity implements OnGestureListener, OnTouchListener, OnClickListener, OnCheckedChangeListener {
+public class TodoEdit extends Activity
+	implements OnCheckedChangeListener, OnSeekBarChangeListener {
 
 	public static final String TAG = "aCal TodoEdit";
-	public static final int APPLY = 0;
-	public static final int CANCEL = 1;
 
+	public static final String activityResultName = "changedTodo";
 	private SimpleAcalTodo sat;
 	private VTodo todo;
 
@@ -98,16 +92,14 @@ public class TodoEdit extends Activity implements OnGestureListener, OnTouchList
 	public static final int ACTION_DELETE_ALL_FUTURE = 6;
 
 	private int action = ACTION_NONE;
-	
-	
-	private static final int FROM_DATE_DIALOG = 0;
-	private static final int FROM_TIME_DIALOG = 1;
-	private static final int UNTIL_DATE_DIALOG = 2;
-	private static final int UNTIL_TIME_DIALOG = 3;
-	private static final int SELECT_COLLECTION_DIALOG = 4;
-	private static final int ADD_ALARM_DIALOG = 5;
-	private static final int SET_REPEAT_RULE_DIALOG = 6;
-	private static final int WHICH_TODO_DIALOG = 7;
+
+	private static final int FROM_DIALOG = 10;
+	private static final int DUE_DIALOG = 11;
+	private static final int COMPLETED_DIALOG = 12;
+	private static final int ADD_ALARM_DIALOG = 20;
+	private static final int SET_REPEAT_RULE_DIALOG = 21;
+	private static final int SELECT_COLLECTION_DIALOG = 22;
+	private static final int INSTANCES_TO_CHANGE_DIALOG = 30;
 
 	private SharedPreferences prefs;
 	boolean prefer24hourFormat = false;
@@ -132,23 +124,27 @@ public class TodoEdit extends Activity implements OnGestureListener, OnTouchList
 	private DataRequest dataRequest = null;
 
 	//GUI Components
-	private TextView fromLabel;
-	private TextView untilLabel;
-	private Button fromDate;
-	private Button untilDate;
-	private Button fromTime;
-	private Button untilTime;	
-	private Button applyButton;	
+	private Button btnStartDate;
+	private Button btnDueDate;
+	private Button btnCompleteDate;
 	private LinearLayout sidebar;
 	private TextView todoName;
 	private TextView locationView;
 	private TextView notesView;
 	private TableLayout alarmsList;
+	private LinearLayout repeatsLayout;
+	private Button btnAddRepeat;
 	private RelativeLayout alarmsLayout;
-	private Button repeatsView;
-	private Button alarmsView;
-	private Button collection;
-	private CheckBox allDayTodo;
+	private Button btnAddAlarm;
+	private LinearLayout collectionsLayout;
+	private Button btnCollection;
+	private Button btnSaveChanges;	
+	private Button btnCancelChanges;
+	
+
+	private int percentComplete = 0;
+	private SeekBar percentCompleteBar;
+	private TextView percentCompleteText;
 	
 	//Active collections for create mode
 	private ContentValues[] activeCollections;
@@ -159,7 +155,7 @@ public class TodoEdit extends Activity implements OnGestureListener, OnTouchList
 	
 	private boolean originalHasOccurrence = false;
 	private String originalOccurence = "";
-	
+
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		this.setContentView(R.layout.todo_edit);
@@ -175,10 +171,6 @@ public class TodoEdit extends Activity implements OnGestureListener, OnTouchList
 		alarmRelativeTimeStrings = getResources().getStringArray(R.array.RelativeAlarmTimes);
 		todoChangeRanges = getResources().getStringArray(R.array.TodoChangeAffecting);
 		
-		//Set up buttons
-		this.setupButton(R.id.todo_apply_button, APPLY);
-		this.setupButton(R.id.todo_cancel_button, CANCEL);
-
 		Bundle b = this.getIntent().getExtras();
 		getTodoAction(b);
 		if ( this.todo == null ) {
@@ -206,6 +198,7 @@ public class TodoEdit extends Activity implements OnGestureListener, OnTouchList
 		}
 
 		//Get collection data
+		currentCollection = null;
 		activeCollections = DavCollections.getCollections( getContentResolver(), DavCollections.INCLUDE_TASKS );
 		int collectionId = -1;
 		if ( activeCollections.length > 0 )
@@ -216,15 +209,10 @@ public class TodoEdit extends Activity implements OnGestureListener, OnTouchList
 			return null;
 		}
 		this.collectionsArray = new String[activeCollections.length];
-		int count = 0;
-		for (ContentValues cv : activeCollections) {
-			if (cv.getAsInteger(DavCollections._ID) == collectionId) this.currentCollection = cv;
-			collectionsArray[count++] = cv.getAsString(DavCollections.DISPLAYNAME);
-		}
 		
 		if ( operation == SimpleAcalTodo.TODO_OPERATION_EDIT ) {
 			try {
-				collectionId = (Integer) this.todo.getCollectionId();
+				collectionId = (Integer) todo.getCollectionId();
 				this.action = ACTION_MODIFY_ALL;
 				if ( isModifyAction() ) {
 					String rr = (String)  this.todo.getRepetition();
@@ -241,7 +229,7 @@ public class TodoEdit extends Activity implements OnGestureListener, OnTouchList
 				}
 			}
 			catch (Exception e) {
-				if (Constants.LOG_DEBUG)Log.d(TAG, "Error getting data from caller: "+e.getMessage());
+				if (Constants.LOG_DEBUG) Log.d(TAG, "No data from caller ");
 			}
 		}
 		else if ( operation == SimpleAcalTodo.TODO_OPERATION_COPY ) {
@@ -257,9 +245,6 @@ public class TodoEdit extends Activity implements OnGestureListener, OnTouchList
 
 		if ( this.todo == null ) {
 
-			Map<TODO_FIELD,Object> defaults = new HashMap<TODO_FIELD,Object>(10);
-			defaults.put( TODO_FIELD.summary, getString(R.string.NewTaskTitle) );
-
 			Integer preferredCollectionId = Integer.parseInt(prefs.getString(getString(R.string.DefaultCollection_PrefKey), "-1"));
 			if ( preferredCollectionId != -1 ) {
 				for( ContentValues aCollection : activeCollections ) {
@@ -270,30 +255,21 @@ public class TodoEdit extends Activity implements OnGestureListener, OnTouchList
 				}
 			}
 			AcalCollection collection = AcalCollection.fromDatabase(this, collectionId);
-			defaults.put(TODO_FIELD.collectionId, collectionId);
 
 			this.todo = new VTodo(collection);
+			this.todo.setSummary(getString(R.string.NewTaskTitle));
 			this.action = ACTION_CREATE;
 
 		}
+
+		int count = 0;
+		for (ContentValues cv : activeCollections) {
+			if (cv.getAsInteger(DavCollections._ID) == collectionId) currentCollection = cv;
+			collectionsArray[count++] = cv.getAsString(DavCollections.DISPLAYNAME);
+		}
+		if ( todo.getCompleted() != null ) todo.setPercentComplete( 100 );
 		
 		return todo;
-	}
-
-	
-	private void setSelectedCollection(String name) {
-		for (ContentValues cv : activeCollections) {
-			if (cv.getAsString(DavCollections.DISPLAYNAME).equals(name)) {
-				this.currentCollection = cv; break;
-			}
-		}
-		AcalCollection collection = new AcalCollection(currentCollection);
-		VCalendar vc = (VCalendar) this.todo.getTopParent();
-		vc.setCollection(collection);
-
-		this.collection.setText(name);
-		sidebar.setBackgroundColor(collection.getColour());
-		this.updateLayout();
 	}
 
 	
@@ -304,58 +280,69 @@ public class TodoEdit extends Activity implements OnGestureListener, OnTouchList
 
 		//Title
 		this.todoName = (TextView) this.findViewById(R.id.TodoName);
-		if ( todo == null || action == ACTION_CREATE ) {
-			todoName.setSelectAllOnFocus(true);
-		}
+		todoName.setSelectAllOnFocus(action == ACTION_CREATE);
 
 		//Collection
-		this.collection = (Button) this.findViewById(R.id.TodoEditCollectionButton);
-		if (this.activeCollections.length < 2) {
-			this.collection.setEnabled(false);
-			this.collection.setHeight(0);
-			this.collection.setPadding(0, 0, 0, 0);
-		}
-		else {
-			//set up click listener for collection dialog
-			setListen(this.collection, SELECT_COLLECTION_DIALOG);
+		collectionsLayout = (LinearLayout)this.findViewById(R.id.TodoEditCollectionLayout);
+		btnCollection = (Button) this.findViewById(R.id.TodoEditCollectionButton);
+		btnCollection.setText(currentCollection.getAsString(DavCollections.DISPLAYNAME));
+		if (activeCollections.length < 2) {
+			collectionsLayout.setVisibility(View.GONE);
+			btnCollection.setEnabled(false);
 		}
 		
 		
 		//date/time fields
-		fromLabel = (TextView) this.findViewById(R.id.TodoFromLabel);
-		untilLabel = (TextView) this.findViewById(R.id.TodoUntilLabel);
-		allDayTodo = (CheckBox) this.findViewById(R.id.TodoAllDay);
-		fromDate = (Button) this.findViewById(R.id.TodoFromDate);
-		fromTime = (Button) this.findViewById(R.id.TodoFromTime);
-		untilDate = (Button) this.findViewById(R.id.TodoUntilDate);
-		untilTime = (Button) this.findViewById(R.id.TodoUntilTime);
+		btnStartDate = (Button) this.findViewById(R.id.TodoFromDateTime);
+		btnDueDate = (Button) this.findViewById(R.id.TodoDueDateTime);
+		btnCompleteDate = (Button) this.findViewById(R.id.TodoCompletedDateTime);
 
-		applyButton = (Button) this.findViewById(R.id.todo_apply_button);
-
-		locationView = (TextView) this.findViewById(R.id.TodoLocationContent);
+		btnSaveChanges = (Button) this.findViewById(R.id.todo_apply_button);
+		btnSaveChanges.setText((isModifyAction() ? getString(R.string.Apply) : getString(R.string.Add)));
+		btnCancelChanges = (Button) this.findViewById(R.id.todo_cancel_button);
 		
 
+		locationView = (TextView) this.findViewById(R.id.TodoLocationContent);
 		notesView = (TextView) this.findViewById(R.id.TodoNotesContent);
 		
 		alarmsLayout = (RelativeLayout) this.findViewById(R.id.TodoAlarmsLayout);
 		alarmsList = (TableLayout) this.findViewById(R.id.alarms_list_table);
-		alarmsView = (Button) this.findViewById(R.id.TodoAlarmsButton);
+		btnAddAlarm = (Button) this.findViewById(R.id.TodoAlarmsButton);
 		
-		repeatsView = (Button) this.findViewById(R.id.TodoRepeatsContent);
+		repeatsLayout = (LinearLayout) this.findViewById(R.id.TodoRepeatsLayout);
+		btnAddRepeat = (Button) this.findViewById(R.id.TodoRepeatsContent);
 		
-		
-		//Button listeners
-		setListen(fromDate,FROM_DATE_DIALOG);
-		setListen(fromTime,FROM_TIME_DIALOG);
-		setListen(untilDate,UNTIL_DATE_DIALOG);
-		setListen(untilTime,UNTIL_TIME_DIALOG);
-		setListen(alarmsView,ADD_ALARM_DIALOG);
-		setListen(repeatsView,SET_REPEAT_RULE_DIALOG);
-		allDayTodo.setOnCheckedChangeListener(this);
-		if ( this.todo.getDuration().getDurationMillis() == 60L*60L*24L*1000L ){
-			allDayTodo.setChecked(true);
-		}
+		// Button listeners
+		setButtonDialog(btnStartDate, FROM_DIALOG);
+		setButtonDialog(btnDueDate, DUE_DIALOG);
+		setButtonDialog(btnCompleteDate, COMPLETED_DIALOG);
+		setButtonDialog(btnAddAlarm, ADD_ALARM_DIALOG);
+		setButtonDialog(btnAddRepeat, SET_REPEAT_RULE_DIALOG);
+		setButtonDialog(btnCollection, SELECT_COLLECTION_DIALOG);
 
+		btnSaveChanges.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View arg0) {
+				applyChanges();
+			}
+		});
+
+		btnCancelChanges.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View arg0) {
+				finish();
+			}
+		});
+		
+
+		percentCompleteText = (TextView) this.findViewById(R.id.TodoPercentCompleteText);
+		percentCompleteBar = (SeekBar) this.findViewById(R.id.TodoPercentCompleteBar);
+		percentComplete = todo.getPercentComplete();
+		percentComplete = (percentComplete < 0 ? 0 : (percentComplete > 100 ? 100 : percentComplete));
+		percentCompleteBar.setIndeterminate(false);
+		percentCompleteBar.setMax(100);
+		percentCompleteBar.setKeyProgressIncrement(5);
+		percentCompleteBar.setOnSeekBarChangeListener(this);
+		percentCompleteText.setText(Integer.toString(percentComplete)+"%");
+		percentCompleteBar.setProgress(percentComplete);
 		
 		String title = todo.getSummary();
 		todoName.setText(title);
@@ -372,55 +359,20 @@ public class TodoEdit extends Activity implements OnGestureListener, OnTouchList
 	
 	private void updateLayout() {
 		AcalDateTime start = todo.getStart();
-		if ( start != null) start.applyLocalTimeZone();
-		AcalDateTime end = todo.getEnd();
-		if ( end != null) end.applyLocalTimeZone();
 		AcalDateTime due = todo.getDue();
-		if ( due != null) due.applyLocalTimeZone();
+		AcalDateTime completed = todo.getCompleted();
 
 		Integer colour = todo.getCollectionColour();
 		if ( colour == null ) colour = getResources().getColor(android.R.color.black);
 		sidebar.setBackgroundColor(colour);
+		collectionsLayout.setBackgroundColor(colour);
 		todoName.setTextColor(colour);
 		
-		this.collection.setText(this.currentCollection.getAsString(DavCollections.DISPLAYNAME));
-		
-		this.applyButton.setText((isModifyAction() ? getString(R.string.Apply) : getString(R.string.Add)));
-		
-		boolean allDay = allDayTodo.isChecked();
+		btnStartDate.setText( AcalDateTimeFormatter.fmtFull( start, prefer24hourFormat) );
+		btnDueDate.setText( AcalDateTimeFormatter.fmtFull( due, prefer24hourFormat) );
+		btnCompleteDate.setText( AcalDateTimeFormatter.fmtFull( completed, prefer24hourFormat) );
 
-		if ( start != null )
-			fromDate.setText(AcalDateTime.fmtDayMonthYear(start));
-
-		
-		if (allDay) {
-			fromLabel.setVisibility(View.GONE);
-			untilLabel.setVisibility(View.GONE);
-			untilDate.setText(""); 
-			untilDate.setVisibility(View.GONE);
-			fromTime.setText(""); 
-			fromTime.setVisibility(View.GONE);
-			untilTime.setText(""); 
-			untilTime.setVisibility(View.GONE); 
-		}
-		else {
-			fromLabel.setVisibility(View.VISIBLE);
-			untilLabel.setVisibility(View.VISIBLE);
-			if ( end != null )
-				untilDate.setText(AcalDateTime.fmtDayMonthYear(end));
-			untilDate.setVisibility(View.VISIBLE);
-
-			DateFormat formatter = new SimpleDateFormat(prefer24hourFormat?"HH:mm":"hh:mmaa");
-			if ( start != null )
-				fromTime.setText(formatter.format(start.toJavaDate()));
-			fromTime.setVisibility(View.VISIBLE);
-			if ( end != null )
-				untilTime.setText(formatter.format(end.toJavaDate()));
-			untilTime.setVisibility(View.VISIBLE);
-		}
-		
-
-		if ( todo.getStart() == null ) {
+		if ( todo.getDue() == null && todo.getStart() == null ) {
 			alarmList = todo.getAlarms();
 			this.alarmsList.removeAllViews();
 			alarmsLayout.setVisibility(View.GONE);
@@ -437,7 +389,7 @@ public class TodoEdit extends Activity implements OnGestureListener, OnTouchList
 		
 		//set repeat options
 		if ( start == null && due == null ) {
-			repeatsView.setVisibility(View.GONE);
+			repeatsLayout.setVisibility(View.GONE);
 		}
 		else {
 			AcalDateTime relativeTo = (start == null ? due : start);
@@ -522,22 +474,40 @@ public class TodoEdit extends Activity implements OnGestureListener, OnTouchList
 			}
 			String rr = RRule.repeatRule.toPrettyString(this);
 			if (rr == null || rr.equals("")) rr = getString(R.string.OnlyOnce);
-			repeatsView.setText(rr);
+			btnAddRepeat.setText(rr);
+			repeatsLayout.setVisibility(View.VISIBLE);
 		}
 	}
 
-	private void setListen(Button b, final int dialog) {
+	private void setSelectedCollection(String name) {
+		for (ContentValues cv : activeCollections) {
+			if (cv.getAsString(DavCollections.DISPLAYNAME).equals(name)) {
+				this.currentCollection = cv; break;
+			}
+		}
+		AcalCollection collection = new AcalCollection(currentCollection);
+		VCalendar vc = (VCalendar) this.todo.getTopParent();
+		vc.setCollection(collection);
+
+		this.btnCollection.setText(name);
+		sidebar.setBackgroundColor(collection.getColour());
+		collectionsLayout.setBackgroundColor(collection.getColour());
+		this.updateLayout();
+	}
+
+	
+	private void setButtonDialog(Button b, final int dialogIndicator) {
 		b.setOnClickListener(new View.OnClickListener() {
 
 			@Override
 			public void onClick(View arg0) {
-				showDialog(dialog);
+				showDialog(dialogIndicator);
 
 			}
 		});
 	}
 
-	
+
 	public void applyChanges() {
 		//check if text fields changed
 		//summary
@@ -551,27 +521,8 @@ public class TodoEdit extends Activity implements OnGestureListener, OnTouchList
 		if (!oldSum.equals(newSum)) todo.setSummary(newSum);
 		if (!oldLoc.equals(newLoc)) todo.setLocation(newLoc);
 		if (!oldDesc.equals(newDesc)) todo.setDescription(newDesc);
-		
-		AcalDateTime start = todo.getStart();
-		if ( start != null ) {
-			//check if all day
-			if (allDayTodo.isChecked()) {
-				start.setDaySecond(0);
-				start.setAsDate(true);
-				todo.setStart(start);
-				todo.setDuration(new AcalDuration("P1D"));
-			}
-	
-			AcalDuration duration = todo.getDuration();
-			// Ensure end is not before start
-			if ( duration.getDays() < 0 || duration.getTimeMillis() < 0 ) {
-				start = todo.getStart();
-				AcalDateTime end = AcalDateTime.addDuration(start, duration);
-				while( end.before(start) ) end.addDays(1);
-				duration = start.getDurationTo(end);
-				todo.setDuration(duration);
-			}
-		}
+
+		todo.setPercentComplete(percentComplete);
 		
 		if (action == ACTION_CREATE || action == ACTION_MODIFY_ALL ) {
 			if ( !this.saveChanges() ){
@@ -582,7 +533,7 @@ public class TodoEdit extends Activity implements OnGestureListener, OnTouchList
 		}
 		
 		//ask the user which instance(s) to apply to
-		this.showDialog(WHICH_TODO_DIALOG);
+		this.showDialog(INSTANCES_TO_CHANGE_DIALOG);
 
 	}
 
@@ -602,7 +553,7 @@ public class TodoEdit extends Activity implements OnGestureListener, OnTouchList
 				Toast.makeText(this, getString(R.string.TaskModifiedThisAndFuture), Toast.LENGTH_LONG).show();
 
 			Intent ret = new Intent();
-			ret.putExtra("changedTodo", sat);
+			ret.putExtra(activityResultName, sat);
 			this.setResult(RESULT_OK, ret);
 
 			this.finish();
@@ -615,65 +566,6 @@ public class TodoEdit extends Activity implements OnGestureListener, OnTouchList
 		return true;
 	}
 
-	private void setupButton(int id, int val) {
-		Button button = (Button) this.findViewById(id);
-		button.setOnClickListener(this);
-		button.setTag(val);
-	}
-
-	@Override
-	public boolean onDown(MotionEvent arg0) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean onFling(MotionEvent arg0, MotionEvent arg1, float arg2,
-			float arg3) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public void onLongPress(MotionEvent arg0) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public boolean onScroll(MotionEvent arg0, MotionEvent arg1, float arg2,
-			float arg3) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public void onShowPress(MotionEvent arg0) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public boolean onSingleTapUp(MotionEvent arg0) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean onTouch(View arg0, MotionEvent arg1) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public void onClick(View arg0) {
-		int button = (int)((Integer)arg0.getTag());
-		switch (button) {
-		case APPLY: applyChanges(); break;
-		case CANCEL: finish();
-		}
-	}
-	
 	@Override
 	public void onCheckedChanged(CompoundButton arg0, boolean arg1) {
 		this.updateLayout();
@@ -682,163 +574,158 @@ public class TodoEdit extends Activity implements OnGestureListener, OnTouchList
 	//Dialogs
 	protected Dialog onCreateDialog(int id) {
 		AcalDateTime start = todo.getStart();
-		AcalDateTime end = todo.getEnd();
-		switch (id) {
-		case FROM_DATE_DIALOG:
-			return new DatePickerDialog(this,fromDateListener,
-					start.get(AcalDateTime.YEAR),
-					start.get(AcalDateTime.MONTH)-1,
-					start.get(AcalDateTime.DAY_OF_MONTH)
-			);
-		case UNTIL_DATE_DIALOG:
-			return new DatePickerDialog(this,untilDateListener,
-					end.get(AcalDateTime.YEAR),
-					end.get(AcalDateTime.MONTH)-1,
-					end.get(AcalDateTime.DAY_OF_MONTH)
-			);
-		case FROM_TIME_DIALOG:
-			return new TimePickerDialog(this, fromTimeListener,
-					start.getHour(), 
-					start.getMinute(),
-					prefer24hourFormat);
-		case UNTIL_TIME_DIALOG:
-			return new TimePickerDialog(this, untilTimeListener,
-					end.getHour(), 
-					end.getMinute(),
-					prefer24hourFormat);
-		case SELECT_COLLECTION_DIALOG:
-				AlertDialog.Builder builder = new AlertDialog.Builder(this);
-				builder.setTitle(getString(R.string.ChooseACollection));
-				builder.setItems(this.collectionsArray, new DialogInterface.OnClickListener() {
-				    public void onClick(DialogInterface dialog, int item) {
-				    	setSelectedCollection(collectionsArray[item]);
-				    }
-				});
+		if ( start == null ) {
+			start = new AcalDateTime().applyLocalTimeZone().addDays(1);
+			int newSecond = ((start.getDaySecond()/3600)+2)*3600;
+			if ( newSecond > 86399 ) start.addDays(1); 
+			start.setDaySecond( newSecond % 86400 );
+		}
+		AcalDateTime due = todo.getDue();
+		if ( due == null ) {
+			due = new AcalDateTime().applyLocalTimeZone().addDays(1);
+			due.setDaySecond(start.getDaySecond() + 3600);
+			int newSecond = start.getDaySecond()+3600;
+			if ( newSecond > 86399 ) due.addDays(1); 
+			due.setDaySecond( newSecond % 86400 );
+		}
+		AcalDateTime completed = todo.getCompleted();
+		if ( completed == null ) completed = new AcalDateTime();
+		switch ( id ) {
+			case FROM_DIALOG:
+				return new DateTimeDialog( this, start, prefer24hourFormat,
+						new DateTimeSetListener() {
+							public void onDateTimeSet(AcalDateTime newDateTime) {
+								todo.setStart( newDateTime );
+								updateLayout();
+							}
+						});
+
+			case DUE_DIALOG:
+				return new DateTimeDialog( this, due, prefer24hourFormat,
+						new DateTimeSetListener() {
+							public void onDateTimeSet(AcalDateTime newDateTime) {
+								todo.setDue( newDateTime );
+								updateLayout();
+							}
+						});
+
+			case COMPLETED_DIALOG:
+				return new DateTimeDialog( this, completed, prefer24hourFormat,
+						new DateTimeSetListener() {
+							public void onDateTimeSet(AcalDateTime newDateTime) {
+								todo.setCompleted( newDateTime );
+								updateLayout();
+							}
+						});
+
+
+			case SELECT_COLLECTION_DIALOG:
+				AlertDialog.Builder builder = new AlertDialog.Builder( this );
+				builder.setTitle( getString( R.string.ChooseACollection ) );
+				builder.setItems( this.collectionsArray, new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int item) {
+						setSelectedCollection( collectionsArray[item] );
+					}
+				} );
 				return builder.create();
-		case ADD_ALARM_DIALOG:
-			builder = new AlertDialog.Builder(this);
-			builder.setTitle(getString(R.string.ChooseAlarmTime));
-			builder.setItems(alarmRelativeTimeStrings, new DialogInterface.OnClickListener() {
-			    public void onClick(DialogInterface dialog, int item) {
-			    	//translate item to equal alarmValue index
-			    	if ( item < 0 || item >= alarmValues.length || todo.getStart() == null ) return;
-			    	alarmList.add(
-			    			new AcalAlarm(
-			    					true, 
-			    					todo.getDescription(), 
-			    					alarmValues[item], 
-			    					ActionType.AUDIO, 
-			    					todo.getStart(), 
-			    					AcalDateTime.addDuration( todo.getStart(), alarmValues[item] )
-			    			)
-			    	);
-			    	todo.updateAlarmComponents(alarmList);
-			    	updateLayout();
-			    }
-			});
-			return builder.create();
-		case WHICH_TODO_DIALOG:
-			builder = new AlertDialog.Builder(this);
-			builder.setTitle(getString(R.string.ChooseInstancesToChange));
-			builder.setItems(todoChangeRanges, new DialogInterface.OnClickListener() {
-			    public void onClick(DialogInterface dialog, int item) {
-			    	switch (item) {
-			    		case 0: action = ACTION_MODIFY_SINGLE; saveChanges(); return;
-			    		case 1: action = ACTION_MODIFY_ALL; saveChanges(); return;
-			    		case 2: action = ACTION_MODIFY_ALL_FUTURE; saveChanges(); return;
-			    	}
-			    }
-			});
-			return builder.create();
-		case SET_REPEAT_RULE_DIALOG:
-			builder = new AlertDialog.Builder(this);
-			builder.setTitle(getString(R.string.ChooseRepeatFrequency));
-			builder.setItems(this.repeatRules, new DialogInterface.OnClickListener() {
-			    public void onClick(DialogInterface dialog, int item) {
-			    	String newRule = "";
-			    	if (item != 0) {
-			    		item--;
-			    		newRule = repeatRulesValues[item];
-			    	}
-			    	if ( isModifyAction() ) {
-				    	if (TodoEdit.this.originalHasOccurrence && !newRule.equals(TodoEdit.this.originalOccurence)) {
-				    		action = ACTION_MODIFY_ALL;
-				    	} else if (TodoEdit.this.originalHasOccurrence) {
-				    		action = ACTION_MODIFY_SINGLE;
-				    	}
-			    	}
-			    	todo.setRepetition(newRule);
-			    	updateLayout();
-			    	
-			    }
-			});
-			return builder.create();
-		default: return null;
+			
+			case ADD_ALARM_DIALOG:
+				builder = new AlertDialog.Builder( this );
+				builder.setTitle( getString( R.string.ChooseAlarmTime ) );
+				builder.setItems( alarmRelativeTimeStrings, new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int item) {
+						// translate item to equal alarmValue index
+						RelateWith relateWith = RelateWith.START;
+						AcalDateTime start = todo.getStart();
+						if ( start == null ) {
+							relateWith = (todo.getDue() == null ? RelateWith.ABSOLUTE : RelateWith.END);
+							if ( relateWith == RelateWith.ABSOLUTE ) {
+								start = new AcalDateTime();
+								start.addDays( 1 );
+							}
+						}
+						if ( item < 0 || item > alarmValues.length ) return;
+						if ( item == alarmValues.length ) {
+							customAlarmDialog();
+						}
+						else {
+							alarmList.add( new AcalAlarm( relateWith, todo.getDescription(), alarmValues[item],
+									ActionType.AUDIO, start, todo.getDue() ) );
+							todo.updateAlarmComponents( alarmList );
+							updateLayout();
+						}
+					}
+				} );
+				return builder.create();
+			case INSTANCES_TO_CHANGE_DIALOG:
+				builder = new AlertDialog.Builder( this );
+				builder.setTitle( getString( R.string.ChooseInstancesToChange ) );
+				builder.setItems( todoChangeRanges, new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int item) {
+						switch ( item ) {
+							case 0:
+								action = ACTION_MODIFY_SINGLE;
+								saveChanges();
+								return;
+							case 1:
+								action = ACTION_MODIFY_ALL;
+								saveChanges();
+								return;
+							case 2:
+								action = ACTION_MODIFY_ALL_FUTURE;
+								saveChanges();
+								return;
+						}
+					}
+				} );
+				return builder.create();
+			case SET_REPEAT_RULE_DIALOG:
+				builder = new AlertDialog.Builder( this );
+				builder.setTitle( getString( R.string.ChooseRepeatFrequency ) );
+				builder.setItems( this.repeatRules, new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int item) {
+						String newRule = "";
+						if ( item != 0 ) {
+							item--;
+							newRule = repeatRulesValues[item];
+						}
+						if ( isModifyAction() ) {
+							if ( TodoEdit.this.originalHasOccurrence
+									&& !newRule.equals( TodoEdit.this.originalOccurence ) ) {
+								action = ACTION_MODIFY_ALL;
+							}
+							else if ( TodoEdit.this.originalHasOccurrence ) {
+								action = ACTION_MODIFY_SINGLE;
+							}
+						}
+						todo.setRepetition( newRule );
+						updateLayout();
+
+					}
+				} );
+				return builder.create();
+			default:
+				return null;
 		}
 	}
-	// the callback received when the user "sets" the start date in the dialog
-	private DatePickerDialog.OnDateSetListener fromDateListener =
-		new DatePickerDialog.OnDateSetListener() {
 
-		public void onDateSet(DatePicker view, int year, 
-				int monthOfYear, int dayOfMonth) {
+	protected void customAlarmDialog() {
 
-			AcalDateTime start = todo.getStart().clone().applyLocalTimeZone();
-			start.setYearMonthDay(year, monthOfYear + 1, dayOfMonth);
-			todo.setStart(start);
-			updateLayout();
-		}
-	};
-	
-	
+		AlarmDialog.AlarmSetListener customAlarmListener = new AlarmDialog.AlarmSetListener() {
 
-	// the callback received when the user "sets" the end date in the dialog
-	private DatePickerDialog.OnDateSetListener untilDateListener =
-		new DatePickerDialog.OnDateSetListener() {
+			@Override
+			public void onAlarmSet(AcalAlarm alarmValue) {
+				alarmList.add( alarmValue );
+		    	todo.updateAlarmComponents(alarmList);
+		    	updateLayout();
+			}
+			
+		};
 
-		public void onDateSet(DatePicker view, int year, 
-				int monthOfYear, int dayOfMonth) {
-
-			AcalDateTime start = todo.getStart().clone().applyLocalTimeZone();
-			AcalDateTime end = todo.getEnd().clone().applyLocalTimeZone();
-			end.setYearMonthDay(year, monthOfYear + 1, dayOfMonth);
-			todo.setDuration(start.getDurationTo(end));
-			updateLayout();
-		}
-	};
-
-	// the callback received when the user "sets" the start time in the dialog
-	private TimePickerDialog.OnTimeSetListener fromTimeListener =
-		new TimePickerDialog.OnTimeSetListener() {
-
-		public void onTimeSet(TimePicker view, int hour, int minute) {
-
-			AcalDateTime start = todo.getStart().clone().applyLocalTimeZone();
-			start.setDaySecond(hour*3600 + minute*60);
-			todo.setStart(start);
-
-			SimpleDateFormat formatter = new SimpleDateFormat("hh:mma");
-			fromTime.setText(formatter.format(start.toJavaDate()));
-			formatter = new SimpleDateFormat("hh:mma");
-			updateLayout();
-		}
-	};
-	
-	private TimePickerDialog.OnTimeSetListener untilTimeListener =
-		new TimePickerDialog.OnTimeSetListener() {
-
-		public void onTimeSet(TimePicker view, int hour, int minute) {
-
-			AcalDateTime start = todo.getStart().clone().applyLocalTimeZone();
-			AcalDateTime end = todo.getEnd().clone().applyLocalTimeZone();
-			end.setDaySecond(hour*3600 + minute*60);
-			AcalDuration duration = start.getDurationTo(end);
-			todo.setDuration(duration);
-			SimpleDateFormat formatter = new SimpleDateFormat("hh:mma");
-			untilTime.setText(formatter.format(start.toJavaDate()));
-			updateLayout();
-		}
-	};
+		AlarmDialog customAlarm = new AlarmDialog(this, customAlarmListener, null,
+				todo.getStart(), todo.getDue(), VComponent.VTODO);
+		customAlarm.show();
+	}
 
 	private void connectToService() {
 		try {
@@ -925,6 +812,34 @@ public class TodoEdit extends Activity implements OnGestureListener, OnTouchList
 
 	public boolean isModifyAction() {
 		return (action >= ACTION_CREATE && action <= ACTION_MODIFY_ALL_FUTURE);
+	}
+
+
+	@Override
+	public void onProgressChanged(SeekBar seekBar, int progress,
+			boolean fromUser) {
+		if ( fromUser ) {
+			percentComplete = progress;
+			percentCompleteText.setText(Integer.toString(percentComplete)+"%");
+		}
+	}
+
+
+	@Override
+	public void onStartTrackingTouch(SeekBar seekBar) {
+		if ( false && percentComplete != seekBar.getProgress() ) {
+			percentComplete = seekBar.getProgress();
+			percentCompleteText.setText(Integer.toString(percentComplete)+"%");
+		}
+	}
+
+
+	@Override
+	public void onStopTrackingTouch(SeekBar seekBar) {
+		if ( false && percentComplete != seekBar.getProgress() ) {
+			percentComplete = seekBar.getProgress();
+			percentCompleteText.setText(Integer.toString(percentComplete)+"%");
+		}
 	}
 
 }

@@ -3,6 +3,7 @@
 	android:id="@+id/TodoEditLayout"
 	android:layout_width="fill_parent" 
 	android:layout_height="fill_parent"
+	android:background="@drawable/morphossbg" 
 	android:orientation="vertical">
 	
 	<!-- Title bar -->
@@ -16,8 +17,7 @@
 		android:tileMode="repeat">
 	</TextView>
 		
-	<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-		android:id="@+id/TodoEditBelowTitleLayout"
+	<LinearLayout android:id="@+id/TodoEditBelowTitleLayout"
 		android:layout_width="fill_parent" 
 		android:layout_height="fill_parent"
 		android:orientation="horizontal" 
@@ -34,7 +34,6 @@
 		<ScrollView
 			android:layout_width="fill_parent"
 			android:layout_height="wrap_content"
-			android:background="@drawable/morphossbg" 
 			android:layout_weight="1">
 			<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android" 
 	 			android:id="@+id/TodoEditDataLayout"
@@ -57,85 +56,127 @@
 			
 					<!-- Outer Layout for from/to -->
 					<RelativeLayout  
-						android:id="@+id/TodoFromToLayout" 
+						android:id="@+id/TodoDatesLayout" 
 						android:layout_width="fill_parent" 
 						android:layout_height="wrap_content"
 						android:orientation="vertical"
 						android:layout_below="@+id/TodoName"
 						android:paddingBottom="5sp">
-			
-						<!-- From content -->
-						<LinearLayout
-							android:id="@+id/TodoFromContent"
-							android:layout_height="wrap_content"
-							android:layout_width="fill_parent">
-						
-							<TextView 
-								android:text="@string/FromPrompt" 
-								android:id="@+id/TodoFromLabel" 
-								android:layout_height="wrap_content"
-								android:layout_width="50dp"
-								style="@style/todo_view_label"/>
-							<Button 
-								android:id="@+id/TodoFromDate"
-								android:layout_height="wrap_content"
-								android:layout_width="fill_parent"
-								android:layout_weight="2"/>
-							<Button 
-								android:id="@+id/TodoFromTime"
-								android:layout_height="wrap_content"
-								android:layout_width="fill_parent" 
-								android:layout_weight="3"/>
-						</LinearLayout>
-
+							
 						<!-- Until Content --> 
 						<LinearLayout
-							android:id="@+id/TodoUntilContent"
+							android:id="@+id/TodoUntilLayout"
 							android:layout_height="wrap_content"
 							android:layout_width="fill_parent"
-							android:layout_below="@+id/TodoFromContent"> 
+							android:layout_below="@+id/TodoCheckBoxes"
+							android:paddingBottom="5sp"> 
 							
 							<!-- Until Label --> 
-							<TextView 
-								android:text="@string/UntilPrompt" 
-								android:id="@+id/TodoUntilLabel" 
-								android:layout_height="wrap_content"
-								android:layout_width="50dp"
-								style="@style/todo_view_label"/>
-							<Button 
-								android:id="@+id/TodoUntilDate" 
-								android:layout_below="@+id/TodoFromContent"
-								android:layout_height="wrap_content"
-								android:layout_width="fill_parent"
-								android:layout_weight="2"/>
-							<Button 
-								android:id="@+id/TodoUntilTime" 
-								android:layout_below="@+id/TodoFromContent"
-								android:layout_height="wrap_content"
-								android:layout_width="fill_parent"
-								android:layout_weight="3"/>
+							<TextView android:id="@+id/TodoDueLabel" 
+								android:text="@string/DuePrompt" 
+								android:layout_width="80dp"
+								style="@style/todo_view_label"
+								android:layout_height="fill_parent"
+								android:gravity="center_vertical"/>
+								<LinearLayout
+									android:layout_weight="3"
+									android:background="@color/todo_button_colour"
+									android:layout_height="wrap_content"
+									android:layout_width="fill_parent"
+									android:layout_marginRight="15sp">
+									<Button 
+										android:id="@+id/TodoDueDateTime"
+										android:layout_height="wrap_content"
+										android:layout_width="fill_parent"
+										android:text="23rd September 2011, 12:45pm"
+										style="@style/todo_view_date"/>
+								</LinearLayout>
 						</LinearLayout>
 								
+						<!-- From content -->
 						<LinearLayout
-							android:id="@+id/TodoAllDayLayout"
+							android:id="@+id/TodoFromLayout"
 							android:layout_height="wrap_content"
 							android:layout_width="fill_parent"
-							android:gravity="center_vertical"
-							android:layout_below="@+id/TodoUntilContent">
+							android:layout_below="@+id/TodoUntilLayout"
+							android:paddingBottom="5sp">
+						
 							<TextView 
-								android:text="@string/AllDayPrompt" 
-								android:id="@+id/TodoFromAllDayLabel" 
+								android:id="@+id/TodoFromLabel" 
+								android:text="@string/TodoFromPrompt" 
+								android:layout_width="80dp"
+								style="@style/todo_view_label" android:layout_height="fill_parent" android:gravity="center_vertical"/>
+							<LinearLayout
+								android:layout_weight="3"
+								android:background="@color/todo_button_colour"
 								android:layout_height="wrap_content"
-								android:layout_width="wrap_content"
-								style="@style/todo_view_label" />
-		
-							<CheckBox
-								android:id="@+id/TodoAllDay"
-								android:layout_height="wrap_content"
-								android:layout_width="wrap_content"
-								android:layout_toRightOf="@+id/TodoFromAllDayLabel"/>
+								android:layout_width="fill_parent"
+									android:layout_marginRight="15sp">
+								<Button 
+									android:id="@+id/TodoFromDateTime"
+									android:layout_height="wrap_content"
+									android:layout_width="fill_parent"
+									android:text="2009-12-23"
+									style="@style/todo_view_date"/>
+							</LinearLayout>
 						</LinearLayout>
+
+						<!-- Completed content -->
+						<RelativeLayout
+							android:id="@+id/TodoCompletedLayout"
+							android:layout_height="wrap_content"
+							android:layout_width="fill_parent"
+							android:layout_below="@+id/TodoFromLayout">
 							
+						    <LinearLayout
+								android:id="@+id/TodoCompletedDatesLayout"
+								android:layout_height="wrap_content"
+								android:layout_width="fill_parent">
+								<TextView 
+									android:text="@string/CompletedPrompt" 
+									android:id="@+id/TodoCompletedLabel" 
+									android:layout_height="fill_parent"
+									android:layout_width="80dp"
+									android:layout_centerVertical="true"
+									style="@style/todo_view_label" android:layout_gravity="center_vertical" android:gravity="center_vertical"/>
+								<LinearLayout
+									android:layout_weight="3"
+									android:background="@color/todo_button_colour"
+									android:layout_height="wrap_content"
+									android:layout_width="fill_parent"
+									android:layout_marginRight="15sp">
+									<Button 
+										android:id="@+id/TodoCompletedDateTime"
+										android:layout_height="wrap_content"
+										android:layout_width="fill_parent"
+										android:text="2009-12-23"
+										style="@style/todo_view_date"/>
+								</LinearLayout>
+							</LinearLayout>
+						    <LinearLayout
+								android:id="@+id/TodoCompletedPercent"
+								android:layout_height="wrap_content"
+								android:layout_width="fill_parent"
+								android:layout_centerVertical="true"
+								android:layout_below="@+id/TodoCompletedDatesLayout">
+								<TextView 
+									android:text="70%" 
+									android:id="@+id/TodoPercentCompleteText" 
+									android:layout_width="80dp"
+									style="@style/todo_view_label"
+									android:layout_height="fill_parent"
+									android:gravity="center_vertical|center_horizontal"/>
+								<SeekBar
+									android:id="@+id/TodoPercentCompleteBar"
+									android:layout_width="fill_parent"
+									android:layout_height="wrap_content"
+									android:layout_centerVertical="true"
+									android:max="100"
+									android:indeterminate="false"
+									android:layout_marginRight="15sp"/>
+							</LinearLayout>
+						</RelativeLayout>
+
 					</RelativeLayout>
 			
 					<!-- Location Label and Button --> 
@@ -143,7 +184,8 @@
 						android:id="@+id/TodoLocationLayout" 
 						android:layout_width="fill_parent" 
 						android:layout_height="wrap_content"
-						android:layout_below="@+id/TodoFromToLayout" android:paddingBottom="5sp">
+						android:layout_below="@+id/TodoDatesLayout"
+						android:paddingBottom="5sp">
 		
 						<!-- Location Label -->
 						<TextView 
@@ -160,7 +202,8 @@
 							android:layout_height="wrap_content"
 							android:layout_width="fill_parent"
 							style="@style/todo_view_content"
-							android:inputType="textCapWords|textAutoCorrect|textPostalAddress"/>
+							android:inputType="textCapSentences|textPostalAddress|textAutoCorrect"/>
+						
 						
 					</RelativeLayout>	
 					<!-- End location label and button -->
@@ -185,7 +228,9 @@
 							android:layout_height="wrap_content"
 							android:layout_width="fill_parent"
 							style="@style/todo_view_content"
-							android:inputType="textCapSentences|textAutoCorrect|textMultiLine"/>
+							android:inputType="textMultiLine|textCapSentences|textLongMessage|textAutoCorrect"
+							android:minHeight="60sp"
+							android:minWidth="100sp"/>
 						
 					</RelativeLayout>
 					<RelativeLayout
@@ -207,13 +252,18 @@
 								android:layout_gravity="left|center_vertical"
 								style="@style/todo_view_label"/>
 						
-							<Button
-								android:id="@+id/TodoAlarmsButton" 
-								android:layout_height="wrap_content"
-								android:layout_width="wrap_content"
-								android:layout_gravity="left|center_vertical"
-								android:text="@string/Add_Alarm"
-								style="@style/todo_view_content"/>
+							<LinearLayout
+							    android:layout_width="wrap_content"
+							    android:layout_height="wrap_content"
+								android:background="@color/todo_button_colour"
+								android:layout_gravity="left|center_vertical">
+								<Button
+									android:id="@+id/TodoAlarmsButton" 
+									android:layout_height="wrap_content"
+									android:layout_width="wrap_content"
+									android:text="@string/Add_Alarm"
+									style="@style/todo_view_button"/>
+							</LinearLayout>
 						</LinearLayout>
 						
 						<TableLayout 
@@ -240,22 +290,50 @@
 							android:layout_width="100sp"
 							android:layout_gravity="left|center_vertical"
 							style="@style/todo_view_label"/>
-						<Button 
-							android:id="@+id/TodoRepeatsContent" 
-							android:layout_toRightOf="@+id/TodoRepeatsLabel"
-							android:layout_height="wrap_content"
-							android:layout_width="wrap_content"
-							android:layout_gravity="right|center_vertical"
-							android:text="@string/setRepeatRule"
-							style="@style/todo_view_content"/>
+						<LinearLayout
+						    android:layout_width="wrap_content"
+						    android:layout_height="wrap_content"
+							android:background="@color/todo_button_colour"
+							android:layout_toRightOf="@+id/TodoRepeatsLabel">
+							<Button 
+								android:id="@+id/TodoRepeatsContent" 
+								android:layout_height="wrap_content"
+								android:layout_width="wrap_content"
+								android:layout_gravity="right|center_vertical"
+								android:text="@string/setRepeatRule"
+								style="@style/todo_view_button"/>
+						</LinearLayout>
 					</LinearLayout>
 	
+				<LinearLayout
+					android:id="@+id/TodoCollectionLayout" 
+					android:layout_width="fill_parent" 
+					android:layout_height="wrap_content"
+					android:layout_below="@+id/TodoRepeatsLayout"
+					android:paddingBottom="20sp">
+			
+					<!-- Repeats label and content --> 
+					<TextView 
+						android:text="@string/CollectionPrompt" 
+						android:id="@+id/TodoCollectionLabel" 
+						android:layout_height="wrap_content"
+						android:layout_width="100sp"
+						android:layout_gravity="left|center_vertical"
+						style="@style/todo_view_label"/>
 					<!--  Collection Selection Button -->				
-					<Button 
-						android:id="@+id/TodoEditCollectionButton" 
-						android:layout_below="@id/TodoRepeatsLayout" 
-						android:layout_width="fill_parent" 
-						android:layout_height="wrap_content"/>
+					<LinearLayout
+   						android:id="@+id/TodoEditCollectionLayout" 
+					    android:layout_width="wrap_content"
+					    android:layout_height="wrap_content"
+						android:background="@color/todo_button_colour"
+					    android:layout_below="@id/TodoRepeatsLayout">
+					    <Button 
+    						android:id="@+id/TodoEditCollectionButton" 
+    						android:layout_width="fill_parent" 
+    						android:layout_height="wrap_content"
+							style="@style/todo_view_button"/>
+					</LinearLayout>
+				</LinearLayout>
 		
 			</RelativeLayout>
 		</ScrollView>
@@ -264,40 +342,53 @@
 		android:id="@+id/button_layout" 
 		android:layout_width="fill_parent" 
 		android:gravity="bottom"
-		android:background="#AAAACC"
-		android:layout_gravity="bottom" android:layout_height="36dp">
+		android:layout_gravity="bottom"
+		android:layout_height="30dp"
+		android:background="@color/bottom_bg">
 	
 		<LinearLayout
 			android:layout_width="fill_parent" 
-			android:layout_height="fill_parent"
+			android:layout_height="wrap_content"
 			android:layout_weight="1"
 			android:gravity="center" 
 			android:padding="0sp">
-			<Button android:id="@+id/todo_apply_button"
-				android:layout_width="wrap_content"
+			<LinearLayout
+				android:layout_width="wrap_content" 
 				android:layout_height="wrap_content"
-				style="@style/bottom_button"
-				android:text="@string/Apply"
-				android:width="70sp"
-				android:layout_gravity="center" 
-				android:includeFontPadding="true" 
-				android:padding="0sp"/>
+				android:background="@color/todo_button_colour"
+				android:padding="0sp">
+				<Button android:id="@+id/todo_apply_button"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					style="@style/todo_bottom_button"
+					android:text="@string/Apply"
+					android:width="90sp"
+					android:layout_gravity="center" 
+					android:includeFontPadding="true" 
+					android:padding="0sp"/>
+			</LinearLayout>
 		</LinearLayout>
 		<LinearLayout
 			android:layout_width="fill_parent" 
-			android:layout_height="fill_parent"
+			android:layout_height="wrap_content"
 			android:layout_weight="1"
 			android:gravity="center" 
 			android:padding="0sp">
-			<Button android:id="@+id/todo_cancel_button"
-				android:layout_width="wrap_content"
+			<LinearLayout
+				android:layout_width="wrap_content" 
 				android:layout_height="wrap_content"
-				android:layout_gravity="center"
-				style="@style/bottom_button"
-				android:text="@string/cancel"
-				android:width="70sp" 
-				android:includeFontPadding="true" 
-				android:padding="0sp"/>
+				android:background="@color/todo_button_colour"
+				android:padding="0sp">
+				<Button android:id="@+id/todo_cancel_button"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_gravity="center"
+					style="@style/todo_bottom_button"
+					android:text="@string/cancel"
+					android:width="90sp" 
+					android:includeFontPadding="true" 
+					android:padding="0sp"/>
+			</LinearLayout>
 		</LinearLayout>
 		
 	</LinearLayout>
