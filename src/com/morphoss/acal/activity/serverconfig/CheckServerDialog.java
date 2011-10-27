@@ -163,8 +163,11 @@ public class CheckServerDialog implements Runnable {
 					tester = testers.next();
 					requestor.applyFromServer(serverData, true);
 					updateProgress(context.getString(R.string.checkServer_SearchingForServer,
-							tester.getProtocolUrlPrefix() + serverData.getAsString(Servers.SUPPLIED_DOMAIN) + ":" + tester.port ));
-				} while( !tester.hasCalDAV() && testers.hasNext() );
+							tester.getProtocolUrlPrefix() + serverData.getAsString(Servers.SUPPLIED_DOMAIN) + ":"
+									+ tester.port));
+				}
+				while ( !tester.hasCalDAV() && testers.hasNext() );
+
 				if ( !tester.hasCalDAV() ) {
 					// Try harder!
 					testers = TestPort.defaultIterator(requestor);
@@ -173,8 +176,10 @@ public class CheckServerDialog implements Runnable {
 						requestor.applyFromServer(serverData, true);
 						tester.reProbe(); // Extend the timeout
 						updateProgress(context.getString(R.string.checkServer_SearchingForServer,
-								tester.getProtocolUrlPrefix() + serverData.getAsString(Servers.SUPPLIED_DOMAIN) + ":" + tester.port ));
-					} while( !tester.hasCalDAV() && testers.hasNext() );
+								tester.getProtocolUrlPrefix() + serverData.getAsString(Servers.SUPPLIED_DOMAIN) + ":"
+										+ tester.port));
+					}
+					while ( !tester.hasCalDAV() && testers.hasNext() );
 				}
 			}
 

@@ -17,6 +17,8 @@ import com.morphoss.acal.xml.DavNode;
 
 public class TestPort {
 	private static final String TAG = "aCal TestPort";
+	private static final boolean DEBUG = true;
+	
 	private static final String pPathRequestData = "<?xml version=\"1.0\" encoding=\"utf-8\"?>"+
 			"<propfind xmlns=\"DAV:\">"+
 				"<prop>"+
@@ -87,11 +89,11 @@ public class TestPort {
 			requestor.setPath(path);
 			requestor.setHostName(hostName);
 			requestor.setPortProtocol( port, (useSSL?1:0) );
-			Log.i(TAG, "Checking port open "+requestor.fullUrl());
+			if ( DEBUG ) Log.i(TAG, "Checking port open "+requestor.protocolHostPort());
 			this.isOpen = false;
 			try {
 				requestor.doRequest("HEAD", null, null, null);
-				Log.i(TAG, "Probe "+requestor.fullUrl()+" success: status " + requestor.getStatusCode());
+				if ( DEBUG ) Log.i(TAG, "Probe "+requestor.fullUrl()+" success: status " + requestor.getStatusCode());
 
 				// No exception, so it worked!
 				this.isOpen = true;
@@ -106,6 +108,7 @@ public class TestPort {
 				Log.d(TAG, "Probe "+requestor.fullUrl()+" failed: " + e.getMessage());
 			}
 		}
+		if ( DEBUG ) Log.i(TAG, "Port "+(isOpen ?"":"not")+" open on "+requestor.protocolHostPort() );
 		return this.isOpen;
 	}
 
@@ -137,7 +140,7 @@ public class TestPort {
 			for (Header h : headers) {
 				if (h.getName().equalsIgnoreCase("DAV")) {
 					if (h.getValue().toLowerCase().contains("calendar-access")) {
-						Log.i(TAG, "Discovered server supports CalDAV on URL "+requestor.fullUrl());
+						if ( DEBUG ) Log.i(TAG, "Discovered server supports CalDAV on URL "+requestor.fullUrl());
 						hasCalDAV = true;
 						hasDAV = true; // by implication
 						return true;
@@ -156,7 +159,7 @@ public class TestPort {
 	 */
 	private boolean doPropfindPrincipal( String requestPath ) {
 		if ( requestPath != null ) requestor.setPath(requestPath);
-		Log.i(TAG, "Doing PROPFIND for current-user-principal on " + requestor.fullUrl() );
+		if ( DEBUG ) Log.i(TAG, "Doing PROPFIND for current-user-principal on " + requestor.fullUrl() );
 		try {
 			DavNode root = requestor.doXmlRequest("PROPFIND", null, pPathHeaders, pPathRequestData);
 			
@@ -210,6 +213,7 @@ public class TestPort {
 	 * may only be available on some specific URLs in weird cases.
 	 */
 	boolean hasDAV() {
+		if ( DEBUG ) Log.i(TAG, "Starting DAV discovery on "+requestor.fullUrl());
 		if ( !isOpen() ) return false;
 		if ( hasDAV == null ) {
 			hasDAV = false;
@@ -217,6 +221,7 @@ public class TestPort {
 			else if ( !hasDAV && doPropfindPrincipal("/.well-known/caldav") )	hasDAV = true;
 			else if ( !hasDAV && doPropfindPrincipal("/") )						hasDAV = true;
 		}
+		if ( DEBUG ) Log.i(TAG, "DAV "+(hasDAV?"":"not")+" found on "+requestor.fullUrl());
 		return hasDAV;
 	}
 
@@ -225,16 +230,23 @@ public class TestPort {
 	 * Probes for CalDAV support on the server using previous path used for DAV.
 	 */
 	boolean hasCalDAV() {
+		requestor.setTimeOuts(connectTimeOut,socketTimeOut);
+		requestor.setPath(path);
+		requestor.setHostName(hostName);
+		requestor.setPortProtocol( port, (useSSL?1:0) );
+
+		if ( DEBUG ) Log.i(TAG, "Starting CalDAV dependency discovery on "+requestor.fullUrl());
 		if ( !isOpen() || !hasDAV() || !authOK() ) return false;
+		if ( DEBUG ) Log.i(TAG, "All CalDAV dependencies are present.");
 		if ( hasCalDAV == null ) {
+			if ( DEBUG ) Log.i(TAG, "Still discovering actual CalDAV support.");
 			hasCalDAV = false;
 			try {
-				Log.i(TAG, "Starting OPTIONS on "+requestor.fullUrl());
+				if ( DEBUG ) Log.i(TAG, "Starting OPTIONS on "+requestor.fullUrl());
 				requestor.doRequest("OPTIONS", path, null, null);
 				int status = requestor.getStatusCode();
 				Log.d(TAG, "OPTIONS request " + status + " on " + requestor.fullUrl() );
-				checkCalendarAccess(requestor.getResponseHeaders());
-				if ( status == 200 ) return true;
+				checkCalendarAccess(requestor.getResponseHeaders());  // Updates 'hasCalDAV' if it finds it
 			}
 			catch (SendRequestFailedException e) {
 				Log.d(TAG, "OPTIONS Error connecting to server: " + e.getMessage());
@@ -244,7 +256,8 @@ public class TestPort {
 				Log.d(TAG,Log.getStackTraceString(e));
 			}
 		}
-		return hasDAV;
+		if ( DEBUG ) Log.i(TAG, "CalDAV "+(hasCalDAV?"":"not")+" found on "+requestor.fullUrl());
+		return hasCalDAV;
 	}
 
 
@@ -254,7 +267,8 @@ public class TestPort {
 	 * @return
 	 */
 	public boolean authOK() {
-		return (authOK == null || authOK == false ? false : true);
+		if ( DEBUG ) Log.i(TAG, "Checking authOK which was: "+(authOK == null ? "uncertain, assumed OK" : (authOK ? "OK" : "bad")));
+		return (authOK == null || authOK ? true : false);
 	}
 	
 	/**
