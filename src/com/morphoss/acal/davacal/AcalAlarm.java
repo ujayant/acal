@@ -28,7 +28,7 @@ import com.morphoss.acal.acaltime.AcalDuration;
 
 public class AcalAlarm implements Serializable, Parcelable, Comparable<AcalAlarm> {
 	private static final long	serialVersionUID	= 1L;
-	public final boolean relativeToStart;
+	public final RelateWith relativeTo;
 	public final String description;
 	public final AcalDuration relativeTime;
 	public final AcalDateTime timeToFire;
@@ -41,7 +41,7 @@ public class AcalAlarm implements Serializable, Parcelable, Comparable<AcalAlarm
 	
 	public String toString() {
 		return "AcalAlarm: nextTriggerTime: "+this.getNextTimeToFire()+" Snooze: "+(isSnooze ? "Yes" : "No")+
-			  " Action: "+actionType+" Relative: "+(relativeToStart ? "Yes" : "No");
+			  " Action: "+actionType+" Relative: "+relativeTo;
 	}
 	
 	@Override
@@ -49,13 +49,18 @@ public class AcalAlarm implements Serializable, Parcelable, Comparable<AcalAlarm
 		if (! (o instanceof AcalAlarm) || o == null ) return false;
 		if (this == o) return true;
 		AcalAlarm that = (AcalAlarm)o;
-		return 	(this.relativeToStart == that.relativeToStart) &&
+		return 	(this.relativeTo== that.relativeTo) &&
 				(this.description != null ? (that.description != null) && (this.description.equals(that.description)) : that.description == null )&&
 				(this.timeToFire != null ? (that.timeToFire != null) && (this.timeToFire.equals(that.timeToFire)) : that.timeToFire == null )&&
 				(this.relativeTime != null ? (that.relativeTime != null) && (this.relativeTime.equals(that.relativeTime)) : that.relativeTime == null )&&
 				(this.actionType != null ? (that.actionType != null) && (this.actionType.equals(that.actionType)) : that.actionType == null )&&
 				(this.isSnooze == that.isSnooze);
 	}
+
+	public enum RelateWith {
+		ABSOLUTE, START, END;
+	}
+
 	public enum ActionType {
 		DISPLAY, AUDIO, IGNORED;
 
@@ -68,28 +73,56 @@ public class AcalAlarm implements Serializable, Parcelable, Comparable<AcalAlarm
 		}
 	};
 
-	public AcalAlarm(boolean relativeToStart, String description,	AcalDuration relativeTime, ActionType actionType, AcalDateTime start, AcalDateTime end) {
-		this.relativeToStart = relativeToStart;
+	/**
+	 * Construct an AcalAlarm from the indicated values.
+	 * @param relativeTo What the alarm is related to, or absolute
+	 * @param description The alarm description
+	 * @param relativeTime The duration relative to start/end.  Ignored for absolute alarms.
+	 * @param actionType What action to take when the alarm fires.
+	 * @param start  The datetime which the START or ABSOLUTE trigger is related to.
+	 * @param end The datetime which the END trigger is related to.
+	 */
+	public AcalAlarm(RelateWith relativeTo, String description, AcalDuration relativeTime, ActionType actionType, AcalDateTime start, AcalDateTime end) {
+		this.relativeTo = relativeTo;
 		this.description = description;
 		this.relativeTime = relativeTime;
 		this.actionType = actionType;
-		if ( relativeToStart )
+		if ( relativeTo == RelateWith.START )
 			timeToFire = AcalDateTime.addDuration(start, relativeTime);
-		else
+		else if ( relativeTo == RelateWith.END )
 			timeToFire = AcalDateTime.addDuration(end, relativeTime);
+		else
+			timeToFire = (start != null ? start.clone() : null);
 	}
 	
 	public AcalAlarm( VAlarm component, Masterable parent, AcalDateTime start, AcalDateTime end ) {
 		AcalProperty aProperty = component.getProperty("TRIGGER");
 		String related = null;
-		if ( aProperty != null )
-			related = aProperty.getParam("RELATED");
-		relativeToStart = (related == null || related.equalsIgnoreCase("START"));
-		relativeTime = AcalDuration.fromProperty(aProperty);
-		if ( relativeToStart )
-			timeToFire = AcalDateTime.addDuration(start, relativeTime);
-		else
-			timeToFire = AcalDateTime.addDuration(end, relativeTime);
+		related = aProperty.getParam("RELATED");
+		if ( related == null || (start == null && end == null) ) {
+			relativeTo = RelateWith.ABSOLUTE;
+			AcalDateTime when;
+			try {
+				when = AcalDateTime.fromAcalProperty(aProperty);
+			}
+			catch( IllegalArgumentException e ) {
+				when = new AcalDateTime();
+			}
+			timeToFire = when;
+			relativeTime = new AcalDuration();
+		}
+		else {
+			relativeTo = (related.equalsIgnoreCase("START") && start != null ? RelateWith.START : RelateWith.END);
+			if ( AcalDuration.fromProperty(aProperty) == null )
+				relativeTime = new AcalDuration();
+			else
+				relativeTime = AcalDuration.fromProperty(aProperty);
+			if ( relativeTo == RelateWith.START )
+				timeToFire = AcalDateTime.addDuration(start, relativeTime);
+			else
+				timeToFire = AcalDateTime.addDuration(end, relativeTime);
+		}
+
 		aProperty = component.getProperty("ACTION");
 		actionType = ( aProperty == null ? ActionType.IGNORED : ActionType.fromString(aProperty.getValue()));
 		
@@ -103,10 +136,15 @@ public class AcalAlarm implements Serializable, Parcelable, Comparable<AcalAlarm
 	
 	public VAlarm getVAlarm( Masterable parent ) {
 		VAlarm ret = new VAlarm( parent );
-		String triggerValue = relativeTime.toString();;
 		
-		AcalProperty aProperty = new AcalProperty("TRIGGER", triggerValue);
-		if ( ! relativeToStart ) aProperty.setParam("RELATED", "END");
+		AcalProperty aProperty;
+		if ( relativeTo == RelateWith.ABSOLUTE ) {
+			aProperty = timeToFire.asProperty("TRIGGER");
+		}
+		else {
+			aProperty = new AcalProperty("TRIGGER", relativeTime.toString());
+			aProperty.setParam("RELATED", relativeTo.toString() );
+		}
 		ret.addProperty(aProperty);
 
 		aProperty = new AcalProperty("ACTION", this.actionType.toString());
@@ -137,7 +175,7 @@ public class AcalAlarm implements Serializable, Parcelable, Comparable<AcalAlarm
 
 	@Override
 	public void writeToParcel(Parcel out, int flags) {
-		out.writeByte((byte)(relativeToStart?'S':'F'));
+		out.writeByte((byte)(relativeTo.toString().charAt(0)));
 		out.writeString(description);
 		if ( relativeTime == null ) {
 			throw new NullPointerException("relativeTime may not be null");
@@ -159,7 +197,8 @@ public class AcalAlarm implements Serializable, Parcelable, Comparable<AcalAlarm
 	}
 
 	public AcalAlarm(Parcel in) {
-		relativeToStart = in.readByte() == 'S';
+		byte b = in.readByte();
+		relativeTo = (b == 'A' ? RelateWith.ABSOLUTE : (b == 'S' ? RelateWith.START : RelateWith.END));
 		description = in.readString();
 		relativeTime = new AcalDuration(in);
 		timeToFire = AcalDateTime.unwrapParcel(in);
@@ -188,9 +227,17 @@ public class AcalAlarm implements Serializable, Parcelable, Comparable<AcalAlarm
 	public long nextAlarmTime() {
 		return timeToFire.getMillis();
 	}
-	
+
+	public String prettyTimeToFire() {
+		return timeToFire.fmtIcal();
+	}
+
 	public String toPrettyString() {
-		return relativeTime.toPrettyString((relativeToStart ? "start" : "finish"));
+		if ( relativeTo == RelateWith.ABSOLUTE ) {
+			return prettyTimeToFire();
+		}
+
+		return relativeTime.toPrettyString(relativeTo.toString().toLowerCase());
 	}
 	
 	/**
