@@ -288,14 +288,14 @@ public class TodoView extends Activity implements OnGestureListener, OnTouchList
     	if (requestCode == EDIT_TASK && resultCode == RESULT_OK) {
 			try {
 				Bundle b = data.getExtras();
-				this.sat = (SimpleAcalTodo) b.getParcelable("SimpleAcalTodo");
+				SimpleAcalTodo tmpSat = (SimpleAcalTodo) b.getParcelable(TodoEdit.activityResultName);
+				if ( tmpSat != null ) sat = tmpSat;
 				String blob = b.getString("VCalendar");
 				long collectionId = b.getLong("collectionId");
 				AcalCollection collection = AcalCollection.fromDatabase(this, collectionId);
 				this.vc = (VCalendar) VComponent.createComponentFromBlob(blob, sat.resourceId, collection);
 				this.todo = (VTodo) vc.getMasterChild();
 						
-				this.populateLayout();
 			}
 			catch (Exception e) {
 				if (Constants.LOG_DEBUG)Log.d(TAG, "Error getting data from caller: "+e.getMessage());
