@@ -19,12 +19,15 @@ public class AcalDateTimeFormatter {
 
 		Date javaDate = dateTime.toJavaDate();
 		StringBuilder b = new StringBuilder(StaticHelpers.capitaliseWords(longDate.format(javaDate)));
-		b.append(' ');
-		b.append((prefer24hourFormat?time24Hr:timeAmPm).format(javaDate));
-		if ( !dateTime.isFloating() ) {
-			if ( TimeZone.getDefault().getID().equalsIgnoreCase( dateTime.getTimeZoneName() ) ) {
-				b.append(' ');
-				b.append(dateTime.getTimeZoneName());
+		if ( !dateTime.isDate() ) {
+			b.append(' ');
+			b.append((prefer24hourFormat?time24Hr:timeAmPm).format(javaDate));
+
+			if ( !dateTime.isFloating() ) {
+				if ( TimeZone.getDefault().getID().equalsIgnoreCase( dateTime.getTimeZoneId() ) ) {
+					b.append(' ');
+					b.append(dateTime.getTimeZoneId());
+				}
 			}
 		}
 		return b.toString();
