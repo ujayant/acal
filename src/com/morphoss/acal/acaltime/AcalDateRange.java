@@ -92,33 +92,43 @@ public class AcalDateRange implements Parcelable, Cloneable {
 	}
 
 	/**
-	 * Test whether this range overlaps the period from start (inclusive) to end (non-inclusive)
-	 * @param start
-	 * @param finish
+	 * Test whether this range overlaps the period from otherStart (inclusive) to otherEnd (non-inclusive)
+	 * @param otherStart
+	 * @param otherEnd
 	 * @return true, if the ranges overlap.
 	 */
-	public boolean overlaps( AcalDateTime start, AcalDateTime finish ) {
-		if ( start == null && finish == null) return false;
+	public boolean overlaps( AcalDateTime otherStart, AcalDateTime otherEnd ) {
+		if ( (otherStart == null && otherEnd == null)
+					|| (start == null && end == null) )
+			return true;
 		boolean answer;
 		if ( end == null ) {
-			answer = (!start.before(start) && (finish == null || finish.after(start) ) );
+			answer = (otherEnd == null || otherEnd.after(start));
 		}
-		else if ( finish == null ) {
-			answer = start.before(end);
+		else if ( start == null ) {
+			answer = (otherStart == null || otherStart.before(end));
+		}
+		else if ( otherEnd == null ) {
+			answer = otherStart.before(end);
+		}
+		else if ( otherStart == null ) {
+			answer = otherEnd.after(start);
 		}
 		else {
-			answer = ( !finish.before(start) && start.before(end) );
+			answer = ( !otherEnd.before(start) && !otherStart.after(end) );
 		}
 		if ( Constants.debugDateTime && Constants.LOG_VERBOSE )
-			Log.v(TAG,"Overlap of ("+start.fmtIcal()+","+(end==null?"null":end.fmtIcal())+") & ("
-						+ start.fmtIcal()+","+(finish==null?"null":finish.fmtIcal())+") is: "
+			Log.v(TAG,"Overlap of "+toString()+
+					" with range("+(otherStart==null?"<forever<":otherStart.fmtIcal())+
+					","+ (otherEnd==null?">forever>":otherEnd.fmtIcal())+") is: "
 						+ (answer? "yes":"no")
 					);
+
 		return answer;
 	}
 
 	public String toString() {
-		return "range("+start.fmtIcal()+","+(end==null?">>>":end.fmtIcal());
+		return "range("+(start==null?"<forever<":start.fmtIcal())+","+(end==null?">forever>":end.fmtIcal())+")";
 	}
 
 	public AcalDateRange clone() {
@@ -129,5 +139,21 @@ public class AcalDateRange implements Parcelable, Cloneable {
 	public void writeToParcel(Parcel out, int flags) {
 		start.writeToParcel(out, flags);
 		end.writeToParcel(out, flags);
+	}
+
+	/**
+	 * Returns true if someDate is contained within the range from start (inclusive) to end (exclusive), so
+	 * for example the time 14:00 would be within the range 14:00 to 15:00, but not the range 13:00 to 14:00,
+	 * given that the date was the same in all cases.
+	 * 
+	 * Null for either end of the range is considered to mean -infinity or +infinity
+	 * 
+	 * @param someDate
+	 * @return
+	 */
+	public boolean contains(AcalDateTime someDate) {
+		if ( start == null || !start.after(someDate) )
+			if ( end == null || end.after(someDate) ) return true;
+		return false;
 	}
 }
