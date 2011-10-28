@@ -324,16 +324,33 @@ public abstract class VComponent implements Parcelable {
 	}
 
 	
+	/**
+	 * Returns the colour assigned to the collection associated with this component.
+	 * @return
+	 */
 	public synchronized int getCollectionColour() {
+		// When we are adding events we might not have a collection yet
 		try {
-			// When we are adding events we might not have a collection yet
 			return this.collectionData.getColour();
 		}
 		catch( NullPointerException e ) {};
-		return 0; // black, or so we believe :-)
+		return 0x60a0a0a0; // 40% transparent 60% grey
 	}
 
 	
+	/**
+	 * Returns the name for the collection associated with this component.
+	 * @return
+	 */
+	public CharSequence getCollectionName() {
+		// When we are adding events we might not have a collection yet
+		try {
+			return this.collectionData.getDisplayName();
+		}
+		catch( NullPointerException e ) {};
+		return "Unnamed";
+	}
+
 	public boolean getAlarmEnabled() {
 		try {
 			// When we are adding events we might not have a collection yet
@@ -569,33 +586,51 @@ public abstract class VComponent implements Parcelable {
 	}
 
 	public boolean addChild(VComponent child) {
-		if (!childrenSet) throw new IllegalStateException("Children must be set with persistence on to add child to vcomp");
+		if (!childrenSet) {
+			this.persistenceCount++;
+			populateChildren();
+		}
 		return this.children.add(child);
 	}
 	
 	public synchronized boolean removeChild(VComponent child) {
-		if (!childrenSet) throw new IllegalStateException("Children must be set with persistence on to rem child to vcomp");
+		if (!childrenSet) {
+			this.persistenceCount++;
+			populateChildren();
+		}
 		return this.children.remove(child);
 	}
 	
 	public AcalProperty addProperty(AcalProperty property) {
-		if (!propertiesSet) throw new IllegalStateException("Properties must be set with persistence on to add prop to vcomp");
+		if (!propertiesSet) {
+			this.persistenceCount++;
+			populateProperties();
+		}
 		return this.properties.put(property.getName(), property);
 	}
 	
 	public AcalProperty removeProperty(String name) {
-		if (!propertiesSet) throw new IllegalStateException("Properties must be set with persistence on to rem prop to vcomp");
+		if (!propertiesSet) {
+			this.persistenceCount++;
+			populateProperties();
+		}
 		return this.properties.remove(name);
 	}
 
 	public AcalProperty setUniqueProperty(AcalProperty property) {
-		if (!propertiesSet) throw new IllegalStateException("Properties must be set with persistence on to add prop to vcomp");
+		if (!propertiesSet) {
+			this.persistenceCount++;
+			populateProperties();
+		}
 		this.properties.remove(property.getName());
 		return this.properties.put(property.getName(), property);
 	}
 	
 	public void removeProperties( String[] names ) {
-		if (!propertiesSet) throw new IllegalStateException("Properties must be set with persistence on to rem prop to vcomp");
+		if (!propertiesSet) {
+			this.persistenceCount++;
+			populateProperties();
+		}
 		for ( String n : names ) {
 			properties.remove(n);
 		}
