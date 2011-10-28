@@ -32,6 +32,7 @@ public class TimeZoneListAdapter implements SpinnerAdapter {
 	 * Get a list of countries of people using aCal and apply to this
 	 */
 	Zone[] commonZones = {
+			new Zone("Floating", null),	
 			new Zone("UK & Ireland","Europe/London"),	
 			new Zone("Portugal","Europe/Lisbon"),	
 			new Zone("Central European time","Europe/Berlin"),	
@@ -65,9 +66,22 @@ public class TimeZoneListAdapter implements SpinnerAdapter {
 		}
 		if ( currentTz != null && !found ) {
 			// Add the current timezone into the first position in the list
-			ourZones.add(0, new Zone(currentTzId,currentTzId) );
+			ourZones.add(1, new Zone(currentTzId,currentTzId) );
 		}
 
+	}
+
+	public int getPositionOf(String tzid) {
+		Zone z;
+		for( int i=0; i<ourZones.size(); i++ ) {
+			z = ourZones.get(i);
+			if ( z.tzid == null ) {
+				if ( tzid == null) return i;
+			}
+			else if ( z.tzid.equals(tzid) )
+				return i; 
+		}
+		return 0;
 	}
 
 	public String getTzId(int position) {

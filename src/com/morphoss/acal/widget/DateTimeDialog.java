@@ -57,20 +57,21 @@ public class DateTimeDialog extends Dialog
 	private DatePicker datePicker;
 	private TimePicker timePicker;
 	private CheckBox dateOnlyCheckBox;
-	private CheckBox floatingCheckBox;
 	private Spinner timeZoneSpinner; 
 	private TimeZoneListAdapter tzListAdapter;
 
 	private AcalDateTime currentDateTime;
 	private final boolean use24HourTime;
 
-	public DateTimeDialog(Context context, AcalDateTime dateTimeValue, boolean twentyFourHourTime, DateTimeSetListener listener )  {
+	public DateTimeDialog(Context context, String dialogTitle, AcalDateTime dateTimeValue, boolean twentyFourHourTime, DateTimeSetListener listener )  {
     	super(context);
     	this.context = context;
         this.dialogListener = listener;
         use24HourTime = twentyFourHourTime;
         setContentView(R.layout.datetime_dialog);
 
+        this.setTitle(dialogTitle);
+        
         currentDateTime = (dateTimeValue == null ? new AcalDateTime() : dateTimeValue.clone());
         
         setButton = (Button)this.findViewById(R.id.DateTimeSetButton);
@@ -93,13 +94,10 @@ public class DateTimeDialog extends Dialog
         dateOnlyCheckBox.setChecked(currentDateTime.isDate());
         dateOnlyCheckBox.setOnCheckedChangeListener(this);
 
-        floatingCheckBox = (CheckBox) this.findViewById(R.id.DateTimeIsFloating);
-        floatingCheckBox.setChecked(currentDateTime.isFloating());
-        floatingCheckBox.setOnCheckedChangeListener(this);
-
         timeZoneSpinner = (Spinner) this.findViewById(R.id.DateTimeZoneSelect);
         tzListAdapter = new TimeZoneListAdapter(this.context, currentDateTime.getTimeZone());
         timeZoneSpinner.setAdapter(tzListAdapter);
+        timeZoneSpinner.setSelection(tzListAdapter.getPositionOf(currentDateTime.getTimeZoneId()));
         timeZoneSpinner.setOnItemSelectedListener(this);
 
         updateLayout();
@@ -108,8 +106,6 @@ public class DateTimeDialog extends Dialog
 	
 	private void updateLayout() {
 		timePicker.setEnabled(!dateOnlyCheckBox.isChecked());
-		timeZoneSpinner.setEnabled(!floatingCheckBox.isChecked());
-		
     	dateTimeText.setText(AcalDateTimeFormatter.fmtFull(currentDateTime,use24HourTime));
 	}
 
@@ -118,19 +114,6 @@ public class DateTimeDialog extends Dialog
 		currentDateTime.setAsDate(isDate);
 		updateLayout();
 	}
-
-	
-	private void toggleIsFloating( boolean isFloating ) {
-		if ( isFloating ) {
-			currentDateTime.setTimeZone(null);
-		}
-		else {
-			currentDateTime.setTimeZone(tzListAdapter.getTzId(timeZoneSpinner.getSelectedItemPosition()));
-		}
-		updateLayout();
-	}
-
-	
 
 	
 	@Override
@@ -145,15 +128,16 @@ public class DateTimeDialog extends Dialog
 	@Override
 	public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 		if ( buttonView == dateOnlyCheckBox ) 		toggleIsDate(isChecked);
-		else if ( buttonView == floatingCheckBox ) 	toggleIsFloating(isChecked);
 	}
 
 
 	@Override
     public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
-		toggleIsFloating(floatingCheckBox.isChecked() ); 
+		currentDateTime.setTimeZone(tzListAdapter.getTzId(timeZoneSpinner.getSelectedItemPosition()));
+		updateLayout();
     }
 
+	
 	@Override
     public void onNothingSelected(AdapterView<?> parent) {
       // Do nothing.

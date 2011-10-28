@@ -321,6 +321,7 @@
 <string name="url">URL:</string>
 <string name="todoName">Todo Name:</string>
 
+<string name="IsADate">Is a Date</string>
 <string name="NotSet">Not Set</string>
 <string name="Exactly">Exactly</string>
 <string name="Start">Start</string>
@@ -328,4 +329,7 @@
 <string name="Before">Before</string>
 <string name="After">After</string>
 <string name="Custom">Custom</string>
+<string name="SetTaskDueDate">Task Due On</string>
+<string name="SetTaskStartDate">Task Starts On</string>
+<string name="SetTaskCompletedDate">Task Completed On</string>
 </resources>
