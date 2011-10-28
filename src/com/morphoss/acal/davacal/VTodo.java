@@ -25,6 +25,20 @@ import com.morphoss.acal.acaltime.AcalDateTime;
 public class VTodo extends Masterable {
 	public static final String TAG = "aCal VTodo";
 
+	public enum	Status {
+		NEEDS_ACTION, IN_PROCESS, COMPLETED, CANCELLED;
+		
+		public String toString() {
+			switch(this) {
+				case NEEDS_ACTION: 	return "NEEDS-ACTION";
+				case IN_PROCESS:	return "IN-PROCESS";
+			}
+			return super.toString();
+		}
+
+	}
+
+	
 	public VTodo(ComponentParts splitter, Integer resourceId, AcalCollection collectionObject,VComponent parent) {
 		super(splitter, resourceId, collectionObject,parent);
 	}
@@ -66,6 +80,10 @@ public class VTodo extends Masterable {
 
 	public void setPercentComplete( int newValue ) {
 		setUniqueProperty(new AcalProperty(PropertyName.PERCENT_COMPLETE, Integer.toString(newValue)));
+	}
+
+	public void setStatus(Status newValue) {
+		setUniqueProperty(new AcalProperty(PropertyName.STATUS, newValue.toString()));
 	}
 
 }
