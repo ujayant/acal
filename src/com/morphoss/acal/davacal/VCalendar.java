@@ -40,6 +40,7 @@ public class VCalendar extends VComponent {
 	private AcalRepeatRule repeatRule = null;
 	private Boolean masterHasOverrides = null;
 	private Boolean hasAlarms = null;
+	private Boolean hasRepeatRule = null;
 	private Long earliestStart;
 	private Long latestEnd;
 	private boolean isPending = false;
@@ -187,12 +188,14 @@ public class VCalendar extends VComponent {
 			if (repeatRule == null) repeatRule = AcalRepeatRule.fromVCalendar(this);
 		}
 		catch ( Exception e ) {
-			Log.w(TAG,Log.getStackTraceString(e));
+			Log.e(TAG,"Exception getting repeat rule from VCalendar", e);
 		}
+		hasRepeatRule = ( repeatRule != null );
 	}
 
 	public boolean appendAlarmInstancesBetween(List<AcalAlarm> alarmList, AcalDateRange rangeRequested) {
-		if (repeatRule == null) checkRepeatRule();
+		if ( hasRepeatRule == null && repeatRule == null ) checkRepeatRule();
+		if ( !hasRepeatRule ) return false;
 		this.repeatRule.appendAlarmInstancesBetween(alarmList, rangeRequested);
 		return true;
 	}
@@ -206,8 +209,8 @@ public class VCalendar extends VComponent {
 			if (dateRange != null) {
 				AcalDateRange intersection = rangeRequested.getIntersection(this.dateRange);
 				if (intersection != null) {
-					if (repeatRule == null) checkRepeatRule();
-					if (repeatRule != null) {
+					if (hasRepeatRule == null && repeatRule == null) checkRepeatRule();
+					if (hasRepeatRule) {
 						//						Log.d(TAG,"Processing event: Summary="+new UnModifiableAcalEvent(thisEvent,new AcalCalendar(), new AcalCalendar()).summary);
 						this.repeatRule.appendEventsInstancesBetween(eventList, intersection);
 						return true;
