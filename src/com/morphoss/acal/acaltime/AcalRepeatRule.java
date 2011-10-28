@@ -34,6 +34,7 @@ import com.morphoss.acal.davacal.AcalAlarm;
 import com.morphoss.acal.davacal.AcalEvent;
 import com.morphoss.acal.davacal.AcalProperty;
 import com.morphoss.acal.davacal.Masterable;
+import com.morphoss.acal.davacal.PropertyName;
 import com.morphoss.acal.davacal.RecurrenceId;
 import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VEvent;
@@ -111,32 +112,32 @@ public class AcalRepeatRule {
 			return null;
 		}
 
-		AcalProperty repeatFromDate = firstEvent.getProperty("DTSTART");
+		AcalProperty repeatFromDate = firstEvent.getProperty(PropertyName.DTSTART);
 		if ( repeatFromDate == null )
-			repeatFromDate = firstEvent.getProperty("DUE");
+			repeatFromDate = firstEvent.getProperty(PropertyName.DUE);
 		if ( repeatFromDate == null )
-			repeatFromDate = firstEvent.getProperty("COMPLETED");
+			repeatFromDate = firstEvent.getProperty(PropertyName.COMPLETED);
 		if ( repeatFromDate == null )
-			repeatFromDate = firstEvent.getProperty("DTEND");
+			repeatFromDate = firstEvent.getProperty(PropertyName.DTEND);
 		if ( repeatFromDate == null ) {
 			if ( Constants.debugRepeatRule && Constants.LOG_VERBOSE ) {
 				Log.v(TAG,"Cannot calculate instances of "+firstEvent.getName()+" without DTSTART/DUE inside " + vCal.getName() );
-				repeatFromDate = firstEvent.getProperty("DTSTART");
+				repeatFromDate = firstEvent.getProperty(PropertyName.DTSTART);
 				firstEvent = vCal.getMasterChild();
-				repeatFromDate = firstEvent.getProperty("DTSTART");
+				repeatFromDate = firstEvent.getProperty(PropertyName.DTSTART);
 				Log.v(TAG, "Original blob is\n"+vCal.getOriginalBlob() );
 			}
 			return null;
 		}
 
-		AcalRepeatRule ret = new AcalRepeatRule( repeatFromDate, firstEvent.getProperty("RRULE") );
+		AcalRepeatRule ret = new AcalRepeatRule( repeatFromDate, firstEvent.getProperty(PropertyName.RRULE) );
 		ret.sourceVCalendar = vCal;
 		if (vCal.isPending()) ret.setPending(true);
 		
 		ret.baseDuration = firstEvent.getDuration();
 
-		String dateLists[] = {"RDATE","EXDATE"};
-		for( String dListPName : dateLists ) {
+		PropertyName dateLists[] = {PropertyName.RDATE,PropertyName.EXDATE};
+		for( PropertyName dListPName : dateLists ) {
 			AcalProperty dateListProperty = firstEvent.getProperty(dListPName);
 			if ( dateListProperty == null )	continue;
 		
@@ -153,11 +154,11 @@ public class AcalRepeatRule {
 				timeList[i] = AcalDateTime.fromIcalendar( dateList[i], isDateParam, tzIdParam );
 			}
 			Arrays.sort(timeList);
-			if ( dListPName.equals("RDATE") ) {
+			if ( dListPName.equals(PropertyName.RDATE) ) {
 				ret.rDate = timeList;
 				ret.rDatePos = 0;
 			}
-			else if ( dListPName.equals("EXDATE") ) {
+			else if ( dListPName.equals(PropertyName.EXDATE) ) {
 				ret.exDate = timeList;
 				ret.exDatePos = 0;
 			}
@@ -253,7 +254,7 @@ public class AcalRepeatRule {
 	    
 	    if ( recurrences != null && recurrences.size() > 3000 ) {
 			Log.e(TAG,"Too many instances (3000):");
-			Log.e(TAG,"Too many " +baseDate.toPropertyString("DTSTART"));
+			Log.e(TAG,"Too many " +baseDate.toPropertyString(PropertyName.DTSTART.toString()));
 			Log.e(TAG,"Too many " +repeatRule.toString());
 		    throw new Exception("ETOOTOOMUCHREPETITIONKTHXBAI");
 		}
@@ -403,10 +404,14 @@ public class AcalRepeatRule {
 	public void appendAlarmInstancesBetween(List<AcalAlarm> alarmList, AcalDateRange range) {
 		List<AcalEvent> events = new ArrayList<AcalEvent>();
 		if ( this.sourceVCalendar.hasAlarm() && this.sourceVCalendar.appendEventInstancesBetween(events, range, false) ) {
+			if ( Constants.debugAlarms ) Log.v(TAG,"Event has alarms");
 			for( AcalEvent event : events ) {
 				for (AcalAlarm alarm : event.getAlarms()) {
 					alarm.setToLocalTime();
-					if (alarm.getNextTimeToFire().after(range.start)) {
+					if ( Constants.debugAlarms && Constants.LOG_VERBOSE )
+						Log.v(TAG,"Alarm next time to fire is "+alarm.getNextTimeToFire().fmtIcal());
+
+					if ( range.contains(alarm.getNextTimeToFire()) ) {
 						//the alarm needs to have event data associated
 						alarm.setEvent(event);
 						alarmList.add(alarm);
@@ -531,7 +536,7 @@ public class AcalRepeatRule {
 			RecurrenceId overrideId = (RecurrenceId) ourVEvent.getProperty("RECURRENCE-ID");
 
 			if ( overrideId != null ) {
-				AcalProperty pStart = ourVEvent.getProperty("DTSTART");
+				AcalProperty pStart = ourVEvent.getProperty(PropertyName.DTSTART);
 				if ( pStart != null ) { 
 					AcalDateTime start = AcalDateTime.fromIcalendar(pStart.getValue(),
 											pStart.getParam("VALUE"), pStart.getParam("TZID"));
