@@ -214,10 +214,16 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	}
 
 	/**
-	 * Construct from an AcalProperty Object
+	 * Construct from an AcalProperty Object, returning null if it is invalid in some way.
 	 */
 	public static AcalDateTime fromAcalProperty(AcalProperty prop) {
-		return AcalDateTime.fromIcalendar(prop.getValue(),prop.getParam("VALUE"),prop.getParam("TZID"));
+		if ( prop == null ) return null;
+		try {
+			return AcalDateTime.fromIcalendar(prop.getValue(),prop.getParam("VALUE"),prop.getParam("TZID"));
+		}
+		catch ( NullPointerException e ) {}
+		catch ( IllegalArgumentException e ) {}
+		return null;
 	}
 
 	/**
@@ -940,7 +946,7 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	 */
 	public synchronized AcalDateTime setDaySecond( int newSecond ) {
 		if ( Constants.debugDateTime ) checkEpoch();
-		if ( newSecond < 0 || newSecond >= SECONDS_IN_DAY ) throw new IllegalArgumentException();
+		if ( newSecond < 0 || newSecond >= SECONDS_IN_DAY ) throw new IllegalArgumentException("Attempt to setDaySecond("+Integer.toString(newSecond)+")");
 		if ( year == YEAR_NOT_SET ) calculateDateTime();
 		short newHour = (short) (newSecond / SECONDS_IN_HOUR);
 		short newMinute = (short) ((newSecond % SECONDS_IN_HOUR) / 60);
@@ -972,11 +978,11 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	
 	/**
 	 * <p>
-	 * Get the timezone name, which may be null.
+	 * Get the timezone ID, which may be null, but which is hopefully an Olson name
 	 * </p>
 	 * @return timezone name 
 	 */
-	public String getTimeZoneName() {
+	public String getTimeZoneId() {
 		if ( tz == null ) return null;
 		return tzName;
 	}
