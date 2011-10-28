@@ -197,7 +197,7 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 		dtstart = startDate;
 
 		if ( duration == null ) {
-			AcalProperty dtend = event.getProperty("DTEND");  
+			AcalProperty dtend = event.getProperty(PropertyName.DTEND);  
 			if (dtend != null) 
 				duration = startDate.getDurationTo(AcalDateTime.fromAcalProperty(dtend));
 		} 
@@ -218,7 +218,8 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 		List<AcalAlarm> theseAlarms = new ArrayList<AcalAlarm>();
 		for( VComponent child : event.getChildren() ) {
 			if ( child instanceof VAlarm ) {
-				theseAlarms.add(new AcalAlarm((VAlarm) child, (Masterable) event, dtstart.clone(), AcalDateTime.addDuration(dtstart, duration)));
+				theseAlarms.add(new AcalAlarm((VAlarm) child, (Masterable) event, dtstart.clone(),
+						AcalDateTime.addDuration(dtstart, duration) ));
 			}
 		}
 		
