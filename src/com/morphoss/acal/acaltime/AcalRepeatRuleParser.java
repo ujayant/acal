@@ -321,7 +321,7 @@ public abstract class AcalRepeatRuleParser {
 		if ( originalBase == null || currentBase == null ) {
 			originalBase = c.clone();
 			currentBase = c.clone();
-			if ( until != null ) until.setTimeZone(originalBase.getTimeZoneName());
+			if ( until != null ) until.setTimeZone(originalBase.getTimeZoneId());
 		}
 		else {
 			nextFrequency();

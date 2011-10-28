@@ -153,7 +153,7 @@ public class SimpleAcalEvent implements Parcelable, Comparable<SimpleAcalEvent> 
 		return new SimpleAcalEvent(start.getEpoch(), finish, event.getResourceId(), event.getSummary(),
 					event.getLocation(), event.getColour(), 
 					event.hasAlarms(), event.getRepetition().length() > 0, allDayEvent, event.isPending,
-					event.getAlarmEnabled(), start.getTimeZoneName());
+					event.getAlarmEnabled(), start.getTimeZoneId());
 	}
 
 	
@@ -171,7 +171,7 @@ public class SimpleAcalEvent implements Parcelable, Comparable<SimpleAcalEvent> 
 
 		boolean allDayEvent = startDate.isDate();
 		boolean floating = startDate.isFloating();
-		timezoneId = startDate.getTimeZoneName();
+		timezoneId = startDate.getTimeZoneId();
 		startDate.applyLocalTimeZone();
 		startDateHash = getDateHash( startDate.getMonthDay(), startDate.getMonth(), startDate.getYear() );
 		start = startDate.getEpoch();
