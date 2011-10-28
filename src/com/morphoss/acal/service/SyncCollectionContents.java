@@ -137,9 +137,6 @@ public class SyncCollectionContents extends ServiceJob {
 			return;
 		}
 
-		if (Constants.LOG_DEBUG)
-			Log.d(TAG, "Starting sync on collection " + this.collectionPath + " (" + this.collectionId + ")");
-
 		if (!(1 == serverData.getAsInteger(Servers.ACTIVE))) {
 			if (Constants.LOG_DEBUG) Log.d(TAG, "Server is no longer active - sync cancelled: " + serverData.getAsInteger(Servers.ACTIVE)
 							+ " " + serverData.getAsString(Servers.FRIENDLY_NAME));
@@ -148,23 +145,41 @@ public class SyncCollectionContents extends ServiceJob {
 
 		long start = System.currentTimeMillis();
 		try {
-			aCalService.databaseDispatcher.dispatchEvent(new DatabaseChangedEvent(
-						DatabaseChangedEvent.DATABASE_BEGIN_RESOURCE_CHANGES, DavCollections.class, collectionData));
-
 			resourcesWereSynchronized = false;
 			syncWasCompleted = true;
-			syncMarkedResources();
-			
-			if ( ! timeToRun() ) {
+
+			// step 1 are there any 'needs_sync' in dav_resources?
+			Map<String, ContentValues> originalData = findSyncNeededResources();
+
+			if ( originalData.size() < 1 && ! timeToRun() ) {
 				scheduleNextInstance();
 				return;
 			}
 
+			if ( Constants.LOG_DEBUG )
+				Log.d(TAG, "Starting sync on collection " + this.collectionPath + " (" + this.collectionId + ")");
+
+			aCalService.databaseDispatcher.dispatchEvent(new DatabaseChangedEvent(
+					DatabaseChangedEvent.DATABASE_BEGIN_RESOURCE_CHANGES, DavCollections.class, collectionData));
+
+			if (originalData.size() < 1) {
+				if (Constants.LOG_VERBOSE) Log.v(TAG, "No local resources marked as needing synchronisation.");
+			}
+			else 
+				syncMarkedResources( originalData );
+			
+			
 			if ( serverData.getAsInteger(Servers.HAS_SYNC) != null && (1 == serverData.getAsInteger(Servers.HAS_SYNC))) {
-				if (doRegularSyncReport()) syncMarkedResources();
+				if (doRegularSyncReport()) {
+					originalData = findSyncNeededResources();
+					syncMarkedResources(originalData);
+				}
 			}
 			else {
-				if (doRegularSyncPropfind()) syncMarkedResources();
+				if (doRegularSyncPropfind()) {
+					originalData = findSyncNeededResources();
+					syncMarkedResources(originalData);
+				}
 			}
 
 			if ( syncWasCompleted ) {
@@ -520,15 +535,8 @@ public class SyncCollectionContents extends ServiceJob {
 	 * them if they are using an addressbook-multiget or calendar-multiget request, depending on the
 	 * collection type.
 	 */
-	private void syncMarkedResources() {
+	private void syncMarkedResources( Map<String, ContentValues> originalData ) {
 
-		// step 1 are there any 'needs_sync' in dav_resources?
-		Map<String, ContentValues> originalData = findSyncNeededResources();
-
-		if (originalData.size() < 1) {
-			if (Constants.LOG_DEBUG) Log.d(TAG, "No resources marked for synchronisation.");
-			return;
-		}
 		if (Constants.LOG_DEBUG)
 			Log.d(TAG, "Found " + originalData.size() + " resources marked as needing synchronisation.");
 
@@ -917,7 +925,8 @@ public class SyncCollectionContents extends ServiceJob {
 			if ( minBetweenSyncs > timeToWait ) timeToWait = minBetweenSyncs;
 		}
 
-		if ( Constants.LOG_DEBUG ) Log.d(TAG, "Scheduling next check for "+collectionId+" - '"
+		if ( Constants.LOG_VERBOSE )
+			Log.v(TAG, "Scheduling next sync status check for "+collectionId+" - '"
 						+ collectionData.getAsString(DavCollections.DISPLAYNAME)
 						+"' in " + Long.toString(timeToWait / 1000) + " seconds.");
 		
