@@ -22,12 +22,16 @@ import java.io.Serializable;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
+import com.morphoss.acal.Constants;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDuration;
 
 public class AcalAlarm implements Serializable, Parcelable, Comparable<AcalAlarm> {
 	private static final long	serialVersionUID	= 1L;
+	private static final String TAG = "AcalAlarm";
+	
 	public final RelateWith relativeTo;
 	public final String description;
 	public final AcalDuration relativeTime;
@@ -87,36 +91,73 @@ public class AcalAlarm implements Serializable, Parcelable, Comparable<AcalAlarm
 		this.description = description;
 		this.relativeTime = relativeTime;
 		this.actionType = actionType;
-		if ( relativeTo == RelateWith.START )
+		if ( relativeTo == RelateWith.START ) {
+			if ( start == null ) throw new IllegalStateException("Can't relate an alarm to a non-existent DTSTART!");
 			timeToFire = AcalDateTime.addDuration(start, relativeTime);
-		else if ( relativeTo == RelateWith.END )
+		}
+		else if ( relativeTo == RelateWith.END ) {
+			if ( end == null ) throw new IllegalStateException("Can't relate an alarm to a non-existent DTEND or DUE!");
 			timeToFire = AcalDateTime.addDuration(end, relativeTime);
-		else
-			timeToFire = (start != null ? start.clone() : null);
-	}
-	
-	public AcalAlarm( VAlarm component, Masterable parent, AcalDateTime start, AcalDateTime end ) {
-		AcalProperty aProperty = component.getProperty("TRIGGER");
-		String related = null;
-		related = aProperty.getParam("RELATED");
-		if ( related == null || (start == null && end == null) ) {
-			relativeTo = RelateWith.ABSOLUTE;
-			AcalDateTime when;
-			try {
-				when = AcalDateTime.fromAcalProperty(aProperty);
-			}
-			catch( IllegalArgumentException e ) {
-				when = new AcalDateTime();
-			}
-			timeToFire = when;
-			relativeTime = new AcalDuration();
 		}
 		else {
-			relativeTo = (related.equalsIgnoreCase("START") && start != null ? RelateWith.START : RelateWith.END);
-			if ( AcalDuration.fromProperty(aProperty) == null )
+			if ( start == null ) throw new NullPointerException("Absolute alarm must have non-null start time.");
+			timeToFire = (start != null ? start.clone() : null);
+		}
+		
+		if ( Constants.debugAlarms ) {
+			Log.d(TAG,"Alarm created relative to "+relativeTo+
+					" which is "+(relativeTo == RelateWith.END ? end : start ).fmtIcal()+
+					" by "+relativeTime+
+					" to fire at "+timeToFire.fmtIcal());
+		}
+	}
+
+
+	/**
+	 * Build an AcalAlarm from the VALARM component it came in.
+	 * 
+	 * @param component The VALARM component we are realising.
+	 * @param parent The parent component, which we use to calculate a default description if we need to.
+	 * @param start The start from the parent.  Passed in separately because we might be in repeat rule expansion.
+	 * @param end The end from the parent.  Passed in separately because we might be in repeat rule expansion.
+	 */
+	public AcalAlarm( VAlarm component, Masterable parent, AcalDateTime start, AcalDateTime end ) {
+		AcalProperty aProperty = component.getProperty(PropertyName.TRIGGER);
+		String related = aProperty.getParam("RELATED");
+		String valueType =  aProperty.getParam("VALUE");
+		AcalDuration tmpDuration = null;
+		AcalDateTime tmpTriggerTime = null;
+		if ( valueType == null || valueType.equalsIgnoreCase("DURATION") )
+			tmpDuration = AcalDuration.fromProperty(aProperty); 		// returns null on failure
+		if ( valueType == null || valueType.equalsIgnoreCase("DATE-TIME") || valueType.equalsIgnoreCase("DATE") )
+			tmpTriggerTime = AcalDateTime.fromAcalProperty(aProperty); // returns null on failure 
+
+		/**
+		 * Sadly, while it's mandatory to specify both RELATED=START/END and VALUE=DURATION
+		 * for relative triggers in RFC5545, RFC2245 said almost the opposite, appearing to
+		 * have a default where the VALUE=DURATION and RELATED=START.  iCal does this.
+		 * 
+		 *  Given the variability we just have to cope with working it out from the content.
+		 */
+		if ( tmpDuration == null && tmpTriggerTime != null ) {
+			relativeTo = RelateWith.ABSOLUTE;
+			Log.i(TAG,"Absolute trigger from "+aProperty.toRfcString(), new Exception());
+			timeToFire = tmpTriggerTime;
+			relativeTime = new AcalDuration();  // i.e. PT0H
+		}
+		else {
+			relativeTo = (related == null || related.equalsIgnoreCase("START") ? RelateWith.START : RelateWith.END);
+
+			if ( relativeTo == RelateWith.START && start == null )
+				throw new IllegalStateException("Can't relate an alarm to a non-existent DTSTART!");
+			else if ( relativeTo == RelateWith.END && end == null )
+				throw new IllegalStateException("Can't relate an alarm to a non-existent DTEND!");
+
+			if ( tmpDuration == null )
 				relativeTime = new AcalDuration();
 			else
-				relativeTime = AcalDuration.fromProperty(aProperty);
+				relativeTime = tmpDuration;
+
 			if ( relativeTo == RelateWith.START )
 				timeToFire = AcalDateTime.addDuration(start, relativeTime);
 			else
@@ -139,23 +180,26 @@ public class AcalAlarm implements Serializable, Parcelable, Comparable<AcalAlarm
 		
 		AcalProperty aProperty;
 		if ( relativeTo == RelateWith.ABSOLUTE ) {
-			aProperty = timeToFire.asProperty("TRIGGER");
+			timeToFire.shiftTimeZone("UTC");
+			aProperty = timeToFire.asProperty(PropertyName.TRIGGER);
+			aProperty.setParam("VALUE", "DATE-TIME" );
 		}
 		else {
-			aProperty = new AcalProperty("TRIGGER", relativeTime.toString());
+			aProperty = new AcalProperty(PropertyName.TRIGGER, relativeTime.toString());
 			aProperty.setParam("RELATED", relativeTo.toString() );
+			aProperty.setParam("VALUE", "DURATION" );
 		}
 		ret.addProperty(aProperty);
 
-		aProperty = new AcalProperty("ACTION", this.actionType.toString());
+		aProperty = new AcalProperty(PropertyName.ACTION, this.actionType.toString());
 		ret.addProperty(aProperty);
 
-		aProperty = parent.getProperty("SUMMARY");
+		aProperty = parent.getProperty(PropertyName.SUMMARY);
 		if ( description != null && !description.equals("") && aProperty.getValue() != null && !description.equals(aProperty.getValue())) {
-			ret.addProperty(new AcalProperty("DESCRIPTION", description));
+			ret.addProperty(new AcalProperty(PropertyName.DESCRIPTION, description));
 		}
 		else if ( this.actionType == ActionType.DISPLAY ) // Description is mandatory in this case
-			ret.addProperty(new AcalProperty("DESCRIPTION", ""));
+			ret.addProperty(new AcalProperty(PropertyName.DESCRIPTION, ""));
 		
 		return ret;
 	}
