@@ -165,7 +165,7 @@ public class AlarmActivity extends Activity implements OnClickListener  {
 			this.updateAlarmView();
 		}
 		catch (RemoteException e) {
-			Log.e(TAG, " Error retrieving alarm data from dataRequest.");
+			Log.e(TAG, " Error retrieving alarm data from dataRequest.", e);
 			this.finish();
 		}
 	}
@@ -191,8 +191,7 @@ public class AlarmActivity extends Activity implements OnClickListener  {
 			playAlarm();
 		}
 		catch ( Exception e ) {
-			Log.e(TAG,"!!!ERROR UPDATING ALARM VIEW!!! - "+e.getMessage() );
-			Log.e(TAG,Log.getStackTraceString(e));
+			Log.e(TAG,"!!!ERROR UPDATING ALARM VIEW!!! - "+e.getMessage(), e );
 		}
 	}
 
@@ -227,6 +226,8 @@ public class AlarmActivity extends Activity implements OnClickListener  {
 			} catch (java.io.IOException ex) {
 				// something went wrong, most probaly we didn't find the ringtone
 				mp = null;
+				if ( Constants.LOG_DEBUG )
+					Log.e(TAG,"IO Problem with alarm.", ex);
 				/* new AlertDialog.Builder(this)
 				.setTitle("Error")
 				.setMessage(ex.toString())
@@ -243,6 +244,7 @@ public class AlarmActivity extends Activity implements OnClickListener  {
 				.show(); */
 			} catch (java.lang.IllegalArgumentException ex) {
 				mp = null;
+				Log.e(TAG,"Illegal Argument Problem with alarm.", ex);
 				/* new AlertDialog.Builder(this)
 				.setTitle("Error")
 				.setMessage(ex.toString())
@@ -292,7 +294,7 @@ public class AlarmActivity extends Activity implements OnClickListener  {
 			Intent intent = new Intent(this, CalendarDataService.class);
 			this.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
 		} catch (Exception e) {
-			Log.e(TAG, "Error connecting to service: "+e.getMessage());
+			Log.e(TAG, "Error connecting to service: "+e.getMessage(), e);
 		}
 	}
 
@@ -330,38 +332,39 @@ public class AlarmActivity extends Activity implements OnClickListener  {
 	}
 
 	@Override
-	public void onClick(View arg0) {
-		if (arg0 == mapButton) {
-			if (Constants.LOG_DEBUG) Log.d(TAG, "Starting Map");
+	public void onClick(View clickedThing) {
+		if ( clickedThing == mapButton ) {
+			if ( Constants.LOG_DEBUG ) Log.d(TAG, "Starting Map");
 			String loc = location.getText().toString();
-			//replace whitespaces with '+'
+			// replace whitespaces with '+'
 			loc.replace("\\s", "+");
-			Uri target = Uri.parse("geo:0,0?q="+loc);
-			startActivity(new Intent(android.content.Intent.ACTION_VIEW, target)); 
-			//start map view
+			Uri target = Uri.parse("geo:0,0?q=" + loc);
+			startActivity(new Intent(android.content.Intent.ACTION_VIEW, target));
+			// start map view
 			return;
 		}
-		if (arg0 == snoozeButton) {
-			if (Constants.LOG_DEBUG)Log.d(TAG, "Snoozing Alarm");
+		if ( clickedThing == snoozeButton ) {
+			if ( Constants.LOG_DEBUG ) Log.d(TAG, "Snoozing Alarm");
 			try {
 				if ( dataRequest == null ) connectToService();
 				this.dataRequest.snoozeAlarm(currentAlarm);
-			} catch (Exception e) {
-				if (Constants.LOG_DEBUG)Log.e(TAG, "ERROR: Can't snooze alarm: "+e);
+			}
+			catch ( Exception e ) {
+				Log.e(TAG, "ERROR: Can't snooze alarm!", e);
 			}
 		}
-		if (arg0 == dismissButton) {
-			if (Constants.LOG_DEBUG)Log.d(TAG, "Dismissing alarm.");
+		if ( clickedThing == dismissButton ) {
+			if ( Constants.LOG_DEBUG ) Log.d(TAG, "Dismissing alarm.");
 			try {
 				if ( dataRequest == null ) connectToService();
 				this.dataRequest.dismissAlarm(currentAlarm);
-			} catch (Exception e) {
-				if (Constants.LOG_DEBUG)Log.e(TAG, "ERROR: Can't dismiss alarm: "+e);
+			}
+			catch ( Exception e ) {
+				Log.e(TAG, "ERROR: Can't dismiss alarm!" + e, e);
 			}
 
 		}
-		if ( dataRequest == null )
-			connectToService();
+		if ( dataRequest == null ) connectToService();
 		else
 			this.showNextAlarm();
 	}
