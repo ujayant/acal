@@ -76,8 +76,7 @@ public abstract class Masterable extends VComponent {
 				Log.v(AcalRepeatRule.TAG,"Event Duration from DURATION is " + ret.toString() );
 		}
 		else {
-			dProp = getProperty(PropertyName.DTEND);
-			if ( dProp == null ) dProp = getProperty("DUE"); // VTodo
+			dProp = getProperty((this instanceof VTodo ? PropertyName.DUE : PropertyName.DTEND));
 			if ( dProp != null ) {
 				ret = dtstart.getDurationTo(AcalDateTime.fromAcalProperty(dProp));
 				if ( Constants.debugRepeatRule && Constants.LOG_VERBOSE )
@@ -93,13 +92,18 @@ public abstract class Masterable extends VComponent {
 	}
 
 
+	/**
+	 * Get (or calculate) the end date for a VEVENT, VTODO or VJOURNAL.  Will use either the DTEND/DUE
+	 * or calculate based on DTSTART + DURATION.  If neither set can be satisfied (as might be the case
+	 * with a VTODO or VJOURNAL) it will return null.
+	 * 
+	 * @return
+	 */
 	public AcalDateTime getEnd() {
 		AcalProperty aProp = getProperty( (this instanceof VTodo ? PropertyName.DUE : PropertyName.DTEND));
 		if ( aProp != null ) return AcalDateTime.fromAcalProperty(aProp);
 		
-		aProp = getProperty(PropertyName.DTSTART);
-		if ( aProp == null ) return null;
-		AcalDateTime result = AcalDateTime.fromAcalProperty(aProp); 
+		AcalDateTime result = getStart(); 
 		
 		AcalProperty dProp = getProperty(PropertyName.DURATION);
 		if ( dProp == null ) {
@@ -204,6 +208,10 @@ public abstract class Masterable extends VComponent {
 
 	public String getUID() {
 		return safePropertyValue(PropertyName.UID);
+	}
+
+	public String getStatus() {
+		return safePropertyValue(PropertyName.STATUS);
 	}
 
 }
