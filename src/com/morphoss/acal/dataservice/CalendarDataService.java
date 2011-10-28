@@ -429,29 +429,32 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 	}
 
 	private void setNextAlarmTrigger() {
-		if (Constants.LOG_DEBUG)Log.d(TAG,"Set next alarm trigger called");
-		synchronized (alarmQueue) {
+		if ( Constants.LOG_DEBUG ) Log.d(TAG, "Set next alarm trigger called");
+		synchronized( alarmQueue ) {
 			AcalAlarm nextReg = alarmQueue.peek();
 			AcalAlarm nextSnooze = snoozeQueue.peek();
-			if (nextReg == null && nextSnooze == null) {
-				if (Constants.LOG_DEBUG)Log.d(TAG, "No alarms in alarm queues. Not setting any alarm trigger.");
-				//Stop existing alarm trigger
-				if (alarmIntent != null) alarmManager.cancel(alarmIntent);
+			if ( nextReg == null && nextSnooze == null ) {
+				if ( Constants.LOG_DEBUG ) Log.d(TAG, "No alarms in alarm queues. Not setting any alarm trigger.");
+				// Stop existing alarm trigger
+				if ( alarmIntent != null ) alarmManager.cancel(alarmIntent);
 				alarmIntent = null;
 				return;
 			}
-			if (nextReg == null) {
-				if (Constants.LOG_DEBUG)Log.d(TAG, "No regular alarms, just snoozes.");
+			if ( nextReg == null ) {
+				if ( Constants.LOG_DEBUG ) Log.d(TAG, "No regular alarms, just snoozes.");
 				createAlarmIntent(nextSnooze);
 				return;
-			} else if (nextSnooze == null) {
-				if (Constants.LOG_DEBUG)Log.d(TAG, "No snooze alarms, just regulars.");
+			}
+			else if ( nextSnooze == null ) {
+				if ( Constants.LOG_DEBUG ) Log.d(TAG, "No snooze alarms, just regulars.");
 				createAlarmIntent(nextReg);
 				return;
-			} else {
-				if (Constants.LOG_DEBUG)Log.d(TAG, "Both regular and Snooze alarms queued.");
-				if (nextReg.getNextTimeToFire().before(nextSnooze.getNextTimeToFire())) createAlarmIntent(nextReg);
-				else createAlarmIntent(nextSnooze);
+			}
+			else {
+				if ( Constants.LOG_DEBUG ) Log.d(TAG, "Both regular and Snooze alarms queued.");
+				if ( nextReg.getNextTimeToFire().before(nextSnooze.getNextTimeToFire()) ) createAlarmIntent(nextReg);
+				else
+					createAlarmIntent(nextSnooze);
 				return;
 			}
 		}
@@ -492,36 +495,60 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 		int skipped = 0;
 		long startProcessing = System.currentTimeMillis();
 		ArrayList<AcalAlarm> alarms = new ArrayList<AcalAlarm>();
-		//temp map for checking alram active status
+
+		Log.d(TAG,"Looking for alarms in range "+dateRange);
+
+		//temp map for checking alarm active status
 		Map<Integer,Boolean> collectionAlarmsEnabled = new HashMap<Integer,Boolean>();
 		for ( VCalendar vc : calendars.values()) {
-			if (collectionAlarmsEnabled.containsKey(vc.getCollectionId())) {
-				if (!collectionAlarmsEnabled.get(vc.getCollectionId())) continue;
-			} else {
+			if ( collectionAlarmsEnabled.containsKey(vc.getCollectionId()) ) {
+				if ( !collectionAlarmsEnabled.get(vc.getCollectionId()) ) {
+					skipped++;
+					continue;
+				}
+			}
+			else {
 				int id = vc.getCollectionId();
-				boolean alarmsEnabled = (this.collections.get(id).getCollectionRow().getAsInteger(DavCollections.USE_ALARMS) ==1);
+				boolean alarmsEnabled = (this.collections.get(id).getCollectionRow()
+						.getAsInteger(DavCollections.USE_ALARMS) == 1);
 				collectionAlarmsEnabled.put(id, alarmsEnabled);
-				if (!alarmsEnabled) continue;
+				if ( !alarmsEnabled ) {
+					skipped++;
+					continue;
+				}
 			}
 			try {
 				vc.setPersistentOn();
-				if ( vc.hasAlarm() )
-					vc.appendAlarmInstancesBetween(alarms, dateRange); 
-			} catch (YouMustSurroundThisMethodInTryCatchOrIllEatYouException e) {
-				
+				if ( vc.hasAlarm() ) vc.appendAlarmInstancesBetween(alarms, dateRange);
+				processed++;
+			}
+			catch ( YouMustSurroundThisMethodInTryCatchOrIllEatYouException e ) {
+
 			}
 			finally {
 				vc.setPersistentOff();
 			}
 		}
+
+		Log.d(TAG,"Checked "+processed+" resources for alarms, skipped "+skipped);
+		processed = skipped = 0;
+
 		for ( VCalendar vc : newResources.values()) {
-			if (collectionAlarmsEnabled.containsKey(vc.getCollectionId())) {
-				if (!collectionAlarmsEnabled.get(vc.getCollectionId())) continue;
-			} else {
+			if ( collectionAlarmsEnabled.containsKey(vc.getCollectionId()) ) {
+				if ( !collectionAlarmsEnabled.get(vc.getCollectionId()) ) {
+					skipped++;
+					continue;
+				}
+			}
+			else {
 				int id = vc.getCollectionId();
-				boolean alarmsEnabled = (this.collections.get(id).getCollectionRow().getAsInteger(DavCollections.USE_ALARMS) ==1);
+				boolean alarmsEnabled = (this.collections.get(id).getCollectionRow()
+						.getAsInteger(DavCollections.USE_ALARMS) == 1);
 				collectionAlarmsEnabled.put(id, alarmsEnabled);
-				if (!alarmsEnabled) continue;
+				if ( !alarmsEnabled ) {
+					skipped++;
+					continue;
+				}
 			}
 
 			try {
@@ -530,22 +557,27 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 				if ( vc.hasAlarm() && vc.appendEventInstancesBetween(events, dateRange, true) ) {
 					for( AcalEvent event : events ) {
 						for (AcalAlarm alarm : event.getAlarms()) {
-							//the alarm needs to have event data associated
+							// Since this is pending we need to ensure the alarm has the associated event data
 							alarm.setEvent(event);
 							alarms.add(alarm);
 						}
-
+						processed++;
 					}
-					processed++;
 				}
-				else
-					skipped++;
 			}
 			catch (YouMustSurroundThisMethodInTryCatchOrIllEatYouException e) {
 			}
 			finally {
 				vc.setPersistentOff();
 			}
+		}
+		
+		if ( Constants.debugAlarms ) {
+			Log.d(TAG,"Checked "+processed+" pending resources for alarms, skipped "+skipped);
+			Log.d(TAG,"Got "+alarms.size()+" alarms for "+dateRange);
+			for( AcalAlarm al : alarms )
+				Log.d(TAG,al.toString());
+
 		}
 
 		return alarms;
@@ -1243,6 +1275,9 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 		@Override
 		public void todoChanged(VCalendar changedResource, int action) throws RemoteException {
 			int collectionId = changedResource.getCollectionId();
+
+			if ( Constants.LOG_DEBUG )
+				Log.d(TAG, "Changed VTODO in collection "+collectionId+" - "+changedResource.getCollectionName());
 
 			switch (action) {
 				case TodoEdit.ACTION_CREATE: {
