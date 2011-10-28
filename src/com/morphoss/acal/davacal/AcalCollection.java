@@ -96,4 +96,8 @@ public class AcalCollection {
 	public int getCollectionId() {
 		return collectionId;
 	}
+
+	public CharSequence getDisplayName() {
+		return cv.getAsString(DavCollections.DISPLAYNAME);
+	}
 }
