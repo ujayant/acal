@@ -325,8 +325,7 @@
    						android:id="@+id/TodoEditCollectionLayout" 
 					    android:layout_width="wrap_content"
 					    android:layout_height="wrap_content"
-						android:background="@color/todo_button_colour"
-					    android:layout_below="@id/TodoRepeatsLayout">
+						android:background="@color/todo_button_colour">
 					    <Button 
     						android:id="@+id/TodoEditCollectionButton" 
     						android:layout_width="fill_parent" 

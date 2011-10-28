@@ -38,6 +38,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
@@ -254,9 +255,7 @@ public class TodoEdit extends Activity
 					}
 				}
 			}
-			AcalCollection collection = AcalCollection.fromDatabase(this, collectionId);
-
-			this.todo = new VTodo(collection);
+			this.todo = new VTodo(AcalCollection.fromDatabase(this, collectionId));
 			this.todo.setSummary(getString(R.string.NewTaskTitle));
 			this.action = ACTION_CREATE;
 
@@ -283,12 +282,12 @@ public class TodoEdit extends Activity
 		todoName.setSelectAllOnFocus(action == ACTION_CREATE);
 
 		//Collection
-		collectionsLayout = (LinearLayout)this.findViewById(R.id.TodoEditCollectionLayout);
+		collectionsLayout = (LinearLayout)this.findViewById(R.id.TodoCollectionLayout);
 		btnCollection = (Button) this.findViewById(R.id.TodoEditCollectionButton);
 		btnCollection.setText(currentCollection.getAsString(DavCollections.DISPLAYNAME));
 		if (activeCollections.length < 2) {
-			collectionsLayout.setVisibility(View.GONE);
 			btnCollection.setEnabled(false);
+			collectionsLayout.setVisibility(View.GONE);
 		}
 		
 		
@@ -320,6 +319,15 @@ public class TodoEdit extends Activity
 		setButtonDialog(btnAddRepeat, SET_REPEAT_RULE_DIALOG);
 		setButtonDialog(btnCollection, SELECT_COLLECTION_DIALOG);
 
+		setButtonColour(btnStartDate, Constants.themeColour );
+		setButtonColour(btnDueDate, Constants.themeColour);
+		setButtonColour(btnCompleteDate, Constants.themeColour);
+		setButtonColour(btnAddAlarm, Constants.themeColour);
+		setButtonColour(btnAddRepeat, Constants.themeColour);
+		setButtonColour(btnCollection, Constants.themeColour);
+		setButtonColour(btnSaveChanges, Constants.themeColour);
+		setButtonColour(btnCancelChanges, Constants.themeColour);
+		
 		btnSaveChanges.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View arg0) {
 				applyChanges();
@@ -363,16 +371,24 @@ public class TodoEdit extends Activity
 		AcalDateTime completed = todo.getCompleted();
 
 		Integer colour = todo.getCollectionColour();
-		if ( colour == null ) colour = getResources().getColor(android.R.color.black);
+		if ( colour == null ) colour = 0x70a0a0a0;
 		sidebar.setBackgroundColor(colour);
-		collectionsLayout.setBackgroundColor(colour);
+		btnCollection.setText(todo.getCollectionName());
+		btnCollection.setBackgroundColor(colour);
 		todoName.setTextColor(colour);
 		
 		btnStartDate.setText( AcalDateTimeFormatter.fmtFull( start, prefer24hourFormat) );
 		btnDueDate.setText( AcalDateTimeFormatter.fmtFull( due, prefer24hourFormat) );
 		btnCompleteDate.setText( AcalDateTimeFormatter.fmtFull( completed, prefer24hourFormat) );
 
-		if ( todo.getDue() == null && todo.getStart() == null ) {
+		if ( start != null && due != null && due.before(start) ) {
+			setButtonColour(btnStartDate,0xffff3030);
+		}
+		else {
+			setButtonColour(btnStartDate,Constants.themeColour);
+		}
+		
+		if ( start == null && due == null ) {
 			alarmList = todo.getAlarms();
 			this.alarmsList.removeAllViews();
 			alarmsLayout.setVisibility(View.GONE);
@@ -485,13 +501,9 @@ public class TodoEdit extends Activity
 				this.currentCollection = cv; break;
 			}
 		}
-		AcalCollection collection = new AcalCollection(currentCollection);
 		VCalendar vc = (VCalendar) this.todo.getTopParent();
-		vc.setCollection(collection);
+		vc.setCollection(new AcalCollection(currentCollection));
 
-		this.btnCollection.setText(name);
-		sidebar.setBackgroundColor(collection.getColour());
-		collectionsLayout.setBackgroundColor(collection.getColour());
 		this.updateLayout();
 	}
 
@@ -502,9 +514,17 @@ public class TodoEdit extends Activity
 			@Override
 			public void onClick(View arg0) {
 				showDialog(dialogIndicator);
-
 			}
 		});
+	}
+
+
+	private void setButtonColour(Button someButton, int someColour) {
+		ViewParent vp;
+		do {
+			vp = someButton.getParent();
+		} while ( !(vp instanceof LinearLayout) );
+		((LinearLayout) vp).setBackgroundColor(someColour);
 	}
 
 
@@ -542,7 +562,7 @@ public class TodoEdit extends Activity
 		try {
 			this.dataRequest.todoChanged(todo.getTopParent(), action);
 
-			Log.i(TAG,"Saving todo with action " + action );
+			Log.i(TAG,"Saving todo to collection "+todo.getCollectionId()+" with action " + action );
 			if ( action == ACTION_CREATE )
 				Toast.makeText(this, getString(R.string.TaskSaved), Toast.LENGTH_LONG).show();
 			else if (action == ACTION_MODIFY_ALL)
@@ -576,23 +596,22 @@ public class TodoEdit extends Activity
 		AcalDateTime start = todo.getStart();
 		if ( start == null ) {
 			start = new AcalDateTime().applyLocalTimeZone().addDays(1);
-			int newSecond = ((start.getDaySecond()/3600)+2)*3600;
-			if ( newSecond > 86399 ) start.addDays(1); 
-			start.setDaySecond( newSecond % 86400 );
+			int newSecond = ((start.getDaySecond() / 3600) + 2) * 3600;
+			if ( newSecond > 86399 ) start.addDays(1);
+			start.setDaySecond(newSecond % 86400);
 		}
 		AcalDateTime due = todo.getDue();
 		if ( due == null ) {
 			due = new AcalDateTime().applyLocalTimeZone().addDays(1);
-			due.setDaySecond(start.getDaySecond() + 3600);
-			int newSecond = start.getDaySecond()+3600;
-			if ( newSecond > 86399 ) due.addDays(1); 
-			due.setDaySecond( newSecond % 86400 );
+			int newSecond = start.getDaySecond() + 3600;
+			if ( newSecond > 86399 ) due.addDays(1);
+			due.setDaySecond(newSecond % 86400);
 		}
 		AcalDateTime completed = todo.getCompleted();
 		if ( completed == null ) completed = new AcalDateTime();
 		switch ( id ) {
 			case FROM_DIALOG:
-				return new DateTimeDialog( this, start, prefer24hourFormat,
+				return new DateTimeDialog( this, getString(R.string.SetTaskStartDate), start, prefer24hourFormat,
 						new DateTimeSetListener() {
 							public void onDateTimeSet(AcalDateTime newDateTime) {
 								todo.setStart( newDateTime );
@@ -601,7 +620,7 @@ public class TodoEdit extends Activity
 						});
 
 			case DUE_DIALOG:
-				return new DateTimeDialog( this, due, prefer24hourFormat,
+				return new DateTimeDialog( this, getString(R.string.SetTaskDueDate), due, prefer24hourFormat,
 						new DateTimeSetListener() {
 							public void onDateTimeSet(AcalDateTime newDateTime) {
 								todo.setDue( newDateTime );
@@ -610,10 +629,12 @@ public class TodoEdit extends Activity
 						});
 
 			case COMPLETED_DIALOG:
-				return new DateTimeDialog( this, completed, prefer24hourFormat,
+				return new DateTimeDialog( this, getString(R.string.SetTaskCompletedDate), completed, prefer24hourFormat,
 						new DateTimeSetListener() {
 							public void onDateTimeSet(AcalDateTime newDateTime) {
 								todo.setCompleted( newDateTime );
+								todo.setPercentComplete(100);
+								todo.setStatus(VTodo.Status.COMPLETED);
 								updateLayout();
 							}
 						});
@@ -821,6 +842,13 @@ public class TodoEdit extends Activity
 		if ( fromUser ) {
 			percentComplete = progress;
 			percentCompleteText.setText(Integer.toString(percentComplete)+"%");
+			if ( progress == 0 ) 							todo.setStatus(VTodo.Status.NEEDS_ACTION);
+			else if ( progress > 0 && progress < 100 ) 		todo.setStatus(VTodo.Status.IN_PROCESS);
+			else {
+				todo.setStatus(VTodo.Status.COMPLETED);
+				todo.setCompleted(new AcalDateTime() );
+				updateLayout();
+			}
 		}
 	}
 
