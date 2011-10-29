@@ -37,6 +37,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
+import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.GestureDetector.OnGestureListener;
 import android.view.LayoutInflater;
@@ -147,7 +148,7 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 
 		// Get time display preference
 		prefs = PreferenceManager.getDefaultSharedPreferences(this);
-		prefer24hourFormat = prefs.getBoolean(getString(R.string.prefTwelveTwentyfour), false);
+		prefer24hourFormat = prefs.getBoolean(getString(R.string.prefTwelveTwentyfour), DateFormat.is24HourFormat(this));
 
 		alarmRelativeTimeStrings = getResources().getStringArray(R.array.RelativeAlarmTimes);
 		eventChangeRanges = getResources().getStringArray(R.array.EventChangeAffecting);
