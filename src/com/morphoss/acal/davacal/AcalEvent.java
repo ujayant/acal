@@ -141,7 +141,7 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 			return null;
 		}
 		if ( dtStart == null ) dtStart = AcalDateTime.fromAcalProperty(event.getProperty("DTSTART"));
-		return new AcalEvent( event, dtStart, event.getDuration(), false );
+		return new AcalEvent( (VEvent) event, dtStart, event.getDuration(), false );
 	}
 
 	@Override
@@ -192,28 +192,17 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 		return 0;
 	}
 
-	public AcalEvent(VComponent event, AcalDateTime startDate, AcalDuration duration, boolean isPending ) {
+	public AcalEvent(VEvent event, AcalDateTime startDate, AcalDuration duration, boolean isPending ) {
 		this.resourceId = event.getResourceId();
-		dtstart = startDate;
-
-		if ( duration == null ) {
-			AcalProperty dtend = event.getProperty(PropertyName.DTEND);  
-			if (dtend != null) 
-				duration = startDate.getDurationTo(AcalDateTime.fromAcalProperty(dtend));
-		} 
-		if ( duration == null ) {
-				duration = new AcalDuration();
-				duration.setDuration(1, 0);
-		}
-
+		this.dtstart = startDate;
 		this.duration = duration;
-		summary = safeEventPropertyValue(event, "SUMMARY");
-		description = safeEventPropertyValue(event, "DESCRIPTION");
-		location = safeEventPropertyValue(event, "LOCATION");
-		originalBlob = event.getTopParent().getOriginalBlob();
-		String repeatRule = safeEventPropertyValue(event,"RRULE");
-		String repeatInstances = safeEventPropertyValue(event,"RDATE");
-		repetition = repeatRule + (repeatInstances.equals("")?"":"\n"+repeatInstances);
+		this.summary = safeEventPropertyValue(event, PropertyName.SUMMARY);
+		this.description = safeEventPropertyValue(event, PropertyName.DESCRIPTION);
+		this.location = safeEventPropertyValue(event, PropertyName.LOCATION);
+		this.originalBlob = event.getTopParent().getOriginalBlob();
+		String repeatRule = safeEventPropertyValue(event,PropertyName.RRULE);
+		String repeatInstances = safeEventPropertyValue(event,PropertyName.RDATE);
+		this.repetition = repeatRule + (repeatInstances.equals("")?"":"\n"+repeatInstances);
 
 		List<AcalAlarm> theseAlarms = new ArrayList<AcalAlarm>();
 		for( VComponent child : event.getChildren() ) {
@@ -250,10 +239,10 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 	}
 
 	
-	private String safeEventPropertyValue(VComponent event, String propertyName ) {
+	private String safeEventPropertyValue(VComponent event, PropertyName summary2 ) {
 		String propertyValue = null;
 		try {
-			propertyValue = event.getProperty(propertyName).getValue();
+			propertyValue = event.getProperty(summary2).getValue();
 		}
 		catch (Exception e) {
 		}
@@ -301,6 +290,7 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 		this.dirty = true;
 	}
 
+	@SuppressWarnings("unchecked")
 	public void setField(EVENT_FIELD field, Object val) {
 		switch( field ) {
 			case startDate:
