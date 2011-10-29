@@ -18,8 +18,6 @@
 
 package com.morphoss.acal.activity;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -27,9 +25,7 @@ import java.util.Map;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.DatePickerDialog;
 import android.app.Dialog;
-import android.app.TimePickerDialog;
 import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Context;
@@ -42,41 +38,43 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.GestureDetector.OnGestureListener;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.GestureDetector.OnGestureListener;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
+import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.DatePicker;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
-import android.widget.TimePicker;
 import android.widget.Toast;
-import android.widget.CompoundButton.OnCheckedChangeListener;
 
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.acaltime.AcalDateTime;
+import com.morphoss.acal.acaltime.AcalDateTimeFormatter;
 import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
 import com.morphoss.acal.dataservice.CalendarDataService;
 import com.morphoss.acal.dataservice.DataRequest;
 import com.morphoss.acal.davacal.AcalAlarm;
-import com.morphoss.acal.davacal.AcalEvent;
-import com.morphoss.acal.davacal.SimpleAcalEvent;
 import com.morphoss.acal.davacal.AcalAlarm.ActionType;
+import com.morphoss.acal.davacal.AcalEvent;
 import com.morphoss.acal.davacal.AcalEvent.EVENT_FIELD;
+import com.morphoss.acal.davacal.SimpleAcalEvent;
+import com.morphoss.acal.davacal.VComponent;
 import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.service.aCalService;
+import com.morphoss.acal.widget.AlarmDialog;
+import com.morphoss.acal.widget.DateTimeDialog;
+import com.morphoss.acal.widget.DateTimeSetListener;
 
 public class EventEdit extends Activity implements OnGestureListener, OnTouchListener, OnClickListener, OnCheckedChangeListener {
 
@@ -86,10 +84,8 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 
 	private SimpleAcalEvent sae;
 	private AcalEvent event;
-	private static final int FROM_DATE_DIALOG = 0;
-	private static final int FROM_TIME_DIALOG = 1;
-	private static final int UNTIL_DATE_DIALOG = 2;
-	private static final int UNTIL_TIME_DIALOG = 3;
+	private static final int START_DATE_DIALOG = 0;
+	private static final int END_DATE_DIALOG = 2;
 	private static final int SELECT_COLLECTION_DIALOG = 4;
 	private static final int ADD_ALARM_DIALOG = 5;
 	private static final int SET_REPEAT_RULE_DIALOG = 6;
@@ -101,16 +97,16 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 	private String[] repeatRules;
 	private String[] eventChangeRanges; // See strings.xml R.array.EventChangeAffecting
 		
-	// Must match R.array.RelativeAlarmTimes (strings.xml)
 	private String[] alarmRelativeTimeStrings;
-	private static final AcalDuration[] alarmValues = new AcalDuration[] {
+	// Must match R.array.RelativeAlarmTimes (strings.xml)
+	public static final AcalDuration[] alarmValues = new AcalDuration[] {
 		new AcalDuration(),
 		new AcalDuration("-PT10M"),
+		new AcalDuration("-PT15M"),
 		new AcalDuration("-PT30M"),
 		new AcalDuration("-PT1H"),
 		new AcalDuration("-PT2H"),
-		new AcalDuration("-PT12H"),
-		new AcalDuration("-P1D")
+		//** Custom **//
 	};
 	
 	private String[] repeatRulesValues;
@@ -118,13 +114,8 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 	private DataRequest dataRequest = null;
 
 	//GUI Components
-	private TextView fromLabel;
-	private TextView untilLabel;
-	private Button fromDate;
-	private Button untilDate;
-	private Button fromTime;
-	private Button untilTime;	
-	private Button applyButton;	
+	private Button btnStartDate;
+	private Button btnEndDate;
 	private LinearLayout sidebar;
 	private TextView eventName;
 	private TextView titlebar;
@@ -133,8 +124,8 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 	private TableLayout alarmsList;
 	private Button repeatsView;
 	private Button alarmsView;
-	private Button collection;
-	private CheckBox allDayEvent;
+	private LinearLayout llSelectCollection;
+	private Button btnSelectCollection;
 	
 	//Active collections for create mode
 	private ContentValues[] activeCollections;
@@ -161,10 +152,6 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		alarmRelativeTimeStrings = getResources().getStringArray(R.array.RelativeAlarmTimes);
 		eventChangeRanges = getResources().getStringArray(R.array.EventChangeAffecting);
 		
-		//Set up buttons
-		this.setupButton(R.id.event_apply_button, APPLY);
-		this.setupButton(R.id.event_cancel_button, CANCEL);
-
 		Bundle b = this.getIntent().getExtras();
 		getEventAction(b);
 		if ( this.event == null ) {
@@ -239,15 +226,14 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 			try {
 				start = (AcalDateTime) b.getParcelable("DATE");
 			} catch (Exception e) {
-				start = new AcalDateTime().applyLocalTimeZone();
+				start = new AcalDateTime();
 			}
 			AcalDuration duration = new AcalDuration("PT1H");
 			AcalAlarm defaultAlarm = new AcalAlarm( AcalAlarm.RelateWith.START, "", new AcalDuration("-PT15M"),
 						ActionType.AUDIO, start, AcalDateTime.addDuration(start, duration));
 
-			if ( b.containsKey("ALLDAY") && b.getBoolean("ALLDAY", true) ) {
-				start.setDaySecond(0);
-				duration = new AcalDuration("PT24H");
+			if ( start.isDate() ) {
+				duration = new AcalDuration("PT1D");
 				defaultAlarm = new AcalAlarm( AcalAlarm.RelateWith.START, "", new AcalDuration("-PT12H"),
 							ActionType.AUDIO, start, AcalDateTime.addDuration(start, duration));
 			}
@@ -256,7 +242,7 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 			}
 			else {
 				// Default to "in the next hour"
-				AcalDateTime now = new AcalDateTime().applyLocalTimeZone();
+				AcalDateTime now = new AcalDateTime();
 				start.setHour(now.getHour());
 				start.setSecond(0);
 				start.setMinute(0);
@@ -300,6 +286,10 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 			collectionsArray[count++] = cv.getAsString(DavCollections.DISPLAYNAME);
 		}
 		
+		if ( event.getAction() == AcalEvent.ACTION_CREATE && !event.getStart().isFloating() ) {
+			Log.d(TAG,"Forcing start date to floating...");
+			event.setField(EVENT_FIELD.startDate, event.getStart().setTimeZone(null));
+		}
 		return event;
 	}
 
@@ -311,9 +301,8 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 			}
 		}
 		this.event.setField(EVENT_FIELD.collectionId, this.currentCollection.getAsInteger(DavCollections._ID));
-		this.collection.setText(this.currentCollection.getAsString(DavCollections.DISPLAYNAME));
-		sidebar.setBackgroundColor(Color.parseColor(this.currentCollection.getAsString(DavCollections.COLOUR)));
-		this.event.setField(EVENT_FIELD.colour, Color.parseColor(currentCollection.getAsString(DavCollections.COLOUR)));
+		this.event.setField(EVENT_FIELD.colour, Color.parseColor(this.currentCollection.getAsString(DavCollections.COLOUR)));
+
 		this.updateLayout();
 	}
 
@@ -323,6 +312,10 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		//Event Colour
 		sidebar = (LinearLayout)this.findViewById(R.id.EventEditColourBar);
 
+		//Set up Save/Cancel buttons
+		this.setupButton(R.id.event_apply_button, APPLY);
+		this.setupButton(R.id.event_cancel_button, CANCEL);
+
 		//Title
 		this.eventName = (TextView) this.findViewById(R.id.EventName);
 		if ( event == null || event.getAction() == AcalEvent.ACTION_CREATE ) {
@@ -330,28 +323,20 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		}
 
 		//Collection
-		this.collection = (Button) this.findViewById(R.id.EventEditCollectionButton);
-		if (this.activeCollections.length < 2) {
-			this.collection.setEnabled(false);
-			this.collection.setHeight(0);
-			this.collection.setPadding(0, 0, 0, 0);
+		llSelectCollection = (LinearLayout) this.findViewById(R.id.EventEditCollectionLayout);
+		btnSelectCollection = (Button) this.findViewById(R.id.EventEditCollectionButton);
+		if (activeCollections.length < 2) {
+			llSelectCollection.setVisibility(View.GONE);
 		}
 		else {
 			//set up click listener for collection dialog
-			setListen(this.collection, SELECT_COLLECTION_DIALOG);
+			setListen(this.btnSelectCollection, SELECT_COLLECTION_DIALOG);
 		}
 		
 		
 		//date/time fields
-		fromLabel = (TextView) this.findViewById(R.id.EventFromLabel);
-		untilLabel = (TextView) this.findViewById(R.id.EventUntilLabel);
-		allDayEvent = (CheckBox) this.findViewById(R.id.EventAllDay);
-		fromDate = (Button) this.findViewById(R.id.EventFromDate);
-		fromTime = (Button) this.findViewById(R.id.EventFromTime);
-		untilDate = (Button) this.findViewById(R.id.EventUntilDate);
-		untilTime = (Button) this.findViewById(R.id.EventUntilTime);
-
-		applyButton = (Button) this.findViewById(R.id.event_apply_button);
+		btnStartDate = (Button) this.findViewById(R.id.EventFromDateTime);
+		btnEndDate = (Button) this.findViewById(R.id.EventUntilDate);
 
 		//Title bar
 		titlebar = (TextView)this.findViewById(R.id.EventEditTitle);
@@ -369,17 +354,15 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		
 		
 		//Button listeners
-		setListen(fromDate,FROM_DATE_DIALOG);
-		setListen(fromTime,FROM_TIME_DIALOG);
-		setListen(untilDate,UNTIL_DATE_DIALOG);
-		setListen(untilTime,UNTIL_TIME_DIALOG);
+		setListen(btnStartDate,START_DATE_DIALOG);
+		setListen(btnEndDate,END_DATE_DIALOG);
 		setListen(alarmsView,ADD_ALARM_DIALOG);
 		setListen(repeatsView,SET_REPEAT_RULE_DIALOG);
-		allDayEvent.setOnCheckedChangeListener(this);
-		if ( this.event.getDuration().getDurationMillis() == 60L*60L*24L*1000L ){
-			allDayEvent.setChecked(true);
-		}
 
+		StaticHelpers.setContainerColour(btnStartDate, Constants.themeColour );
+		StaticHelpers.setContainerColour(btnEndDate, Constants.themeColour );
+		StaticHelpers.setContainerColour(alarmsView, Constants.themeColour );
+		StaticHelpers.setContainerColour(repeatsView, Constants.themeColour );
 		
 		String title = event.getSummary();
 		eventName.setText(title);
@@ -395,51 +378,29 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 
 	
 	private void updateLayout() {
-		AcalDateTime start = event.getStart().applyLocalTimeZone();
-		AcalDateTime end = event.getEnd().applyLocalTimeZone();
+		AcalDateTime start = event.getStart();
+		AcalDateTime end = event.getEnd();
+		end.setAsDate(start.isDate());
 
 		Integer colour = event.getColour();
-		if ( colour == null ) colour = getResources().getColor(android.R.color.black);
 		sidebar.setBackgroundColor(colour);
 		eventName.setTextColor(colour);
-		
-		this.collection.setText(this.currentCollection.getAsString(DavCollections.DISPLAYNAME));
-		
-		this.applyButton.setText((event.isModifyAction() ? getString(R.string.Apply) : getString(R.string.Add)));
-		
-		boolean allDay = allDayEvent.isChecked();
-		
-		fromDate.setText(AcalDateTime.fmtDayMonthYear(start));
-		
-		if (allDay) {
-			fromLabel.setVisibility(View.GONE);
-			untilLabel.setVisibility(View.GONE);
-			untilDate.setText(""); 
-			untilDate.setVisibility(View.GONE);
-			fromTime.setText(""); 
-			fromTime.setVisibility(View.GONE);
-			untilTime.setText(""); 
-			untilTime.setVisibility(View.GONE); 
-
-			titlebar.setText(fromDate.getText());
+		if (activeCollections.length < 2) {
+			btnSelectCollection.setText(this.currentCollection.getAsString(DavCollections.DISPLAYNAME));
+			StaticHelpers.setContainerColour(btnSelectCollection, colour);
+			btnSelectCollection.setTextColor(StaticHelpers.pickForegroundForBackground(colour));
 		}
-		else {
-			fromLabel.setVisibility(View.VISIBLE);
-			untilLabel.setVisibility(View.VISIBLE);
-			untilDate.setText(AcalDateTime.fmtDayMonthYear(end));
-			untilDate.setVisibility(View.VISIBLE);
+		Log.d(TAG,"Start date is "+(start.isFloating()?"":"not ")+"floating in updateLayout...");
 
-			DateFormat formatter = new SimpleDateFormat(prefer24hourFormat?"HH:mm":"hh:mmaa");
-			fromTime.setText(formatter.format(start.toJavaDate()));
-			fromTime.setVisibility(View.VISIBLE);
-			untilTime.setText(formatter.format(end.toJavaDate()));
-			untilTime.setVisibility(View.VISIBLE);
-
-			formatter = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.SHORT);
-			titlebar.setText(StaticHelpers.capitaliseWords(formatter.format(start.toJavaDate())));
-
+		btnStartDate.setText(AcalDateTimeFormatter.fmtFull(start, prefer24hourFormat));
+		if ( end.isDate() ) {
+			// People expect an event starting on the 13th and ending on the 14th to be for
+			// two days.  For iCalendar it is one day, so we display the end date to be
+			// one day earlier than the actual setting, if we're viewing 
+			end.addDays(-1);
 		}
-		
+		btnEndDate.setText(AcalDateTimeFormatter.fmtFull(end, prefer24hourFormat));
+		titlebar.setText(eventName.getText());
 		
 		//Display Alarms
 		alarmList = event.getAlarms();
@@ -559,15 +520,8 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		if (!oldDesc.equals(newDesc)) event.setField(EVENT_FIELD.description, newDesc);
 		
 		AcalDateTime start = event.getStart();
-		//check if all day
-		if (allDayEvent.isChecked()) {
-			start.setDaySecond(0);
-			start.setAsDate(true);
-			event.setField(EVENT_FIELD.startDate,start);
-			event.setField(EVENT_FIELD.duration,  new AcalDuration("PT24H"));
-		}
-
 		AcalDuration duration = event.getDuration();
+
 		// Ensure end is not before start
 		if ( duration.getDays() < 0 || duration.getTimeMillis() < 0 ) {
 			start = event.getStart();
@@ -624,6 +578,9 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		Button button = (Button) this.findViewById(id);
 		button.setOnClickListener(this);
 		button.setTag(val);
+		StaticHelpers.setContainerColour(button, Constants.themeColour );
+		if ( val == APPLY )
+			button.setText((event.isModifyAction() ? getString(R.string.Save) : getString(R.string.Add)));
 	}
 
 	@Override
@@ -673,9 +630,12 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 	@Override
 	public void onClick(View arg0) {
 		int button = (int)((Integer)arg0.getTag());
-		switch (button) {
-		case APPLY: applyChanges(); break;
-		case CANCEL: finish();
+		switch ( button ) {
+			case APPLY:
+				applyChanges();
+				break;
+			case CANCEL:
+				finish();
 		}
 	}
 	
@@ -689,161 +649,129 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		AcalDateTime start = event.getStart();
 		AcalDateTime end = event.getEnd();
 		switch (id) {
-		case FROM_DATE_DIALOG:
-			return new DatePickerDialog(this,fromDateListener,
-					start.get(AcalDateTime.YEAR),
-					start.get(AcalDateTime.MONTH)-1,
-					start.get(AcalDateTime.DAY_OF_MONTH)
-			);
-		case UNTIL_DATE_DIALOG:
-			return new DatePickerDialog(this,untilDateListener,
-					end.get(AcalDateTime.YEAR),
-					end.get(AcalDateTime.MONTH)-1,
-					end.get(AcalDateTime.DAY_OF_MONTH)
-			);
-		case FROM_TIME_DIALOG:
-			return new TimePickerDialog(this, fromTimeListener,
-					start.getHour(), 
-					start.getMinute(),
-					prefer24hourFormat);
-		case UNTIL_TIME_DIALOG:
-			return new TimePickerDialog(this, untilTimeListener,
-					end.getHour(), 
-					end.getMinute(),
-					prefer24hourFormat);
-		case SELECT_COLLECTION_DIALOG:
+			case START_DATE_DIALOG:
+				return new DateTimeDialog( this, start, prefer24hourFormat, true,
+						new DateTimeSetListener() {
+							public void onDateTimeSet(AcalDateTime newDateTime) {
+								AcalDateTime oldStart = event.getStart();
+								AcalDuration newDuration = event.getDuration();
+								if ( oldStart.isDate() != newDateTime.isDate() ) {
+									if ( newDateTime.isDate() ) {
+										newDuration.setDuration(newDuration.getDays(), 0); 
+									}
+									else {
+										if ( newDuration.getDurationMillis() == 86400000L )
+											newDuration.setDuration(0, 3600); 
+									}
+									event.setField(EVENT_FIELD.duration, newDuration);
+								}
+								event.setField(EVENT_FIELD.startDate, newDateTime);
+								updateLayout();
+							}
+						});
+
+			case END_DATE_DIALOG:
+				end.setAsDate(start.isDate());
+				if ( end.before(start) ) end = start.clone();
+				if ( end.isDate() ) {
+					// People expect an event starting on the 13th and ending on the 14th to be for
+					// two days.  For iCalendar it is one day, so we display the end date to be
+					// one day earlier than the actual setting, if we're viewing 
+					end.addDays(-1);
+				}
+				return new DateTimeDialog( this, end, prefer24hourFormat, false,
+						new DateTimeSetListener() {
+							public void onDateTimeSet(AcalDateTime newDateTime) {
+								// We always use duration on the event, rather than end.
+								if ( newDateTime.isDate() ) newDateTime.addDays(1);
+								event.setField(EVENT_FIELD.duration, event.getStart().getDurationTo(newDateTime));
+								updateLayout();
+							}
+						});
+
+			case SELECT_COLLECTION_DIALOG:
 				AlertDialog.Builder builder = new AlertDialog.Builder(this);
 				builder.setTitle(getString(R.string.ChooseACollection));
 				builder.setItems(this.collectionsArray, new DialogInterface.OnClickListener() {
-				    public void onClick(DialogInterface dialog, int item) {
-				    	setSelectedCollection(collectionsArray[item]);
-				    }
+					public void onClick(DialogInterface dialog, int item) {
+						setSelectedCollection(collectionsArray[item]);
+					}
 				});
 				return builder.create();
-		case ADD_ALARM_DIALOG:
-			builder = new AlertDialog.Builder(this);
-			builder.setTitle(getString(R.string.ChooseAlarmTime));
-			builder.setItems(alarmRelativeTimeStrings, new DialogInterface.OnClickListener() {
-			    public void onClick(DialogInterface dialog, int item) {
-			    	//translate item to equal alarmValue index
-			    	if ( item < 0 || item >= alarmValues.length ) return;
-			    	alarmList.add(
-			    			new AcalAlarm(
-			    					AcalAlarm.RelateWith.START, 
-			    					event.getDescription(), 
-			    					alarmValues[item], 
-			    					ActionType.AUDIO, 
-			    					event.getStart(), 
-			    					AcalDateTime.addDuration( event.getStart(), alarmValues[item] )
-			    			)
-			    	);
-			    	event.setField(EVENT_FIELD.alarmList, alarmList);
-			    	updateLayout();
-			    }
-			});
-			return builder.create();
-		case WHICH_EVENT_DIALOG:
-			builder = new AlertDialog.Builder(this);
-			builder.setTitle(getString(R.string.ChooseInstancesToChange));
-			builder.setItems(eventChangeRanges, new DialogInterface.OnClickListener() {
-			    public void onClick(DialogInterface dialog, int item) {
-			    	switch (item) {
-			    		case 0: event.setAction(AcalEvent.ACTION_MODIFY_SINGLE); saveChanges(); return;
-			    		case 1: event.setAction(AcalEvent.ACTION_MODIFY_ALL); saveChanges(); return;
-			    		case 2: event.setAction(AcalEvent.ACTION_MODIFY_ALL_FUTURE); saveChanges(); return;
-			    	}
-			    }
-			});
-			return builder.create();
-		case SET_REPEAT_RULE_DIALOG:
-			builder = new AlertDialog.Builder(this);
-			builder.setTitle(getString(R.string.ChooseRepeatFrequency));
-			builder.setItems(this.repeatRules, new DialogInterface.OnClickListener() {
-			    public void onClick(DialogInterface dialog, int item) {
-			    	String newRule = "";
-			    	if (item != 0) {
-			    		item--;
-			    		newRule = repeatRulesValues[item];
-			    	}
-			    	if ( event.isModifyAction() ) {
-				    	if (EventEdit.this.originalHasOccurrence && !newRule.equals(EventEdit.this.originalOccurence)) {
-				    		event.setAction(AcalEvent.ACTION_MODIFY_ALL);
-				    	} else if (EventEdit.this.originalHasOccurrence) {
-				    		event.setAction(AcalEvent.ACTION_MODIFY_SINGLE);
-				    	}
-			    	}
-			    	event.setField(EVENT_FIELD.repeatRule, newRule);
-			    	updateLayout();
-			    	
-			    }
-			});
-			return builder.create();
-		default: return null;
+
+			case ADD_ALARM_DIALOG:
+				builder = new AlertDialog.Builder(this);
+				builder.setTitle(getString(R.string.ChooseAlarmTime));
+				builder.setItems(alarmRelativeTimeStrings, new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int item) {
+						if ( item < 0 || item > alarmValues.length ) return;
+						if ( item == alarmValues.length ) {
+							customAlarmDialog();
+						}
+						else {
+							alarmList.add(new AcalAlarm(AcalAlarm.RelateWith.START, event.getDescription(),
+									alarmValues[item], ActionType.AUDIO, event.getStart(), AcalDateTime.addDuration(
+											event.getStart(), alarmValues[item])));
+							event.setField(EVENT_FIELD.alarmList, alarmList);
+							updateLayout();
+						}
+					}
+				});
+				return builder.create();
+
+			case WHICH_EVENT_DIALOG:
+				builder = new AlertDialog.Builder(this);
+				builder.setTitle(getString(R.string.ChooseInstancesToChange));
+				builder.setItems(eventChangeRanges, new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int item) {
+						switch ( item ) {
+							case 0:
+								event.setAction(AcalEvent.ACTION_MODIFY_SINGLE);
+								saveChanges();
+								return;
+							case 1:
+								event.setAction(AcalEvent.ACTION_MODIFY_ALL);
+								saveChanges();
+								return;
+							case 2:
+								event.setAction(AcalEvent.ACTION_MODIFY_ALL_FUTURE);
+								saveChanges();
+								return;
+						}
+					}
+				});
+				return builder.create();
+
+			case SET_REPEAT_RULE_DIALOG:
+				builder = new AlertDialog.Builder(this);
+				builder.setTitle(getString(R.string.ChooseRepeatFrequency));
+				builder.setItems(this.repeatRules, new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int item) {
+						String newRule = "";
+						if ( item != 0 ) {
+							item--;
+							newRule = repeatRulesValues[item];
+						}
+						if ( event.isModifyAction() ) {
+							if ( EventEdit.this.originalHasOccurrence
+									&& !newRule.equals(EventEdit.this.originalOccurence) ) {
+								event.setAction(AcalEvent.ACTION_MODIFY_ALL);
+							}
+							else if ( EventEdit.this.originalHasOccurrence ) {
+								event.setAction(AcalEvent.ACTION_MODIFY_SINGLE);
+							}
+						}
+						event.setField(EVENT_FIELD.repeatRule, newRule);
+						updateLayout();
+
+					}
+				});
+				return builder.create();
+			default:
+				return null;
 		}
 	}
-	// the callback received when the user "sets" the start date in the dialog
-	private DatePickerDialog.OnDateSetListener fromDateListener =
-		new DatePickerDialog.OnDateSetListener() {
-
-		public void onDateSet(DatePicker view, int year, 
-				int monthOfYear, int dayOfMonth) {
-
-			AcalDateTime start = event.getStart().clone().applyLocalTimeZone();
-			start.setYearMonthDay(year, monthOfYear + 1, dayOfMonth);
-			event.setField(EVENT_FIELD.startDate, start);
-			updateLayout();
-		}
-	};
 	
-	
-
-	// the callback received when the user "sets" the end date in the dialog
-	private DatePickerDialog.OnDateSetListener untilDateListener =
-		new DatePickerDialog.OnDateSetListener() {
-
-		public void onDateSet(DatePicker view, int year, 
-				int monthOfYear, int dayOfMonth) {
-
-			AcalDateTime start = event.getStart().clone().applyLocalTimeZone();
-			AcalDateTime end = event.getEnd().clone().applyLocalTimeZone();
-			end.setYearMonthDay(year, monthOfYear + 1, dayOfMonth);
-			event.setField(EVENT_FIELD.duration, start.getDurationTo(end));
-			updateLayout();
-		}
-	};
-
-	// the callback received when the user "sets" the start time in the dialog
-	private TimePickerDialog.OnTimeSetListener fromTimeListener =
-		new TimePickerDialog.OnTimeSetListener() {
-
-		public void onTimeSet(TimePicker view, int hour, int minute) {
-
-			AcalDateTime start = event.getStart().clone().applyLocalTimeZone();
-			start.setDaySecond(hour*3600 + minute*60);
-			event.setField(EVENT_FIELD.startDate,start);
-
-			SimpleDateFormat formatter = new SimpleDateFormat("hh:mma");
-			fromTime.setText(formatter.format(start.toJavaDate()));
-			formatter = new SimpleDateFormat("hh:mma");
-			updateLayout();
-		}
-	};
-	
-	private TimePickerDialog.OnTimeSetListener untilTimeListener =
-		new TimePickerDialog.OnTimeSetListener() {
-
-		public void onTimeSet(TimePicker view, int hour, int minute) {
-
-			AcalDateTime start = event.getStart().clone().applyLocalTimeZone();
-			AcalDateTime end = event.getEnd().clone().applyLocalTimeZone();
-			end.setDaySecond(hour*3600 + minute*60);
-			AcalDuration duration = start.getDurationTo(end);
-			event.setField(EVENT_FIELD.duration, duration);
-			SimpleDateFormat formatter = new SimpleDateFormat("hh:mma");
-			untilTime.setText(formatter.format(start.toJavaDate()));
-			updateLayout();
-		}
-	};
 
 	private void connectToService() {
 		try {
@@ -885,6 +813,24 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		}
 	}
 	
+	protected void customAlarmDialog() {
+
+		AlarmDialog.AlarmSetListener customAlarmListener = new AlarmDialog.AlarmSetListener() {
+
+			@Override
+			public void onAlarmSet(AcalAlarm alarmValue) {
+				alarmList.add( alarmValue );
+		    	event.setField(EVENT_FIELD.alarmList, alarmList);
+		    	updateLayout();
+			}
+			
+		};
+
+		AlarmDialog customAlarm = new AlarmDialog(this, customAlarmListener, null,
+				event.getStart(), event.getEnd(), VComponent.VEVENT);
+		customAlarm.show();
+	}
+
 	public View getAlarmItem(final AcalAlarm alarm, ViewGroup parent) {
 		LinearLayout rowLayout;
 

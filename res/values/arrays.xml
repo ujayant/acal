@@ -49,11 +49,10 @@
 	name="RelativeAlarmTimes">
 		<item>@string/alarmAtEventTime</item>
 		<item>@string/alarm10MinutesPrior</item>
+		<item>@string/alarm15MinutesPrior</item>
 		<item>@string/alarm30MinutesPrior</item>
 		<item>@string/alarm1HourPrior</item>
 		<item>@string/alarm2HoursPrior</item>
-		<item>@string/alarm12HoursPrior</item>
-		<item>@string/alarm1DayPrior</item>
 		<item>@string/Custom</item>
 		<item>@string/cancel</item>
 </string-array>

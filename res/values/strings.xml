@@ -169,7 +169,7 @@
 <string name="Add">Add</string>
 <string name="UnNamedServer">Unnamed Server</string>
 
-<string name="LocationPrompt">Location:</string>
+<string name="LocationPrompt">Where:</string>
 <string name="NotesPrompt">Notes:</string>
 <string name="AlarmsPrompt">Alarms:</string>
 <string name="RepeatsPrompt">Repeats:</string>
@@ -218,7 +218,7 @@
 <string name="CustomRepeatRule">Custom Repetition</string>
 
 <string name="EventSaved">Event Saved.</string>
-<string name="ModifiedAllInstances">Modified all instances of this event.</string>
+<string name="ModifiedAllInstances">All event changes saved.</string>
 <string name="ModifiedOneInstance">Modified single instance of this event.</string>
 <string name="ModifiedThisAndFuture">Modified this and all future instances of this event.</string>
 <string name="ErrorSavingEvent">Error saving event data - please try again.</string>
@@ -247,8 +247,6 @@
 <string name="alarm30MinutesPrior">30 minutes before</string>
 <string name="alarm1HourPrior">One hour before</string>
 <string name="alarm2HoursPrior">Two hours before</string>
-<string name="alarm12HoursPrior">12 hours before</string>
-<string name="alarm1DayPrior">One day before</string>
 <string name="alarmCustom">Custom Alarm</string>
 <string name="alarmsDisabledNote">(all alarms are disabled for this calendar)</string>
 
@@ -329,7 +327,4 @@
 <string name="Before">Before</string>
 <string name="After">After</string>
 <string name="Custom">Custom</string>
-<string name="SetTaskDueDate">Task Due On</string>
-<string name="SetTaskStartDate">Task Starts On</string>
-<string name="SetTaskCompletedDate">Task Completed On</string>
 </resources>
