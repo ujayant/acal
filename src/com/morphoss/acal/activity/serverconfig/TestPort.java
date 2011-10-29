@@ -281,6 +281,9 @@ public class TestPort {
 	public static Iterator<TestPort> defaultIterator(AcalRequestor requestor) {
 		if ( testPortSet == null )
 			testPortSet = new ArrayList<TestPort>(10);
+		else
+			testPortSet.clear();
+
 		testPortSet.add( new TestPort(requestor,443,true) );
 		testPortSet.add( new TestPort(requestor,8443,true) );
 		testPortSet.add( new TestPort(requestor,80,false) );

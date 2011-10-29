@@ -59,7 +59,7 @@ public class CheckServerDialog implements Runnable {
 	private final Context context;
 	private final ContentValues serverData;
 	private final ServerConfiguration sc;
-	private final AcalRequestor requestor;
+	private AcalRequestor requestor;
 	private ProgressDialog dialog;
 
 	private static final int SHOW_FAIL_DIALOG = 0;
@@ -114,10 +114,6 @@ public class CheckServerDialog implements Runnable {
 		//we must remove any values that may have leaked through from XML that are not part of the DB table
 		ServerConfigData.removeNonDBFields(serverData);
 		this.serverData = serverData;
-		if ( advancedMode )
-			this.requestor = AcalRequestor.fromServerValues(serverData);
-		else
-			this.requestor = AcalRequestor.fromSimpleValues(serverData);
 	}
 	
 	public void start() {
@@ -128,6 +124,10 @@ public class CheckServerDialog implements Runnable {
 	}
 	
 	public void run() {
+		if ( advancedMode )
+			this.requestor = AcalRequestor.fromServerValues(serverData);
+		else
+			this.requestor = AcalRequestor.fromSimpleValues(serverData);
 		checkServer();
 	}
 
