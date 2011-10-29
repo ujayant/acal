@@ -18,16 +18,16 @@ public class AcalDateTimeFormatter {
 		if ( dateTime == null ) return "- - - - - -";
 
 		Date javaDate = dateTime.toJavaDate();
-		StringBuilder b = new StringBuilder(StaticHelpers.capitaliseWords(longDate.format(javaDate)));
+		StringBuilder b = new StringBuilder();
 		if ( !dateTime.isDate() ) {
-			b.append(' ');
-			b.append((prefer24hourFormat?time24Hr:timeAmPm).format(javaDate));
-
-			if ( !dateTime.isFloating() ) {
-				if ( TimeZone.getDefault().getID().equalsIgnoreCase( dateTime.getTimeZoneId() ) ) {
-					b.append(' ');
-					b.append(dateTime.getTimeZoneId());
-				}
+			b.append((prefer24hourFormat?time24Hr:timeAmPm).format(javaDate).toLowerCase());
+			b.append(", ");
+		}
+		b.append(StaticHelpers.capitaliseWords(longDate.format(javaDate)));
+		if ( !dateTime.isDate() && !dateTime.isFloating() ) {
+			if ( ! TimeZone.getDefault().getID().equalsIgnoreCase( dateTime.getTimeZoneId() ) ) {
+				b.append('\n');
+				b.append(dateTime.getTimeZoneId());
 			}
 		}
 		return b.toString();
