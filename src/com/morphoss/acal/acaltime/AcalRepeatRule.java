@@ -583,7 +583,7 @@ public class AcalRepeatRule {
 		}
 
 		AcalEvent getAcalEvent() {
-			return new AcalEvent( VEvent, dtstart, duration,isPending );
+			return new AcalEvent( (VEvent) VEvent, dtstart, duration, isPending );
 		}
 	}
 /*
