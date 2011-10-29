@@ -24,6 +24,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.text.format.DateFormat;
 
 import com.morphoss.acal.activity.MonthView;
 import com.morphoss.acal.activity.ShowUpgradeChanges;
@@ -55,6 +56,10 @@ public class aCal extends Activity {
 		try {
 			int thisRevision = getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
 			if ( lastRevision < thisRevision ) {
+				if ( lastRevision == 0 ) {
+					// Default our 24hr pref to the system one.
+					prefs.edit().putBoolean(getString(R.string.prefTwelveTwentyfour), DateFormat.is24HourFormat(this));
+				}
 				startActivity(new Intent(this, ShowUpgradeChanges.class));
 			}
 			else { 
