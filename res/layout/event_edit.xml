@@ -27,9 +27,9 @@
 		<!-- Colour bar -->
 		<LinearLayout
 			android:id="@+id/EventEditColourBar"
-			android:layout_width="fill_parent"
+			android:layout_width="10sp"
 			android:layout_height="fill_parent" 
-			android:layout_weight="20">
+			android:background="#704080f0">
 		</LinearLayout>
 	
 		<ScrollView
@@ -89,7 +89,7 @@
 									android:layout_height="wrap_content"
 									android:layout_width="fill_parent"
 									android:minHeight="30sp"
-									android:text="29 October 2011, 7:00pm"
+									android:text="7:00pm, 29 October 2011"
 									style="@style/themed_button_big"/>
 							</LinearLayout>
 						</LinearLayout>
@@ -269,10 +269,17 @@
 		android:layout_height="36dp"
 		android:background="@color/bottom_bg">
 	    	
+		<!-- Colour bar -->
+		<LinearLayout
+			android:id="@+id/EventEditColourBarBottom"
+			android:layout_width="15sp"
+			android:layout_height="fill_parent"
+			android:background="#704080f0"/>
+
 		<LinearLayout
 			android:layout_width="fill_parent" 
 			android:layout_height="fill_parent"
-			android:layout_weight="1"
+			android:layout_weight="3"
 			android:gravity="center" 
 			android:padding="0sp">
 			<LinearLayout
@@ -284,16 +291,15 @@
 					android:layout_height="wrap_content"
 					style="@style/themed_bottom_button"
 					android:text="@string/Apply"
-					android:width="90sp"
-					android:layout_gravity="center" 
-					android:includeFontPadding="true" 
+					android:width="110sp"
+					android:gravity="top|center_horizontal"
 					android:padding="0sp"/>
 			</LinearLayout>
 		</LinearLayout>
 		<LinearLayout
 			android:layout_width="fill_parent" 
 			android:layout_height="fill_parent"
-			android:layout_weight="1"
+			android:layout_weight="3"
 			android:gravity="center" 
 			android:padding="0sp">
 			<LinearLayout
@@ -303,11 +309,10 @@
 				<Button android:id="@+id/event_cancel_button"
 					android:layout_width="wrap_content"
 					android:layout_height="wrap_content"
-					android:layout_gravity="center"
+					android:gravity="top|center_horizontal"
 					style="@style/themed_bottom_button"
 					android:text="@string/cancel"
-					android:width="90sp" 
-					android:includeFontPadding="true" 
+					android:width="110sp" 
 					android:padding="0sp"/>
 			</LinearLayout>
 		</LinearLayout>

@@ -178,7 +178,7 @@
 <string name="TodoFromPrompt">Start On:</string>
 <string name="UntilPrompt">Until:</string>
 <string name="DuePrompt">Due:</string>
-<string name="CompletedPrompt">Completed:</string>
+<string name="CompletedPrompt">Finished:</string>
 <string name="DaysPrompt">Days:</string>
 <string name="StartPrompt">Start:</string>
 <string name="CompletePrompt">Complete:</string>

@@ -130,6 +130,7 @@ public class TodoEdit extends Activity
 	private Button btnDueDate;
 	private Button btnCompleteDate;
 	private LinearLayout sidebar;
+	private LinearLayout sidebarBottom;
 	private TextView todoName;
 	private TextView locationView;
 	private TextView notesView;
@@ -278,6 +279,7 @@ public class TodoEdit extends Activity
 
 		//Todo Colour
 		sidebar = (LinearLayout)this.findViewById(R.id.TodoEditColourBar);
+		sidebarBottom = (LinearLayout)this.findViewById(R.id.EventEditColourBarBottom);
 
 		//Title
 		this.todoName = (TextView) this.findViewById(R.id.TodoName);
@@ -375,6 +377,7 @@ public class TodoEdit extends Activity
 		Integer colour = todo.getCollectionColour();
 		if ( colour == null ) colour = 0x70a0a0a0;
 		sidebar.setBackgroundColor(colour);
+		sidebarBottom.setBackgroundColor(colour);
 		btnCollection.setText(todo.getCollectionName());
 		btnCollection.setBackgroundColor(colour);
 		todoName.setTextColor(colour);

@@ -29,7 +29,10 @@
     <item name="android:textStyle">bold</item>
     <item name="android:background">@drawable/themed_button_fg</item>
     <item name="android:height">30sp</item>
-    <item name="android:padding">6sp</item>
+	<item name="android:paddingLeft">4sp</item> 
+	<item name="android:paddingTop">1sp</item> 
+	<item name="android:paddingRight">4sp</item> 
+	<item name="android:paddingBottom">3sp</item>
 </style>
 
 <style name="bottom_add_button" parent="themed_bottom_button">

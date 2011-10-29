@@ -118,6 +118,7 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 	private Button btnStartDate;
 	private Button btnEndDate;
 	private LinearLayout sidebar;
+	private LinearLayout sidebarBottom;
 	private TextView eventName;
 	private TextView titlebar;
 	private TextView locationView;
@@ -312,6 +313,7 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 
 		//Event Colour
 		sidebar = (LinearLayout)this.findViewById(R.id.EventEditColourBar);
+		sidebarBottom = (LinearLayout)this.findViewById(R.id.EventEditColourBarBottom);
 
 		//Set up Save/Cancel buttons
 		this.setupButton(R.id.event_apply_button, APPLY);
@@ -385,6 +387,7 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 
 		Integer colour = event.getColour();
 		sidebar.setBackgroundColor(colour);
+		sidebarBottom.setBackgroundColor(colour);
 		eventName.setTextColor(colour);
 		if (activeCollections.length < 2) {
 			btnSelectCollection.setText(this.currentCollection.getAsString(DavCollections.DISPLAYNAME));
