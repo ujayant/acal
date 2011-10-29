@@ -1215,7 +1215,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 		public void snoozeAlarm(AcalAlarm alarm) throws RemoteException {
 			this.triggeredAlarmDismissedByUser(alarm);
 			SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(CalendarDataService.this);
-			String snoozeTime = prefs.getString(CalendarDataService.this.getString(R.string.Snooze_PrefKey), "5");
+			String snoozeTime = prefs.getString(CalendarDataService.this.getString(R.string.prefSnoozeDuration), "5");
 			alarm.snooze(new AcalDuration("PT"+snoozeTime+"M"));
 			alarm.setToLocalTime();
 			Toast.makeText(CalendarDataService.this, "Alarm Snoozed for "+snoozeTime+" Minutes", Toast.LENGTH_LONG);

@@ -4,7 +4,7 @@
     <string name="prefDefaultView">prefDefaultView</string>
 	<string name="prefTwelveTwentyfour">prefTwelveTwentyfour</string>
 	<string name="YearViewSize_PrefKey">YearViewNumMonths</string>
-	<string name="Snooze_PrefKey">SnoozeTime</string>
+	<string name="prefSnoozeDuration">SnoozeTime</string>
 	<string name="DefaultCollection_PrefKey">DefaultCollection</string>
 	<string name="DefaultAlarmTone_PrefKey">DefaultAlarmTone</string>
 	<string name="AlarmVolumeType_PrefKey">AlarmVolumeType</string>
