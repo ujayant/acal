@@ -75,7 +75,7 @@ public class AcalRepeatRuleDay {
 	public String toPrettyString() {
 		String ret = "";
 		if ( setPos != 0 ) {
-			ret += Integer.toString(setPos) + AcalDateTime.getSuffix(setPos) + " ";
+			ret += "the "+Integer.toString(setPos) + AcalDateTime.getSuffix(setPos) + " ";
 		}
 		switch( wDay ) {
 			case AcalDateTime.MONDAY:		ret += "Monday";	break;

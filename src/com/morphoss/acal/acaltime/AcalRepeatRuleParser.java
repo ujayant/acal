@@ -233,7 +233,7 @@ public abstract class AcalRepeatRuleParser {
 
 		if ( byday != null ) {
 			firstOne = true;
-			s.append(" on the ");
+			s.append(" on ");
 			for( int i=0; i<byday.length; i++ ) {
 				if ( firstOne ) firstOne = false;
 				else s.append(", ");
@@ -255,7 +255,7 @@ public abstract class AcalRepeatRuleParser {
 			s.append(" forever.");
 		}
 		else {
-			s.append(" ");
+			s.append(", ");
 			s.append(Integer.toString(count+1));
 			s.append(" times.");
 		}
@@ -267,26 +267,33 @@ public abstract class AcalRepeatRuleParser {
 	}
 
 	private String commaListInts( int[] intList ) {
-		StringBuilder s = new StringBuilder("");
+		StringBuilder s = null;
 		for( int thisInt : intList ) {
-			if ( s == null ) s.append(Integer.toString(thisInt));
+			if ( s == null ) {
+				 s = new StringBuilder(Integer.toString(thisInt));
+			}
 			else {
 				s.append(",");
 				s.append(Integer.toString(thisInt));
 			}
 		}
+		if ( s == null ) return "";
 		return s.toString();
 	}
 
 	private String prettyListInts( String prefix, int[] intList, String postfix ) {
-		StringBuilder s = new StringBuilder(prefix);
+		StringBuilder s = null;
+		
 		for( int thisInt : intList ) {
-			if ( s == null ) s.append(Integer.toString(thisInt));
+			if ( s == null ) {
+				s = new StringBuilder(prefix + Integer.toString(thisInt));
+			}
 			else {
 				s.append(", ");
 				s.append(Integer.toString(thisInt));
 			}
 		}
+		if ( s == null ) return "";
 		s.append(postfix);
 		return s.toString();
 	}
