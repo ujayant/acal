@@ -58,7 +58,7 @@ public class aCal extends Activity {
 			if ( lastRevision < thisRevision ) {
 				if ( lastRevision == 0 ) {
 					// Default our 24hr pref to the system one.
-					prefs.edit().putBoolean(getString(R.string.prefTwelveTwentyfour), DateFormat.is24HourFormat(this));
+					prefs.edit().putBoolean(getString(R.string.prefTwelveTwentyfour), DateFormat.is24HourFormat(this)).commit();
 				}
 				startActivity(new Intent(this, ShowUpgradeChanges.class));
 			}

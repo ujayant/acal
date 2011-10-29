@@ -54,7 +54,7 @@ public class aCalTasks extends Activity {
 		int lastRevision = prefs.getInt(Constants.lastRevisionPreference, 0);
 		if ( lastRevision == 0 ) {
 			// Default our 24hr pref to the system one.
-			prefs.edit().putBoolean(getString(R.string.prefTwelveTwentyfour), DateFormat.is24HourFormat(this));
+			prefs.edit().putBoolean(getString(R.string.prefTwelveTwentyfour), DateFormat.is24HourFormat(this)).commit();
 		}
 
 //		try {
