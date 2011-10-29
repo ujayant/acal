@@ -31,7 +31,6 @@ import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.DatePicker;
 import android.widget.DatePicker.OnDateChangedListener;
 import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.TimePicker.OnTimeChangedListener;
 
@@ -53,52 +52,65 @@ public class DateTimeDialog extends Dialog
 
 	private Button setButton;
 	private Button cancelButton;
-	private TextView dateTimeText;
 	private DatePicker datePicker;
 	private TimePicker timePicker;
 	private CheckBox dateOnlyCheckBox;
 	private Spinner timeZoneSpinner; 
 	private TimeZoneListAdapter tzListAdapter;
+	private boolean allowDateVsDateTimeSwitching = true;
+
+	private int oldTimeZoneWas = 0;
 
 	private AcalDateTime currentDateTime;
 	private final boolean use24HourTime;
 
-	public DateTimeDialog(Context context, String dialogTitle, AcalDateTime dateTimeValue, boolean twentyFourHourTime, DateTimeSetListener listener )  {
+	public DateTimeDialog(Context context, AcalDateTime dateTimeValue, boolean twentyFourHourTime, boolean allowDateTimeSwitching, DateTimeSetListener listener )  {
     	super(context);
     	this.context = context;
         this.dialogListener = listener;
         use24HourTime = twentyFourHourTime;
         setContentView(R.layout.datetime_dialog);
+        allowDateVsDateTimeSwitching = allowDateTimeSwitching;
 
-        this.setTitle(dialogTitle);
-        
         currentDateTime = (dateTimeValue == null ? new AcalDateTime() : dateTimeValue.clone());
+        populateLayout();
+	}
+
+	
+	private void populateLayout() {
         
         setButton = (Button)this.findViewById(R.id.DateTimeSetButton);
         cancelButton = (Button)this.findViewById(R.id.DateTimeCancelButton);
         setButton.setOnClickListener(this);
         cancelButton.setOnClickListener(this);
 
-        dateTimeText = (TextView) this.findViewById(R.id.DateTimeText);
-
         datePicker = (DatePicker) this.findViewById(R.id.datePicker);
         datePicker.init(currentDateTime.getYear(), currentDateTime.getMonth() - 1, currentDateTime.getMonthDay(),this);
 
         timePicker = (TimePicker) this.findViewById(R.id.timePicker);
-        timePicker.setIs24HourView(twentyFourHourTime);
+        timePicker.setIs24HourView(use24HourTime);
         timePicker.setCurrentHour((int) currentDateTime.getHour());
         timePicker.setCurrentMinute((int) currentDateTime.getMinute());
         timePicker.setOnTimeChangedListener(this);
 
         dateOnlyCheckBox = (CheckBox) this.findViewById(R.id.DateTimeIsDate);
-        dateOnlyCheckBox.setChecked(currentDateTime.isDate());
-        dateOnlyCheckBox.setOnCheckedChangeListener(this);
 
         timeZoneSpinner = (Spinner) this.findViewById(R.id.DateTimeZoneSelect);
         tzListAdapter = new TimeZoneListAdapter(this.context, currentDateTime.getTimeZone());
         timeZoneSpinner.setAdapter(tzListAdapter);
-        timeZoneSpinner.setSelection(tzListAdapter.getPositionOf(currentDateTime.getTimeZoneId()));
         timeZoneSpinner.setOnItemSelectedListener(this);
+        
+        if ( allowDateVsDateTimeSwitching ) {
+	        dateOnlyCheckBox.setChecked(currentDateTime.isDate());
+	        dateOnlyCheckBox.setOnCheckedChangeListener(this);
+        }
+        else {
+	        dateOnlyCheckBox.setVisibility(View.GONE);
+	        if ( currentDateTime.isDate() ) {
+	        	timePicker.setVisibility(View.GONE);
+	        	timeZoneSpinner.setVisibility(View.GONE);
+	        }
+        }
 
         updateLayout();
     }
@@ -106,12 +118,19 @@ public class DateTimeDialog extends Dialog
 	
 	private void updateLayout() {
 		timePicker.setEnabled(!dateOnlyCheckBox.isChecked());
-    	dateTimeText.setText(AcalDateTimeFormatter.fmtFull(currentDateTime,use24HourTime));
+		timeZoneSpinner.setSelection(dateOnlyCheckBox.isChecked() ? 0 : tzListAdapter.getPositionOf(currentDateTime.getTimeZoneId()));
+    	timeZoneSpinner.setEnabled(!dateOnlyCheckBox.isChecked());
+        this.setTitle(AcalDateTimeFormatter.fmtFull(currentDateTime,use24HourTime));
 	}
 
 
 	private void toggleIsDate( boolean isDate ) {
+		if ( isDate ) oldTimeZoneWas = timeZoneSpinner.getSelectedItemPosition();
 		currentDateTime.setAsDate(isDate);
+		if ( !isDate ) {
+			currentDateTime.setTimeZone(tzListAdapter.getTzId(oldTimeZoneWas));
+			timeZoneSpinner.setSelection(oldTimeZoneWas);
+		}
 		updateLayout();
 	}
 
