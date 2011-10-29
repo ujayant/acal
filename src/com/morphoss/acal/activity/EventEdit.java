@@ -657,7 +657,7 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 								AcalDuration newDuration = event.getDuration();
 								if ( oldStart.isDate() != newDateTime.isDate() ) {
 									if ( newDateTime.isDate() ) {
-										newDuration.setDuration(newDuration.getDays(), 0); 
+										newDuration.setDuration(newDuration.getDays() + 1, 0); 
 									}
 									else {
 										if ( newDuration.getDurationMillis() == 86400000L )
