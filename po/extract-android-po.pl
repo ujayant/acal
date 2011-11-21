@@ -4,57 +4,95 @@
 #
 # Copyright: Morphoss Ltd <http://www.morphoss.com/>
 # Author: Andrew McMillan <andrew@mcmillan.net.nz>
-# License: CC-0, Public Domain, GPL v2, GPL v3, Apache v2 or Simplified BSD
-#          other licenses considered on request.
+# License: CC-0, Public Domain, GPL v2, GPL v3, Apache v2 or Simplified BSD.
+#          Other licenses considered on request.
 #
 
 use strict;
 use warnings;
 
+use IO::Handle;
+use Getopt::Long qw(:config permute);  # allow mixed args.
+
+
 # Stuff that should not be hard-coded, but is :-)
 my $resources_dir = "../res";
-my $strings_filename = "strings";
+my @extract_filenames = ( "strings", "timezonenames" );
+my $build_filename = "strings";
 my $messages_filename = "messages.pot";
 
-if ( defined($ARGV[0]) && $ARGV[0] eq "extract" ) {
+my $debug = 0;
+my $extractmode = 0;
+my $buildmode = 0;
+my $helpmeplease = 0;
+
+GetOptions ('debug!'    => \$debug,
+
+            'extract!'  => \$extractmode,
+            'build!'    => \$buildmode,
+
+            'help'      => \$helpmeplease  );
+
+usage() if ( $helpmeplease || ($extractmode && $buildmode) );
+
+
+if ( $extractmode ) {
   # Update/extract the strings for the messages.po file
-  extract_po_file($resources_dir ."/values/". $strings_filename . ".xml", $messages_filename);
+  extract_po_file(\@extract_filenames, $messages_filename);
 }
-elsif ( defined($ARGV[0]) && $ARGV[0] eq "build" ) {
+elsif ( $buildmode ) {
   # From the language po files build the various strings files.
-  build_strings_files($messages_filename, $strings_filename );
+  build_strings_files($messages_filename, $build_filename );
 }
 else {
-  print "You must specify either 'extract' or 'build'\n";
+  usage();
+}
+
+
+=item
+Provides basic help to the user.
+=cut
+sub usage {
+  print "You must specify either '--extract' or '--build'\n";
   exit 0
 }
 
 
 =item
-Extracts the strings from an Android strings.xml into a messages.po file
+Extracts the strings from some Android strings.xml into a messages.po file
 =cut
 sub extract_po_file {
-  my $filename = shift;
+  my $filenames = shift;
   my $outfile = shift;
 
   my @xgettext = ( "xgettext", "-L", "PO", "-o", $outfile, "-" );
-
-  open( XMLFILE, "<", $filename );
   open( XGETTEXT, "|-", @xgettext );
-  while( <XMLFILE> ) {
-    m{<string .*?name="(.*?)".*?>(.*?)</string>} && do {
-      my $msgid = $1;
-      my $msgstr = $2;
-      $msgstr =~ s{\\'}{'}g;
-      $msgstr =~ s/"/&quot;/g;
-      printf( XGETTEXT 'msgid "%s"%s', $msgid, "\n" );
-      printf( XGETTEXT 'msgstr "%s"%s', $msgstr, "\n\n" );
-    };
-    m{<!--(.*?)-->} && do {
-      printf( XGETTEXT "#%s\n", $1 );
-    };
+  autoflush XGETTEXT 1;
+  printf( "Extracting to '%s'\n", $outfile ) if ( $debug );
+
+  for my $filename ( @$filenames ) {
+    $filename = $resources_dir ."/values/". $filename . ".xml";
+    printf( XGETTEXT "#SourceFileStart:%s\n", $filename );
+    printf( "Extracting strings from '%s'\n", $filename ) if ( $debug );
+    open( XMLFILE, "<", $filename );
+    while( <XMLFILE> ) {
+      m{<string .*?name="(.*?)".*?>(.*?)</string>} && do {
+        my $msgid = $1;
+        my $msgstr = $2;
+        $msgstr =~ s{\\'}{'}g;
+        $msgstr =~ s/"/&quot;/g;
+        printf( XGETTEXT 'msgid "%s"%s', $msgid, "\n" );
+        printf( XGETTEXT 'msgstr "%s"%s', $msgstr, "\n\n" );
+      };
+      m{<!--(.*?)-->} && do {
+        printf( XGETTEXT "#%s\n", $1 );
+      };
+    }
+    close(XMLFILE);
+    printf( XGETTEXT "#SourceFileEnd:%s\n\n", $filename );
   }
-  close(XMLFILE);
+  printf( "Extraction completed\n" ) if ( $debug );
+  # close(XGETTEXT);
   
 }
 
@@ -75,7 +113,7 @@ sub build_strings_files {
       my $lang = $1;
       printf( "Building language: %s\n", $lang );
       my $strings = get_translated_strings($fn);
-      merge_into_xml( $lang, $strings );
+      merge_into_xml( $lang, $strings, $stringsfile );
     }
   }
   closedir($dh);
@@ -120,6 +158,7 @@ sub get_translated_strings {
 sub merge_into_xml {
   my $lang = shift;
   my $strings = shift;
+  my $strings_filename = shift;
 
   $lang =~ s{_([A-Z]{2})}{-r$1};
   my $in_filename = sprintf( '%s/values/%s.xml', $resources_dir, $strings_filename);
