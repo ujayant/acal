@@ -2,14 +2,15 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # 
-# Samuel Vale <srcvale@minaslivre.org>, 2011.
+# Translators:
 # Andrew McMillan <andrew@mcmillan.net.nz>, 2011.
+# Samuel Vale <srcvale@minaslivre.org>, 2011.
 msgid ""
 msgstr ""
 "Project-Id-Version: aCal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-05-19 09:05+1200\n"
-"PO-Revision-Date: 2011-06-28 22:05+0000\n"
+"POT-Creation-Date: 2011-08-22 21:42+1200\n"
+"PO-Revision-Date: 2011-10-22 15:11+0000\n"
 "Last-Translator: svale <srcvale@minaslivre.org>\n"
 "Language-Team: Portuguese (Brazilian) (http://www.transifex.net/projects/p/acal/team/pt_BR/)\n"
 "MIME-Version: 1.0\n"
@@ -36,6 +37,11 @@ msgstr ""
 "Uma agenda para Android que armazena seus compromissos, tarefas, anotações e"
 " contatos em um servidor CalDAV / CardDAV remoto, como o DAViCal (Veja: "
 "http://davical.org)"
+
+msgid "appDescriptionTasks"
+msgstr ""
+"Uma lista de tarefas para Android que irá utilizar um servidor remoto CalDAV"
+" para armazenar seus dados, como o DAViCal (veja http://davical.org)"
 
 msgid "Active"
 msgstr "Ativo"
@@ -458,6 +464,12 @@ msgstr "De:"
 msgid "UntilPrompt"
 msgstr "Até:"
 
+msgid "DuePrompt"
+msgstr "Prazo:"
+
+msgid "CompletedPrompt"
+msgstr "Completo:"
+
 msgid "defaultCalendar"
 msgstr "Agenda padrão"
 
@@ -683,6 +695,11 @@ msgstr "Buscando o caminho principal em &quot;%s&quot;"
 msgid "checkServer_CheckingCapabilities"
 msgstr "Verificando capacidade do servidor"
 
+msgid "serverRecordAlreadyExists"
+msgstr ""
+"Já existe um servidor configurado para este protocolo, porta, endereço, "
+"caminho e nome de usuário"
+
 msgid "newEventFromThis"
 msgstr "Copiar para Novo Evento"
 
@@ -724,5 +741,41 @@ msgstr "Alterações na versão %s"
 
 msgid "newVersionSeen"
 msgstr "Obrigado, agora mostre-me!"
+
+msgid "Due"
+msgstr "Prazo"
+
+msgid "All"
+msgstr "Todos"
+
+msgid "Todo"
+msgstr "A fazer"
+
+msgid "Events"
+msgstr "Eventos"
+
+msgid "Tasks"
+msgstr "Tarefas"
+
+msgid "Unscheduled"
+msgstr "Não agendado"
+
+msgid "ChooseAction"
+msgstr "Escolher Ação"
+
+msgid "SetCompleted"
+msgstr "Marcar como Completo"
+
+msgid "newTaskFromThis"
+msgstr "Copiar para Nova Tarefa"
+
+msgid "dueTasksTitle"
+msgstr "Tarefas para terminar em até uma semana"
+
+msgid "incompleteTasksTitle"
+msgstr "Tarefas não Concluídas"
+
+msgid "allTasksTitle"
+msgstr "Todas as Tarefas"
 
 

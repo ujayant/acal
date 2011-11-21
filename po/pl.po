@@ -2,13 +2,14 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # 
+# Translators:
 #   <dziobak84@interia.pl>, 2011.
 msgid ""
 msgstr ""
 "Project-Id-Version: aCal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-05-19 09:05+1200\n"
-"PO-Revision-Date: 2011-06-26 17:47+0000\n"
+"POT-Creation-Date: 2011-08-22 21:42+1200\n"
+"PO-Revision-Date: 2011-11-14 11:36+0000\n"
 "Last-Translator: dziobak <dziobak84@interia.pl>\n"
 "Language-Team: Polish (http://www.transifex.net/projects/p/acal/team/pl/)\n"
 "MIME-Version: 1.0\n"
@@ -35,6 +36,12 @@ msgstr ""
 "Kalendarz dla systemu Android, który synchronizuje zdarzenia, zadania, "
 "notatki i kontakty z serwerem CalDAV / CardDAV, np. DAViCal "
 "(www.davical.org)"
+
+msgid "appDescriptionTasks"
+msgstr ""
+"Lista zadań dla systemu Android, która będzie przechowywać swoje zadania na "
+"zdalnym CalDAV / CardDAV serwerze, takim jak DAViCal (patrz: "
+"www.davical.org)"
 
 msgid "Active"
 msgstr "Aktywny"
@@ -455,6 +462,12 @@ msgstr "Od:"
 msgid "UntilPrompt"
 msgstr "Do:"
 
+msgid "DuePrompt"
+msgstr "Niezakończone"
+
+msgid "CompletedPrompt"
+msgstr "Zakończone:"
+
 msgid "defaultCalendar"
 msgstr "Domyślny kalendarz"
 
@@ -681,6 +694,11 @@ msgstr "Wyszukiwanie głównej ścieżki na &quot;%s&quot;"
 msgid "checkServer_CheckingCapabilities"
 msgstr "Sprawdzanie możliwości serwera"
 
+msgid "serverRecordAlreadyExists"
+msgstr ""
+"Serwer już istnieje dlatego protokółu, port, hosta, ścieżki &amp; nazwy "
+"użytkownika"
+
 msgid "newEventFromThis"
 msgstr "Kopiuj do nowego zdarzenia"
 
@@ -722,5 +740,41 @@ msgstr "Zmiany w wersji %s"
 
 msgid "newVersionSeen"
 msgstr "Dziękuje, teraz mi pokaż!"
+
+msgid "Due"
+msgstr "Niezakończone"
+
+msgid "All"
+msgstr "Wszystkie"
+
+msgid "Todo"
+msgstr "Do zrobienia"
+
+msgid "Events"
+msgstr "Zdarzenia"
+
+msgid "Tasks"
+msgstr "Zadania"
+
+msgid "Unscheduled"
+msgstr "Niezaplanowane"
+
+msgid "ChooseAction"
+msgstr "Wybierz akcję"
+
+msgid "SetCompleted"
+msgstr "Ustaw jako zakończone"
+
+msgid "newTaskFromThis"
+msgstr "Kopiuj do nowego zadania"
+
+msgid "dueTasksTitle"
+msgstr "Zadania w ciągu tygodnia"
+
+msgid "incompleteTasksTitle"
+msgstr "Niezakończone zadania"
+
+msgid "allTasksTitle"
+msgstr "Wszystkie zadania"
 
 

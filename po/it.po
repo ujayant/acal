@@ -2,13 +2,14 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # 
+# Translators:
 msgid ""
 msgstr ""
 "Project-Id-Version: aCal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-05-19 09:05+1200\n"
-"PO-Revision-Date: 2011-06-21 12:54+0000\n"
-"Last-Translator: butz <info@matteobusolin.com>\n"
+"POT-Creation-Date: 2011-08-22 21:42+1200\n"
+"PO-Revision-Date: 2011-08-22 09:42+0000\n"
+"Last-Translator: karora <andrew@mcmillan.net.nz>\n"
 "Language-Team: Italian (http://www.transifex.net/projects/p/acal/team/it/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -34,6 +35,9 @@ msgstr ""
 "Un calendario per Android per memorizzare appuntamenti, promemoria, note, "
 "contatti su un server CalDAV / CardDAV, come ad esempio DAViCal "
 "(www.davical.org)"
+
+msgid "appDescriptionTasks"
+msgstr ""
 
 msgid "Active"
 msgstr "Attivo"
@@ -454,6 +458,12 @@ msgstr ""
 msgid "UntilPrompt"
 msgstr ""
 
+msgid "DuePrompt"
+msgstr ""
+
+msgid "CompletedPrompt"
+msgstr ""
+
 msgid "defaultCalendar"
 msgstr ""
 
@@ -679,6 +689,9 @@ msgstr ""
 msgid "checkServer_CheckingCapabilities"
 msgstr ""
 
+msgid "serverRecordAlreadyExists"
+msgstr ""
+
 msgid "newEventFromThis"
 msgstr ""
 
@@ -719,6 +732,42 @@ msgid "newWithVersion"
 msgstr ""
 
 msgid "newVersionSeen"
+msgstr ""
+
+msgid "Due"
+msgstr ""
+
+msgid "All"
+msgstr ""
+
+msgid "Todo"
+msgstr ""
+
+msgid "Events"
+msgstr ""
+
+msgid "Tasks"
+msgstr ""
+
+msgid "Unscheduled"
+msgstr ""
+
+msgid "ChooseAction"
+msgstr ""
+
+msgid "SetCompleted"
+msgstr ""
+
+msgid "newTaskFromThis"
+msgstr ""
+
+msgid "dueTasksTitle"
+msgstr ""
+
+msgid "incompleteTasksTitle"
+msgstr ""
+
+msgid "allTasksTitle"
 msgstr ""
 
 

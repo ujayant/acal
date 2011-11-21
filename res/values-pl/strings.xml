@@ -5,6 +5,7 @@
 <string name="firstDayOfWeek">Pierwszy dzień tygodnia</string>
 <string name="cancel">Anuluj</string>
 <string name="appDescription">Kalendarz dla systemu Android, który synchronizuje zdarzenia, zadania, notatki i kontakty z serwerem CalDAV / CardDAV, np. DAViCal (www.davical.org)</string>
+<string name="appDescriptionTasks">Lista zadań dla systemu Android, która będzie przechowywać swoje zadania na zdalnym CalDAV / CardDAV serwerze, takim jak DAViCal (patrz: www.davical.org)</string>
 <string name="Active">Aktywny</string>
 <string name="Add_Server">Dodaj serwer</string>
 <string name="A_name_for_this_server_configuration">Nazwa konfiguracji serwera</string>
@@ -142,6 +143,8 @@
 <string name="AllDayPrompt">Cały dzień:</string>
 <string name="FromPrompt">Od:</string>
 <string name="UntilPrompt">Do:</string>
+<string name="DuePrompt">Niezakończone</string>
+<string name="CompletedPrompt">Zakończone:</string>
 <string name="defaultCalendar">Domyślny kalendarz</string>
 <string name="theCalendarForNewEvents">Kalendarz, który będzie używany do zapisywania nowych zdarzeń</string>
 <string name="TwelveTwentyfour_PrefTitle">Użyj formaty 24-godzinnego</string>
@@ -191,8 +194,6 @@
 <string name="alarm30MinutesPrior">30 minut przed</string>
 <string name="alarm1HourPrior">Jedną godzinę przed</string>
 <string name="alarm2HoursPrior">Dwie godziny przed</string>
-<string name="alarm12HoursPrior">12 godzin przed</string>
-<string name="alarm1DayPrior">Jeden dzień przed</string>
 <string name="alarmCustom">Niestandardowy alarm</string>
 <string name="alarmsDisabledNote">(wszystkie alarmy dla tego kalendarza są wyłączone)</string>
 <string name="changeThisInstance">Tylko to wystąpienie</string>
@@ -212,9 +213,7 @@
 <string name="checkServer">Sprawdzanie serwera</string>
 <string name="checkServer_Connecting">Łączę z serwerem, proszę czekaj...</string>
 <string name="checkServer_Internet">Sprawdź łącze z internetem</string>
-<string name="checkServer_ProbePorts">Sprawdzanie serwera na porcie %1$d używając protokołu %2$s </string>
-<string name="checkServer_SearchingPrincipal">Wyszukiwanie głównej ścieżki na &quot;%s&quot;</string>
-<string name="checkServer_CheckingCapabilities">Sprawdzanie możliwości serwera</string>
+<string name="serverRecordAlreadyExists">Serwer już istnieje dlatego protokółu, port, hosta, ścieżki &amp; nazwy użytkownika</string>
 <string name="newEventFromThis">Kopiuj do nowego zdarzenia</string>
 <string name="Delete">Usuń</string>
 <string name="deleteAllInstances">Usuń wszystkie wystąpienia</string>
@@ -229,4 +228,16 @@
 <string name="aCalVersionChanges">Witaj w nowej wersji aCal!</string>
 <string name="newWithVersion">Zmiany w wersji %s</string>
 <string name="newVersionSeen">Dziękuje, teraz mi pokaż!</string>
+<string name="Due">Niezakończone</string>
+<string name="All">Wszystkie</string>
+<string name="Todo">Do zrobienia</string>
+<string name="Events">Zdarzenia</string>
+<string name="Tasks">Zadania</string>
+<string name="Unscheduled">Niezaplanowane</string>
+<string name="ChooseAction">Wybierz akcję</string>
+<string name="SetCompleted">Ustaw jako zakończone</string>
+<string name="newTaskFromThis">Kopiuj do nowego zadania</string>
+<string name="dueTasksTitle">Zadania w ciągu tygodnia</string>
+<string name="incompleteTasksTitle">Niezakończone zadania</string>
+<string name="allTasksTitle">Wszystkie zadania</string>
 </resources>

@@ -5,6 +5,7 @@
 <string name="firstDayOfWeek">Primeiro dia da semana</string>
 <string name="cancel">Cancelar</string>
 <string name="appDescription">Uma agenda para Android que armazena seus compromissos, tarefas, anotações e contatos em um servidor CalDAV / CardDAV remoto, como o DAViCal (Veja: http://davical.org)</string>
+<string name="appDescriptionTasks">Uma lista de tarefas para Android que irá utilizar um servidor remoto CalDAV para armazenar seus dados, como o DAViCal (veja http://davical.org)</string>
 <string name="Active">Ativo</string>
 <string name="Add_Server">Adicionar Servidor</string>
 <string name="A_name_for_this_server_configuration">Um nome para esta configuração de servidor</string>
@@ -136,6 +137,8 @@
 <string name="AllDayPrompt">Evento dura o dia todo:</string>
 <string name="FromPrompt">De:</string>
 <string name="UntilPrompt">Até:</string>
+<string name="DuePrompt">Prazo:</string>
+<string name="CompletedPrompt">Completo:</string>
 <string name="defaultCalendar">Agenda padrão</string>
 <string name="theCalendarForNewEvents">A agenda padrão utilizada para novos compromissos.</string>
 <string name="TwelveTwentyfour_PrefTitle">Usar formato de 24 horas</string>
@@ -185,8 +188,6 @@
 <string name="alarm30MinutesPrior">30 minutos antes</string>
 <string name="alarm1HourPrior">Uma hora antes</string>
 <string name="alarm2HoursPrior">Duas horas antes</string>
-<string name="alarm12HoursPrior">12 horas antes</string>
-<string name="alarm1DayPrior">Um dia antes</string>
 <string name="alarmCustom">Alarme Personalizado</string>
 <string name="alarmsDisabledNote">(todos os alarmes estão desabilitados para este calendário)</string>
 <string name="changeThisInstance">Esta instância apenas</string>
@@ -206,9 +207,7 @@
 <string name="checkServer">Validando o servidor</string>
 <string name="checkServer_Connecting">Conectando ao servidor, aguarde...</string>
 <string name="checkServer_Internet">Verificando a conexão com a internet</string>
-<string name="checkServer_ProbePorts">Testando o servidor na porta %1$d usando o protocolo %2$s</string>
-<string name="checkServer_SearchingPrincipal">Buscando o caminho principal em &quot;%s&quot;</string>
-<string name="checkServer_CheckingCapabilities">Verificando capacidade do servidor</string>
+<string name="serverRecordAlreadyExists">Já existe um servidor configurado para este protocolo, porta, endereço, caminho e nome de usuário</string>
 <string name="newEventFromThis">Copiar para Novo Evento</string>
 <string name="Delete">Apagar</string>
 <string name="deleteAllInstances">Apagar todas as instâncias</string>
@@ -223,4 +222,16 @@
 <string name="aCalVersionChanges">Bem-vindo a uma nova versão do aCal!</string>
 <string name="newWithVersion">Alterações na versão %s</string>
 <string name="newVersionSeen">Obrigado, agora mostre-me!</string>
+<string name="Due">Prazo</string>
+<string name="All">Todos</string>
+<string name="Todo">A fazer</string>
+<string name="Events">Eventos</string>
+<string name="Tasks">Tarefas</string>
+<string name="Unscheduled">Não agendado</string>
+<string name="ChooseAction">Escolher Ação</string>
+<string name="SetCompleted">Marcar como Completo</string>
+<string name="newTaskFromThis">Copiar para Nova Tarefa</string>
+<string name="dueTasksTitle">Tarefas para terminar em até uma semana</string>
+<string name="incompleteTasksTitle">Tarefas não Concluídas</string>
+<string name="allTasksTitle">Todas as Tarefas</string>
 </resources>

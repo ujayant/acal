@@ -183,8 +183,6 @@
 <string name="alarm30MinutesPrior">30 minutos antes</string>
 <string name="alarm1HourPrior">Una hora antes</string>
 <string name="alarm2HoursPrior">Dos horas antes</string>
-<string name="alarm12HoursPrior">12 horas antes</string>
-<string name="alarm1DayPrior">Un dia antes</string>
 <string name="alarmCustom">Alarma personalizada</string>
 <string name="alarmsDisabledNote">(todas las alarmas de este calendario están deshabilitadas)</string>
 <string name="changeThisInstance">Sólo esta instancia</string>
@@ -204,9 +202,6 @@
 <string name="checkServer">Validando servidor</string>
 <string name="checkServer_Connecting">Conectando a servidor, por favor espere...</string>
 <string name="checkServer_Internet">Comprobando conexión a internet</string>
-<string name="checkServer_ProbePorts">Comprobando servidor en el puerto %1$d usando el protocolo %2$s</string>
-<string name="checkServer_SearchingPrincipal">Buscando identidad en la ruta quot;%s&quot;</string>
-<string name="checkServer_CheckingCapabilities">Comprobando características del servidor</string>
 <string name="newEventFromThis">Copiar a nueva cita</string>
 <string name="Delete">Borrar</string>
 <string name="deleteAllInstances">Borrar todas las instancias</string>

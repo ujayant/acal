@@ -105,6 +105,8 @@
 <string name="thSep">Set</string>
 <string name="thDec">Des</string>
 <!-- If the user is displaying AM/PM we need a single character to display e.g. 1p for 1:00pm -->
+<string name="oneCharMorning">Caràcter per hores de matí</string>
+<string name="oneCharAfternoon">Caràcter per hores de tarda</string>
 <string name="YearViewSize_PrefTitle">Nombre de mesos a la vista anual</string>
 <string name="YearViewSize_PrefSummary">El nombre de mesos que són visibles a la vista mensual</string>
 <string name="Snooze_PrefTitle">Temps a postposar</string>
@@ -185,8 +187,6 @@
 <string name="alarm30MinutesPrior">30 minuts abans</string>
 <string name="alarm1HourPrior">Una hora abans</string>
 <string name="alarm2HoursPrior">Dues hores abans</string>
-<string name="alarm12HoursPrior">12 hores abans</string>
-<string name="alarm1DayPrior">Un dia abans</string>
 <string name="alarmCustom">Alarma personalitzada</string>
 <string name="alarmsDisabledNote">(totes les alarmes deshabilitades per aquest calendari)</string>
 <string name="changeThisInstance">Només aquesta instància</string>
@@ -206,9 +206,6 @@
 <string name="checkServer">Validant servidor</string>
 <string name="checkServer_Connecting">Connectant al servidor, sisplau espereu...</string>
 <string name="checkServer_Internet">Comprovant connectivitat a internet</string>
-<string name="checkServer_ProbePorts">Provant servidor utilitzant port %1$d i protocol %2$s</string>
-<string name="checkServer_SearchingPrincipal">Cercant per la ruta d\'identitat a &quot;%s&quot; </string>
-<string name="checkServer_CheckingCapabilities">Comprovant capacitat del servidor</string>
 <string name="newEventFromThis">Copiar a nova cita</string>
 <string name="Delete">Esborrar</string>
 <string name="deleteAllInstances">Esborrar totes les instàncies</string>

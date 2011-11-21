@@ -2,13 +2,16 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # 
+# Translators:
+# Andrew McMillan <andrew@mcmillan.net.nz>, 2011.
+# marc0s <marc0s@fsfe.org>, 2011.
 msgid ""
 msgstr ""
 "Project-Id-Version: aCal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-05-19 09:05+1200\n"
-"PO-Revision-Date: 2011-05-23 23:09+0000\n"
-"Last-Translator: marc0s <marc0s@fsfe.org>\n"
+"POT-Creation-Date: 2011-08-22 21:42+1200\n"
+"PO-Revision-Date: 2011-08-22 09:42+0000\n"
+"Last-Translator: karora <andrew@mcmillan.net.nz>\n"
 "Language-Team: Catalan (http://www.transifex.net/projects/p/acal/team/ca/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -34,6 +37,9 @@ msgstr ""
 "Aplicació de calendari per a Android que guarda les teves cites, tasques, "
 "notes i contactes a un servidor CalDAV/CardDAV remot, com DAViCal (veure: "
 "www.davical.org)"
+
+msgid "appDescriptionTasks"
+msgstr ""
 
 msgid "Active"
 msgstr "Actiu"
@@ -351,10 +357,10 @@ msgstr "Des"
 # If the user is displaying AM/PM we need a single character to display e.g.
 # 1p for 1:00pm
 msgid "oneCharMorning"
-msgstr "a"
+msgstr "Caràcter per hores de matí"
 
 msgid "oneCharAfternoon"
-msgstr "p"
+msgstr "Caràcter per hores de tarda"
 
 msgid "YearViewSize_PrefTitle"
 msgstr "Nombre de mesos a la vista anual"
@@ -456,6 +462,12 @@ msgstr "Des de:"
 
 msgid "UntilPrompt"
 msgstr "Fins a:"
+
+msgid "DuePrompt"
+msgstr ""
+
+msgid "CompletedPrompt"
+msgstr ""
 
 msgid "defaultCalendar"
 msgstr "Calendari predeterminat"
@@ -678,10 +690,13 @@ msgid "checkServer_ProbePorts"
 msgstr "Provant servidor utilitzant port %1$d i protocol %2$s"
 
 msgid "checkServer_SearchingPrincipal"
-msgstr "Cercant per la ruta d'identitat a &quot;%s&quot; "
+msgstr "Cercant per la ruta d'identitat a &quot;%s%quot; "
 
 msgid "checkServer_CheckingCapabilities"
 msgstr "Comprovant capacitat del servidor"
+
+msgid "serverRecordAlreadyExists"
+msgstr ""
 
 msgid "newEventFromThis"
 msgstr "Copiar a nova cita"
@@ -724,5 +739,41 @@ msgstr "Canvis a la versió %s"
 
 msgid "newVersionSeen"
 msgstr "Gràcies, ensenya'm el calendari!"
+
+msgid "Due"
+msgstr ""
+
+msgid "All"
+msgstr ""
+
+msgid "Todo"
+msgstr ""
+
+msgid "Events"
+msgstr ""
+
+msgid "Tasks"
+msgstr ""
+
+msgid "Unscheduled"
+msgstr ""
+
+msgid "ChooseAction"
+msgstr ""
+
+msgid "SetCompleted"
+msgstr ""
+
+msgid "newTaskFromThis"
+msgstr ""
+
+msgid "dueTasksTitle"
+msgstr ""
+
+msgid "incompleteTasksTitle"
+msgstr ""
+
+msgid "allTasksTitle"
+msgstr ""
 
 

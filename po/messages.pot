@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-08-22 21:42+1200\n"
+"POT-Creation-Date: 2011-11-20 19:15+1300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,6 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+# SourceFileStart:../res/values/strings.xml
 # Strings that should not be localised belong in unlocalisable_strings.xml 
 msgid "theDayEachWeekStartsWith"
 msgstr "The day each week starts with"
@@ -29,6 +30,9 @@ msgstr "OK"
 
 msgid "cancel"
 msgstr "Cancel"
+
+msgid "setButtonLabel"
+msgstr "Set"
 
 msgid "appDescription"
 msgstr ""
@@ -353,12 +357,19 @@ msgstr "Nov"
 msgid "thDec"
 msgstr "Dec"
 
-# If the user is displaying AM/PM we need a single character to display e.g. 1p for 1:00pm 
+# If the user is displaying AM/PM we need a single character to display e.g. 9a for 9:00am in the morning 
 msgid "oneCharMorning"
 msgstr "a"
 
+# If the user is displaying AM/PM we need a single character to display e.g. 1p for 1:00pm in the afternoon
 msgid "oneCharAfternoon"
 msgstr "p"
+
+msgid "abbrevMorning"
+msgstr "am"
+
+msgid "abbrevAfternoon"
+msgstr "pm"
 
 msgid "YearViewSize_PrefTitle"
 msgstr "Number of Months in Year View"
@@ -383,6 +394,18 @@ msgstr "Default Alarm Tone"
 
 msgid "DefaultAlarmTone_PrefSummary"
 msgstr "The default sound to use for alarms."
+
+msgid "AlarmVolumeType_PrefTitle"
+msgstr "Setting for Alarm Volume"
+
+msgid "AlarmVolumeType_PrefSummary"
+msgstr "The setting used for the volume of the alarm tone"
+
+msgid "AlarmBellVolume"
+msgstr "Alarm bell volume"
+
+msgid "MediaPlayerVolume"
+msgstr "Media volume"
 
 msgid "prefWorkdayStart_Title"
 msgstr "Workday Start"
@@ -439,7 +462,7 @@ msgid "UnNamedServer"
 msgstr "Unnamed Server"
 
 msgid "LocationPrompt"
-msgstr "Location:"
+msgstr "Where:"
 
 msgid "NotesPrompt"
 msgstr "Notes:"
@@ -456,6 +479,9 @@ msgstr "All Day:"
 msgid "FromPrompt"
 msgstr "From:"
 
+msgid "TodoFromPrompt"
+msgstr "Start On:"
+
 msgid "UntilPrompt"
 msgstr "Until:"
 
@@ -463,7 +489,19 @@ msgid "DuePrompt"
 msgstr "Due:"
 
 msgid "CompletedPrompt"
-msgstr "Completed:"
+msgstr "Finished:"
+
+msgid "DaysPrompt"
+msgstr "Days:"
+
+msgid "StartPrompt"
+msgstr "Start:"
+
+msgid "CompletePrompt"
+msgstr "Complete:"
+
+msgid "CollectionPrompt"
+msgstr "Calendar:"
 
 msgid "defaultCalendar"
 msgstr "Default Calendar"
@@ -547,7 +585,7 @@ msgid "EventSaved"
 msgstr "Event Saved."
 
 msgid "ModifiedAllInstances"
-msgstr "Modified all instances of this event."
+msgstr "All event changes saved."
 
 msgid "ModifiedOneInstance"
 msgstr "Modified single instance of this event."
@@ -609,6 +647,9 @@ msgstr "At Event Time"
 msgid "alarm10MinutesPrior"
 msgstr "10 minutes before"
 
+msgid "alarm15MinutesPrior"
+msgstr "15 minutes before"
+
 msgid "alarm30MinutesPrior"
 msgstr "30 minutes before"
 
@@ -617,12 +658,6 @@ msgstr "One hour before"
 
 msgid "alarm2HoursPrior"
 msgstr "Two hours before"
-
-msgid "alarm12HoursPrior"
-msgstr "12 hours before"
-
-msgid "alarm1DayPrior"
-msgstr "One day before"
 
 msgid "alarmCustom"
 msgstr "Custom Alarm"
@@ -681,14 +716,8 @@ msgstr "Connecting to server please wait..."
 msgid "checkServer_Internet"
 msgstr "Checking internet connectivity"
 
-msgid "checkServer_ProbePorts"
-msgstr "Probing server on port %1$d using %2$s protocol"
-
-msgid "checkServer_SearchingPrincipal"
-msgstr "Searching for principal path at &quot;%s&quot;"
-
-msgid "checkServer_CheckingCapabilities"
-msgstr "Checking server capabilities"
+msgid "checkServer_SearchingForServer"
+msgstr "Searching for CalDAV server at &quot;%s&quot;"
 
 msgid "serverRecordAlreadyExists"
 msgstr ""
@@ -771,3 +800,290 @@ msgstr "Incomplete Tasks"
 
 msgid "allTasksTitle"
 msgstr "All Tasks"
+
+msgid "NewTaskTitle"
+msgstr "New Task"
+
+msgid "TaskSaved"
+msgstr "Task Saved."
+
+msgid "TaskModifiedAll"
+msgstr "Modified all instances of this task."
+
+msgid "TaskModifiedOne"
+msgstr "Modified single instance of this task."
+
+msgid "TaskModifiedThisAndFuture"
+msgstr "Modified this and all future instances of this task."
+
+msgid "TaskErrorSaving"
+msgstr "Error saving task data - please try again."
+
+msgid "username"
+msgstr "Username:"
+
+msgid "password"
+msgstr "Password:"
+
+msgid "setRepeatRule"
+msgstr "Set Repeat Rule"
+
+msgid "eventName"
+msgstr "Event Name"
+
+msgid "plus"
+msgstr "+"
+
+msgid "url"
+msgstr "URL:"
+
+msgid "todoName"
+msgstr "Todo Name:"
+
+msgid "IsADate"
+msgstr "Is a Date"
+
+msgid "NotSet"
+msgstr "Not Set"
+
+msgid "Exactly"
+msgstr "Exactly"
+
+msgid "Start"
+msgstr "Start"
+
+msgid "Finish"
+msgstr "Finish"
+
+msgid "Before"
+msgstr "Before"
+
+msgid "After"
+msgstr "After"
+
+msgid "Custom"
+msgstr "Custom"
+
+# SourceFileEnd:../res/values/strings.xml
+# SourceFileStart:../res/values/timezonenames.xml
+msgid "tzNameAfricaCairo"
+msgstr "Africa/Cairo"
+
+msgid "tzNameAfricaCasablanca"
+msgstr "Africa/Casablanca"
+
+msgid "tzNameAfricaHarare"
+msgstr "Africa/Harare"
+
+msgid "tzNameAfricaNairobi"
+msgstr "Africa/Nairobi"
+
+msgid "tzNameAfricaNdjamena"
+msgstr "Africa/Ndjamena"
+
+msgid "tzNameAmericaAnchorage"
+msgstr "America/Anchorage"
+
+msgid "tzNameAmericaArgentinaBuenos_Aires"
+msgstr "America/Argentina/Buenos_Aires"
+
+msgid "tzNameAmericaBogota"
+msgstr "America/Bogota"
+
+msgid "tzNameAmericaChicago"
+msgstr "America/Chicago"
+
+msgid "tzNameAmericaDenver"
+msgstr "America/Denver"
+
+msgid "tzNameAmericaGodthab"
+msgstr "America/Godthab"
+
+msgid "tzNameAmericaHalifax"
+msgstr "America/Halifax"
+
+msgid "tzNameAmericaIndianaIndianapolis"
+msgstr "America/Indiana/Indianapolis"
+
+msgid "tzNameAmericaLa_Paz"
+msgstr "America/La_Paz"
+
+msgid "tzNameAmericaLos_Angeles"
+msgstr "America/Los_Angeles"
+
+msgid "tzNameAmericaNew_York"
+msgstr "America/New_York"
+
+msgid "tzNameAmericaNoronha"
+msgstr "America/Noronha"
+
+msgid "tzNameAmericaPanama"
+msgstr "America/Panama"
+
+msgid "tzNameAmericaPhoenix"
+msgstr "America/Phoenix"
+
+msgid "tzNameAmericaRegina"
+msgstr "America/Regina"
+
+msgid "tzNameAmericaSantiago"
+msgstr "America/Santiago"
+
+msgid "tzNameAmericaSao_Paulo"
+msgstr "America/Sao_Paulo"
+
+msgid "tzNameAmericaSt_Johns"
+msgstr "America/St_Johns"
+
+msgid "tzNameAmericaTegucigalpa"
+msgstr "America/Tegucigalpa"
+
+msgid "tzNameAsiaBaghdad"
+msgstr "Asia/Baghdad"
+
+msgid "tzNameAsiaBangkok"
+msgstr "Asia/Bangkok"
+
+msgid "tzNameAsiaColombo"
+msgstr "Asia/Colombo"
+
+msgid "tzNameAsiaDhaka"
+msgstr "Asia/Dhaka"
+
+msgid "tzNameAsiaIrkutsk"
+msgstr "Asia/Irkutsk"
+
+msgid "tzNameAsiaJerusalem"
+msgstr "Asia/Jerusalem"
+
+msgid "tzNameAsiaKabul"
+msgstr "Asia/Kabul"
+
+msgid "tzNameAsiaKarachi"
+msgstr "Asia/Karachi"
+
+msgid "tzNameAsiaKathmandu"
+msgstr "Asia/Kathmandu"
+
+msgid "tzNameAsiaKolkata"
+msgstr "Asia/Kolkata"
+
+msgid "tzNameAsiaKrasnoyarsk"
+msgstr "Asia/Krasnoyarsk"
+
+msgid "tzNameAsiaMagadan"
+msgstr "Asia/Magadan"
+
+msgid "tzNameAsiaMuscat"
+msgstr "Asia/Muscat"
+
+msgid "tzNameAsiaNovosibirsk"
+msgstr "Asia/Novosibirsk"
+
+msgid "tzNameAsiaRangoon"
+msgstr "Asia/Rangoon"
+
+msgid "tzNameAsiaRiyadh"
+msgstr "Asia/Riyadh"
+
+msgid "tzNameAsiaSeoul"
+msgstr "Asia/Seoul"
+
+msgid "tzNameAsiaShanghai"
+msgstr "Asia/Shanghai"
+
+msgid "tzNameAsiaSingapore"
+msgstr "Asia/Singapore"
+
+msgid "tzNameAsiaTaipei"
+msgstr "Asia/Taipei"
+
+msgid "tzNameAsiaTehran"
+msgstr "Asia/Tehran"
+
+msgid "tzNameAsiaTokyo"
+msgstr "Asia/Tokyo"
+
+msgid "tzNameAsiaVladivostok"
+msgstr "Asia/Vladivostok"
+
+msgid "tzNameAsiaYakutsk"
+msgstr "Asia/Yakutsk"
+
+msgid "tzNameAsiaYekaterinburg"
+msgstr "Asia/Yekaterinburg"
+
+msgid "tzNameAsiaYerevan"
+msgstr "Asia/Yerevan"
+
+msgid "tzNameAtlanticAzores"
+msgstr "Atlantic/Azores"
+
+msgid "tzNameAtlanticCape_Verde"
+msgstr "Atlantic/Cape_Verde"
+
+msgid "tzNameAustraliaAdelaide"
+msgstr "Australia/Adelaide"
+
+msgid "tzNameAustraliaBrisbane"
+msgstr "Australia/Brisbane"
+
+msgid "tzNameAustraliaDarwin"
+msgstr "Australia/Darwin"
+
+msgid "tzNameAustraliaHobart"
+msgstr "Australia/Hobart"
+
+msgid "tzNameAustraliaPerth"
+msgstr "Australia/Perth"
+
+msgid "tzNameAustraliaSydney"
+msgstr "Australia/Sydney"
+
+msgid "tzNameEuropeAthens"
+msgstr "Europe/Athens"
+
+msgid "tzNameEuropeBerlin"
+msgstr "Europe/Berlin"
+
+msgid "tzNameEuropeBucharest"
+msgstr "Europe/Bucharest"
+
+msgid "tzNameEuropeHelsinki"
+msgstr "Europe/Helsinki"
+
+msgid "tzNameEuropeLisbon"
+msgstr "Europe/Lisbon"
+
+msgid "tzNameEuropeLondon"
+msgstr "Europe/London"
+
+msgid "tzNameEuropeMoscow"
+msgstr "Europe/Moscow"
+
+msgid "tzNameEuropeParis"
+msgstr "Europe/Paris"
+
+msgid "tzNameEuropePrague"
+msgstr "Europe/Prague"
+
+msgid "tzNamePacificApia"
+msgstr "Pacific/Apia"
+
+msgid "tzNamePacificAuckland"
+msgstr "Pacific/Auckland"
+
+msgid "tzNamePacificFiji"
+msgstr "Pacific/Fiji"
+
+msgid "tzNamePacificGuam"
+msgstr "Pacific/Guam"
+
+msgid "tzNamePacificHonolulu"
+msgstr "Pacific/Honolulu"
+
+msgid "tzNamePacificKwajalein"
+msgstr "Pacific/Kwajalein"
+
+msgid "tzNamePacificTongatapu"
+msgstr "Pacific/Tongatapu"

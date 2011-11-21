@@ -2,16 +2,18 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # 
-#   <webmaster@tikijs.dyndns.org>, 2011.
-# tikismoke <webmaster@tikijs.dyndns.org>, 2011.
+# Translators:
 # Andrew McMillan <andrew@mcmillan.net.nz>, 2011.
+# tikismoke <webmaster@tikijs.dyndns.org>, 2011.
+#   <transifex@monte-stello.com>, 2011.
+#   <webmaster@tikijs.dyndns.org>, 2011.
 msgid ""
 msgstr ""
 "Project-Id-Version: aCal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-05-19 09:05+1200\n"
-"PO-Revision-Date: 2011-05-24 23:23+0000\n"
-"Last-Translator: tikismoke <webmaster@tikijs.dyndns.org>\n"
+"POT-Creation-Date: 2011-08-22 21:42+1200\n"
+"PO-Revision-Date: 2011-11-15 21:52+0000\n"
+"Last-Translator: asirinelli <transifex@monte-stello.com>\n"
 "Language-Team: French (http://www.transifex.net/projects/p/acal/team/fr/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -37,6 +39,11 @@ msgstr ""
 "Un calendrier pour Android qui sauvegardera vos évènements, tâches, notes et"
 " contacts sur un serveur CalDAV/CardDAV, tel que DAViCal (voir: "
 "www.davical.org)"
+
+msgid "appDescriptionTasks"
+msgstr ""
+"Une liste de tâches pour Android qui sauvegardera vos tâches sur un serveur "
+"distant CalDAV / CardDAV, comme DAViCAL (visitez : www.davical.org)"
 
 msgid "Active"
 msgstr "Actif"
@@ -90,7 +97,7 @@ msgid "Default_timezone"
 msgstr "Fuseau horaire par défaut"
 
 msgid "DefaultAlarmTone"
-msgstr ""
+msgstr "Sonnerie par défaut"
 
 msgid "Server_Path"
 msgstr "Chemin sur le serveur"
@@ -178,25 +185,25 @@ msgid "pActive_for_tasks"
 msgstr "Actif pour les tâches"
 
 msgid "pUse_Alarms"
-msgstr "Utiliser les alarmes dans cette collections?"
+msgstr "Utiliser les alarmes dans cette collection ?"
 
 msgid "Use_Alarms"
 msgstr "Alarmes activées"
 
 msgid "Active_addressbook"
 msgstr ""
-"Est-ce que cette collection est utilisée pour enregistrer des contacts?"
+"Est-ce que cette collection est utilisée pour enregistrer des contacts ?"
 
 msgid "Active_for_events"
 msgstr ""
-"Est-ce que cette collection est utilisée pour enregistrer des événements?"
+"Est-ce que cette collection est utilisée pour enregistrer des événements ?"
 
 msgid "Active_for_journal"
-msgstr "Est-ce que cette collection est utilisée pour enregistrer des  notes?"
+msgstr "Est-ce que cette collection est utilisée pour enregistrer des notes ?"
 
 msgid "Active_for_tasks"
 msgstr ""
-"Est-ce que cette collection est utilisée pour enregistrer des  tâches?"
+"Est-ce que cette collection est utilisée pour enregistrer des tâches ?"
 
 msgid "The_colour_associated_with_this_collection"
 msgstr "Couleur associée aux données de cette collection"
@@ -220,7 +227,7 @@ msgstr ""
 "WIFI"
 
 msgid "Use_alarms_from_this_calendar"
-msgstr "Les alarmes pour ce calendrier doivent-elles êtres affichées?"
+msgstr "Les alarmes pour ce calendrier doivent-elles êtres affichées ?"
 
 msgid "Monday"
 msgstr "Lundi"
@@ -366,24 +373,24 @@ msgid "oneCharAfternoon"
 msgstr "p"
 
 msgid "YearViewSize_PrefTitle"
-msgstr "Nombre de mois dans la vue année"
+msgstr "Nombre de mois dans la vue annuelle"
 
 msgid "YearViewSize_PrefSummary"
-msgstr "Nombre de mois visible dans la vue année"
+msgstr "Nombre de mois visible dans la vue annuelle"
 
 msgid "Snooze_PrefTitle"
-msgstr "Temps répétition"
+msgstr "Délai de répétition"
 
 msgid "Snooze_PrefSummary"
 msgstr ""
-"Combien de minutes après l'alarme doit-on répéter lors de l'appuie sur la "
+"Combien de minutes après l'alarme doit-on répéter lors de l'appui sur la "
 "fonction répéter"
 
 msgid "DefaultCollection_PrefTitle"
 msgstr "Collection par défaut"
 
 msgid "DefaultCollection_PrefSummary"
-msgstr "Collection par défaut à utiliser pour les nouveaux évenements."
+msgstr "Collection par défaut à utiliser pour les nouveaux évenements"
 
 msgid "DefaultAlarmTone_PrefTitle"
 msgstr "Sonnerie par défaut"
@@ -407,7 +414,7 @@ msgid "prefWeekViewLinesPerHour_Title"
 msgstr "Hauteur de ligne"
 
 msgid "prefWeekViewLinesPerHour_Summary"
-msgstr "Hauteur de chaque heure de la journée en vue semaine."
+msgstr "Hauteur de chaque heure de la journée en vue hebdomadaire."
 
 msgid "prefWeekViewDayWidth_Title"
 msgstr "Largeur de colonne"
@@ -446,31 +453,37 @@ msgid "UnNamedServer"
 msgstr "Serveur sans nom"
 
 msgid "LocationPrompt"
-msgstr "Lieu:"
+msgstr "Lieu :"
 
 msgid "NotesPrompt"
-msgstr "Notes:"
+msgstr "Notes :"
 
 msgid "AlarmsPrompt"
-msgstr "Alarmes:"
+msgstr "Alarmes :"
 
 msgid "RepeatsPrompt"
-msgstr "Répétitions:"
+msgstr "Répétitions :"
 
 msgid "AllDayPrompt"
-msgstr "Événement sur la journée:"
+msgstr "Événement sur la journée :"
 
 msgid "FromPrompt"
-msgstr "Du:"
+msgstr "Du :"
 
 msgid "UntilPrompt"
-msgstr "Au:"
+msgstr "Au :"
+
+msgid "DuePrompt"
+msgstr "Prévu :"
+
+msgid "CompletedPrompt"
+msgstr "Terminé :"
 
 msgid "defaultCalendar"
 msgstr "Calendrier par défaut "
 
 msgid "theCalendarForNewEvents"
-msgstr "Calendrier a utiliser par défaut pour les nouveaux événements."
+msgstr "Calendrier à utiliser par défaut pour les nouveaux événements."
 
 msgid "TwelveTwentyfour_PrefTitle"
 msgstr "Utiliser le format 24h"
@@ -482,10 +495,10 @@ msgid "TwelveTwentyfour_OffSummary"
 msgstr "2:00pm "
 
 msgid "OnlyOnce"
-msgstr "Evenement unique"
+msgstr "venement unique"
 
 msgid "EveryWeekday"
-msgstr "Chaque semaine"
+msgstr "Tous les jours, en semaine"
 
 msgid "EveryWeekend"
 msgstr "Chaque week-end"
@@ -506,13 +519,13 @@ msgid "EveryNDays"
 msgstr "Tous les %s jours"
 
 msgid "EveryNWeeks"
-msgstr "Toutes les %s semaine"
+msgstr "Toutes les %s semaines"
 
 msgid "EveryNMonths"
 msgstr "Tous les %s mois"
 
 msgid "EveryNYears"
-msgstr "Toutes les %s années"
+msgstr "Tous les %s ans"
 
 msgid "EveryMonday"
 msgstr "Tous les Lundi"
@@ -521,7 +534,7 @@ msgid "EveryTuesday"
 msgstr "Tous les Mardi"
 
 msgid "EveryWednesday"
-msgstr "Tous le Mercredi"
+msgstr "Tous les Mercredi"
 
 msgid "EveryThursday"
 msgstr "Tous les Jeudi"
@@ -571,7 +584,7 @@ msgid "ChooseAlarmTime"
 msgstr "Choisir une heure d'alarme"
 
 msgid "ChooseInstancesToChange"
-msgstr "Quels sont les instances à changer?"
+msgstr "Quels sont les occurrences à changer ?"
 
 msgid "ChooseRepeatFrequency"
 msgstr "Choisissez une fréquence de répétition"
@@ -583,7 +596,7 @@ msgid "errorMustHaveActiveCalendar"
 msgstr "Impossible de modifier un événement sans calendrier actif."
 
 msgid "errorSavingServerConfig"
-msgstr ""
+msgstr "Erreur pendant la sauvegarde de la configuration du serveur"
 
 msgid "errorSavingFile"
 msgstr "Erreur d'enregistrement du fichier"
@@ -598,16 +611,16 @@ msgid "ManualServerConfigurationBlurb"
 msgstr "Entrer manuellement les informations du serveur"
 
 msgid "SavedServerConfigurationBlurb"
-msgstr "Une configuration de serveur sauvegardé"
+msgstr "Une configuration de serveur sauvegardée"
 
 msgid "AllDaysInPeriod"
-msgstr ""
+msgstr "Toute la journée, du %1$s au %2$s"
 
 msgid "ForTheWholeDay"
 msgstr "Toute la journée"
 
 msgid "alarmAtEventTime"
-msgstr "A l'heure"
+msgstr " l'heure"
 
 msgid "alarm10MinutesPrior"
 msgstr "10 minutes avant"
@@ -631,16 +644,16 @@ msgid "alarmCustom"
 msgstr "Alarme personnelle"
 
 msgid "alarmsDisabledNote"
-msgstr ""
+msgstr "(toutes les alarmes sont desactivées pour ce clendrier)"
 
 msgid "changeThisInstance"
-msgstr "Ce instances uniquement"
+msgstr "Uniquement cette occurrence"
 
 msgid "changeAllInstances"
-msgstr "Toutes les instances"
+msgstr "Toutes les occurrences"
 
 msgid "changeThisAndFuture"
-msgstr "Cette instances et toutes les suivantes"
+msgstr "Cette occurrence et toutes les suivantes"
 
 msgid "internetNotAvailable"
 msgstr "Pas de connexion internet pour le moment"
@@ -654,7 +667,7 @@ msgstr ""
 "fournies."
 
 msgid "foundPrincipalPath"
-msgstr "Trouver chemin principal du serveur à &quot;%s&quot;"
+msgstr "Chemin principal du serveur trouvé à &quot;%s&quot;"
 
 msgid "serverSupportsCalDAV"
 msgstr "Ce serveur prend en charge CalDAV."
@@ -666,7 +679,7 @@ msgid "serverFailedValidation"
 msgstr "Il y eu une erreur lors de la validation du serveur:"
 
 msgid "saveSettingsAnyway"
-msgstr "Souhaitez-vous quand même enregistrer ces paramètres?"
+msgstr "Souhaitez-vous quand même enregistrer ces paramètres ?"
 
 msgid "serverValidationSuccess"
 msgstr "Validation du Serveur réussi."
@@ -675,66 +688,106 @@ msgid "authenticationFailed"
 msgstr "Impossible de s'authentifier auprès du serveur."
 
 msgid "WeekViewPreferences"
-msgstr ""
+msgstr "Paramêtres de la vue hebdomadaire"
 
 msgid "checkServer"
-msgstr ""
+msgstr "Validation du serveur"
 
 msgid "checkServer_Connecting"
-msgstr ""
+msgstr "Connexion au serveur. Merci de patienter..."
 
 msgid "checkServer_Internet"
-msgstr ""
+msgstr "Vérification de la connexion internet"
 
 msgid "checkServer_ProbePorts"
-msgstr ""
+msgstr "Test du serveur sur le port %1$d en utilisant le protocole %2$s"
 
 msgid "checkServer_SearchingPrincipal"
-msgstr ""
+msgstr "Recherche du chemin principal à &quot;%s&quot;"
 
 msgid "checkServer_CheckingCapabilities"
+msgstr "Vérification des capacités du serveur"
+
+msgid "serverRecordAlreadyExists"
 msgstr ""
+"Un serveur existe déjà pour ce protocole, port, serveur et utilisateur"
 
 msgid "newEventFromThis"
-msgstr ""
+msgstr "Copier vers un nouvel événement"
 
 msgid "Delete"
-msgstr ""
+msgstr "Effacer"
 
 msgid "deleteAllInstances"
-msgstr ""
+msgstr "Effacer toutes les occurrences"
 
 msgid "deleteThisInstance"
-msgstr ""
+msgstr "Effacer cette occurrence"
 
 msgid "deleteThisAndFuture"
-msgstr ""
+msgstr "Effacer celle-ci et les suivantes"
 
 msgid "newAllDayEventOn"
-msgstr ""
+msgstr "Nouvel événement le %s"
 
 msgid "newHourEventAt"
-msgstr ""
+msgstr "Nouvel événement à %s"
 
 msgid "editSomeEvent"
-msgstr ""
+msgstr "Modifier : %s"
 
 msgid "copySomeEvent"
-msgstr ""
+msgstr "Copier : %s"
 
 msgid "deleteSomeEvent"
-msgstr ""
+msgstr "Effacer : %s"
 
 msgid "noCollectionsFound"
-msgstr ""
+msgstr "Aucun calendrier trouvé"
 
 msgid "aCalVersionChanges"
-msgstr ""
+msgstr "Bienvenue dans cette nouvelle version de aCal !"
 
 msgid "newWithVersion"
-msgstr ""
+msgstr "Changements dans la version %s"
 
 msgid "newVersionSeen"
-msgstr ""
+msgstr "Merci, montrez-moi maintenant !"
+
+msgid "Due"
+msgstr "Prévu"
+
+msgid "All"
+msgstr "Toutes"
+
+msgid "Todo"
+msgstr "À faire"
+
+msgid "Events"
+msgstr "Événements"
+
+msgid "Tasks"
+msgstr "Tâches"
+
+msgid "Unscheduled"
+msgstr "Non planifi"
+
+msgid "ChooseAction"
+msgstr "Choisir un action"
+
+msgid "SetCompleted"
+msgstr "Marquer comme terminé"
+
+msgid "newTaskFromThis"
+msgstr "Copier vers une nouvelle tâche"
+
+msgid "dueTasksTitle"
+msgstr "Tâches prévues dans la semaine"
+
+msgid "incompleteTasksTitle"
+msgstr "Tâches en cours"
+
+msgid "allTasksTitle"
+msgstr "Toutes les tâches"
 
 

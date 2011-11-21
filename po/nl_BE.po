@@ -2,14 +2,15 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # 
+# Translators:
 #   <zenlord@gmail.com>, 2011.
 # zenlord <zenlord@gmail.com>, 2011.
 msgid ""
 msgstr ""
 "Project-Id-Version: aCal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-05-19 09:05+1200\n"
-"PO-Revision-Date: 2011-06-19 11:30+0000\n"
+"POT-Creation-Date: 2011-08-22 21:42+1200\n"
+"PO-Revision-Date: 2011-09-22 07:24+0000\n"
 "Last-Translator: zenlord <zenlord@gmail.com>\n"
 "Language-Team: Dutch (Belgium/Flemish) (http://www.transifex.net/projects/p/acal/team/nl_BE/)\n"
 "MIME-Version: 1.0\n"
@@ -33,9 +34,14 @@ msgstr "Annuleren"
 
 msgid "appDescription"
 msgstr ""
-"Een kalender voor Android die uw activiteiten, taken, notities en contacten "
+"Een kalender voor Android die uw afspraken, taken, notities en contacten "
 "bewaart op een externe CalDAV / CardDAV server, zoals davical (Zie: "
 "www.davical.org)"
+
+msgid "appDescriptionTasks"
+msgstr ""
+"Een takenlijst voor Android die uw taken bewaart op een externe CalDAV / "
+"CardDAV server, zoals davical (Zie: www.davical.org)"
 
 msgid "Active"
 msgstr "Actief"
@@ -56,7 +62,7 @@ msgid "Simple_Domain"
 msgstr "Eenvoudig Domein"
 
 msgid "Enter_a_brief_summary_of_the_event"
-msgstr "Geef een korte samenvatting van de activiteit"
+msgstr "Geef een korte samenvatting van de afspraak"
 
 msgid "Name"
 msgstr "Naam"
@@ -138,7 +144,7 @@ msgid "Whether_to_use_encryption"
 msgstr "Of encryptie moet gebruikt worden voor de verbinding met de server"
 
 msgid "appActivityEventCreate"
-msgstr "Nieuwe Activiteit"
+msgstr "Nieuwe Afspraak"
 
 msgid "appActivityServerConfigList"
 msgstr "Servers"
@@ -168,7 +174,7 @@ msgid "pActive_addressbook"
 msgstr "Gebruikt Adresboek"
 
 msgid "pActive_for_events"
-msgstr "Gebruikt voor Activiteiten"
+msgstr "Gebruikt voor Afspraken"
 
 msgid "pActive_for_journal"
 msgstr "Gebruikt voor Notities"
@@ -186,7 +192,7 @@ msgid "Active_addressbook"
 msgstr "Wordt deze collectie gebruikt om contactpersonen te bewaren?"
 
 msgid "Active_for_events"
-msgstr "Wordt deze collectie gebruikt om activiteiten te bewaren?"
+msgstr "Wordt deze collectie gebruikt om afspraken in te bewaren?"
 
 msgid "Active_for_journal"
 msgstr "Wordt deze collectie gebruikt om notities te bewaren?"
@@ -199,7 +205,7 @@ msgstr "De kleur voor gegevens uit deze collectie"
 
 msgid "The_timezone_new_events_default_to"
 msgstr ""
-"De tijdzone die wordt gebruikt voor nieuwe activiteiten in deze collectie"
+"De tijdzone die wordt gebruikt voor nieuwe afspraken in deze collectie"
 
 msgid "pMax_age_on_3g"
 msgstr "Sync minuten op 3g"
@@ -377,7 +383,7 @@ msgid "DefaultCollection_PrefTitle"
 msgstr "Standaard Collectie"
 
 msgid "DefaultCollection_PrefSummary"
-msgstr "De standaard collectie om te gebruiken voor nieuwe activiteiten"
+msgstr "De standaard collectie om te gebruiken voor nieuwe afspraken"
 
 msgid "DefaultAlarmTone_PrefTitle"
 msgstr "Standaard alarmgeluid"
@@ -460,11 +466,17 @@ msgstr "Van:"
 msgid "UntilPrompt"
 msgstr "Tot:"
 
+msgid "DuePrompt"
+msgstr "Vervaldag:"
+
+msgid "CompletedPrompt"
+msgstr "Voltooid:"
+
 msgid "defaultCalendar"
 msgstr "Standaard kalender"
 
 msgid "theCalendarForNewEvents"
-msgstr "De standaard kalender om te gebruiken voor nieuwe activiteiten."
+msgstr "De standaard kalender om te gebruiken voor nieuwe afspraken."
 
 msgid "TwelveTwentyfour_PrefTitle"
 msgstr "Gebruik 24-uurs formaat"
@@ -539,22 +551,22 @@ msgid "CustomRepeatRule"
 msgstr "Aangepaste herhaling"
 
 msgid "EventSaved"
-msgstr "Activiteit bewaard."
+msgstr "Afspraak bewaard."
 
 msgid "ModifiedAllInstances"
-msgstr "Alle instanties van deze activiteit bijgewerkt."
+msgstr "Alle instanties van deze afspraak bijgewerkt."
 
 msgid "ModifiedOneInstance"
-msgstr "Eén instantie van deze activiteit bijgewerkt."
+msgstr "Eén instantie van deze afspraak bijgewerkt."
 
 msgid "ModifiedThisAndFuture"
-msgstr "Deze en alle toekomstige instanties van deze activiteit bijgewerkt."
+msgstr "Deze en alle toekomstige instanties van deze afspraak bijgewerkt."
 
 msgid "ErrorSavingEvent"
-msgstr "Fout bij het bewaren van activiteit - probeer opnieuw."
+msgstr "Fout bij het bewaren van afspraak - probeer opnieuw."
 
 msgid "NewEventTitle"
-msgstr "Nieuwe Activiteit"
+msgstr "Nieuwe Afspraak"
 
 msgid "ChooseACollection"
 msgstr "Kies een Collectie"
@@ -572,7 +584,7 @@ msgid "Add_Alarm"
 msgstr "Notificatie toevoegen"
 
 msgid "errorMustHaveActiveCalendar"
-msgstr "Kan activiteit niet bijwerken zonder een actieve kalender."
+msgstr "Kan afspraak niet bijwerken zonder een actieve kalender."
 
 msgid "errorSavingServerConfig"
 msgstr "Fout bij opslaan van server configuratie"
@@ -599,7 +611,7 @@ msgid "ForTheWholeDay"
 msgstr "De hele dag"
 
 msgid "alarmAtEventTime"
-msgstr "Bij aanvang van de activiteit"
+msgstr "Bij aanvang van de afspraak"
 
 msgid "alarm10MinutesPrior"
 msgstr "10 minuten voor de activiteit"
@@ -686,8 +698,13 @@ msgstr "Principaal pad zoeken op &quot;%s&quot;"
 msgid "checkServer_CheckingCapabilities"
 msgstr "Controle server-mogelijkheden"
 
+msgid "serverRecordAlreadyExists"
+msgstr ""
+"Er bestaat reeds een server voor dat protocol, poort, host, pad en "
+"gebruikersnaam"
+
 msgid "newEventFromThis"
-msgstr "Kopiëren naar een nieuwe activiteit"
+msgstr "Kopiëren naar een nieuwe afspraak"
 
 msgid "Delete"
 msgstr "Verwijderen"
@@ -702,10 +719,10 @@ msgid "deleteThisAndFuture"
 msgstr "Verwijder deze en toekomstige gevallen"
 
 msgid "newAllDayEventOn"
-msgstr "Nieuwe activiteit op %s"
+msgstr "Nieuwe afspraak op %s"
 
 msgid "newHourEventAt"
-msgstr "Nieuwe activiteit om %s"
+msgstr "Nieuwe afspraak om %s"
 
 msgid "editSomeEvent"
 msgstr "Bewerk: %s"
@@ -727,5 +744,41 @@ msgstr "Veranderingen in versie %s"
 
 msgid "newVersionSeen"
 msgstr "Bedankt, toon het me nu!"
+
+msgid "Due"
+msgstr "Vervaldag"
+
+msgid "All"
+msgstr "Alle"
+
+msgid "Todo"
+msgstr "Todo"
+
+msgid "Events"
+msgstr "Afspraken"
+
+msgid "Tasks"
+msgstr "Taken"
+
+msgid "Unscheduled"
+msgstr "Niet gepland"
+
+msgid "ChooseAction"
+msgstr "Kies Actie"
+
+msgid "SetCompleted"
+msgstr "Markeer als Voltooid"
+
+msgid "newTaskFromThis"
+msgstr "Kopiëren naar Nieuwe taak"
+
+msgid "dueTasksTitle"
+msgstr "Taken die vervallen binnen de week"
+
+msgid "incompleteTasksTitle"
+msgstr "Onvolledige Taken"
+
+msgid "allTasksTitle"
+msgstr "Alle taken"
 
 

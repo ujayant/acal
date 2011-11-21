@@ -5,6 +5,7 @@
 <string name="firstDayOfWeek">Erster Wochentag</string>
 <string name="cancel">Abbrechen</string>
 <string name="appDescription">Ein Kalender für Android, der Ereignisse, Aufgaben, Notizen und Kontakte auf einem CalDAV- bzw. CardDAV-Server -- bspw. DAViCal (siehe www.davical.org) speichert.</string>
+<string name="appDescriptionTasks">Eine Aufgabenliste für Android, die Aufgaben auf einem CalDAV- bzw. CardDAV-Server -- bspw. DAViCal (siehe www.davical.org) speichert.</string>
 <string name="Active">aktiv</string>
 <string name="Add_Server">Server hinzufügen</string>
 <string name="A_name_for_this_server_configuration">Name, der für diese Server-Konfiguration verwendet werden soll</string>
@@ -101,10 +102,6 @@
 <string name="DefaultCollection_PrefSummary">Die Standardsammlung für neue Elemente</string>
 <string name="DefaultAlarmTone_PrefTitle">Standard Erinnerungsmelodie</string>
 <string name="DefaultAlarmTone_PrefSummary">Standard Erinnerungsmelodie für Benachrichtigungen</string>
-<string name="AlarmVolumeType_PrefTitle">Einstellungen für Erinnerungslautstärke</string>
-<string name="AlarmVolumeType_PrefSummary">Die Einstellung welche die Erinnerungslautstärke bestimmt</string>
-<string name="AlarmBellVolume">Weckerlautstärke</string>
-<string name="MediaPlayerVolume">Medienlautstärke</string>
 <string name="prefWorkdayStart_Title">Beginn des Arbeitstages</string>
 <string name="prefWorkdayStart_Summary">Die Anfangszeit des Arbeitstages</string>
 <string name="prefWorkdayFinish_Title">Ende des Arbeitstages</string>
@@ -130,6 +127,8 @@
 <string name="AllDayPrompt">Ganztägiges Ereignis:</string>
 <string name="FromPrompt">Von:</string>
 <string name="UntilPrompt">Bis:</string>
+<string name="DuePrompt">Fällig:</string>
+<string name="CompletedPrompt">Abgeschlossen:</string>
 <string name="defaultCalendar">Standardkalender</string>
 <string name="theCalendarForNewEvents">Der Kalender, der standardmäßig für neue Ereignisse verwendet werden soll.</string>
 <string name="TwelveTwentyfour_PrefTitle">24-Stunden-Format benutzen</string>
@@ -179,8 +178,6 @@
 <string name="alarm30MinutesPrior">30 Minuten vorher</string>
 <string name="alarm1HourPrior">1 Stunde vorher</string>
 <string name="alarm2HoursPrior">2 Stunden vorher</string>
-<string name="alarm12HoursPrior">12 Stunden vorher</string>
-<string name="alarm1DayPrior">Einen Tag vorher</string>
 <string name="alarmCustom">selbstdefinierter Alarm</string>
 <string name="alarmsDisabledNote">(alle Alarme für diesen Kalender sind ausgeschaltet)</string>
 <string name="changeThisInstance">Ausschließlich dieses Vorkommen</string>
@@ -200,9 +197,7 @@
 <string name="checkServer">Verifiziere Server</string>
 <string name="checkServer_Connecting">Verbinde zum Server, bitte warten...</string>
 <string name="checkServer_Internet">Überprüfe Internetverbindung</string>
-<string name="checkServer_ProbePorts">Teste Serververbindung auf Port %1$d mittels %2$s Protokoll</string>
-<string name="checkServer_SearchingPrincipal">Suche \\&quot;Principal\\&quot; Pfad unter &quot;%s&quot;</string>
-<string name="checkServer_CheckingCapabilities">Überprüfe Serverfähigkeiten</string>
+<string name="serverRecordAlreadyExists">Es liegt schon ein Server mit diesen Einstellungen vor</string>
 <string name="newEventFromThis">Kopiere als neues Event</string>
 <string name="Delete">Löschen</string>
 <string name="deleteAllInstances">Alle Vorkommnisse löschen</string>
@@ -217,4 +212,14 @@
 <string name="aCalVersionChanges">Willkommen bei einer neuen Version von aCal!</string>
 <string name="newWithVersion">Änderungen in Version %s</string>
 <string name="newVersionSeen">Danke, nun zeig\'s mir!</string>
+<string name="Due">Fällig</string>
+<string name="All">Alle</string>
+<string name="Events">Termine</string>
+<string name="Tasks">Aufgaben</string>
+<string name="ChooseAction">Aktion wählen</string>
+<string name="SetCompleted">Als abgeschlossen markieren</string>
+<string name="newTaskFromThis">Zu neuer Aufgabe kopieren</string>
+<string name="dueTasksTitle">Aufgaben der nächsten Woche</string>
+<string name="incompleteTasksTitle">Nicht erledigte Aufgaben</string>
+<string name="allTasksTitle">Alle Aufgaben</string>
 </resources>

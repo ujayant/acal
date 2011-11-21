@@ -122,9 +122,11 @@
 <string name="thNov">Nov</string>
 <string name="thDec">Dec</string>
 
-<!-- If the user is displaying AM/PM we need a single character to display e.g. 1p for 1:00pm -->
+<!-- If the user is displaying AM/PM we need a single character to display e.g. 9a for 9:00am in the morning -->
 <string name="oneCharMorning">a</string>
+<!-- If the user is displaying AM/PM we need a single character to display e.g. 1p for 1:00pm in the afternoon-->
 <string name="oneCharAfternoon">p</string>
+
 <string name="abbrevMorning">am</string>
 <string name="abbrevAfternoon">pm</string>
 
@@ -327,4 +329,5 @@
 <string name="Before">Before</string>
 <string name="After">After</string>
 <string name="Custom">Custom</string>
+
 </resources>

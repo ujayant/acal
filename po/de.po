@@ -2,18 +2,20 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # 
-#   <werner.heise@lessingstadt.de>, 2011.
-# Joerg Knoche <transifex@roerch.ping.de>, 2011.
-# SunTsu <transifex.20.suntsu@spamgourmet.com>, 2011.
+# Translators:
 # Andrew McMillan <andrew@mcmillan.net.nz>, 2011.
 # fmms <mail@felixmoeller.de>, 2011.
+# Joerg Knoche <transifex@roerch.ping.de>, 2011.
+# Matthias Althaus <contact@althaus.it>, 2011.
+# SunTsu <transifex.20.suntsu@spamgourmet.com>, 2011.
+#   <werner.heise@lessingstadt.de>, 2011.
 msgid ""
 msgstr ""
 "Project-Id-Version: aCal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-05-19 09:05+1200\n"
-"PO-Revision-Date: 2011-06-01 09:43+0000\n"
-"Last-Translator: derwerner <werner.heise@lessingstadt.de>\n"
+"POT-Creation-Date: 2011-08-22 21:42+1200\n"
+"PO-Revision-Date: 2011-10-26 07:46+0000\n"
+"Last-Translator: althaus <contact@althaus.it>\n"
 "Language-Team: German (http://www.transifex.net/projects/p/acal/team/de/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -39,6 +41,11 @@ msgstr ""
 "Ein Kalender für Android, der Ereignisse, Aufgaben, Notizen und Kontakte auf"
 " einem CalDAV- bzw. CardDAV-Server -- bspw. DAViCal (siehe www.davical.org) "
 "speichert."
+
+msgid "appDescriptionTasks"
+msgstr ""
+"Eine Aufgabenliste für Android, die Aufgaben auf einem CalDAV- bzw. CardDAV-"
+"Server -- bspw. DAViCal (siehe www.davical.org) speichert."
 
 msgid "Active"
 msgstr "aktiv"
@@ -463,6 +470,12 @@ msgstr "Von:"
 msgid "UntilPrompt"
 msgstr "Bis:"
 
+msgid "DuePrompt"
+msgstr "Fällig:"
+
+msgid "CompletedPrompt"
+msgstr "Abgeschlossen:"
+
 msgid "defaultCalendar"
 msgstr "Standardkalender"
 
@@ -693,6 +706,9 @@ msgstr "Suche \"Principal\" Pfad unter &quot;%s&quot;"
 msgid "checkServer_CheckingCapabilities"
 msgstr "Überprüfe Serverfähigkeiten"
 
+msgid "serverRecordAlreadyExists"
+msgstr "Es liegt schon ein Server mit diesen Einstellungen vor"
+
 msgid "newEventFromThis"
 msgstr "Kopiere als neues Event"
 
@@ -734,5 +750,41 @@ msgstr "Änderungen in Version %s"
 
 msgid "newVersionSeen"
 msgstr "Danke, nun zeig's mir!"
+
+msgid "Due"
+msgstr "Fällig"
+
+msgid "All"
+msgstr "Alle"
+
+msgid "Todo"
+msgstr "Todo"
+
+msgid "Events"
+msgstr "Termine"
+
+msgid "Tasks"
+msgstr "Aufgaben"
+
+msgid "Unscheduled"
+msgstr ""
+
+msgid "ChooseAction"
+msgstr "Aktion wählen"
+
+msgid "SetCompleted"
+msgstr "Als abgeschlossen markieren"
+
+msgid "newTaskFromThis"
+msgstr "Zu neuer Aufgabe kopieren"
+
+msgid "dueTasksTitle"
+msgstr "Aufgaben der nächsten Woche"
+
+msgid "incompleteTasksTitle"
+msgstr "Nicht erledigte Aufgaben"
+
+msgid "allTasksTitle"
+msgstr "Alle Aufgaben"
 
 
