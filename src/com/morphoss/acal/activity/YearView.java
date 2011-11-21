@@ -38,7 +38,7 @@ import com.morphoss.acal.views.CustomYearDrawable;
 import com.morphoss.acal.widget.NumberPickerDialog;
 import com.morphoss.acal.widget.NumberSelectedListener;
 
-public class YearView extends Activity implements OnGestureListener, OnTouchListener, NumberSelectedListener, OnClickListener {
+public class YearView extends AcalActivity implements OnGestureListener, OnTouchListener, NumberSelectedListener, OnClickListener {
 	
 	/* Fields relating to buttons */
 	public static final int TODAY = 0;

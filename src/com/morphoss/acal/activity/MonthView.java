@@ -18,16 +18,12 @@
 
 package com.morphoss.acal.activity;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 
-import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -41,13 +37,13 @@ import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.GestureDetector;
+import android.view.GestureDetector.OnGestureListener;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.GestureDetector.OnGestureListener;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.view.animation.Animation;
@@ -109,7 +105,7 @@ import com.morphoss.acal.widget.AcalViewFlipper;
  * @license GPL v3 or later
  * 
  */
-public class MonthView extends Activity implements OnGestureListener,
+public class MonthView extends AcalActivity implements OnGestureListener,
 		OnTouchListener, OnClickListener {
 
 	public static final String TAG = "aCal MonthView";
@@ -1063,12 +1059,12 @@ public class MonthView extends Activity implements OnGestureListener,
 		@Override
 		public void handleMessage(Message msg) {
 			int type = msg.arg1;
-			int val = msg.arg2;
-			switch (type) {
-			case CalendarDataService.UPDATE:
-				if ( Constants.LOG_DEBUG ) Log.i(TAG,"Received update notification from CalendarDataService.");
-				changeSelectedDate(selectedDate);
-				break;
+			switch ( type ) {
+				case CalendarDataService.UPDATE:
+					if ( Constants.LOG_DEBUG )
+						Log.i(TAG, "Received update notification from CalendarDataService.");
+					changeSelectedDate(selectedDate);
+					break;
 			}
 
 		}

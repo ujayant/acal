@@ -20,7 +20,6 @@ package com.morphoss.acal.activity;
 
 import java.util.ArrayList;
 
-import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -90,7 +89,7 @@ import com.morphoss.acal.service.aCalService;
  * @license GPL v3 or later
  * 
  */
-public class TodoListView extends Activity implements OnClickListener {
+public class TodoListView extends AcalActivity implements OnClickListener {
 
 	public static final String TAG = "aCal TodoListView";
 

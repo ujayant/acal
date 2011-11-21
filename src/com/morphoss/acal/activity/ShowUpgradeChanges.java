@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import android.app.Activity;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
@@ -39,7 +38,7 @@ import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.aCal;
 
-public class ShowUpgradeChanges extends Activity implements OnClickListener {
+public class ShowUpgradeChanges extends AcalActivity implements OnClickListener {
 
 	WebView upgradeNotes;
 	Button seenEm;

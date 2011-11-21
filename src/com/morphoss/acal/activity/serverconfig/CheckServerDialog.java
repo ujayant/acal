@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.ContentValues;
@@ -275,6 +276,7 @@ public class CheckServerDialog implements Runnable {
 		try {
 			// Before we display the success dialog and especially before we start syncing it.
 			sc.saveData();
+			sc.setResult(Activity.RESULT_OK);
 
 			builder.setMessage(msg + "\n\n" + context.getString(R.string.serverValidationSuccess));
 			
@@ -299,6 +301,7 @@ public class CheckServerDialog implements Runnable {
 		public void onClick(DialogInterface dialog, int which) {
 			switch (which) {
 				case DialogInterface.BUTTON_POSITIVE:
+					sc.setResult(Activity.RESULT_FIRST_USER);
 					sc.saveData();
 					// fall through
 				case DialogInterface.BUTTON_NEUTRAL:
@@ -306,7 +309,7 @@ public class CheckServerDialog implements Runnable {
 					sc.finish();
 					break;
 				case DialogInterface.BUTTON_NEGATIVE:
-					// Do nothing
+					sc.setResult(Activity.RESULT_CANCELED);
 					break;
 			}
 		}

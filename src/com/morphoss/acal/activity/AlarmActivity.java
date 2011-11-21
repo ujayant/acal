@@ -18,7 +18,6 @@
 
 package com.morphoss.acal.activity;
 
-import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -50,7 +49,7 @@ import com.morphoss.acal.dataservice.DataRequest;
 import com.morphoss.acal.davacal.AcalAlarm;
 import com.morphoss.acal.davacal.AcalEvent;
 
-public class AlarmActivity extends Activity implements OnClickListener  {
+public class AlarmActivity extends AcalActivity implements OnClickListener  {
 
 	public static final String TAG = "aCal AlarmActivity";
 	private AcalAlarm currentAlarm;

@@ -31,7 +31,8 @@ import com.morphoss.acal.R;
 public class AddServerList extends ListActivity implements OnClickListener {
 
 	public static final String TAG = "acal AddServerList";
-	
+
+	private static final int CREATE_SERVER_REQUEST = 1;
 	private Button manualConfiguration;
 	
 	@Override
@@ -67,7 +68,13 @@ public class AddServerList extends ListActivity implements OnClickListener {
 		// Begin new activity
 		serverConfigIntent.setClassName("com.morphoss.acal", "com.morphoss.acal.activity.serverconfig.ServerConfiguration");
 		serverConfigIntent.putExtra("ServerData", newServer);
-		startActivity(serverConfigIntent); 
-		
+		startActivityForResult(serverConfigIntent, CREATE_SERVER_REQUEST);
 	}
+	
+     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+         if (requestCode == CREATE_SERVER_REQUEST ) {
+             if (resultCode == RESULT_OK) finish();
+         }
+     }
+
 }

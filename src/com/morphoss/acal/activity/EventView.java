@@ -20,7 +20,6 @@ package com.morphoss.acal.activity;
 
 import java.util.List;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -28,9 +27,9 @@ import android.os.Bundle;
 import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.GestureDetector.OnGestureListener;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.GestureDetector.OnGestureListener;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.widget.Button;
@@ -47,7 +46,7 @@ import com.morphoss.acal.davacal.AcalEvent;
 import com.morphoss.acal.davacal.SimpleAcalEvent;
 import com.morphoss.acal.service.aCalService;
 
-public class EventView extends Activity implements OnGestureListener, OnTouchListener, OnClickListener{
+public class EventView extends AcalActivity implements OnGestureListener, OnTouchListener, OnClickListener{
 
 	public static final String TAG = "aCal EventView";
 	public static final int TODAY = 0;

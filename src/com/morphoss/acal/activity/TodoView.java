@@ -20,9 +20,6 @@ package com.morphoss.acal.activity;
 
 import java.util.List;
 
-import android.app.Activity;
-import android.content.ContentValues;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -45,15 +42,13 @@ import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.davacal.AcalAlarm;
 import com.morphoss.acal.davacal.AcalCollection;
-import com.morphoss.acal.davacal.Masterable;
 import com.morphoss.acal.davacal.SimpleAcalTodo;
 import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VComponent;
 import com.morphoss.acal.davacal.VTodo;
-import com.morphoss.acal.providers.DavResources;
 import com.morphoss.acal.service.aCalService;
 
-public class TodoView extends Activity implements OnGestureListener, OnTouchListener, OnClickListener{
+public class TodoView extends AcalActivity implements OnGestureListener, OnTouchListener, OnClickListener{
 
 	public static final String TAG = "aCal TodoView";
 	public static final int TODAY = 0;
