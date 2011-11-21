@@ -23,7 +23,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.ComponentName;
@@ -69,6 +68,7 @@ import com.morphoss.acal.davacal.AcalAlarm;
 import com.morphoss.acal.davacal.AcalAlarm.ActionType;
 import com.morphoss.acal.davacal.AcalEvent;
 import com.morphoss.acal.davacal.AcalEvent.EVENT_FIELD;
+import com.morphoss.acal.davacal.PropertyName;
 import com.morphoss.acal.davacal.SimpleAcalEvent;
 import com.morphoss.acal.davacal.VComponent;
 import com.morphoss.acal.providers.DavCollections;
@@ -77,7 +77,7 @@ import com.morphoss.acal.widget.AlarmDialog;
 import com.morphoss.acal.widget.DateTimeDialog;
 import com.morphoss.acal.widget.DateTimeSetListener;
 
-public class EventEdit extends Activity implements OnGestureListener, OnTouchListener, OnClickListener, OnCheckedChangeListener {
+public class EventEdit extends AcalActivity implements OnGestureListener, OnTouchListener, OnClickListener, OnCheckedChangeListener {
 
 	public static final String TAG = "aCal EventEdit";
 	public static final int APPLY = 0;
@@ -254,7 +254,7 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 			Map<EVENT_FIELD,Object> defaults = new HashMap<EVENT_FIELD,Object>(10);
 
 			defaults.put( EVENT_FIELD.startDate, start );
-			defaults.put( EVENT_FIELD.duration, duration );
+			defaults.put( EVENT_FIELD.endDate, start.clone().addDuration(duration) );
 			defaults.put( EVENT_FIELD.summary, getString(R.string.NewEventTitle) );
 			defaults.put( EVENT_FIELD.location, "" );
 			defaults.put( EVENT_FIELD.description, "" );
@@ -280,6 +280,10 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 			this.event = new AcalEvent(defaults);
 			this.event.setAction(AcalEvent.ACTION_CREATE);
 
+			if ( !event.getStart().isFloating() ) {
+				Log.i(TAG,"Forcing start date to floating on new event...");
+				event.setField(EVENT_FIELD.startDate, event.getStart().setTimeZone(null));
+			}
 		}
 		this.collectionsArray = new String[activeCollections.length];
 		int count = 0;
@@ -288,10 +292,6 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 			collectionsArray[count++] = cv.getAsString(DavCollections.DISPLAYNAME);
 		}
 		
-		if ( event.getAction() == AcalEvent.ACTION_CREATE && !event.getStart().isFloating() ) {
-			Log.d(TAG,"Forcing start date to floating...");
-			event.setField(EVENT_FIELD.startDate, event.getStart().setTimeZone(null));
-		}
 		return event;
 	}
 
@@ -531,8 +531,7 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 			start = event.getStart();
 			AcalDateTime end = AcalDateTime.addDuration(start, duration);
 			while( end.before(start) ) end.addDays(1);
-			duration = start.getDurationTo(end);
-			event.setField(EVENT_FIELD.duration, duration);
+			event.setField(EVENT_FIELD.endDate, end);
 		}
 		
 		if (event.getAction() == AcalEvent.ACTION_CREATE ||
@@ -552,6 +551,7 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 	private boolean saveChanges() {
 		
 		try {
+			Log.i(TAG,"saveChanges: dtstart = "+event.getStart().toPropertyString(PropertyName.DTSTART));
 			this.dataRequest.eventChanged(event);
 
 			Log.i(TAG,"Saving event with action " + event.getAction() );
@@ -654,22 +654,26 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 		AcalDateTime end = event.getEnd();
 		switch (id) {
 			case START_DATE_DIALOG:
-				return new DateTimeDialog( this, start, prefer24hourFormat, true,
+				return new DateTimeDialog( this, start.clone(), prefer24hourFormat, true,
 						new DateTimeSetListener() {
-							public void onDateTimeSet(AcalDateTime newDateTime) {
+							public void onDateTimeSet(AcalDateTime newStart) {
 								AcalDateTime oldStart = event.getStart();
-								AcalDuration newDuration = event.getDuration();
-								if ( oldStart.isDate() != newDateTime.isDate() ) {
-									if ( newDateTime.isDate() ) {
-										newDuration.setDuration(newDuration.getDays() + 1, 0); 
-									}
-									else {
-										if ( newDuration.getDurationMillis() == 86400000L )
-											newDuration.setDuration(0, 3600); 
-									}
-									event.setField(EVENT_FIELD.duration, newDuration);
+								AcalDuration delta = oldStart.getDurationTo(newStart);
+								AcalDateTime newEnd = event.getEnd().addDuration(delta);
+								if ( oldStart.isDate() != newStart.isDate() ) {
+									newEnd.setAsDate(newStart.isDate() );
 								}
-								event.setField(EVENT_FIELD.startDate, newDateTime);
+								String oldTzId = oldStart.getTimeZoneId();
+								String newTzId = newStart.getTimeZoneId();
+								if ( ( oldTzId == null && newTzId != null) || (oldTzId != null && !oldTzId.equals(newTzId) ) ) {
+									String endTzId = newEnd.getTimeZoneId();
+									Log.i(TAG,"The timezone changed from "+oldTzId+" to "+newTzId+", EndTzId is "+endTzId);
+									// OK, so the timezone changed.  But did the old one previously match?
+									if ( (oldTzId == null && endTzId == null) || (oldTzId != null && oldTzId.equals(endTzId)) )
+										newEnd.shiftTimeZone(newTzId);
+								}
+								event.setField(EVENT_FIELD.startDate, newStart);
+								event.setField(EVENT_FIELD.endDate, newEnd);
 								updateLayout();
 							}
 						});
@@ -686,9 +690,8 @@ public class EventEdit extends Activity implements OnGestureListener, OnTouchLis
 				return new DateTimeDialog( this, end, prefer24hourFormat, false,
 						new DateTimeSetListener() {
 							public void onDateTimeSet(AcalDateTime newDateTime) {
-								// We always use duration on the event, rather than end.
 								if ( newDateTime.isDate() ) newDateTime.addDays(1);
-								event.setField(EVENT_FIELD.duration, event.getStart().getDurationTo(newDateTime));
+								event.setField(EVENT_FIELD.endDate, newDateTime);
 								updateLayout();
 							}
 						});

@@ -18,20 +18,15 @@
 
 package com.morphoss.acal.davacal;
 
+public class UnrecognizedTimeZoneException extends Exception {
 
-public class VEvent extends Masterable {
-	public static final String TAG = "aCal VEvent";
-
-	public VEvent(ComponentParts splitter, Integer resourceId, AcalCollection collectionObject,VComponent parent) {
-		super(splitter, resourceId, collectionObject,parent);
+	public UnrecognizedTimeZoneException(String msg) {
+		super(msg);
 	}
 
-	public VEvent( VCalendar parent ) {
-		super( VComponent.VEVENT, parent );
-	}
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
-	public VEvent fromMasterEvent( VEvent master ) {
-		return (VEvent) VComponent.createComponentFromBlob(master.getCurrentBlob(),
-															master.resourceId, master.collectionData);
-	}
 }

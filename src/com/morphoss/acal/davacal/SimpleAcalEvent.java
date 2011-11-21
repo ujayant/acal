@@ -38,11 +38,6 @@ import com.morphoss.acal.acaltime.AcalDuration;
  */
 public class SimpleAcalEvent implements Parcelable, Comparable<SimpleAcalEvent> {
 
-	/**
-	 * 
-	 */
-	private static final long	serialVersionUID	= 1L;
-
 	private static final String TAG = "SimpleAcalEvent"; 
 
 	//Start and end times are in UTC
@@ -164,7 +159,7 @@ public class SimpleAcalEvent implements Parcelable, Comparable<SimpleAcalEvent> 
 	 * @param startDate To override the startDate in the event.
 	 * @param duration To override the duration or end date in the event 
 	 */
-	public SimpleAcalEvent(VComponent event, AcalDateTime startDate, AcalDuration duration, boolean isPending ) {
+	public SimpleAcalEvent(VComponent event, AcalDateTime startDate, AcalDateTime endDate, boolean isPending ) {
 		this.resourceId = event.getResourceId();
 		
 		this.isPending = isPending;
@@ -177,17 +172,13 @@ public class SimpleAcalEvent implements Parcelable, Comparable<SimpleAcalEvent> 
 		start = startDate.getEpoch();
 		
 		long en = start - 1; // illegal value to test for...
-		if ( duration != null ) {
-			en = duration.getEndDate(startDate).getEpoch();
-			if ( floating && !allDayEvent && duration.getTimeMillis() == 0 && duration.getDays() > 0)
-				allDayEvent = true;
-		}
-		isAllDay = allDayEvent;
+		if ( endDate != null )
+			en = endDate.getEpoch();
 		
 		if ( en < start ) {
 			AcalProperty dtend = event.getProperty("DTEND");  
 			if (dtend != null)
-				en = AcalDateTime.fromAcalProperty(dtend).applyLocalTimeZone().getEpoch();
+				en = AcalDateTime.fromAcalProperty(dtend).getEpoch();
 		}
 		if ( en < start ) {
 			if ( startDate.isDate() )
@@ -198,6 +189,11 @@ public class SimpleAcalEvent implements Parcelable, Comparable<SimpleAcalEvent> 
 		end = en;
 		endDateHash = getDateHash(end);
 
+		if ( floating && !allDayEvent && (en - start) > 0 && ((en - start) % AcalDateTime.SECONDS_IN_DAY ) == 0 ) 
+			allDayEvent = true;
+
+		isAllDay = allDayEvent;
+		
 		summary = event.safePropertyValue("SUMMARY");
 		location = event.safePropertyValue("LOCATION");
 		String repeats = event.safePropertyValue("RRULE") + event.safePropertyValue("RDATE");
@@ -392,8 +388,7 @@ public class SimpleAcalEvent implements Parcelable, Comparable<SimpleAcalEvent> 
 	};
 
 	public AcalEvent getAcalEvent(Context c) {
-		AcalDateTime dtStart = new AcalDateTime().applyLocalTimeZone().setEpoch(start);
-		dtStart.setTimeZone(timezoneId);
+		AcalDateTime dtStart = new AcalDateTime().setTimeZone(timezoneId).setEpoch(start);
 		return AcalEvent.fromDatabase(c, resourceId, dtStart );
 	}
 	

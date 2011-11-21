@@ -20,12 +20,12 @@ package com.morphoss.acal.davacal;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.SimpleTimeZone;
 import java.util.TimeZone;
 
+import com.morphoss.acal.R;
+import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.acaltime.AcalDateTime;
-import com.morphoss.acal.acaltime.AcalRepeatRuleParser;
 
 
 
@@ -42,20 +42,12 @@ public class VTimezone extends VComponent {
 	}
 
 	public String getTZID() {
-		if ( tzid == null ) {
-			if ( !guessOlsonTimeZone() ) {
-				this.makeTimeZone(getProperty("TZID").getValue());
-			}
-		}
+		if ( tzid == null ) guessOlsonTimeZone();
 		return tzid;
 	}
 
 	public TimeZone getTZ() {
-		if ( tz == null ) {
-			if ( !guessOlsonTimeZone() ) {
-				this.makeTimeZone(getProperty("TZID").getValue());
-			}
-		}
+		if ( tz == null ) guessOlsonTimeZone();
 		return tz;
 	}
 
@@ -63,6 +55,7 @@ public class VTimezone extends VComponent {
 		if ( tryTz(getProperty("TZID")) ) return true;
 		if ( tryTz(getProperty("TZNAME")) ) return true;
 		if ( tryTz(getProperty("X-LIC-LOCATION")) ) return true;
+		if ( tryTz(getProperty("X-ENTOURAGE-CFTIMEZONE")) ) return true;
 		tzid = getOlsonFromMsID();
 		if ( tzid != null ) {
 			tz = TimeZone.getTimeZone(tzid);
@@ -114,7 +107,7 @@ public class VTimezone extends VComponent {
 				case 5:    return("Europe/Bucharest");
 				case 6:    return("Europe/Prague");
 				case 7:    return("Europe/Athens");
-				case 8:    return("America/Brasilia");
+				case 8:    return("America/Sao_Paulo");
 				case 9:    return("America/Halifax");
 				case 10:   return("America/New_York");
 				case 11:   return("America/Chicago");
@@ -226,109 +219,36 @@ public class VTimezone extends VComponent {
 	}
 
 	
-	private void makeTimeZone( String id ) {
-		int offset;
-
-		int stdOffset = 2000000000; // An out of range value that will match nothing
-		AcalDateTime stdStart = null;
-		AcalRepeatRuleParser stdRule = null;
-
-		int dstOffset = 2000000000;
-		AcalDateTime dstStart = null;
-		AcalRepeatRuleParser dstRule = null;
-
-		for( VComponent child : this.getChildren() ) {
-			offset = Integer.parseInt(child.getProperty("TZOFFSETTO").getValue());
-			offset = (((int)(offset/100)*3600) + (offset%100)) * 1000;
-
-			if ( child.getName().equalsIgnoreCase("daylight") ) {
-				dstOffset = offset;
-				dstRule = AcalRepeatRuleParser.parseRepeatRule(child.getProperty("RRULE").getValue());
-				dstStart = AcalDateTime.fromAcalProperty(child.getProperty("DTSTART"));
-			}
-			else {
-				stdOffset = offset;
-				stdRule = AcalRepeatRuleParser.parseRepeatRule(child.getProperty("RRULE").getValue());
-				stdStart = AcalDateTime.fromAcalProperty(child.getProperty("DTSTART"));
-			}
-		}
-		if ( stdOffset > 864000000 || stdStart == null || dstStart == null
-					) return;
-
-		int startDay, endDay, startDoW = 0, endDoW = 0;
-
-		if ( stdRule.bymonth.length == 1 ) stdStart.setMonth(stdRule.bymonth[0]);
-		if ( stdRule.bymonthday.length == 1 ) startDay = stdRule.bymonthday[0];
-		else startDay = stdStart.getMonthDay();
-		if ( stdRule.byday.length == 1 ) startDoW = stdRule.byday[0].wDay;
-		
-		if ( dstRule.bymonth.length == 1 ) dstStart.setMonth(dstRule.bymonth[0]);
-		if ( dstRule.bymonthday.length == 1 ) endDay = dstRule.bymonthday[0];
-		else endDay = dstStart.getMonthDay();
-		if ( dstRule.byday.length == 1 ) endDoW = dstRule.byday[0].wDay;
-
-		
-		SimpleTimeZone sTz = new SimpleTimeZone(stdOffset, id, 
-					stdStart.getMonth() - 1, startDay, startDoW, stdStart.getDaySecond() * 1000, 
-					dstStart.getMonth() - 1, endDay, endDoW, dstStart.getDaySecond() * 1000, dstOffset);
-
-		tz = sTz;
-		tzid = id;
-	}
-	/*
-       TZID:America/New_York
-       LAST-MODIFIED:20050809T050000Z
-       BEGIN:DAYLIGHT
-       DTSTART:19670430T020000
-       RRULE:FREQ=YEARLY;BYMONTH=4;BYDAY=-1SU;UNTIL=19730429T070000Z
-       TZOFFSETFROM:-0500
-       TZOFFSETTO:-0400
-       TZNAME:EDT
-       END:DAYLIGHT
-       BEGIN:STANDARD
-       DTSTART:19671029T020000
-       RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU;UNTIL=20061029T060000Z
-       TZOFFSETFROM:-0400
-       TZOFFSETTO:-0500
-       TZNAME:EST
-       END:STANDARD       
-	 */
 	/**
-	 * TODO: Completely inadequate.  We're really going to have to (a) build them,
-	 * (b) fetch them or (c) steal them from a passing appointment.  And in actuality (b)
-	 * and (c) probably won't work too well :-(
+	 * Returns an iCalendar VTIMEZONE definition as a string
+	 * 
+	 * @param timeZoneId The TZID we want to find.
+	 * @return The VTIMEZONE component as a string.
+	 * @throws UnrecognizedTimeZoneException
 	 */
-	public VTimezone( VCalendar parent, String tzName ) {
-		super( "VTIMEZONE", parent.collectionData, parent );
-		try { setPersistentOn(); } catch (YouMustSurroundThisMethodInTryCatchOrIllEatYouException e) { }
+	public static String getZoneDefinition(String timeZoneId) throws UnrecognizedTimeZoneException {
+		if ( timeZoneId == null ) throw new UnrecognizedTimeZoneException("null");
 
-		if ( tzName != null )
-			tz = TimeZone.getTimeZone(tzName);
-
-		if ( tz == null )
-			tz = TimeZone.getDefault();
-
-		int stdOffset = (int) tz.getRawOffset()/1000;
-		int dstOffset = (int) tz.getDSTSavings()/1000;
-		tzid = tz.getID();
-		addProperty(new AcalProperty("TZID",tzid));
-		if ( tz.useDaylightTime() ) {
-			addProperty(new AcalProperty("BEGIN", "DAYLIGHT"));
-			addProperty(new AcalProperty("TZNAME", tz.getDisplayName(true, TimeZone.SHORT, Locale.US)));
-			addProperty(new AcalProperty("TZOFFSETFROM", (stdOffset<0?"-":"")+String.format("%02d%02d", (int) (stdOffset/3600), stdOffset%3600)));
-			addProperty(new AcalProperty("TZOFFSETTO", (dstOffset<0?"-":"")+String.format("%02d%02d", (int) (dstOffset/3600), dstOffset%3600)));
-			addProperty(new AcalProperty("RRULE",""));
-			addProperty(new AcalProperty("DTSTART",""));
-			addProperty(new AcalProperty("END","DAYLIGHT"));
+		String[] olsonNames = StaticHelpers.getStringArray(R.array.timezoneOlsonList);
+		int i=0;
+		while( i < olsonNames.length && !olsonNames[i].equals(timeZoneId)) {
+			i++;
 		}
-		addProperty(new AcalProperty("BEGIN", "STANDARD"));
-		addProperty(new AcalProperty("TZNAME", tz.getDisplayName(false, TimeZone.SHORT, Locale.US)));
-		addProperty(new AcalProperty("TZOFFSETFROM", (dstOffset<0?"-":"")+String.format("%02d%02d", (int) (dstOffset/3600), dstOffset%3600)));
-		addProperty(new AcalProperty("TZOFFSETTO", (stdOffset<0?"-":"")+String.format("%02d%02d", (int) (stdOffset/3600), stdOffset%3600)));
-		addProperty(new AcalProperty("RRULE",""));
-		addProperty(new AcalProperty("DTSTART",""));
-		addProperty(new AcalProperty("END","STANDARD"));
+
+		TimeZone tz = TimeZone.getTimeZone(timeZoneId);
+		if ( i == olsonNames.length ) {
+			String testTzId = tz.getID();
+
+			//  At this point we rather optimistically hope that perhaps Java recognises it
+			i=0;
+			while( i < olsonNames.length && !olsonNames[i].equals(testTzId)) {
+				i++;
+			}
+			if ( i == olsonNames.length )
+				throw new UnrecognizedTimeZoneException(timeZoneId);
+		}
+		String[] olsonDefinitions = StaticHelpers.getStringArray(R.array.timezoneDefinitionList);
+		return olsonDefinitions[i].replace("&#xA;", "\r\n");
 	}
 
-	
 }

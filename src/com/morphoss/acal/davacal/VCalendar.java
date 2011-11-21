@@ -20,6 +20,7 @@ package com.morphoss.acal.davacal;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
@@ -83,38 +84,32 @@ public class VCalendar extends VComponent {
 		return new VCalendar(this.content, this.resourceId, this.earliestStart, this.latestEnd, this.collectionData, this.parent);
 	}
 
-	public String applyAction(AcalEvent action) {
+	public String applyEventAction(AcalEvent action) {
 		try {
-			this.setPersistentOn();
-			this.populateChildren();
-			this.populateProperties();
+			this.setEditable();
 
-			Masterable mast = this.getMasterChild();
-			mast.setPersistentOn();
-			mast.populateChildren();
-			mast.populateProperties();
+			VEvent vEvent = (VEvent) this.getMasterChild();
 
 			// first, strip any existing properties which we always modify
-			mast.removeProperties( new String[] {"DTSTAMP", "LAST-MODIFIED" } );
+			vEvent.removeProperties( new PropertyName[] {PropertyName.DTSTAMP, PropertyName.LAST_MODIFIED } );
 
 			// change DTStamp
 			AcalDateTime lastModified = new AcalDateTime();
 			lastModified.setTimeZone(TimeZone.getDefault().getID());
 			lastModified.shiftTimeZone("UTC");
 
-			mast.addProperty(AcalProperty.fromString(lastModified.toPropertyString("DTSTAMP")));
-			mast.addProperty(AcalProperty.fromString(lastModified.toPropertyString("LAST-MODIFIED")));
+			vEvent.addProperty(AcalProperty.fromString(lastModified.toPropertyString(PropertyName.DTSTAMP)));
+			vEvent.addProperty(AcalProperty.fromString(lastModified.toPropertyString(PropertyName.LAST_MODIFIED)));
 
-			
 			if ( action.getAction() == AcalEvent.ACTION_DELETE_SINGLE) {
-				AcalProperty exDate = mast.getProperty("EXDATE");
+				AcalProperty exDate = vEvent.getProperty("EXDATE");
 				if ( exDate == null || exDate.getValue().equals("") ) 
-					exDate = AcalProperty.fromString(action.getStart().toPropertyString("EXDATE"));
+					exDate = AcalProperty.fromString(action.getStart().toPropertyString(PropertyName.EXDATE));
 				else {
-					mast.removeProperties( new String[] {"EXDATE"} );
+					vEvent.removeProperties( new PropertyName[] {PropertyName.EXDATE} );
 					exDate = AcalProperty.fromString(exDate.toRfcString() + "," + action.getStart().fmtIcal() );
 				}
-				mast.addProperty(exDate);
+				vEvent.addProperty(exDate);
 			}
 			else if (action.getAction() == AcalEvent.ACTION_DELETE_ALL_FUTURE) {
 				AcalRepeatRuleParser parsedRule = AcalRepeatRuleParser.parseRepeatRule(action.getRepetition());
@@ -123,17 +118,15 @@ public class VCalendar extends VComponent {
 				parsedRule.setUntil(until);
 				String rrule = parsedRule.toString();
 				action.setRepetition(rrule);
-				mast.removeProperties( new String[] {"RRULE"} );
-				mast.addProperty(new AcalProperty("RRULE",rrule));
+				vEvent.removeProperties( new PropertyName[] {PropertyName.RRULE} );
+				vEvent.addProperty(new AcalProperty("RRULE",rrule));
 			}
 			else if (action.isModifyAction()) {
-				this.applyModify(mast,action);
-
+				this.applyModify(vEvent,action);
+				this.updateTimeZones(vEvent);
 			}
+
 			String ret = this.getCurrentBlob();
-			this.destroyProperties();
-			this.destroyChildren();
-			this.setPersistentOff();
 			return ret;
 		}
 		catch (Exception e) {
@@ -156,32 +149,94 @@ public class VCalendar extends VComponent {
 			// Modify all instances
 
 			// First, strip any existing properties which we modify
-			mast.removeProperties( new String[] {"DTSTART", "DTEND", "DURATION",
-					"SUMMARY", "LOCATION", "DESCRIPTION", "RRULE" } );
+			mast.removeProperties( new PropertyName[] {PropertyName.DTSTART, PropertyName.DTEND, PropertyName.DURATION,
+					PropertyName.SUMMARY, PropertyName.LOCATION, PropertyName.DESCRIPTION, PropertyName.RRULE } );
 
-			AcalDateTime dtStart = action.getStart().clone().applyLocalTimeZone();
-			dtStart.setTimeZone(null);
-			mast.addProperty( AcalProperty.fromString( dtStart.toPropertyString("DTSTART")));
+			AcalDateTime dtStart = action.getStart();
+			mast.addProperty( dtStart.asProperty(PropertyName.DTSTART));
 
-			mast.addProperty(new AcalProperty("DURATION", action.getDuration().toString() ) );
+			AcalDateTime dtEnd = action.getEnd();
+			if ( (dtEnd.getTimeZoneId() == null && dtStart.getTimeZoneId() == null) || 
+					(dtEnd.getTimeZoneId() != null && dtEnd.getTimeZoneId().equals(dtStart.getTimeZoneId())) )
+				mast.addProperty(action.getDuration().asProperty(PropertyName.DURATION) );
+			else
+				mast.addProperty( dtEnd.asProperty( PropertyName.DTEND ) );
 
-			mast.addProperty(new AcalProperty("SUMMARY", action.getSummary()));
+			mast.addProperty(new AcalProperty(PropertyName.SUMMARY, action.getSummary()));
 
 			String location = action.getLocation();
 			if ( !location.equals("") )
-				mast.addProperty(new AcalProperty("LOCATION",location));
+				mast.addProperty(new AcalProperty(PropertyName.LOCATION,location));
 
 			String description = action.getDescription();
 			if ( !description.equals("") )
-				mast.addProperty(new AcalProperty("DESCRIPTION",description));
+				mast.addProperty(new AcalProperty(PropertyName.DESCRIPTION,description));
 
 			String rrule = action.getRepetition();
 			if ( rrule != null && !rrule.equals(""))
-				mast.addProperty(new AcalProperty("RRULE",rrule));
+				mast.addProperty(new AcalProperty(PropertyName.RRULE,rrule));
 
 			mast.updateAlarmComponents( action.getAlarms() );
 		}
 	}
+
+	private void updateTimeZones(VEvent vEvent) {
+		HashSet<String> tzIdSet = new HashSet<String>();
+		for( PropertyName pn : PropertyName.localisableDateProperties() ) {
+			AcalProperty p = vEvent.getProperty(pn);
+			if ( p != null ) {
+				String tzId = p.getParam("TZID");
+				if ( tzId != null ) {
+					tzIdSet.add(p.getParam("TZID"));
+					Log.i(TAG,"Found reference to timezone '"+tzId+"' in event.");
+				}
+			}
+		}
+	
+		List<VComponent> removeChildren = new ArrayList<VComponent>();
+		for (VComponent child : getChildren() ) {
+			if ( child.name.equals(VComponent.VTIMEZONE) ) {
+				String tzId = null;
+				try {
+					VTimezone vtz = (VTimezone) child;
+					tzId = vtz.getTZID();
+				}
+				catch( Exception e ) {};
+				if ( tzIdSet.contains(tzId) ) {
+					Log.i(TAG,"Found child vtimezone for '"+tzId+"' in event.");
+					tzIdSet.remove(tzId);
+				}
+				else {
+					Log.i(TAG,"Removing vtimezone for '"+tzId+"' from event.");
+					removeChildren.add(child);
+				}
+			}
+			else {
+				Log.i(TAG,"Found "+child.name+" component in event.");
+			}
+		}
+		// Have to avoid the concurrent modification
+		for(VComponent child : removeChildren ) {
+			this.removeChild(child);
+		}
+	
+		for ( String tzId : tzIdSet ) {
+			VTimezone vtz;
+			try {
+				String tzBlob = VTimezone.getZoneDefinition(tzId);
+				Log.i(TAG,"New timezone for '"+tzId+"'");
+				Log.i(TAG,tzBlob);
+				vtz = (VTimezone) VComponent.createComponentFromBlob(tzBlob, null, collectionData);
+				vtz.setEditable();
+				this.addChild(vtz);
+			}
+			catch ( UnrecognizedTimeZoneException e ) {
+				Log.i(TAG,"Unable to build a timezone for '"+tzId+"'");
+			}
+			
+		}
+	}
+
 
 	public void checkRepeatRule() {
 		try {

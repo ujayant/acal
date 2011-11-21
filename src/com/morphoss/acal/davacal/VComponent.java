@@ -233,7 +233,11 @@ public abstract class VComponent implements Parcelable {
 	public synchronized void setEditable() {
 		if ( persistenceCount < 1000 ) {
 			this.persistenceCount = 100000;
-			populateRecursively();
+			populateProperties();
+			populateChildren();
+			for( VComponent child : children ) {
+				child.setEditable();
+			}
 		}
 	}
 
@@ -483,15 +487,6 @@ public abstract class VComponent implements Parcelable {
 	}
 
 
-	protected synchronized void populateRecursively() {
-		populateProperties();
-		populateChildren();
-		for( VComponent child : children ) {
-			child.populateRecursively();
-		}
-	}
-
-	
 	/**
 	 * <p>
 	 * This class holds the type of a component (in uppercase) along with start & end positions within
@@ -552,7 +547,8 @@ public abstract class VComponent implements Parcelable {
 				pos = begin.end()+1;
 				endPos = pos;
 				if( !begin.find(pos) && end.find(pos) ) {
-					props += blob.substring(pos, end.start() - 1);
+					int endpos = end.start() - 1;
+					if ( endpos > pos ) props += blob.substring(pos, endpos);
 				}
 			}
 			else {
@@ -576,7 +572,11 @@ public abstract class VComponent implements Parcelable {
 					endPos = end.end()+1;
 				}
 			}
-			propertyLines = Constants.lineSplitter.split(props);
+			if ( props.length() > 0 ) {
+				propertyLines = Constants.lineSplitter.split(props);
+			}
+			else
+				propertyLines = new String[0];
 		}
 	}
 	
@@ -626,13 +626,13 @@ public abstract class VComponent implements Parcelable {
 		return this.properties.put(property.getName(), property);
 	}
 	
-	public void removeProperties( String[] names ) {
+	public void removeProperties( PropertyName[] propertyNames ) {
 		if (!propertiesSet) {
 			this.persistenceCount++;
 			populateProperties();
 		}
-		for ( String n : names ) {
-			properties.remove(n);
+		for ( PropertyName n : propertyNames ) {
+			properties.remove(n.toString());
 		}
 	}
 

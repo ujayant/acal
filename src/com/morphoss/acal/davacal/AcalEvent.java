@@ -48,7 +48,7 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 	private static final long serialVersionUID = 1L;
 	public static final String TAG = "AcalEvent";
 	private AcalDateTime dtstart;
-	private AcalDuration duration;
+	private AcalDateTime dtend;
 	private String summary;
 	private String description;
 	private String location;
@@ -76,7 +76,7 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 	public static enum EVENT_FIELD {
 			resourceId,
 			startDate,
-			duration,
+			endDate,
 			summary,
 			location,
 			description,
@@ -140,8 +140,16 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 			Log.w(TAG,"Trying to build AcalEvent but resource contained in "+resourceId+" is not a VEvent");
 			return null;
 		}
-		if ( dtStart == null ) dtStart = AcalDateTime.fromAcalProperty(event.getProperty("DTSTART"));
-		return new AcalEvent( (VEvent) event, dtStart, event.getDuration(), false );
+
+		//  This bit of mucking around preserves any timezones
+		AcalDateTime eventStart = event.getStart();
+		AcalDateTime eventEnd = event.getEnd();
+		if ( dtStart != null && !dtStart.equals(eventStart) ) {
+			AcalDuration delta = eventStart.getDurationTo(dtStart);
+			eventStart.addDuration(delta);
+			eventEnd.addDuration(delta);
+		}
+		return new AcalEvent( (VEvent) event, eventStart, eventEnd, false );
 	}
 
 	@Override
@@ -151,7 +159,7 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 	@Override
 	public void writeToParcel(Parcel out, int flags) {
 		getStart().writeToParcel( out, flags);
-		duration.writeToParcel(out, 0);
+		getEnd().writeToParcel(out, 0);
 		out.writeString(getSummary());
 		out.writeString(getLocation());
 		out.writeString(getDescription());
@@ -168,7 +176,7 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 
 	public AcalEvent(Parcel in) {
 		this.dtstart = AcalDateTime.unwrapParcel(in);
-		this.duration = new AcalDuration(in);
+		this.dtend = AcalDateTime.unwrapParcel(in);
 		this.summary = in.readString();
 		this.location = in.readString();
 		this.description = in.readString();
@@ -192,10 +200,10 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 		return 0;
 	}
 
-	public AcalEvent(VEvent event, AcalDateTime startDate, AcalDuration duration, boolean isPending ) {
+	public AcalEvent(VEvent event, AcalDateTime startDate, AcalDateTime endDate, boolean isPending ) {
 		this.resourceId = event.getResourceId();
 		this.dtstart = startDate;
-		this.duration = duration;
+		this.dtend = endDate;
 		this.summary = safeEventPropertyValue(event, PropertyName.SUMMARY);
 		this.description = safeEventPropertyValue(event, PropertyName.DESCRIPTION);
 		this.location = safeEventPropertyValue(event, PropertyName.LOCATION);
@@ -207,8 +215,9 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 		List<AcalAlarm> theseAlarms = new ArrayList<AcalAlarm>();
 		for( VComponent child : event.getChildren() ) {
 			if ( child instanceof VAlarm ) {
-				theseAlarms.add(new AcalAlarm((VAlarm) child, (Masterable) event, dtstart.clone(),
-						AcalDateTime.addDuration(dtstart, duration) ));
+				theseAlarms.add( new AcalAlarm((VAlarm) child, (Masterable) event,
+						(dtstart == null ? null : dtstart.clone()),
+						(dtend == null ? null : dtend.clone()) ) );
 			}
 		}
 		
@@ -270,11 +279,11 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 	}
 
 	public AcalDateTime getEnd() {
-		return AcalDateTime.addDuration(dtstart, duration);
+		return this.dtend;
 	}
 	
 	public AcalDuration getDuration() {
-		return this.duration;
+		return dtstart.getDurationTo(dtend);
 	}
 
 	public String getLocation() {
@@ -296,8 +305,8 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 			case startDate:
 				this.dtstart = (AcalDateTime) val;
 				break;
-			case duration:
-				this.duration = (AcalDuration) val;
+			case endDate:
+				this.dtend = (AcalDateTime) val;
 				break;
 			case summary:
 				this.summary = (String) val;
@@ -369,7 +378,7 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 	}
 
 	public boolean overlaps( AcalDateRange range ) {
-		return range.overlaps(dtstart, dtstart.addDuration(duration));
+		return range.overlaps(dtstart, dtend);
 	}
 
 	/**
@@ -418,7 +427,7 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 
 	public AcalEvent(Map<EVENT_FIELD, Object> defaults) {
 		this.dtstart = (AcalDateTime) defaults.get(EVENT_FIELD.startDate);
-		this.duration = (AcalDuration) defaults.get(EVENT_FIELD.duration);
+		this.dtend = (AcalDateTime) defaults.get(EVENT_FIELD.endDate);
 		this.summary = (String) defaults.get(EVENT_FIELD.summary);
 		this.description = (String) defaults.get(EVENT_FIELD.description);
 		this.location = (String) defaults.get(EVENT_FIELD.location);
@@ -442,6 +451,11 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 		this.isPending = false;
 		this.alarmEnabled = true;
 		this.dirty = false;
+	}
+
+
+	public AcalEvent(VEvent vEvent, AcalDateTime dtstart, AcalDuration duration, boolean isPending) {
+		this(vEvent, dtstart, dtstart.clone().addDuration(duration), isPending);
 	}
 
 
