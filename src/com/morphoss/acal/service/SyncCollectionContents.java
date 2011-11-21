@@ -67,7 +67,8 @@ public class SyncCollectionContents extends ServiceJob {
 	private int					collectionId		= -5;
 	private int					serverId			= -5;
 	private String				collectionPath		= null;
-	private String				syncToken			= "";
+	private String				syncToken			= null;
+	private String				oldSyncToken		= null;
 	private boolean				isAddressbook		= false;
 
 	ContentValues				collectionData;
@@ -90,7 +91,7 @@ public class SyncCollectionContents extends ServiceJob {
 	private AcalRequestor 		requestor;
 	private boolean	resourcesWereSynchronized;
 	private boolean	syncWasCompleted;
-
+	
 	
 	/**
 	 * <p>
@@ -182,13 +183,23 @@ public class SyncCollectionContents extends ServiceJob {
 				}
 			}
 
+			String lastSynchronized = new AcalDateTime().setMillis(start).fmtIcal();
 			if ( syncWasCompleted ) {
 				// update last checked flag for collection
-				collectionData.put(DavCollections.LAST_SYNCHRONISED, new AcalDateTime().fmtIcal());
+				collectionData.put(DavCollections.LAST_SYNCHRONISED, lastSynchronized);
 				collectionData.put(DavCollections.NEEDS_SYNC, 0);
-				if ( syncToken != null ) collectionData.put(DavCollections.SYNC_TOKEN, syncToken);
+				if ( syncToken != null ) {
+					collectionData.put(DavCollections.SYNC_TOKEN, syncToken);
+					if ( Constants.LOG_VERBOSE )
+						Log.i(TAG,"Updated collection record with new sync token '"+syncToken+"' at "+lastSynchronized);
+				}
 				cr.update(DavCollections.CONTENT_URI, collectionData, DavCollections._ID + "=?",
 																new String[] { "" + collectionId });
+
+/*
+				int count = cr.delete(PendingChanges.CONTENT_URI, PendingChanges.COLLECTION_ID+"=? "+PendingChanges.MODIFICATION_TIME+"<?",
+						new String[] { ""+collectionId, lastSynchronized } );
+*/
 			}
 
 			if ( resourcesWereSynchronized ) {
@@ -230,7 +241,7 @@ public class SyncCollectionContents extends ServiceJob {
 
 		serverId = collectionData.getAsInteger(DavCollections.SERVER_ID);
 		collectionPath = collectionData.getAsString(DavCollections.COLLECTION_PATH);
-		syncToken = collectionData.getAsString(DavCollections.SYNC_TOKEN);
+		oldSyncToken = collectionData.getAsString(DavCollections.SYNC_TOKEN);
 		isAddressbook = (1 == collectionData.getAsInteger(DavCollections.ACTIVE_ADDRESSBOOK));
 		dataType = "calendar";
 		multigetReportTag = "calendar-multiget";
@@ -279,7 +290,7 @@ public class SyncCollectionContents extends ServiceJob {
 //							+ "<getlastmodified/>"
 //							+ "<" + dataType + "-data xmlns=\"" + nameSpace + "\"/>"
 						+ "</prop>"
-					+ "<sync-token>" + syncToken + "</sync-token>"
+					+ "<sync-token>" + oldSyncToken + "</sync-token>"
 					+ "</sync-collection>"
 				);
 
@@ -288,6 +299,7 @@ public class SyncCollectionContents extends ServiceJob {
 		if (root == null) {
 			Log.i(TAG, "Unable to sync collection " + this.collectionPath + " (ID:" + this.collectionId
 						+ " - no data from server.");
+			syncWasCompleted = false;
 			return false;
 		}
 
@@ -346,11 +358,12 @@ public class SyncCollectionContents extends ServiceJob {
 
 			changeList.add( new ResourceModification(action, cv, null) );
 			
-			// Pull the syncToken we will update with.
-			syncToken = root.getFirstNodeText("multistatus/sync-token");
-
 		}
 
+		// Pull the syncToken we will update with.
+		syncToken = root.getFirstNodeText("multistatus/sync-token");
+		Log.i(TAG,"Found sync token of '"+syncToken+"' in sync-report response." );
+		
 		ResourceModification.commitChangeList(context, changeList);
 		
 		return needSyncAfterwards;
@@ -382,6 +395,7 @@ public class SyncCollectionContents extends ServiceJob {
 		if (root == null ) {
 			Log.i(TAG, "Unable to PROPFIND collection " + this.collectionPath + " (ID:" + this.collectionId
 						+ " - no data from server.");
+			syncWasCompleted = false;
 			return false;
 		}
 
