@@ -1298,15 +1298,9 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 					|| minute < 0 || minute > 59
 					|| second < 0 || second > 59
 					) {
-			try {
-				throw new Exception();
-			}
-			catch (Exception e) {
-				Log.w(TAG,"SUSPICIOUS: " + year + "-" + month + "-" + day
-							+ " T " + hour + ":" + minute + ":" + second );
-				Log.w(TAG, this.toPropertyString("SUSPICIOUS"));
-				Log.i(TAG,Log.getStackTraceString(e));
-			}
+			Log.w(TAG,"SUSPICIOUS: " + year + "-" + month + "-" + day
+						+ " T " + hour + ":" + minute + ":" + second );
+			Log.i(TAG,Log.getStackTraceString(new Exception(this.toPropertyString(PropertyName.INVALID))));
 		}
 	}
 
@@ -1406,8 +1400,8 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	 * @param name
 	 * @return a string which is formatted like an iCalendar property.
 	 */
-	public String toPropertyString( String name ) {
-		StringBuilder ret = new StringBuilder(name);
+	public String toPropertyString( PropertyName name ) {
+		StringBuilder ret = new StringBuilder(name.toString());
 		if ( isDate ) {
 			ret.append(";VALUE=DATE");
 			// VALUE=DATE *MUST NOT* contain a TZID (RFC5545 3.2.19)
@@ -1789,6 +1783,5 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	public AcalProperty asProperty(PropertyName pName) {
 		return asProperty(pName.toString());
 	}
-
 
 }

@@ -254,7 +254,7 @@ public class AcalRepeatRule {
 	    
 	    if ( recurrences != null && recurrences.size() > 3000 ) {
 			Log.e(TAG,"Too many instances (3000):");
-			Log.e(TAG,"Too many " +baseDate.toPropertyString(PropertyName.DTSTART.toString()));
+			Log.e(TAG,"Too many " +baseDate.toPropertyString(PropertyName.DTSTART));
 			Log.e(TAG,"Too many " +repeatRule.toString());
 		    throw new Exception("ETOOTOOMUCHREPETITIONKTHXBAI");
 		}
@@ -381,7 +381,7 @@ public class AcalRepeatRule {
 			endDate = recurrences.get(currentPos);
 			try {
 				sourceVCalendar.setPersistentOn();
-				RecurrenceId ourRecurrenceId = (RecurrenceId) AcalProperty.fromString(endDate.toPropertyString("RECURRENCE-ID"));
+				RecurrenceId ourRecurrenceId = (RecurrenceId) AcalProperty.fromString(endDate.toPropertyString(PropertyName.RECURRENCE_ID));
 				Masterable vMaster = sourceVCalendar.getChildFromRecurrenceId(ourRecurrenceId);
 				EventInstance instance = getRecurrence(endDate,vMaster);
 				eventTimes.put(endDate.getEpoch(), instance );
@@ -531,7 +531,7 @@ public class AcalRepeatRule {
 		AcalDuration ourDuration = lastDuration;
 
 		if ( sourceVCalendar.masterHasOverrides() ) {
-			RecurrenceId instanceId = RecurrenceId.fromString( thisDate.toPropertyString("RECURRENCE-ID"));
+			RecurrenceId instanceId = RecurrenceId.fromString( thisDate.toPropertyString(PropertyName.RECURRENCE_ID));
 			ourVEvent = sourceVCalendar.getChildFromRecurrenceId(instanceId);
 			RecurrenceId overrideId = (RecurrenceId) ourVEvent.getProperty("RECURRENCE-ID");
 
