@@ -22,6 +22,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import android.content.ContentValues;
+import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Parcel;
 import android.view.View;
@@ -30,6 +32,28 @@ import android.view.ViewParent;
 
 public final class StaticHelpers {
 
+	private static Context myContext = null;
+
+	public static void setContext( Context cx) {
+		myContext = cx;
+	}
+
+	public static Context getContext() {
+		if ( myContext == null ) throw new NullPointerException("Uninitialised context");
+		return myContext;
+	}
+
+	public static String getString(int resId) {
+		return getContext().getString(resId);
+	}
+	
+	public static Resources getResources() {
+		return getContext().getResources();
+	}
+	
+	public static String[] getStringArray(int resId) {
+		return getResources().getStringArray(resId);
+	}
 	
 	public static String[] mergeArrays(String[] first, String[] second) {
 		String[] result = new String[first.length+second.length];

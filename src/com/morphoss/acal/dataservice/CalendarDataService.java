@@ -57,6 +57,7 @@ import com.morphoss.acal.Constants;
 import com.morphoss.acal.DatabaseChangedEvent;
 import com.morphoss.acal.DatabaseEventListener;
 import com.morphoss.acal.R;
+import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDuration;
@@ -156,6 +157,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 	@Override
 	public void onCreate() {
 
+		StaticHelpers.setContext(this);
 		earlyTimeStamp = new AcalDateTime().addDays(35); 	// Set it some time in a future month
 		updateEarlyTimeStamp(new AcalDateTime());			// Now rationalise it back earlier
 
@@ -1146,12 +1148,13 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 		public void eventChanged(AcalEvent action) throws RemoteException {
 			int collectionId = action.getCollectionId();
 			AcalCollection collection = collections.get(collectionId);
+			Log.i(TAG,"eventChanged: dtstart = "+action.getStart());
 
 			switch (action.getAction()) {
 				case AcalEvent.ACTION_CREATE: {
 					VCalendar newCal = VCalendar.getGenericCalendar(collection, action);
 					action.setAction(AcalEvent.ACTION_MODIFY_ALL);
-					newCal.applyAction(action);
+					newCal.applyEventAction(action);
 					ContentValues cv = new ContentValues();
 					cv.put(PendingChanges.COLLECTION_ID, collectionId);
 					cv.put(PendingChanges.OLD_DATA, "");
@@ -1169,7 +1172,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 				case AcalEvent.ACTION_DELETE_ALL_FUTURE: {
 					int rid = action.getResourceId();
 					VCalendar original = calendars.get(rid);
-					String newBlob = original.applyAction(action);
+					String newBlob = original.applyEventAction(action);
 					if (newBlob == null || newBlob.equalsIgnoreCase(""))
 						throw new IllegalStateException(
 									"Blob creation resulted in null or empty string during modify event");

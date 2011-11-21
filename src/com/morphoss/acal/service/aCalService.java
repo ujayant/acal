@@ -31,13 +31,13 @@ import com.morphoss.acal.Constants;
 import com.morphoss.acal.DatabaseChangedEvent;
 import com.morphoss.acal.DatabaseEventDispatcher;
 import com.morphoss.acal.R;
+import com.morphoss.acal.StaticHelpers;
 
 public class aCalService extends Service {
 
 	
 	private ServiceRequest.Stub serviceRequest = new ServiceRequestHandler();
 	private WorkerClass worker;
-	private static Context serviceContext = null;
 	public static final String TAG = "aCalService";
 	public static String aCalVersion;
 	public static final DatabaseEventDispatcher databaseDispatcher = new DatabaseEventDispatcher();
@@ -47,7 +47,7 @@ public class aCalService extends Service {
 	public void onCreate() {
 		super.onCreate();
 		Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
-		serviceContext = this;
+		StaticHelpers.setContext(this);
 		startService();
 	}
 
@@ -141,13 +141,6 @@ public class aCalService extends Service {
 	public void addWorkerJob(ServiceJob s) {
 		if ( worker == null ) startService();
 		this.worker.addJobAndWake(s);
-	}
-
-	public static String getContextString(int resourceId) {
-		if ( serviceContext == null ) {
-			return "Context Error";
-		}
-		return serviceContext.getString(resourceId);
 	}
 
 	private class ServiceRequestHandler extends ServiceRequest.Stub {
