@@ -255,7 +255,7 @@ public class AcalProperty {
 	/**
 	 * Returns the value of any parameter of the specified name.
 	 * @param name
-	 * @return
+	 * @return The parameter value, or null if not found.
 	 */
 	public synchronized String getParam(String name) {
 		populateParams();
