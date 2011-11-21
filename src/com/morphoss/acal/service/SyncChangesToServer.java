@@ -347,6 +347,7 @@ public class SyncChangesToServer extends ServiceJob {
 				}
 				break;
 
+			case 412: // Server won't accept it
 			case 403: // Server won't accept it
 				Log.w(TAG, action.toString()+": Status " + status + " on request for " + path + " giving up on change.");
 				PendingChanges.deletePendingChange(context, pendingId);
