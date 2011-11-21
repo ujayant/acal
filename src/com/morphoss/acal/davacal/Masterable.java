@@ -111,7 +111,7 @@ public abstract class Masterable extends VComponent {
 			return result;
 		}
 
-		return AcalDateTime.fromAcalProperty(aProp).addDuration(AcalDuration.fromProperty(dProp));
+		return result.addDuration(AcalDuration.fromProperty(dProp));
 	}
 
 	
