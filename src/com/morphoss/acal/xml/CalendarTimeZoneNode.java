@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
 
 import org.w3c.dom.Node;
 
-public class CalendarTimeZoneNode extends DavNode {
+public class CalendarTimeZoneNode extends DomDavNode {
 
 	public static final String TAG = "CalendarTimeZoneNode";
 	private String olsonName = "UTC";
@@ -36,7 +36,7 @@ public class CalendarTimeZoneNode extends DavNode {
 	 * @param nameSpaces
 	 * @param parent
 	 */
-	public CalendarTimeZoneNode (Node n, String ns, Map<String,String> nameSpaces, DavNode parent) {
+	public CalendarTimeZoneNode (Node n, String ns, Map<String,String> nameSpaces, DomDavNode parent) {
 		super(n,ns,nameSpaces,parent);
 		String text = this.getText();
 		Pattern pattern = Pattern.compile("TZID.*:.*((Antarctica|America|Africa|Atlantic|Asia|Australia|Indian|Europe|Pacific|US)/(([^/]+)/)?[^/]+)$");

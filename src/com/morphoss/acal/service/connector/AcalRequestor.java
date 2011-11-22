@@ -70,7 +70,7 @@ import com.morphoss.acal.activity.serverconfig.AuthenticationFailure;
 import com.morphoss.acal.providers.Servers;
 import com.morphoss.acal.service.aCalService;
 import com.morphoss.acal.xml.DavNode;
-import com.morphoss.acal.xml.DavXmlTreeBuilder;
+import com.morphoss.acal.xml.DomDavXmlTreeBuilder;
 
 public class AcalRequestor {
 
@@ -909,7 +909,7 @@ public class AcalRequestor {
 
 		DavNode root = null;
 		try {
-			root = DavXmlTreeBuilder.buildTreeFromXml( doRequest(method, requestPath, headers, xml) );
+			root = DomDavXmlTreeBuilder.buildTreeFromXml( doRequest(method, requestPath, headers, xml) );
 		}
 		catch (Exception e) {
 			Log.d(TAG, e.getMessage());
