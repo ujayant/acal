@@ -19,7 +19,6 @@
 package com.morphoss.acal.service;
 
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.IBinder;
@@ -54,8 +53,6 @@ public class aCalService extends Service {
 
 		worker = WorkerClass.getInstance(this);
 		
-		Context context = getApplicationContext();
-
 		//start data service
 		Intent serviceIntent = new Intent();
 		serviceIntent.setAction("com.morphoss.acal.dataservice.CalendarDataService");
@@ -64,7 +61,7 @@ public class aCalService extends Service {
 		
 		aCalVersion = getString(R.string.appName) + "/";
 		try {
-			aCalVersion += getPackageManager().getPackageInfo(context.getPackageName(), 0).versionName;
+			aCalVersion += getPackageManager().getPackageInfo(this.getPackageName(), 0).versionName;
 		}
 		catch (NameNotFoundException e) {
 			Log.e(TAG,"Can't find our good self in the PackageManager!");

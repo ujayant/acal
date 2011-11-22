@@ -18,8 +18,6 @@
 
 package com.morphoss.acal.service;
 
-import java.util.Date;
-
 import android.text.format.DateFormat;
 
 
@@ -38,7 +36,6 @@ public abstract class ServiceJob implements Comparable<ServiceJob> {
 	
 	public String toString() {
 		StringBuilder sb = new StringBuilder("At: ");
-		Date d = new Date();
 		sb.append(DateFormat.format("yyyyMMdd'T'hhmmss'Z'",
 				TIME_TO_EXECUTE + (TIME_TO_EXECUTE < 864000000 ? System.currentTimeMillis() : 0))
 		);
