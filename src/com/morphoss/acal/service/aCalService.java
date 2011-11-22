@@ -31,7 +31,6 @@ import com.morphoss.acal.Constants;
 import com.morphoss.acal.DatabaseChangedEvent;
 import com.morphoss.acal.DatabaseEventDispatcher;
 import com.morphoss.acal.R;
-import com.morphoss.acal.StaticHelpers;
 
 public class aCalService extends Service {
 

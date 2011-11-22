@@ -334,7 +334,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 			long begin = System.currentTimeMillis();
 			if (Constants.debugCalendarDataService && Constants.LOG_DEBUG)	Log.d(TAG, "Processing resources queue with "+resourcesPending.size()+" elements.");
 			while (!resourcesPending.isEmpty()) {
-				if ( Constants.debugHeap ) StaticHelpers.heapDebug(TAG, "Processing a pending resource.");
+				if ( Constants.debugHeap ) StaticHelpers.heapDebug(TAG, "Processing a pending resource");
 				count++;
 				try {
 					//Remove all line wrapping prior to parsing
@@ -962,13 +962,13 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 		if (Constants.LOG_DEBUG) Log.d(TAG, "Records added to queue. Starting main loop.");
 		try {
 			while (this.worker == Thread.currentThread()) {
-				if ( Constants.debugHeap ) StaticHelpers.heapDebug(TAG, "Processing pending resources.");
-				if ( this.processPendingResources() || true ) {
-					if ( Constants.debugHeap ) StaticHelpers.heapDebug(TAG, "Updating alarms.");
+				if ( Constants.debugHeap ) StaticHelpers.heapDebug(TAG, "Processing pending resources");
+				if ( this.processPendingResources() ) {
+					if ( Constants.debugHeap ) StaticHelpers.heapDebug(TAG, "Updating alarms");
 					updateAlarms();
 				}
 				if (callback != null) {
-					if ( Constants.debugHeap ) StaticHelpers.heapDebug(TAG, "Notifying status change via callback.");
+					if ( Constants.debugHeap ) StaticHelpers.heapDebug(TAG, "Notifying status change via callback");
 					try {
 						dataRequest.flushCache();
 						callback.statusChanged(UPDATE, false);
@@ -976,7 +976,13 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 
 					}
 				}
-				if ( Constants.debugHeap ) StaticHelpers.heapDebug(TAG, "Finished worker run.");
+				if ( Constants.debugHeap ) StaticHelpers.heapDebug(TAG, "Finished worker run");
+
+				Runtime r = Runtime.getRuntime();
+				if ( (r.totalMemory() * 100) / r.maxMemory() > 65 ) {
+					this.resetWorker();
+				}
+
 				this.threadHolder.close();
 				this.threadHolder.block();
 			}

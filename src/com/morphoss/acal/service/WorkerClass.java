@@ -105,6 +105,11 @@ public class WorkerClass implements Runnable {
 	 */
 	private synchronized void addJob(ServiceJob s) {
 		if ( Constants.LOG_DEBUG ) Log.d(TAG, "Request to add new job " + s);
+		
+		Runtime r = Runtime.getRuntime();
+		if ( (r.totalMemory() * 100) / r.maxMemory() > 65 ) {
+			this.resetWorker();
+		}
 
 		// If it's less than ten days assume offset from now.
 		if ( s.TIME_TO_EXECUTE < 864000000 ) {
