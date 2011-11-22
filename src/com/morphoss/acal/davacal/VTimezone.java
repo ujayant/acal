@@ -23,8 +23,6 @@ import java.util.List;
 import java.util.SimpleTimeZone;
 import java.util.TimeZone;
 
-import com.morphoss.acal.R;
-import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.acaltime.AcalDateTime;
 
 
@@ -229,26 +227,24 @@ public class VTimezone extends VComponent {
 	public static String getZoneDefinition(String timeZoneId) throws UnrecognizedTimeZoneException {
 		if ( timeZoneId == null ) throw new UnrecognizedTimeZoneException("null");
 
-		String[] olsonNames = StaticHelpers.getStringArray(R.array.timezoneOlsonList);
 		int i=0;
-		while( i < olsonNames.length && !olsonNames[i].equals(timeZoneId)) {
+		while( i < ZoneData.zones.length && !ZoneData.zones[i][0].equals(timeZoneId)) {
 			i++;
 		}
 
 		TimeZone tz = TimeZone.getTimeZone(timeZoneId);
-		if ( i == olsonNames.length ) {
+		if ( i == ZoneData.zones.length ) {
 			String testTzId = tz.getID();
 
 			//  At this point we rather optimistically hope that perhaps Java recognises it
 			i=0;
-			while( i < olsonNames.length && !olsonNames[i].equals(testTzId)) {
+			while( i < ZoneData.zones.length && !ZoneData.zones[i][0].equals(testTzId)) {
 				i++;
 			}
-			if ( i == olsonNames.length )
+			if ( i == ZoneData.zones.length )
 				throw new UnrecognizedTimeZoneException(timeZoneId);
 		}
-		String[] olsonDefinitions = StaticHelpers.getStringArray(R.array.timezoneDefinitionList);
-		return olsonDefinitions[i].replace("&#xA;", "\r\n");
+		return ZoneData.zones[i][1];
 	}
 
 }

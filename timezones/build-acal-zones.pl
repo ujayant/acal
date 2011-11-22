@@ -103,9 +103,8 @@ my @zonelist = (
 
 my $name_strings = "";
 my $name_array = "";
-my $olson_array = "";
 my $zone_strings = "";
-my $zone_array = "";
+
 for my $zone_name ( sort @zonelist ) {
   my $varname = $zone_name;
   $varname =~ s{[/ ]}{}g;
@@ -119,12 +118,10 @@ for my $zone_name ( sort @zonelist ) {
     <$fh>;
   };
   $zone_data =~ s/^.*(BEGIN:VTIMEZONE.*END:VTIMEZONE\r?\n).*$/$1/gs;
-  $zone_data =~ s/\r?\n/&#xA;/g;
+  $zone_data =~ s/\r?\n/\\r\\n;/g;
   $name_strings .= qq{<string name="tzName$varname">$zone_name</string>\n};
-  $zone_strings .= qq{<string name="tz$varname"><![CDATA[$zone_data]]></string>\n};
+  $zone_strings .= qq{		new String[] {"$zone_name", "$zone_data" },\n};
 
-  $zone_array .= "\t<item>\@string/tz$varname</item>\n";
-  $olson_array .= "\t<item>$zone_name</item>\n";
   $name_array .= "\t<item>\@string/tzName$varname</item>\n";
 }
 
@@ -133,32 +130,30 @@ if ( $output_file ne "-" ) {
   open STDOUT, ">", $output_file;
 }
 
-print <<EOHEADER;
+if ( $print_strings ) {
+  print <<EOHEADER;
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 EOHEADER
 
-if ( $print_strings ) {
   print $name_strings;
   print "\n";
-}
-else {
-  print $zone_strings;
-  print "\n";
-
-  print "<string-array name=\"timezoneDefinitionList\">\n";
-  print $zone_array;
-  print "</string-array>\n";
-  print "\n";
-
-  print "<string-array name=\"timezoneOlsonList\">\n";
-  print $olson_array;
-  print "</string-array>\n";
 
   print "<string-array name=\"timezoneNameList\">\n";
   print $name_array;
   print "</string-array>\n";
-}
 
-print "</resources>\n";
+  print "</resources>\n";
+}
+else {
+  print <<EOHEADER;
+package com.morphoss.acal.davacal;
+public class ZoneData {
+	public final static String[][] zones = new String[][] {
+EOHEADER
+
+  print $zone_strings;
+
+  print "	};\n}\n";
+}
 

@@ -14,6 +14,7 @@ import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 
 import com.morphoss.acal.R;
+import com.morphoss.acal.davacal.ZoneData;
 
 public class TimeZoneListAdapter implements SpinnerAdapter {
 
@@ -38,13 +39,12 @@ public class TimeZoneListAdapter implements SpinnerAdapter {
 	TimeZoneListAdapter( Context context, TimeZone currentTz ) {
 		super();
 		this.context = context;
-		String[] zoneIds = context.getResources().getStringArray(R.array.timezoneOlsonList);
 		String[] zoneNames = context.getResources().getStringArray(R.array.timezoneNameList);
-		ourZones = new ArrayList<Zone>(zoneIds.length + 10 );
+		ourZones = new ArrayList<Zone>(ZoneData.zones.length + 10 );
 		boolean found = false;
 		String currentTzId = (currentTz == null ? null : currentTz.getID());
-		for( int i=0; i< zoneIds.length; i++ ) {
-			Zone z = new Zone(zoneNames[i], zoneIds[i]);
+		for( int i=0; i< ZoneData.zones.length; i++ ) {
+			Zone z = new Zone(zoneNames[i], ZoneData.zones[i][0]);
 			ourZones.add(z);
 			if ( currentTzId != null && currentTzId.equals(z.tzid) ) found = true;
 		}

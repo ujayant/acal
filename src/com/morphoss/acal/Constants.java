@@ -45,10 +45,10 @@ public class Constants {
 	/** How much stuff to spit out into the logs */
 	public static final boolean LOG_VERBOSE = false;		//Very verbose play by play execution information
 	public static final boolean LOG_DEBUG = false;			//Information relevant to debugging tasks.
-	public static final boolean DEBUG_SETTINGS = false;		// Does the debugging menu appear in Settings
+	public static final boolean DEBUG_SETTINGS = true;		// Does the debugging menu appear in Settings
 
 	/** Switch theme colour in debug builds */
-	public static final int themeColour = (DEBUG_SETTINGS ? 0xfff430b0 /* pink */ : 0xfff0a020 /* orange */ );
+	public static final int themeColour = (DEBUG_SETTINGS ? 0xff30b0ff /* blue */ : 0xfff0a020 /* orange */ );
 	
 	/** And sometimes we want to really deeply debug specific bits */
 	public static final boolean	debugRepeatRule					= false;
@@ -61,6 +61,7 @@ public class Constants {
 	public static final boolean	debugDateTime					= false;
 	public static final boolean	debugDavCommunication			= false;
 	public static final boolean	debugAlarms						= false;
+	public static final boolean	debugHeap						= true;
 	
 	public static final long DEFAULT_MAX_AGE_WIFI = 1000*60*30;		// The default to use when initialising a new collection
 	public static final long DEFAULT_MAX_AGE_3G = 1000*60*60*2;		// The default to use when initialising a new collection
@@ -78,4 +79,5 @@ public class Constants {
 	public static final String URLEncoding = "utf-8";
 	
 	public static final String lastRevisionPreference = "prefLastRevision";
+	
 }

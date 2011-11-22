@@ -47,7 +47,6 @@ public class aCalService extends Service {
 	public void onCreate() {
 		super.onCreate();
 		Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
-		StaticHelpers.setContext(this);
 		startService();
 	}
 
@@ -57,6 +56,7 @@ public class aCalService extends Service {
 		worker = WorkerClass.getInstance(this);
 		
 		Context context = getApplicationContext();
+		StaticHelpers.setContext(context);
 
 		//start data service
 		Intent serviceIntent = new Intent();

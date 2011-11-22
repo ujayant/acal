@@ -26,6 +26,7 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Parcel;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewParent;
 
@@ -35,23 +36,23 @@ public final class StaticHelpers {
 	private static Context myContext = null;
 
 	public static void setContext( Context cx) {
-		myContext = cx;
+//		myContext = cx.getApplicationContext();
 	}
 
-	public static Context getContext() {
+	private static Context getContext() {
 		if ( myContext == null ) throw new NullPointerException("Uninitialised context");
 		return myContext;
 	}
 
-	public static String getString(int resId) {
+	private static String getString(int resId) {
 		return getContext().getString(resId);
 	}
 	
-	public static Resources getResources() {
+	private static Resources getResources() {
 		return getContext().getResources();
 	}
 	
-	public static String[] getStringArray(int resId) {
+	private static String[] getStringArray(int resId) {
 		return getResources().getStringArray(resId);
 	}
 	
@@ -62,6 +63,15 @@ public final class StaticHelpers {
 		return result;
 	}
 
+
+	public static void heapDebug(String TAG,String msg) {
+		Runtime r = Runtime.getRuntime();
+		Log.i(TAG,msg);
+		long used = r.totalMemory() - r.freeMemory();
+		double percentUsed = ((double) used) / ((double) r.maxMemory()) * 100.0;
+		used /= 1024;
+		Log.i(TAG, String.format("Heap used: %dk (%.2f%%) of max: %dk", used, percentUsed, r.maxMemory()/1024));
+	}
 
 	/**
 	 * A helper to reliably turn a string into an int, returning 0 on any failure condition. 
