@@ -611,7 +611,7 @@ public class AcalRequestor {
 		params.setParameter(CoreProtocolPNames.PROTOCOL_VERSION, HttpVersion.HTTP_1_1);
 		params.setParameter(CoreProtocolPNames.HTTP_CONTENT_CHARSET, HTTP.UTF_8);
 		params.setParameter(CoreProtocolPNames.USER_AGENT, userAgent );
-		params.setParameter(CoreConnectionPNames.SOCKET_BUFFER_SIZE,8192);
+		params.setParameter(CoreConnectionPNames.SOCKET_BUFFER_SIZE,4096);
 		params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT, socketTimeOut);
 		params.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, connectionTimeOut);
 		params.setBooleanParameter(ClientPNames.HANDLE_REDIRECTS, false);
