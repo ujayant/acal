@@ -84,7 +84,7 @@ public class SyncCollectionContents extends ServiceJob {
 	// doing a sync.  Not how often we actually wake up and hit the server
 	// with a request.  Nevertheless we should not do this more than every
 	// minute or so in production.
-	private static final long	minBetweenSyncs		= (Constants.LOG_DEBUG || Constants.debugHeap ? 30000 : 300000);	// milliseconds
+	private static final long	minBetweenSyncs		= (Constants.debugSyncCollectionContents || Constants.debugHeap ? 30000 : 300000);	// milliseconds
 
 	private ContentResolver		cr;
 	private aCalService			context;
