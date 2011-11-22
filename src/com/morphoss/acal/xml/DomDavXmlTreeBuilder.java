@@ -40,15 +40,16 @@ public class DomDavXmlTreeBuilder  {
 
 	public DomDavXmlTreeBuilder (Document dom) {
 		try {
-		NodeList nl = dom.getChildNodes();
-		HashMap<String,String> nameSpaces = new HashMap<String,String>();
-		root = new DomDavNode();
-		for (int i = 0; i < nl.getLength(); i++) {
-			Node item = nl.item(i);
-			if (item.getNodeType() == Node.ELEMENT_NODE) root.addChild(getSubTree(item, null,nameSpaces, root));
+			NodeList nl = dom.getChildNodes();
+			HashMap<String, String> nameSpaces = new HashMap<String, String>();
+			root = new DomDavNode();
+			for (int i = 0; i < nl.getLength(); i++) {
+				Node item = nl.item(i);
+				if ( item.getNodeType() == Node.ELEMENT_NODE ) root.addChild(getSubTree(item, null, nameSpaces, root));
+			}
 		}
-		} catch (Exception e) {
-			Log.e(TAG, "Error occured creating XML tree."+e);
+		catch ( Exception e ) {
+			Log.e(TAG, "Error occured creating XML tree." + e);
 		}
 	}
 
@@ -58,11 +59,7 @@ public class DomDavXmlTreeBuilder  {
 
 	public DomDavNode getSubTree(Node n, String ns, Map<String,String> spaces, DomDavNode parent) {
 		try {
-		DomDavNode root = null;
-		if (n.getNodeName().toLowerCase().contains("calendar-timezone")) {
-			root = new CalendarTimeZoneNode(n,ns,spaces,parent);
-		} else
-			root = new DomDavNode(n,ns,spaces,parent);
+		DomDavNode root = new DomDavNode(n,ns,spaces,parent);
 		if (root.getNameSpace() != null) ns = root.getNameSpace();
 		NodeList nl = n.getChildNodes();
 		for (int i = 0; i < nl.getLength(); i++) {

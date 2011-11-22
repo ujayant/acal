@@ -37,11 +37,13 @@ import com.morphoss.acal.Constants;
 import com.morphoss.acal.DatabaseChangedEvent;
 import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.acaltime.AcalDateTime;
+import com.morphoss.acal.davacal.VCalendar;
+import com.morphoss.acal.davacal.VComponent;
+import com.morphoss.acal.davacal.VTimezone;
 import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.providers.PathSets;
 import com.morphoss.acal.providers.Servers;
 import com.morphoss.acal.service.connector.AcalRequestor;
-import com.morphoss.acal.xml.CalendarTimeZoneNode;
 import com.morphoss.acal.xml.DavNode;
 
 public class HomeSetsUpdate extends ServiceJob {
@@ -329,11 +331,11 @@ public class HomeSetsUpdate extends ServiceJob {
 		
 		// default timezone
 		String tzid = null;	//Standard time offset in HH:mm format
-		List<DavNode> timezone = propstat.getNodesFromPath("prop/calendar-timezone");
-		if (timezone != null && !timezone.isEmpty() ) {
-			CalendarTimeZoneNode tz = (CalendarTimeZoneNode)timezone.get(0);
-			tzid = tz.getTZName();
-		}
+		String tzVcalendar = propstat.getFirstNodeText("prop/calendar-timezone");
+		try {
+			VComponent vc = VComponent.createComponentFromBlob(tzVcalendar, null, null);
+			((VTimezone) vc.getChildren().get(0)).getTZID();
+		} catch( Exception e) {};
 		if (tzid != null) cv.put(DavCollections.DEFAULT_TIMEZONE, tzid);
 
 		// Supported reports
