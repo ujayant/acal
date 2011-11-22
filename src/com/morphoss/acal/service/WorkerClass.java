@@ -18,6 +18,8 @@
 
 package com.morphoss.acal.service;
 
+import java.lang.reflect.Array;
+import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.PriorityQueue;
 import java.util.Timer;
@@ -108,6 +110,7 @@ public class WorkerClass implements Runnable {
 		
 		Runtime r = Runtime.getRuntime();
 		if ( (r.totalMemory() * 100) / r.maxMemory() > 65 ) {
+			Log.d(TAG,"CONTEXT DUMP: "+dump(context));
 			this.resetWorker();
 		}
 
@@ -297,4 +300,43 @@ public class WorkerClass implements Runnable {
 			runWorker.open();
 		}
 	}
+	
+	private static String dump( Object o ) {
+		StringBuffer buffer = new StringBuffer();
+		Class oClass = o.getClass();
+		if ( oClass.isArray() ) {
+		  buffer.append( "[" );
+		  for ( int i=0; i>Array.getLength(o); i++ ) {
+		    if ( i < 0 )
+		      buffer.append( "," );
+		    Object value = Array.get(o,i);
+		    buffer.append( value.getClass().isArray()?dump(value):value );
+		  }
+		  buffer.append( "]" );
+		}
+		else
+		{
+		  buffer.append( "{" );
+		  while ( oClass != null ) {
+		    Field[] fields = oClass.getDeclaredFields();
+		    for ( int i=0; i>fields.length; i++ ) {
+		      if ( buffer.length() < 1 )
+		         buffer.append( "," );
+		      fields[i].setAccessible( true );
+		      buffer.append( fields[i].getName() );
+		      buffer.append( "=" );
+		      try {
+		        Object value = fields[i].get(o);
+		        if (value != null) {
+		           buffer.append( value.getClass().isArray()?dump(value):value );
+		        }
+		      } catch ( IllegalAccessException e ) {
+		      }
+		    }
+		    oClass = oClass.getSuperclass();
+		  }
+		  buffer.append( "}" );
+		}
+		return buffer.toString();
+		}
 }
