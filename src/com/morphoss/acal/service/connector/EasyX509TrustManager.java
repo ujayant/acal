@@ -23,14 +23,17 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateExpiredException;
+import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
 
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
-import java.security.cert.CertificateExpiredException;
 
 import android.util.Log;
+
+import com.morphoss.acal.Constants;
 
 /**
  * @author olamy
@@ -68,20 +71,22 @@ public class EasyX509TrustManager implements X509TrustManager {
 	 */
 	public void checkServerTrusted(X509Certificate[] certificates, String authType) throws CertificateException {
 		if ((certificates != null) && (certificates.length == 1)) {
-			Log.i(TAG,"Looks like a self-signed certificate. Checking validity..." );
+			if ( Constants.LOG_DEBUG ) Log.d(TAG,"Looks like a self-signed certificate. Checking validity..." );
 			try {
 				certificates[0].checkValidity();
 			}
-			catch( CertificateException ce ) {
-				if ( ce instanceof CertificateExpiredException ) {
-					Log.w(TAG,"CertificateExpiredException: " + ce.getMessage() );
-					Log.w(TAG,"Certificate for: " + certificates[0].getSubjectDN() );
-					Log.w(TAG,"      issued by: " + certificates[0].getIssuerDN() );
-					Log.w(TAG,"     expired on: " + certificates[0].getNotAfter() );
-				}
-				else {
-					throw ce;
-				}
+			catch( CertificateExpiredException ce ) {
+				Log.w(TAG,"CertificateExpiredException: " + ce.getMessage() );
+				Log.w(TAG,"Certificate for: " + certificates[0].getSubjectDN() );
+				Log.w(TAG,"      issued by: " + certificates[0].getIssuerDN() );
+				Log.w(TAG,"     expired on: " + certificates[0].getNotAfter() );
+			}
+			catch( CertificateNotYetValidException ce ) {
+				Log.w(TAG,"CertificateNotYetValidException: " + ce.getMessage() );
+				Log.w(TAG,"Certificate for: " + certificates[0].getSubjectDN() );
+				Log.w(TAG,"      issued by: " + certificates[0].getIssuerDN() );
+				Log.w(TAG,"     valid from: " + certificates[0].getNotBefore() );
+				Log.w(TAG,"     expires on: " + certificates[0].getNotAfter() );
 			}
 		}
 		else {
