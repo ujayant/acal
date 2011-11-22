@@ -744,7 +744,8 @@ public class AcalRequestor {
 				if (entity != null) {
 					if ( Constants.LOG_DEBUG && Constants.debugDavCommunication ) {
 						Log.v(TAG, "----------------------- vvv Response Body vvv -----------------------" );
-						BufferedReader r = new BufferedReader(new InputStreamReader(entity.getContent()));
+						InputStream in = entity.getContent();
+						BufferedReader r = new BufferedReader(new InputStreamReader(in));
 						StringBuilder total = new StringBuilder();
 						String line;
 						while ((line = r.readLine()) != null) {
@@ -764,6 +765,7 @@ public class AcalRequestor {
 							}
 						}
 						Log.v(TAG, "----------------------- ^^^ Response Body ^^^ -----------------------" );
+						in.close();
 						return new ByteArrayInputStream( total.toString().getBytes() );
 					}
 				}
@@ -774,13 +776,19 @@ public class AcalRequestor {
 				// Kind of admitting defeat here, but I can't track down why we seem
 				// to end up in never-never land if we just return entity.getContent()
 				// directly when entity.getContentLength() is -1 ('unknown', apparently).
-				// Horribly inefficint too.
-				BufferedReader r = new BufferedReader(new InputStreamReader(entity.getContent()));
+				// Horribly inefficient too.
+				//
+				// @todo: Check whether this problem was caused by failing to close the InputStream 
+				// and this hack can be removed...  Need to find a server which does not send Content-Length headers.
+				//
+				InputStream in = entity.getContent();
+				BufferedReader r = new BufferedReader(new InputStreamReader(in));
 				StringBuilder total = new StringBuilder();
 				String line;
 				while ( (line = r.readLine()) != null ) {
 				    total.append(line).append("\n");
 				}
+				in.close();
 				return new ByteArrayInputStream( total.toString().getBytes() );
 			}
 
