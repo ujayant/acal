@@ -41,11 +41,15 @@ public final class StaticHelpers {
 
 	public static void heapDebug(String TAG,String msg) {
 		Runtime r = Runtime.getRuntime();
-		Log.i(TAG,msg);
 		long used = r.totalMemory() - r.freeMemory();
 		double percentUsed = ((double) used) / ((double) r.maxMemory()) * 100.0;
 		used /= 1024;
-		Log.i(TAG, String.format("%s: Heap used: %dk (%.2f%%) of max: %dk", msg, used, percentUsed, r.maxMemory()/1024));
+		if ( percentUsed > 80 )
+			Log.e(TAG, String.format("%-40.40s: Heap used: %dk (%.2f%%) of max: %dk", msg, used, percentUsed, r.maxMemory()/1024));
+		else if ( percentUsed > 50 )
+			Log.w(TAG, String.format("%-40.40s: Heap used: %dk (%.2f%%) of max: %dk", msg, used, percentUsed, r.maxMemory()/1024));
+		else
+			Log.i(TAG, String.format("%-40.40s: Heap used: %dk (%.2f%%) of max: %dk", msg, used, percentUsed, r.maxMemory()/1024));
 	}
 
 	/**

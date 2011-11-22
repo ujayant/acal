@@ -714,9 +714,9 @@ public class AcalRequestor {
 			HttpResponse response = null;
 
 			try {
-				if ( Constants.debugHeap ) StaticHelpers.heapDebug(TAG, "Making HTTP request.");
+				if ( Constants.debugHeap ) StaticHelpers.heapDebug(TAG, "Making HTTP request");
 				response = httpClient.execute(host,request);
-				if ( Constants.debugHeap ) StaticHelpers.heapDebug(TAG, "Finished HTTP request.");
+				if ( Constants.debugHeap ) StaticHelpers.heapDebug(TAG, "Finished HTTP request");
 			}
 			catch (ConnectionPoolTimeoutException e)		{
 				Log.i(TAG, e.getClass().getSimpleName() + ": " + e.getMessage() + " to " + fullUrl() );
