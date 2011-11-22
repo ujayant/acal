@@ -627,11 +627,14 @@ public class AcalRequestor {
 		// All credit to:
 		//   http://androidisland.blogspot.com/2010/11/httpclient-and-connectionpooltimeoutexc.html
 		// for the fix.
+		//
+		// 2011-11-23 Reduced from 100 to 10 in case this is causing our memory leakage.
+		//
 		ConnManagerParams.setMaxConnectionsPerRoute(params, new ConnPerRoute() {
 		    @Override
 		    public int getMaxForRoute(HttpRoute httproute)
 		    {
-		        return 100;
+		        return 10;
 		    }
 		});
 
