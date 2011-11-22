@@ -318,21 +318,24 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 	}
 
 	/**
-	 *	This method checks the resourcesPending queue and processes any new resources. 
+	 * This method checks the resourcesPending queue and processes any new resources.
+	 *
+	 * @return true If we did something that might    
 	 */
-	private void processPendingResources() {
-		if (Constants.debugCalendarDataService && Constants.LOG_VERBOSE) Log.v(TAG, "Processing pending resources...");
+	private boolean processPendingResources() {
+		if (Constants.LOG_DEBUG) Log.i(TAG, "Processing pending resources...");
 
 		//If no resources to compute, update state and return.
 		if (resourcesPending.isEmpty()) {
-			return;
+			return false;
 		}
 
+		int count = 0;
 		try {
 			long begin = System.currentTimeMillis();
 			if (Constants.debugCalendarDataService && Constants.LOG_DEBUG)	Log.d(TAG, "Processing resources queue with "+resourcesPending.size()+" elements.");
-			int count = 0;
 			while (!resourcesPending.isEmpty()) {
+				if ( Constants.debugHeap ) StaticHelpers.heapDebug(TAG, "Processing a pending resource.");
 				count++;
 				try {
 					//Remove all line wrapping prior to parsing
@@ -378,7 +381,8 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 			Log.e(TAG,"Uncaught exeception occured during resource processing: "+e.getMessage());
 			Log.getStackTraceString(e);
 		}
-		//update state
+
+		return count > 0;
 	}
 
 	/**
@@ -950,16 +954,20 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 	 */
 	@Override
 	public void run() {
-		if (Constants.LOG_DEBUG) Log.d(TAG, "Main worker thread started. Aquiring resources in database");
+		Log.i(TAG, "Main worker thread started.");
 
 		setupCollections();
 
 		if (Constants.LOG_DEBUG) Log.d(TAG, "Records added to queue. Starting main loop.");
 		try {
 			while (this.worker == Thread.currentThread()) {
-				this.processPendingResources();
-				updateAlarms();
+				if ( Constants.debugHeap ) StaticHelpers.heapDebug(TAG, "Processing pending resources.");
+				if ( this.processPendingResources() ) {
+					if ( Constants.debugHeap ) StaticHelpers.heapDebug(TAG, "Updating alarms.");
+					updateAlarms();
+				}
 				if (callback != null) {
+					if ( Constants.debugHeap ) StaticHelpers.heapDebug(TAG, "Notifying status change via callback.");
 					try {
 						dataRequest.flushCache();
 						callback.statusChanged(UPDATE, false);
@@ -967,6 +975,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 
 					}
 				}
+				if ( Constants.debugHeap ) StaticHelpers.heapDebug(TAG, "Finished worker run.");
 				this.threadHolder.close();
 				this.threadHolder.block();
 			}
