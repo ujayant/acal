@@ -683,7 +683,7 @@ public class AcalRequestor {
 			}
 			HttpHost host = new HttpHost(this.hostName, requestPort, requestProtocol);
 
-			if ( Constants.LOG_VERBOSE  ) { // && Constants.debugDavCommunication ) {
+			if ( Constants.LOG_VERBOSE && Constants.debugDavCommunication ) {
 				Log.v(TAG, method+" "+this.fullUrl());
 
 				for ( Header h : request.getAllHeaders() ) {
@@ -714,7 +714,9 @@ public class AcalRequestor {
 			HttpResponse response = null;
 
 			try {
+				if ( Constants.debugHeap ) StaticHelpers.heapDebug(TAG, "Making HTTP request.");
 				response = httpClient.execute(host,request);
+				if ( Constants.debugHeap ) StaticHelpers.heapDebug(TAG, "Finished HTTP request.");
 			}
 			catch (ConnectionPoolTimeoutException e)		{
 				Log.i(TAG, e.getClass().getSimpleName() + ": " + e.getMessage() + " to " + fullUrl() );
@@ -912,8 +914,7 @@ public class AcalRequestor {
 			root = DavParserFactory.buildTreeFromXml(DavParserFactory.PARSEMETHOD.DOM, doRequest(method, requestPath, headers, xml) );
 		}
 		catch (Exception e) {
-			Log.d(TAG, e.getMessage());
-			if ( Constants.LOG_DEBUG ) Log.d(TAG, Log.getStackTraceString(e));
+			Log.i(TAG, e.getMessage(), e);
 			return null;
 		}
 		
