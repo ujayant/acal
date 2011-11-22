@@ -157,7 +157,6 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 	@Override
 	public void onCreate() {
 
-		StaticHelpers.setContext(this);
 		earlyTimeStamp = new AcalDateTime().addDays(35); 	// Set it some time in a future month
 		updateEarlyTimeStamp(new AcalDateTime());			// Now rationalise it back earlier
 
@@ -425,7 +424,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 			AcalDateRange alarmRange = new AcalDateRange( rangeStart, currentTime );	//Only look forward 1 day
 
 			ArrayList<AcalAlarm> alarms = this.getAlarmsForDateRange(alarmRange);
-			if (Constants.LOG_DEBUG)Log.d(TAG, "Found "+alarms.size()+" new alarms for range"+alarmRange);
+			if (Constants.LOG_DEBUG) Log.d(TAG, "Found "+alarms.size()+" new alarms for range"+alarmRange);
 			for (AcalAlarm alarm : alarms) {  newQueue.offer(alarm); }
 			alarmQueue = newQueue;
 
@@ -502,7 +501,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 		long startProcessing = System.currentTimeMillis();
 		ArrayList<AcalAlarm> alarms = new ArrayList<AcalAlarm>();
 
-		Log.d(TAG,"Looking for alarms in range "+dateRange);
+		if ( Constants.LOG_DEBUG ) Log.d(TAG,"Looking for alarms in range "+dateRange);
 
 		//temp map for checking alarm active status
 		Map<Integer,Boolean> collectionAlarmsEnabled = new HashMap<Integer,Boolean>();
@@ -523,6 +522,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 					continue;
 				}
 			}
+			if ( Constants.debugHeap ) StaticHelpers.heapDebug(TAG, "Processing alarm");
 			try {
 				vc.setPersistentOn();
 				if ( vc.hasAlarm() ) vc.appendAlarmInstancesBetween(alarms, dateRange);
@@ -534,6 +534,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 			finally {
 				vc.setPersistentOff();
 			}
+			if ( Constants.debugHeap ) StaticHelpers.heapDebug(TAG, "Processing alarm");
 		}
 
 		Log.d(TAG,"Checked "+processed+" resources for alarms, skipped "+skipped);
@@ -962,7 +963,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 		try {
 			while (this.worker == Thread.currentThread()) {
 				if ( Constants.debugHeap ) StaticHelpers.heapDebug(TAG, "Processing pending resources.");
-				if ( this.processPendingResources() ) {
+				if ( this.processPendingResources() || true ) {
 					if ( Constants.debugHeap ) StaticHelpers.heapDebug(TAG, "Updating alarms.");
 					updateAlarms();
 				}

@@ -22,8 +22,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import android.content.ContentValues;
-import android.content.Context;
-import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Parcel;
 import android.util.Log;
@@ -33,29 +31,6 @@ import android.view.ViewParent;
 
 public final class StaticHelpers {
 
-	private static Context myContext = null;
-
-	public static void setContext( Context cx) {
-//		myContext = cx.getApplicationContext();
-	}
-
-	private static Context getContext() {
-		if ( myContext == null ) throw new NullPointerException("Uninitialised context");
-		return myContext;
-	}
-
-	private static String getString(int resId) {
-		return getContext().getString(resId);
-	}
-	
-	private static Resources getResources() {
-		return getContext().getResources();
-	}
-	
-	private static String[] getStringArray(int resId) {
-		return getResources().getStringArray(resId);
-	}
-	
 	public static String[] mergeArrays(String[] first, String[] second) {
 		String[] result = new String[first.length+second.length];
 		for (int i = 0; i < first.length; i++) result[i] = first[i];
@@ -70,7 +45,7 @@ public final class StaticHelpers {
 		long used = r.totalMemory() - r.freeMemory();
 		double percentUsed = ((double) used) / ((double) r.maxMemory()) * 100.0;
 		used /= 1024;
-		Log.i(TAG, String.format("Heap used: %dk (%.2f%%) of max: %dk", used, percentUsed, r.maxMemory()/1024));
+		Log.i(TAG, String.format("%s: Heap used: %dk (%.2f%%) of max: %dk", msg, used, percentUsed, r.maxMemory()/1024));
 	}
 
 	/**

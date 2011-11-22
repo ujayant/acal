@@ -56,7 +56,6 @@ public class aCalService extends Service {
 		worker = WorkerClass.getInstance(this);
 		
 		Context context = getApplicationContext();
-		StaticHelpers.setContext(context);
 
 		//start data service
 		Intent serviceIntent = new Intent();

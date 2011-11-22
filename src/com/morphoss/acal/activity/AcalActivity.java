@@ -1,14 +1,16 @@
 package com.morphoss.acal.activity;
 
-import com.morphoss.acal.StaticHelpers;
-
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 
 public abstract class AcalActivity extends Activity {
 
+	public static SharedPreferences prefs;
+	
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		StaticHelpers.setContext(this);
+		prefs = PreferenceManager.getDefaultSharedPreferences(this);
 	}	
 }

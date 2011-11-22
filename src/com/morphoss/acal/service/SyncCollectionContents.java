@@ -59,8 +59,6 @@ import com.morphoss.acal.service.connector.AcalRequestor;
 import com.morphoss.acal.service.connector.ConnectionFailedException;
 import com.morphoss.acal.service.connector.SendRequestFailedException;
 import com.morphoss.acal.xml.DavNode;
-import com.morphoss.acal.xml.DomDavNode;
-import com.morphoss.acal.xml.DomDavXmlTreeBuilder;
 
 public class SyncCollectionContents extends ServiceJob {
 
@@ -133,7 +131,6 @@ public class SyncCollectionContents extends ServiceJob {
 	
 	@Override
 	public void run(aCalService context) {
-		StaticHelpers.setContext(context);
 		if ( Constants.debugHeap ) StaticHelpers.heapDebug(TAG, "SyncCollectionContents: start");
 		this.context = context;
 		this.cr = context.getContentResolver();
