@@ -110,6 +110,7 @@ public class WorkerClass implements Runnable {
 		
 		Runtime r = Runtime.getRuntime();
 		if ( (r.totalMemory() * 100) / r.maxMemory() > 65 ) {
+			Log.d(TAG,"WORKER DUMP: "+dump(worker));
 			Log.d(TAG,"CONTEXT DUMP: "+dump(context));
 			this.resetWorker();
 		}
