@@ -18,7 +18,6 @@
 
 package com.morphoss.acal.xml;
 
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,14 +29,13 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import com.morphoss.acal.Constants;
-
 import android.util.Log;
+
+import com.morphoss.acal.Constants;
 
 public class DomDavXmlTreeBuilder  {
 
 	private DomDavNode root;
-	public static String lastXMLParsed = "";
 	public static final String TAG = "aCal DavXMLTreeBuilder";
 
 	public DomDavXmlTreeBuilder (Document dom) {
@@ -100,28 +98,5 @@ public class DomDavXmlTreeBuilder  {
 		}
 		return null;
 		
-	}
-
-
-	public static DomDavNode buildTreeFromXml(String xml) {
-		long start = System.currentTimeMillis();
-		lastXMLParsed = xml;
-
-		try {
-			InputStream in = new ByteArrayInputStream(xml.getBytes());
-			//Build XML Tree
-			DocumentBuilderFactory dof = DocumentBuilderFactory.newInstance();
-			DocumentBuilder dob = dof.newDocumentBuilder();
-			Document dom = dob.parse(in);
-			DomDavXmlTreeBuilder dxtb = new DomDavXmlTreeBuilder(dom);
-			DomDavNode root = dxtb.getRoot();
-
-			if (Constants.LOG_VERBOSE) Log.v(TAG,"Build DOM from XML completed in "+(System.currentTimeMillis()-start)+"ms");
-			return root;
-
-		} catch (Exception e) {
-			Log.e(TAG,"Error occured while building XML tree."+e.getMessage());
-		}
-		return null;
 	}
 }
