@@ -113,7 +113,6 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 	/** The file that we save state information to */
 	public static final String STATE_FILE = "/data/data/com.morphoss.acal/monthview.dat";
 
-	private SharedPreferences prefs = null; 
 	private boolean invokedFromView = false;
 	
 	/* Fields relating to the Month View: */
@@ -196,8 +195,6 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 		Bundle b = this.getIntent().getExtras();
 		if ( b != null && b.containsKey("InvokedFromView") )
 			invokedFromView = true;
-
-		prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
 		// make sure aCalService is running
 		this.startService(new Intent(this, aCalService.class));

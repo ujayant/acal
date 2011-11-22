@@ -92,7 +92,6 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 	private static final int SET_REPEAT_RULE_DIALOG = 6;
 	private static final int WHICH_EVENT_DIALOG = 7;
 
-	private SharedPreferences prefs;
 	boolean prefer24hourFormat = false;
 	
 	private String[] repeatRules;
@@ -148,7 +147,6 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 		connectToService();
 
 		// Get time display preference
-		prefs = PreferenceManager.getDefaultSharedPreferences(this);
 		prefer24hourFormat = prefs.getBoolean(getString(R.string.prefTwelveTwentyfour), DateFormat.is24HourFormat(this));
 
 		alarmRelativeTimeStrings = getResources().getStringArray(R.array.RelativeAlarmTimes);

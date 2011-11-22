@@ -26,16 +26,15 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.text.format.DateFormat;
 
+import com.morphoss.acal.activity.AcalActivity;
 import com.morphoss.acal.activity.MonthView;
 import com.morphoss.acal.activity.ShowUpgradeChanges;
 import com.morphoss.acal.service.aCalService;
 import com.morphoss.acal.weekview.WeekViewActivity;
 
-public class aCal extends Activity {
+public class aCal extends AcalActivity {
 	
 	final public static String TAG = "aCal"; 
-
-	private SharedPreferences prefs;	
 
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -44,9 +43,6 @@ public class aCal extends Activity {
 		Intent serviceIntent = new Intent(this, aCalService.class);
 		serviceIntent.putExtra("UISTARTED", System.currentTimeMillis());
 		this.startService(serviceIntent);
-
-		// Read our preference for which view should be the default
-		prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
 		// Set all default preferences to reasonable values
 		PreferenceManager.setDefaultValues(this, R.xml.main_preferences, false);
