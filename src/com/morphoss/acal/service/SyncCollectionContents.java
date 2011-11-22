@@ -49,6 +49,7 @@ import com.morphoss.acal.Constants;
 import com.morphoss.acal.DatabaseChangedEvent;
 import com.morphoss.acal.HashCodeUtil;
 import com.morphoss.acal.ResourceModification;
+import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.providers.DavResources;
@@ -58,6 +59,7 @@ import com.morphoss.acal.service.connector.AcalRequestor;
 import com.morphoss.acal.service.connector.ConnectionFailedException;
 import com.morphoss.acal.service.connector.SendRequestFailedException;
 import com.morphoss.acal.xml.DavNode;
+import com.morphoss.acal.xml.DavXmlTreeBuilder;
 
 public class SyncCollectionContents extends ServiceJob {
 
@@ -83,12 +85,12 @@ public class SyncCollectionContents extends ServiceJob {
 	// doing a sync.  Not how often we actually wake up and hit the server
 	// with a request.  Nevertheless we should not do this more than every
 	// minute or so in production.
-	private static final long	minBetweenSyncs		= (Constants.LOG_DEBUG ? 30000 : 300000);	// milliseconds
+	private static final long	minBetweenSyncs		= (Constants.LOG_DEBUG || Constants.debugHeap ? 30000 : 300000);	// milliseconds
 
 	private ContentResolver		cr;
 	private aCalService			context;
 	private boolean	synchronisationForced			= false;
-	private AcalRequestor 		requestor;
+	private AcalRequestor 		requestor			= null;
 	private boolean	resourcesWereSynchronized;
 	private boolean	syncWasCompleted;
 	
@@ -130,6 +132,8 @@ public class SyncCollectionContents extends ServiceJob {
 	
 	@Override
 	public void run(aCalService context) {
+		StaticHelpers.setContext(context);
+		if ( Constants.debugHeap ) StaticHelpers.heapDebug(TAG, "SyncCollectionContents: start");
 		this.context = context;
 		this.cr = context.getContentResolver();
 		if ( collectionId < 0 || !getCollectionInfo()) {
@@ -196,10 +200,6 @@ public class SyncCollectionContents extends ServiceJob {
 				cr.update(DavCollections.CONTENT_URI, collectionData, DavCollections._ID + "=?",
 																new String[] { "" + collectionId });
 
-/*
-				int count = cr.delete(PendingChanges.CONTENT_URI, PendingChanges.COLLECTION_ID+"=? "+PendingChanges.MODIFICATION_TIME+"<?",
-						new String[] { ""+collectionId, lastSynchronized } );
-*/
 			}
 
 			if ( resourcesWereSynchronized ) {
@@ -221,6 +221,13 @@ public class SyncCollectionContents extends ServiceJob {
 		if (Constants.LOG_VERBOSE) Log.v(TAG, "Collection sync finished in " + (finish - start) + "ms");
 
 		scheduleNextInstance();
+
+		this.collectionData = null;
+		this.serverData = null;
+		this.context = null;
+		this.requestor = null;
+		this.cr = null;
+		if ( Constants.debugHeap ) StaticHelpers.heapDebug(TAG, "SyncCollectionContents: end");
 	}
 
 	/**
@@ -336,6 +343,7 @@ public class SyncCollectionContents extends ServiceJob {
 					if ( oldEtag.equals(cv.getAsString(DavResources.ETAG)) ) {
 						// Resource in both places, but is unchanged.
 						Log.d(TAG,"Notified of change to resource but etag already matches!");
+						root.removeSubTree(response);
 						continue;
 					}
 					if ( Constants.LOG_DEBUG )
@@ -355,6 +363,7 @@ public class SyncCollectionContents extends ServiceJob {
 				Log.i(TAG,"Deleting node '"+name+"'with status: "+aNode.get(0).getText() );
 				action = WriteActions.DELETE;
 			}
+			root.removeSubTree(response);
 
 			changeList.add( new ResourceModification(action, cv, null) );
 			
@@ -544,6 +553,13 @@ public class SyncCollectionContents extends ServiceJob {
 	}
 
 	
+	private DavNode fakeCalendarRequest(String method, int depth, String xml) {
+		return DavXmlTreeBuilder.buildTreeFromXml(
+				"<?xml version=\"1.0\" encoding=\"utf-8\" ?><multistatus xmlns=\"DAV:\"><sync-token>data:,6906</sync-token></multistatus>"
+				);
+	}
+
+
 	/**
 	 * Checks the resources we have in the DB currently flagged as needing synchronisation, and synchronises
 	 * them if they are using an addressbook-multiget or calendar-multiget request, depending on the
