@@ -59,7 +59,8 @@ import com.morphoss.acal.service.connector.AcalRequestor;
 import com.morphoss.acal.service.connector.ConnectionFailedException;
 import com.morphoss.acal.service.connector.SendRequestFailedException;
 import com.morphoss.acal.xml.DavNode;
-import com.morphoss.acal.xml.DavXmlTreeBuilder;
+import com.morphoss.acal.xml.DomDavNode;
+import com.morphoss.acal.xml.DomDavXmlTreeBuilder;
 
 public class SyncCollectionContents extends ServiceJob {
 
@@ -553,13 +554,6 @@ public class SyncCollectionContents extends ServiceJob {
 	}
 
 	
-	private DavNode fakeCalendarRequest(String method, int depth, String xml) {
-		return DavXmlTreeBuilder.buildTreeFromXml(
-				"<?xml version=\"1.0\" encoding=\"utf-8\" ?><multistatus xmlns=\"DAV:\"><sync-token>data:,6906</sync-token></multistatus>"
-				);
-	}
-
-
 	/**
 	 * Checks the resources we have in the DB currently flagged as needing synchronisation, and synchronises
 	 * them if they are using an addressbook-multiget or calendar-multiget request, depending on the
