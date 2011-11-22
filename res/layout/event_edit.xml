@@ -29,8 +29,7 @@
 			android:id="@+id/EventEditColourBar"
 			android:layout_width="10sp"
 			android:layout_height="fill_parent" 
-			android:background="#704080f0">
-		</LinearLayout>
+			android:background="#704080f0"/>
 	
 		<ScrollView
 			android:layout_width="fill_parent"
@@ -264,15 +263,14 @@
 	<LinearLayout
 		android:id="@+id/button_layout" 
 		android:layout_width="fill_parent" 
-		android:gravity="bottom"
 		android:layout_gravity="bottom"
-		android:layout_height="36dp"
+		android:layout_height="36sp"
 		android:background="@color/bottom_bg">
 	    	
 		<!-- Colour bar -->
 		<LinearLayout
 			android:id="@+id/EventEditColourBarBottom"
-			android:layout_width="15sp"
+			android:layout_width="10sp"
 			android:layout_height="fill_parent"
 			android:background="#704080f0"/>
 
@@ -292,7 +290,7 @@
 					style="@style/themed_bottom_button"
 					android:text="@string/Apply"
 					android:width="110sp"
-					android:gravity="top|center_horizontal"
+					android:gravity="center_vertical|center_horizontal"
 					android:padding="0sp"/>
 			</LinearLayout>
 		</LinearLayout>
@@ -309,7 +307,7 @@
 				<Button android:id="@+id/event_cancel_button"
 					android:layout_width="wrap_content"
 					android:layout_height="wrap_content"
-					android:gravity="top|center_horizontal"
+					android:gravity="center_vertical|center_horizontal"
 					style="@style/themed_bottom_button"
 					android:text="@string/cancel"
 					android:width="110sp" 

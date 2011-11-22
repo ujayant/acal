@@ -28,13 +28,11 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.RemoteException;
-import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.GestureDetector.OnGestureListener;
@@ -54,6 +52,7 @@ import android.widget.TextView;
 
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
+import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.dataservice.CalendarDataService;
 import com.morphoss.acal.dataservice.DataRequest;
@@ -356,6 +355,7 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 			myButton.setText(buttonLabel);
 			myButton.setOnClickListener(this);
 			myButton.setTag(val);
+			StaticHelpers.setContainerColour(myButton, Constants.themeColour );
 		}
 	}
 

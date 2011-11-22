@@ -21,11 +21,9 @@ package com.morphoss.acal.activity;
 import java.util.List;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcelable;
-import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.GestureDetector.OnGestureListener;
 import android.view.MotionEvent;
@@ -39,6 +37,7 @@ import android.widget.TextView;
 
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
+import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.davacal.AcalAlarm;
 import com.morphoss.acal.davacal.AcalCollection;
@@ -62,7 +61,6 @@ public class TodoView extends AcalActivity implements OnGestureListener, OnTouch
 	private VCalendar vc = null;
 	private VTodo todo = null;
 	private SimpleAcalTodo sat = null;
-	private SharedPreferences prefs;	
 	
 	
 	public void onCreate(Bundle savedInstanceState) {
@@ -73,9 +71,6 @@ public class TodoView extends AcalActivity implements OnGestureListener, OnTouch
 		this.startService(new Intent(this, aCalService.class));
 		//gestureDetector = new GestureDetector(this);
 
-		// Get preferences
-		prefs = PreferenceManager.getDefaultSharedPreferences(this);
-		
 		//Set up buttons
 		this.setupButton(R.id.todo_today_button, TODAY);
 		this.setupButton(R.id.todo_edit_button, EDIT);
@@ -117,7 +112,6 @@ public class TodoView extends AcalActivity implements OnGestureListener, OnTouch
 	}
 	
 	private void populateLayout() {
-		AcalDateTime start = todo.getStart();
 		String title = todo.getSummary();
 		String location = todo.getLocation();
 		String description = todo.getDescription();
@@ -133,13 +127,14 @@ public class TodoView extends AcalActivity implements OnGestureListener, OnTouch
 //		String repetition = todo.getRepetition();
 		int colour = sat.colour;
 		LinearLayout sidebar = (LinearLayout)this.findViewById(R.id.TodoViewColourBar);
+		LinearLayout sidebarBottom = (LinearLayout)this.findViewById(R.id.TodoViewColourBarBottom);
 		sidebar.setBackgroundColor(colour);
+		sidebarBottom.setBackgroundColor(colour);
 		
 		TextView name = (TextView) this.findViewById(R.id.TodoName);
 		name.setText(title);
 		name.setTextColor(colour);
 		
-		AcalDateTime viewDate = new AcalDateTime().applyLocalTimeZone().setDaySecond(0);
 		TextView time = (TextView) this.findViewById(R.id.TodoTimeContent);
 		time.setText(sat.getTimeText( this, prefs.getBoolean(getString(R.string.prefTwelveTwentyfour),false)));
 		time.setTextColor(colour);
@@ -191,9 +186,10 @@ public class TodoView extends AcalActivity implements OnGestureListener, OnTouch
 	}
 	
 	private void setupButton(int id, int val) {
-		Button button = (Button) this.findViewById(id);
-		button.setOnClickListener(this);
-		button.setTag(val);
+		Button myButton = (Button) this.findViewById(id);
+		myButton.setOnClickListener(this);
+		myButton.setTag(val);
+		StaticHelpers.setContainerColour(myButton, Constants.themeColour );
 	}
 
 	@Override
@@ -256,11 +252,6 @@ public class TodoView extends AcalActivity implements OnGestureListener, OnTouch
 			}
 			case ADD: {
 				Bundle bundle = new Bundle();
-				bundle.putParcelable("DATE", todo.getStart());
-				if ( todo.getStart().isDate() )
-					bundle.putBoolean("ALLDAY", true);
-				else
-					bundle.putInt("TIME", todo.getStart().applyLocalTimeZone().getDaySecond());
 				Intent todoEditIntent = new Intent(this, TodoEdit.class);
 				todoEditIntent.putExtras(bundle);
 				this.startActivityForResult(todoEditIntent,EDIT_ADD);

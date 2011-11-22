@@ -10,4 +10,10 @@
     <item name="android:height">30sp</item>
     <item name="android:padding">0sp</item>
 </style>
+<style name="bottom_add_button" parent="bottom_button">
+    <item name="android:textSize">34sp</item>
+    <item name="android:padding">0sp</item>
+    <item name="android:height">30sp</item>
+</style>
+    
 </resources>

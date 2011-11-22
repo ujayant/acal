@@ -44,6 +44,7 @@ import android.widget.TextView;
 
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
+import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.dataservice.CalendarDataService;
 import com.morphoss.acal.dataservice.DataRequest;
 import com.morphoss.acal.dataservice.DataRequestCallBack;
@@ -238,6 +239,7 @@ public class TodoListView extends AcalActivity implements OnClickListener {
 			myButton.setText(buttonLabel);
 			myButton.setOnClickListener(this);
 			myButton.setTag(val);
+			StaticHelpers.setContainerColour(myButton, Constants.themeColour );
 		}
 	}
 

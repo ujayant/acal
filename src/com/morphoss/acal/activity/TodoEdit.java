@@ -20,7 +20,6 @@ package com.morphoss.acal.activity;
 
 import java.util.List;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.ComponentName;
@@ -29,10 +28,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -74,7 +71,7 @@ import com.morphoss.acal.widget.AlarmDialog;
 import com.morphoss.acal.widget.DateTimeDialog;
 import com.morphoss.acal.widget.DateTimeSetListener;
 
-public class TodoEdit extends Activity
+public class TodoEdit extends AcalActivity
 	implements OnCheckedChangeListener, OnSeekBarChangeListener {
 
 	public static final String TAG = "aCal TodoEdit";
@@ -102,7 +99,6 @@ public class TodoEdit extends Activity
 	private static final int SELECT_COLLECTION_DIALOG = 22;
 	private static final int INSTANCES_TO_CHANGE_DIALOG = 30;
 
-	private SharedPreferences prefs;
 	boolean prefer24hourFormat = false;
 	
 	private String[] repeatRules;
@@ -167,7 +163,6 @@ public class TodoEdit extends Activity
 		connectToService();
 
 		// Get time display preference
-		prefs = PreferenceManager.getDefaultSharedPreferences(this);
 		prefer24hourFormat = prefs.getBoolean(getString(R.string.prefTwelveTwentyfour), false);
 
 		alarmRelativeTimeStrings = getResources().getStringArray(R.array.RelativeAlarmTimes);

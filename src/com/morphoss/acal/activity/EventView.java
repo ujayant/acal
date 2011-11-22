@@ -21,11 +21,9 @@ package com.morphoss.acal.activity;
 import java.util.List;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcelable;
-import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.GestureDetector.OnGestureListener;
 import android.view.MotionEvent;
@@ -39,6 +37,7 @@ import android.widget.TextView;
 
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
+import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
 import com.morphoss.acal.davacal.AcalAlarm;
@@ -57,12 +56,8 @@ public class EventView extends AcalActivity implements OnGestureListener, OnTouc
 	public static final int EDIT_EVENT = 0;
 	public static final int EDIT_ADD = 0;
 	
-	//private GestureDetector gestureDetector;
-	
-	//private AcalDateTime currentDate;
 	private AcalEvent event;
 	private SimpleAcalEvent sae = null;
-	private SharedPreferences prefs;	
 	
 	
 	public void onCreate(Bundle savedInstanceState) {
@@ -73,9 +68,6 @@ public class EventView extends AcalActivity implements OnGestureListener, OnTouc
 		this.startService(new Intent(this, aCalService.class));
 		//gestureDetector = new GestureDetector(this);
 
-		// Get preferences
-		prefs = PreferenceManager.getDefaultSharedPreferences(this);
-		
 		//Set up buttons
 		this.setupButton(R.id.event_today_button, TODAY);
 		this.setupButton(R.id.event_edit_button, EDIT);
@@ -124,7 +116,9 @@ public class EventView extends AcalActivity implements OnGestureListener, OnTouc
 		String repetition = event.getRepetition();
 		int colour = event.getColour();
 		LinearLayout sidebar = (LinearLayout)this.findViewById(R.id.EventViewColourBar);
+		LinearLayout sidebarBottom = (LinearLayout)this.findViewById(R.id.EventViewColourBarBottom);;
 		sidebar.setBackgroundColor(colour);
+		sidebarBottom.setBackgroundColor(colour);
 		
 		TextView name = (TextView) this.findViewById(R.id.EventName);
 		name.setText(title);
@@ -181,9 +175,10 @@ public class EventView extends AcalActivity implements OnGestureListener, OnTouc
 	}
 	
 	private void setupButton(int id, int val) {
-		Button button = (Button) this.findViewById(id);
-		button.setOnClickListener(this);
-		button.setTag(val);
+		Button myButton = (Button) this.findViewById(id);
+		myButton.setOnClickListener(this);
+		myButton.setTag(val);
+		StaticHelpers.setContainerColour(myButton, Constants.themeColour );
 	}
 
 	@Override

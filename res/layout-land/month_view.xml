@@ -40,59 +40,86 @@
 	<LinearLayout
 		android:id="@+id/button_layout" 
 		android:layout_width="fill_parent" 
-		android:layout_height="40dp"
-		android:background="#50a0a030"
+		android:layout_height="36sp"
+		android:background="@color/bottom_bg"
 		android:gravity="bottom">
 	
 		<LinearLayout
 			android:layout_width="fill_parent" 
 			android:layout_height="fill_parent" android:layout_weight="1"
+			android:paddingLeft="1sp"
+			android:paddingRight="1sp"
 			android:gravity="center">
-			<Button android:id="@+id/month_today_button"
-				android:layout_width="wrap_content"
+			<LinearLayout
+				android:layout_width="fill_parent"
 				android:layout_height="wrap_content"
-				style="@style/bottom_button"
-				android:gravity="center"
-				android:text="@string/Today"
-				android:width="70dp"/>
-		</LinearLayout>
-		<LinearLayout
-			android:layout_width="fill_parent" 
-			android:layout_height="fill_parent" android:layout_weight="1"
-			android:gravity="center">
-			<Button android:id="@+id/month_year_button"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				style="@style/bottom_button"
-				android:gravity="center"
-				android:text="@string/Year"
-				android:width="70dp"/>
+				android:background="@color/themed_button_colour">
+				<Button android:id="@+id/month_today_button"
+					android:layout_width="fill_parent"
+					android:layout_height="wrap_content"
+					style="@style/themed_bottom_button"
+					android:gravity="center"
+					android:text="@string/Today"/>
+			</LinearLayout>
 		</LinearLayout>
 		<LinearLayout
 			android:layout_width="fill_parent" 
 			android:layout_height="fill_parent"
 			android:layout_weight="1"
-			android:gravity="center"
-			android:padding="0sp">
-			<Button android:id="@+id/month_week_button"
-				android:layout_width="wrap_content"
+			android:paddingLeft="1sp"
+			android:paddingRight="1sp"
+			android:gravity="center">
+			<LinearLayout
+				android:layout_width="fill_parent"
 				android:layout_height="wrap_content"
-				android:gravity="center"
-				style="@style/bottom_button"
-				android:text="@string/Week"
-				android:width="70dp" android:includeFontPadding="true" android:padding="0sp"/>
+				android:background="@color/themed_button_colour">
+				<Button android:id="@+id/month_year_button"
+					android:layout_width="fill_parent"
+					android:layout_height="wrap_content"
+					android:gravity="center"
+					style="@style/themed_bottom_button"
+					android:text="@string/Year"
+					android:includeFontPadding="true"
+					android:padding="0sp"/>
+			</LinearLayout>
 		</LinearLayout>
 		<LinearLayout
 			android:layout_width="fill_parent" 
 			android:layout_height="fill_parent"
 			android:layout_weight="1"
+			android:paddingLeft="1sp"
+			android:paddingRight="1sp"
 			android:gravity="center">
-			<Button android:id="@+id/month_add_button"
-				android:layout_width="wrap_content"
+			<LinearLayout
+				android:layout_width="fill_parent"
 				android:layout_height="wrap_content"
-				android:text="@string/plus"
-				android:width="70dp"
-				style="@style/bottom_add_button" android:gravity="center"/>
+				android:background="@color/themed_button_colour">
+    			<Button android:id="@+id/month_week_button"
+					android:layout_width="fill_parent"
+					android:layout_height="wrap_content"
+					style="@style/themed_bottom_button"
+					android:gravity="center"
+					android:text="@string/Week"/>
+			</LinearLayout>
+		</LinearLayout>
+		<LinearLayout
+			android:layout_width="fill_parent" 
+			android:layout_height="fill_parent"
+			android:layout_weight="1"
+			android:paddingLeft="1sp"
+			android:paddingRight="1sp"
+			android:gravity="center">
+			<LinearLayout
+				android:layout_width="fill_parent"
+				android:layout_height="36sp"
+				android:background="@color/themed_button_colour">
+				<Button android:id="@+id/month_add_button"
+					android:layout_width="fill_parent"
+					android:layout_height="36sp"
+					android:text="@string/plus"
+					style="@style/themed_add_button"
+					android:gravity="center_vertical|center_horizontal"/>
+			</LinearLayout>
 		</LinearLayout>
 	</LinearLayout>
 
