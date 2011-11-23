@@ -22,6 +22,8 @@ import com.morphoss.acal.service.aCalService;
 
 public class AcalConnectionPool {
 	
+	public static final int	DEFAULT_BUFFER_SIZE	= 8192;
+	
 	private static HttpParams httpParams = null;
 	private static SchemeRegistry schemeRegistry = null;
 	private static ThreadSafeClientConnManager connectionPool = null;
@@ -41,7 +43,7 @@ public class AcalConnectionPool {
 			httpParams.setParameter(CoreProtocolPNames.PROTOCOL_VERSION, HttpVersion.HTTP_1_1);
 			httpParams.setParameter(CoreProtocolPNames.HTTP_CONTENT_CHARSET, HTTP.UTF_8);
 			httpParams.setParameter(CoreProtocolPNames.USER_AGENT, userAgent );
-			httpParams.setParameter(CoreConnectionPNames.SOCKET_BUFFER_SIZE,8192);
+			httpParams.setParameter(CoreConnectionPNames.SOCKET_BUFFER_SIZE,DEFAULT_BUFFER_SIZE);
 			httpParams.setBooleanParameter(ClientPNames.HANDLE_REDIRECTS, false);
 
 			httpParams.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK, false);
