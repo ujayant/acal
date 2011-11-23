@@ -115,7 +115,7 @@ public class DomDavNode extends DavNode {
 	}
 
 	@Override
-	protected String getTagName() {
+	public String getTagName() {
 		return this.tagName;
 	}
 

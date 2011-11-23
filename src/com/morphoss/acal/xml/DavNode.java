@@ -2,7 +2,6 @@ package com.morphoss.acal.xml;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 
 import com.morphoss.acal.Constants;
@@ -10,9 +9,9 @@ import com.morphoss.acal.Constants;
 public abstract class DavNode {
 	
 		protected abstract List<? extends DavNode> getChildren();
-		protected abstract String getTagName();
 		protected abstract boolean removeChild(DavNode node);
 		
+		public abstract String getTagName();
 		public abstract DavNode getParent();
 		public abstract String getNameSpace();	
 		public abstract String getText();
@@ -23,7 +22,11 @@ public abstract class DavNode {
 		 * Returns the nodes which match the path below the current node, so if this node
 		 * is the ROOT then getNodesFromPath("multistatus/response") will return all the
 		 * response nodes.  With one of those response nodes getNodesFromPath("propstat/prop/getetag")
-		 * would return all getetag nodes (within all props, within all propstats). 
+		 * would return all getetag nodes (within all props, within all propstats).
+		 * 
+		 * If a segment of the path is '*' that will match all response nodes present at that point
+		 * so that getNodesFromPath("propstat/prop/*") will return all of the nodes within propstat/prop.
+		 * 
 		 * @param path
 		 * @return A list of matching DavNodes, or null if path is null.
 		 */
@@ -39,7 +42,7 @@ public abstract class DavNode {
 		} 
 		
 		public List<DavNode> findNodesFromPath(String[] path, int curIndex) {
-			if (!path[curIndex].equals(getTagName())) return new ArrayList<DavNode>();
+			if (!path[curIndex].equals("*") && !path[curIndex].equals(getTagName())) return new ArrayList<DavNode>();
 			ArrayList<DavNode> ret = new ArrayList<DavNode>();
 			if (curIndex == path.length-1) {
 				ret.add(this);
