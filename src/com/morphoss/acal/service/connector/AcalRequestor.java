@@ -106,7 +106,6 @@ public class AcalRequestor {
 	private HttpParams httpParams;
 	private HttpClient httpClient;
 	private ThreadSafeClientConnManager connManager;
-	private SchemeRegistry schemeRegistry;
 	private Header responseHeaders[];
 	private int statusCode = -1;
 	private int connectionTimeOut = 30000;
@@ -208,28 +207,19 @@ public class AcalRequestor {
 
 	
 	private void initialise() {
-		if ( userAgent == null ) {
-			userAgent = aCalService.aCalVersion;
-	
-			// User-Agent: aCal/0.3 (google; Nexus One; passion; HTC; passion; FRG83D)  Android/2.2.1 (75603)
-			userAgent += " (" + Build.BRAND + "; " + Build.MODEL + "; " + Build.PRODUCT + "; "
-						+ Build.MANUFACTURER + "; " + Build.DEVICE + "; " + Build.DISPLAY + "; " + Build.BOARD + ") "
-						+ " Android/" + Build.VERSION.RELEASE + " (" + Build.VERSION.INCREMENTAL + ")";
-		}
-
-		httpParams = defaultHttpParams();
-
-		schemeRegistry = new SchemeRegistry();
-		schemeRegistry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
-		Scheme httpsScheme = new Scheme("https",  new EasySSLSocketFactory(), 443);
-		schemeRegistry.register(httpsScheme);
-
-		connManager = new ThreadSafeClientConnManager(httpParams, schemeRegistry);
+		httpParams = AcalConnectionPool.defaultHttpParams(null, socketTimeOut, connectionTimeOut);
+		connManager = AcalConnectionPool.getHttpConnectionPool();
 		httpClient = new DefaultHttpClient(connManager, httpParams);
 
 		initialised = true;
+		Log.i(TAG,"AcalRequestor is now initialised.");
 	}
 
+	public void onDestroy() {
+//		if ( Constants.LOG_DEBUG )
+			Log.i(TAG,"Hi!  I'm the onDestroy method for AcalRequestor and I'm shutting down your connections now. kthxbai");
+//		connManager.shutdown();
+	}
 
 	/**
 	 * Takes the current AcalRequestor values and applies them to the Server ContentValues
@@ -492,9 +482,7 @@ public class AcalRequestor {
 		socketTimeOut = newSocketTimeOut;
 		connectionTimeOut = newConnectionTimeOut;
 		if ( !initialised ) return;
-		HttpParams params = httpClient.getParams();
-		params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT, socketTimeOut);
-		params.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, connectionTimeOut);
+		AcalConnectionPool.setTimeOuts(socketTimeOut,connectionTimeOut);
 		httpClient = new DefaultHttpClient(connManager, httpParams);
 	}
 
@@ -606,44 +594,6 @@ public class AcalRequestor {
 	}
 
 	
-
-	private HttpParams defaultHttpParams() {
-		HttpParams params = new BasicHttpParams();
-		params.setParameter(CoreProtocolPNames.PROTOCOL_VERSION, HttpVersion.HTTP_1_1);
-		params.setParameter(CoreProtocolPNames.HTTP_CONTENT_CHARSET, HTTP.UTF_8);
-		params.setParameter(CoreProtocolPNames.USER_AGENT, userAgent );
-		params.setParameter(CoreConnectionPNames.SOCKET_BUFFER_SIZE,4096);
-		params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT, socketTimeOut);
-		params.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, connectionTimeOut);
-		params.setBooleanParameter(ClientPNames.HANDLE_REDIRECTS, false);
-
-		params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK, false);
-		params.setIntParameter(CoreConnectionPNames.SO_LINGER, socketTimeOut);
-		params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT, socketTimeOut);
-		params.setLongParameter(ConnManagerPNames.TIMEOUT, connectionTimeOut + 1000 ); 	
-
-		// We need to set the MaxConnectionsPerRoute to a higher value so that we
-		// don't get an inexplicable timeout on the third attempt.  We set this pretty
-		// high to discourage weird timeouts when we're going through the discovery.
-		// All credit to:
-		//   http://androidisland.blogspot.com/2010/11/httpclient-and-connectionpooltimeoutexc.html
-		// for the fix.
-		//
-		// 2011-11-23 Reduced from 100 to 10 in case this is causing our memory leakage.
-		//
-		ConnManagerParams.setMaxConnectionsPerRoute(params, new ConnPerRoute() {
-		    @Override
-		    public int getMaxForRoute(HttpRoute httproute)
-		    {
-		        return 1000;
-		    }
-		});
-
-		ConnManagerParams.setTimeout(params, 5000);
-
-		return params;
-	}
-
 
 	
 	private synchronized InputStream sendRequest( Header[] headers, String entityString )
