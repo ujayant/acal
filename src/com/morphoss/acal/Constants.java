@@ -20,6 +20,9 @@ package com.morphoss.acal;
 
 import java.util.regex.Pattern;
 
+import com.morphoss.acal.xml.DavParserFactory;
+import com.morphoss.acal.xml.DavParserFactory.PARSEMETHOD;
+
 import android.os.Environment;
 
 /**
@@ -79,5 +82,6 @@ public class Constants {
 	public static final String URLEncoding = "utf-8";
 	
 	public static final String lastRevisionPreference = "prefLastRevision";
+	public static final PARSEMETHOD	XMLParseMethod	= DavParserFactory.PARSEMETHOD.SAX;
 	
 }

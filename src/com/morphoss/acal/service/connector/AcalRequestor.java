@@ -64,6 +64,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
 
+import com.morphoss.acal.AcalDebug;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.activity.serverconfig.AuthenticationFailure;
@@ -634,7 +635,7 @@ public class AcalRequestor {
 		    @Override
 		    public int getMaxForRoute(HttpRoute httproute)
 		    {
-		        return 10;
+		        return 1000;
 		    }
 		});
 
@@ -717,9 +718,9 @@ public class AcalRequestor {
 			HttpResponse response = null;
 
 			try {
-				if ( Constants.debugHeap ) StaticHelpers.heapDebug(TAG, "Making HTTP request");
+				if ( Constants.debugHeap ) AcalDebug.heapDebug(TAG, "Making HTTP request");
 				response = httpClient.execute(host,request);
-				if ( Constants.debugHeap ) StaticHelpers.heapDebug(TAG, "Finished HTTP request");
+				if ( Constants.debugHeap ) AcalDebug.heapDebug(TAG, "Finished HTTP request");
 			}
 			catch (ConnectionPoolTimeoutException e)		{
 				Log.i(TAG, e.getClass().getSimpleName() + ": " + e.getMessage() + " to " + fullUrl() );
@@ -922,7 +923,7 @@ public class AcalRequestor {
 
 		DavNode root = null;
 		try {
-			root = DavParserFactory.buildTreeFromXml(DavParserFactory.PARSEMETHOD.SAX, doRequest(method, requestPath, headers, xml));
+			root = DavParserFactory.buildTreeFromXml(Constants.XMLParseMethod, doRequest(method, requestPath, headers, xml));
 		}
 		catch (Exception e) {
 			Log.i(TAG, e.getMessage(), e);
