@@ -21,15 +21,12 @@ package com.morphoss.acal;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.text.format.DateFormat;
 
-import com.morphoss.acal.activity.ShowUpgradeChanges;
 import com.morphoss.acal.activity.TodoListView;
 import com.morphoss.acal.service.aCalService;
-import com.morphoss.acal.weekview.WeekViewActivity;
 
 public class aCalTasks extends Activity {
 	

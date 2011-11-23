@@ -18,10 +18,10 @@
 
 package com.morphoss.acal;
 
+import android.content.ContentValues;
+
 import com.morphoss.acal.providers.DavResources;
 import com.morphoss.acal.service.aCalService;
-
-import android.content.ContentValues;
 
 public class DatabaseChangedEvent {
 

@@ -58,7 +58,6 @@ import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.activity.EventEdit;
 import com.morphoss.acal.activity.EventView;
 import com.morphoss.acal.activity.MonthView;
-import com.morphoss.acal.activity.TodoListView;
 import com.morphoss.acal.activity.YearView;
 import com.morphoss.acal.dataservice.CalendarDataService;
 import com.morphoss.acal.dataservice.DataRequest;

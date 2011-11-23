@@ -16,13 +16,13 @@
 
 package com.morphoss.acal.widget;
 
-import com.morphoss.acal.R;
-
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.widget.ImageButton;
+
+import com.morphoss.acal.R;
 
 /**
  * This class exists purely to cancel long click events.

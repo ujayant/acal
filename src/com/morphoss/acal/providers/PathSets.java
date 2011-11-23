@@ -18,8 +18,6 @@
 
 package com.morphoss.acal.providers;
 
-import com.morphoss.acal.database.AcalDBHelper;
-
 import android.content.ContentProvider;
 import android.content.ContentUris;
 import android.content.ContentValues;
@@ -31,6 +29,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.text.TextUtils;
+
+import com.morphoss.acal.database.AcalDBHelper;
 
 /**
  * <p>This ContentProvider interfaces with the dav_path_set table in the database.</p>

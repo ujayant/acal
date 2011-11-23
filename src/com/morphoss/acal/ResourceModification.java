@@ -16,8 +16,8 @@ import com.morphoss.acal.davacal.VCard;
 import com.morphoss.acal.davacal.VComponent;
 import com.morphoss.acal.providers.DavResources;
 import com.morphoss.acal.providers.PendingChanges;
-import com.morphoss.acal.service.aCalService;
 import com.morphoss.acal.service.SynchronisationJobs.WriteActions;
+import com.morphoss.acal.service.aCalService;
 
 public class ResourceModification {
 
