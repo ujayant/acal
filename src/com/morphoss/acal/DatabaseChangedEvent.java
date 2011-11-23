@@ -33,16 +33,14 @@ public class DatabaseChangedEvent {
 	public static final int DATABASE_END_RESOURCE_CHANGES = 6;
 	
 	private int eventType;
-	@SuppressWarnings("unchecked")
-	private Class table;
+	private Class<?> table;
 	private ContentValues data;
 	
 	public int getEventType() {
 		return eventType;
 	}
 
-	@SuppressWarnings("unchecked")
-	public Class getTable() {
+	public Class<?> getTable() {
 		return table;
 	}
 
@@ -50,8 +48,7 @@ public class DatabaseChangedEvent {
 		return data;
 	}
 
-	@SuppressWarnings("unchecked")
-	public DatabaseChangedEvent(int eventType, Class table, ContentValues data) {
+	public DatabaseChangedEvent(int eventType, Class<?> table, ContentValues data) {
 		if (eventType < 1 || eventType > 6) throw new IllegalArgumentException("DatabaseChangedEvent instantiated with invalid event type.");
 		this.eventType = eventType;
 		this.table = table;
