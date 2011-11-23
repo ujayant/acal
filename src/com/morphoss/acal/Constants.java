@@ -44,7 +44,7 @@ public class Constants {
 	
 	/** How much stuff to spit out into the logs */
 	public static final boolean LOG_VERBOSE = false;		//Very verbose play by play execution information
-	public static final boolean LOG_DEBUG = false;			//Information relevant to debugging tasks.
+	public static final boolean LOG_DEBUG = true;			//Information relevant to debugging tasks.
 	public static final boolean DEBUG_SETTINGS = true;		// Does the debugging menu appear in Settings
 
 	/** Switch theme colour in debug builds */
@@ -59,7 +59,7 @@ public class Constants {
 	public static final boolean	debugWeekView					= false;
 	public static final boolean	debugVComponent					= false;
 	public static final boolean	debugDateTime					= false;
-	public static final boolean	debugDavCommunication			= false;
+	public static final boolean	debugDavCommunication			= true;
 	public static final boolean	debugAlarms						= false;
 	public static final boolean	debugHeap						= false;
 	

@@ -922,7 +922,7 @@ public class AcalRequestor {
 
 		DavNode root = null;
 		try {
-			root = DavParserFactory.buildTreeFromXml(DavParserFactory.PARSEMETHOD.DOM, doRequest(method, requestPath, headers, xml) );
+			root = DavParserFactory.buildTreeFromXml(DavParserFactory.PARSEMETHOD.SAX, doRequest(method, requestPath, headers, xml));
 		}
 		catch (Exception e) {
 			Log.i(TAG, e.getMessage(), e);

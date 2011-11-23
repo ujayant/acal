@@ -10,14 +10,17 @@ public class DavParserFactory {
 	
 	public static final String TAG = "aCal DavParserFactory";
 	
-	public enum PARSEMETHOD { DOM };
+	public enum PARSEMETHOD { DOM, SAX };
 	
 	public static DavNode buildTreeFromXml(PARSEMETHOD method, InputStream in) {
 		if (in == null) return null;
 		DavNode root = null;
 		try {
 			switch (method) {
-				default: root = DomDavXmlTreeBuilder.buildTreeFromXml(in);
+				case SAX: 	root = SaxDavXmlTreeBuilder.getXmlTree(in);
+							break;
+				case DOM :
+				default: 	root = DomDavXmlTreeBuilder.buildTreeFromXml(in);
 			}
 		in.close();
 		} catch (IOException e) {

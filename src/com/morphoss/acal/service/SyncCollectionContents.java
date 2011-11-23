@@ -742,7 +742,7 @@ public class SyncCollectionContents extends ServiceJob {
 				break;
 			}
 		}
-
+		
 		if ( prop == null ) {
 			validResourceResponse = false;
 		}
@@ -774,15 +774,15 @@ public class SyncCollectionContents extends ServiceJob {
 
 				String data = prop.getFirstNodeText(dataType + "-data");
 				if ( data != null ) {
-//					if ( Constants.LOG_VERBOSE ) {
-//						Log.v(TAG,"Found data in response:");
-//						Log.v(TAG,data);
-//						Log.v(TAG,StaticHelpers.toHexString(data.substring(0,40).getBytes()));
-//					}
+					if ( Constants.LOG_VERBOSE ) {
+						Log.v(TAG,"Found data in response:");
+						Log.v(TAG,data);
+						Log.v(TAG,StaticHelpers.toHexString(data.substring(0,40).getBytes()));
+					}
 					cv.put(DavResources.RESOURCE_DATA, data);
 					cv.put(DavResources.ETAG, etag);
 					cv.put(DavResources.NEEDS_SYNC, 0);
-				}
+				} 
 				s = prop.getFirstNodeText("getlastmodified");
 				if ( s != null ) cv.put(DavResources.LAST_MODIFIED, s);
 
