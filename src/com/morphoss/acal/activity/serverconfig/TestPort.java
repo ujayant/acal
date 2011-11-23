@@ -185,22 +185,45 @@ public class TestPort {
 					}
 					return doPropfindPrincipal(requestPath);
 				}
-				for ( DavNode href : root.getNodesFromPath("multistatus/response/propstat/prop/resourcetype/principal") ) {
-					if ( Constants.LOG_DEBUG ) Log.d(TAG, "This is a principal URL :-)");
-					requestor.interpretUriString(href.getText());
-					return true;
+				
+				String principalCollectionHref = null;
+				for ( DavNode response : root.getNodesFromPath("multistatus/response") ) {
+					String responseHref = response.getFirstNodeText("href"); 
+					if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG, "Checking response for "+responseHref);
+					for ( DavNode propStat : response.getNodesFromPath("propstat") ) {
+						if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG, "Checking in propstat for "+responseHref);
+						if ( propStat.getFirstNodeText("status").equalsIgnoreCase("HTTP/1.1 200 OK") ) {
+							if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG, "Found propstat 200 OK response for "+responseHref);
+							for ( DavNode prop : propStat.getNodesFromPath("prop/*") ) {
+								String thisTag = prop.getTagName(); 
+								if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG, "Examining tag "+thisTag);
+								if ( thisTag.equals("resourcetype") && ! prop.getNodesFromPath("principal").isEmpty() ) {
+									if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG, "This is a principal URL :-)");
+									requestor.interpretUriString(responseHref);
+									return true;
+								}
+								else if ( thisTag.equals("current-user-principal") ) {
+									if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG, "Found the principal URL :-)");
+									requestor.interpretUriString(prop.getFirstNodeText("href"));
+									return true;
+								}
+								else if ( thisTag.equals("principal-collection-set") ) {
+									principalCollectionHref = prop.getFirstNodeText("href");
+								}
+							}
+						}
+					}
 				}
-				for ( DavNode href : root.getNodesFromPath("multistatus/response/propstat/prop/current-user-principal/href") ) {
-					if ( Constants.LOG_DEBUG ) Log.d(TAG, "Found principal URL :-)");
-					requestor.interpretUriString(href.getText());
-					return true;
+				
+				if ( principalCollectionHref != null ) {
+					
 				}
 			}
 			if ( status < 300 ) authOK = true;
 		}
 		catch (Exception e) {
 			Log.e(TAG, "PROPFIND Error: " + e.getMessage());
-			Log.d(TAG, Log.getStackTraceString(e));
+			Log.println(Constants.LOGD,TAG, Log.getStackTraceString(e));
 		}
 		return false;
 	}
