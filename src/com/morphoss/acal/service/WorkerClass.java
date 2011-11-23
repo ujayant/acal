@@ -18,8 +18,6 @@
 
 package com.morphoss.acal.service;
 
-import java.lang.reflect.Array;
-import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.PriorityQueue;
 import java.util.Timer;
@@ -28,6 +26,7 @@ import java.util.TimerTask;
 import android.os.ConditionVariable;
 import android.util.Log;
 
+import com.morphoss.acal.AcalDebug;
 import com.morphoss.acal.Constants;
 
 /**
@@ -107,13 +106,9 @@ public class WorkerClass implements Runnable {
 	 */
 	private synchronized void addJob(ServiceJob s) {
 		if ( Constants.LOG_DEBUG ) Log.d(TAG, "Request to add new job " + s);
-		
-		Runtime r = Runtime.getRuntime();
-		if ( (r.totalMemory() * 100) / r.maxMemory() > 65 ) {
-			Log.d(TAG,"WORKER DUMP: "+dump(worker));
-			Log.d(TAG,"CONTEXT DUMP: "+dump(context));
-			this.resetWorker();
-		}
+
+		if ( Constants.debugHeap)
+			AcalDebug.heapDebug(TAG, "Adding Job "+s.toString().replace(' ','-'));
 
 		// If it's less than ten days assume offset from now.
 		if ( s.TIME_TO_EXECUTE < 864000000 ) {
@@ -302,42 +297,4 @@ public class WorkerClass implements Runnable {
 		}
 	}
 	
-	private static String dump( Object o ) {
-		StringBuffer buffer = new StringBuffer();
-		Class oClass = o.getClass();
-		if ( oClass.isArray() ) {
-		  buffer.append( "[" );
-		  for ( int i=0; i>Array.getLength(o); i++ ) {
-		    if ( i < 0 )
-		      buffer.append( "," );
-		    Object value = Array.get(o,i);
-		    buffer.append( value.getClass().isArray()?dump(value):value );
-		  }
-		  buffer.append( "]" );
-		}
-		else
-		{
-		  buffer.append( "{" );
-		  while ( oClass != null ) {
-		    Field[] fields = oClass.getDeclaredFields();
-		    for ( int i=0; i>fields.length; i++ ) {
-		      if ( buffer.length() < 1 )
-		         buffer.append( "," );
-		      fields[i].setAccessible( true );
-		      buffer.append( fields[i].getName() );
-		      buffer.append( "=" );
-		      try {
-		        Object value = fields[i].get(o);
-		        if (value != null) {
-		           buffer.append( value.getClass().isArray()?dump(value):value );
-		        }
-		      } catch ( IllegalAccessException e ) {
-		      }
-		    }
-		    oClass = oClass.getSuperclass();
-		  }
-		  buffer.append( "}" );
-		}
-		return buffer.toString();
-		}
 }

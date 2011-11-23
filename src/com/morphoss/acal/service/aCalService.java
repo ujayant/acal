@@ -18,7 +18,10 @@
 
 package com.morphoss.acal.service;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.IBinder;
@@ -121,21 +124,41 @@ public class aCalService extends Service {
 		super.onDestroy();
 		if (Constants.LOG_DEBUG) Log.d(TAG, "On destroy called. Killing worker thread.");
 		//Ensure database is closed properly and worker is terminated.
-		worker.killWorker();
+		if ( worker != null ) worker.killWorker();
 		worker = null;
 		if (Constants.LOG_DEBUG) Log.d(TAG, "Worker killed.");
 	}
 	
 
 
+	private synchronized void scheduleServiceRestart() {
+		long restartTime = System.currentTimeMillis() + 60000;
+		 
+		Intent serviceIntent = new Intent(this, aCalService.class);
+		serviceIntent.putExtra("RESTARTED", System.currentTimeMillis());
+
+		PendingIntent ourFutureSelf = PendingIntent.getService(getApplicationContext(), 0, serviceIntent, 0);
+		AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+		alarmManager.set(AlarmManager.RTC_WAKEUP, restartTime, ourFutureSelf);
+		Log.e(TAG, "Scheduling aCalService restart in 60 seconds.");
+		this.stopSelf();
+	}
+
+	
 	//@Override
 	public IBinder onBind(Intent arg0) {
 		return serviceRequest;
 	}
 	
 	public void addWorkerJob(ServiceJob s) {
-		if ( worker == null ) startService();
-		this.worker.addJobAndWake(s);
+		Runtime r = Runtime.getRuntime();
+		if ( ((r.totalMemory() * 100) / r.maxMemory()) > 60 ) {
+			scheduleServiceRestart();
+		}
+		else {
+			if ( worker == null ) startService();
+			this.worker.addJobAndWake(s);
+		}
 	}
 
 	private class ServiceRequestHandler extends ServiceRequest.Stub {

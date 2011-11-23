@@ -24,7 +24,6 @@ import java.util.regex.Pattern;
 import android.content.ContentValues;
 import android.graphics.Color;
 import android.os.Parcel;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewParent;
 
@@ -39,19 +38,6 @@ public final class StaticHelpers {
 	}
 
 
-	public static void heapDebug(String TAG,String msg) {
-		Runtime r = Runtime.getRuntime();
-		long used = r.totalMemory() - r.freeMemory();
-		double percentUsed = ((double) used) / ((double) r.maxMemory()) * 100.0;
-		used /= 1024;
-		if ( percentUsed > 80 )
-			Log.e(TAG, String.format("%-40.40s: Heap used: %dk (%.2f%%) of max: %dk", msg, used, percentUsed, r.maxMemory()/1024));
-		else if ( percentUsed > 50 )
-			Log.w(TAG, String.format("%-40.40s: Heap used: %dk (%.2f%%) of max: %dk", msg, used, percentUsed, r.maxMemory()/1024));
-		else
-			Log.i(TAG, String.format("%-40.40s: Heap used: %dk (%.2f%%) of max: %dk", msg, used, percentUsed, r.maxMemory()/1024));
-	}
-
 	/**
 	 * A helper to reliably turn a string into an int, returning 0 on any failure condition. 
 	 * @param intThing
@@ -63,7 +49,7 @@ public final class StaticHelpers {
 			int ret = Integer.parseInt(intThing);
 			return ret;
 		}
-		catch ( Exception e ){
+		catch ( Exception e ) {
 			return 0;
 		}
 	}

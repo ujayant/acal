@@ -53,11 +53,11 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.morphoss.acal.AcalDebug;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.DatabaseChangedEvent;
 import com.morphoss.acal.DatabaseEventListener;
 import com.morphoss.acal.R;
-import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDuration;
@@ -334,7 +334,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 			long begin = System.currentTimeMillis();
 			if (Constants.debugCalendarDataService && Constants.LOG_DEBUG)	Log.d(TAG, "Processing resources queue with "+resourcesPending.size()+" elements.");
 			while (!resourcesPending.isEmpty()) {
-				if ( Constants.debugHeap ) StaticHelpers.heapDebug(TAG, "Processing a pending resource");
+				if ( Constants.debugHeap ) AcalDebug.heapDebug(TAG, "Processing a pending resource");
 				count++;
 				try {
 					//Remove all line wrapping prior to parsing
@@ -390,7 +390,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 	private void resetWorker() {
 		if (Constants.LOG_DEBUG) Log.d(TAG, "Reset worker called.");
 		this.interrupted = true;
-		if (Thread.currentThread() != worker) {
+		if (Thread.currentThread() != worker && worker != null ) {
 			worker.interrupt();
 		}
 		Log.i(TAG,"Resetting worker thread.");
@@ -465,30 +465,31 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 		}
 	}
 
-	//Changes the next alarm trigger time IFF its changed.
+	// Changes the next alarm trigger time IFF its changed.
 	private synchronized void createAlarmIntent(AcalAlarm alarm) {
-		if (Constants.LOG_DEBUG)Log.d(TAG, "Creating Alarm Intent for alarm: "+alarm);
+		if ( Constants.LOG_DEBUG ) Log.d(TAG, "Creating Alarm Intent for alarm: " + alarm);
 		AcalDateTime now = new AcalDateTime();
 		now.applyLocalTimeZone();
-		long timeOfNextAlarm = (now.getDurationTo(alarm.getNextTimeToFire())).getTimeMillis()+System.currentTimeMillis();
-			if (this.alarmIntent != null) {
-				if (timeOfNextAlarm == nextTriggerTime) {
-					if (Constants.LOG_DEBUG)Log.d(TAG, "Alarm trigger time hasn't changed. Aborting.");
-					return; //no change
-				}
-				else {
-					alarmManager.cancel(alarmIntent);
-					nextTriggerTime = timeOfNextAlarm;
-				}
-			} 
-			
-			Intent intent = new Intent(this, AlarmActivity.class);
-			intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-			alarmIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_ONE_SHOT);
-			alarmManager.set(AlarmManager.RTC_WAKEUP, timeOfNextAlarm, alarmIntent);
-			if (Constants.LOG_DEBUG)Log.d(TAG, "Set alarm trigger for: "+timeOfNextAlarm+"/"+alarm.getNextTimeToFire());
+		long timeOfNextAlarm = (now.getDurationTo(alarm.getNextTimeToFire())).getTimeMillis()
+				+ System.currentTimeMillis();
+		if ( this.alarmIntent != null ) {
+			if ( timeOfNextAlarm == nextTriggerTime ) {
+				if ( Constants.LOG_DEBUG ) Log.d(TAG, "Alarm trigger time hasn't changed. Aborting.");
+				return; // no change
+			}
+			else {
+				alarmManager.cancel(alarmIntent);
+				nextTriggerTime = timeOfNextAlarm;
+			}
 		}
 
+		Intent intent = new Intent(this, AlarmActivity.class);
+		intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+		alarmIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_ONE_SHOT);
+		alarmManager.set(AlarmManager.RTC_WAKEUP, timeOfNextAlarm, alarmIntent);
+		if ( Constants.LOG_DEBUG ) Log.d(TAG,
+				"Set alarm trigger for: " + timeOfNextAlarm + "/" + alarm.getNextTimeToFire());
+	}
 
 	/**
 	 * Creates a list of all alarms that will occur in the specified date range
@@ -522,7 +523,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 					continue;
 				}
 			}
-			if ( Constants.debugHeap ) StaticHelpers.heapDebug(TAG, "Processing alarm");
+			if ( Constants.debugHeap ) AcalDebug.heapDebug(TAG, "Processing alarm");
 			try {
 				vc.setPersistentOn();
 				if ( vc.hasAlarm() ) vc.appendAlarmInstancesBetween(alarms, dateRange);
@@ -534,7 +535,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 			finally {
 				vc.setPersistentOff();
 			}
-			if ( Constants.debugHeap ) StaticHelpers.heapDebug(TAG, "Processing alarm");
+			if ( Constants.debugHeap ) AcalDebug.heapDebug(TAG, "Processing alarm");
 		}
 
 		Log.d(TAG,"Checked "+processed+" resources for alarms, skipped "+skipped);
@@ -962,29 +963,35 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 		if (Constants.LOG_DEBUG) Log.d(TAG, "Records added to queue. Starting main loop.");
 		try {
 			while (this.worker == Thread.currentThread()) {
-				if ( Constants.debugHeap ) StaticHelpers.heapDebug(TAG, "Processing pending resources");
+				if ( Constants.debugHeap ) AcalDebug.heapDebug(TAG, "Processing pending resources");
 				if ( this.processPendingResources() ) {
-					if ( Constants.debugHeap ) StaticHelpers.heapDebug(TAG, "Updating alarms");
+					if ( Constants.debugHeap ) AcalDebug.heapDebug(TAG, "Updating alarms");
 					updateAlarms();
 				}
 				if (callback != null) {
-					if ( Constants.debugHeap ) StaticHelpers.heapDebug(TAG, "Notifying status change via callback");
 					try {
+						if ( Constants.debugHeap ) AcalDebug.heapDebug(TAG, "Flushing cache");
 						dataRequest.flushCache();
+						if ( Constants.debugHeap ) AcalDebug.heapDebug(TAG, "Notifying status change via callback");
 						callback.statusChanged(UPDATE, false);
 					} catch (RemoteException e) {
 
 					}
 				}
-				if ( Constants.debugHeap ) StaticHelpers.heapDebug(TAG, "Finished worker run");
-
-				Runtime r = Runtime.getRuntime();
-				if ( (r.totalMemory() * 100) / r.maxMemory() > 65 ) {
-					this.resetWorker();
-				}
+				if ( Constants.debugHeap ) AcalDebug.heapDebug(TAG, "Finished worker run");
 
 				this.threadHolder.close();
-				this.threadHolder.block();
+
+				Runtime r = Runtime.getRuntime();
+				if ( (r.totalMemory() * 100) / r.maxMemory() > 60 ) {
+					Log.w(TAG, "Closing down CalendarDataService - out of memory!");
+					this.interrupted = true;
+					if (Thread.currentThread() != worker) worker.interrupt();
+					this.worker = null;
+					this.stopSelf();
+				}
+				else
+					this.threadHolder.block();
 			}
 		}
 		catch (Exception e) {

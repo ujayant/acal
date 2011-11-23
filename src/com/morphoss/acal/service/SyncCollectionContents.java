@@ -45,6 +45,7 @@ import android.net.Uri;
 import android.os.Debug;
 import android.util.Log;
 
+import com.morphoss.acal.AcalDebug;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.DatabaseChangedEvent;
 import com.morphoss.acal.HashCodeUtil;
@@ -131,7 +132,7 @@ public class SyncCollectionContents extends ServiceJob {
 	
 	@Override
 	public void run(aCalService context) {
-		if ( Constants.debugHeap ) StaticHelpers.heapDebug(TAG, "SyncCollectionContents: start");
+		if ( Constants.debugHeap ) AcalDebug.heapDebug(TAG, "SyncCollectionContents start");
 		this.context = context;
 		this.cr = context.getContentResolver();
 		if ( collectionId < 0 || !getCollectionInfo()) {
@@ -225,7 +226,7 @@ public class SyncCollectionContents extends ServiceJob {
 		this.context = null;
 		this.requestor = null;
 		this.cr = null;
-		if ( Constants.debugHeap ) StaticHelpers.heapDebug(TAG, "SyncCollectionContents: end");
+		if ( Constants.debugHeap ) AcalDebug.heapDebug(TAG, "SyncCollectionContents end");
 	}
 
 	/**
@@ -760,7 +761,7 @@ public class SyncCollectionContents extends ServiceJob {
 				
 				if ( etag != null ) {
 					String oldEtag = cv.getAsString(DavResources.ETAG);
-					if ( oldEtag != null && oldEtag.equals(etag) ) {
+					if ( oldEtag != null && oldEtag.equals(etag) && cv.get(DavResources.RESOURCE_DATA) != null ) {
 						cv.put(DavResources.NEEDS_SYNC, 0);
 						responseNode.getParent().removeSubTree(responseNode);
 						return false;
