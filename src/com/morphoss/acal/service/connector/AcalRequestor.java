@@ -37,31 +37,17 @@ import org.apache.http.HeaderElement;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
-import org.apache.http.HttpVersion;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.params.ClientPNames;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
-import org.apache.http.conn.params.ConnManagerPNames;
-import org.apache.http.conn.params.ConnManagerParams;
-import org.apache.http.conn.params.ConnPerRoute;
-import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.conn.scheme.PlainSocketFactory;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.message.BasicHeader;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.CoreConnectionPNames;
-import org.apache.http.params.CoreProtocolPNames;
 import org.apache.http.params.HttpParams;
-import org.apache.http.protocol.HTTP;
 
 import android.content.ContentValues;
 import android.net.Uri;
-import android.os.Build;
 import android.util.Log;
 
 import com.morphoss.acal.AcalDebug;
@@ -69,7 +55,6 @@ import com.morphoss.acal.Constants;
 import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.activity.serverconfig.AuthenticationFailure;
 import com.morphoss.acal.providers.Servers;
-import com.morphoss.acal.service.aCalService;
 import com.morphoss.acal.xml.DavNode;
 import com.morphoss.acal.xml.DavParserFactory;
 
@@ -273,8 +258,8 @@ public class AcalRequestor {
 
 		final Pattern pathMatcher = Pattern.compile("^(/.*)$");
 		
+		if ( Constants.LOG_VERBOSE ) Log.println(Constants.LOGV,TAG,"Interpreting '"+uriString+"'");
 		Matcher m = uriMatcher.matcher(uriString);
-		if ( Constants.LOG_VERBOSE ) Log.v(TAG,"Interpreting '"+uriString+"'");
 		if ( m.matches() ) {
 			if ( m.group(1) != null && !m.group(1).equals("") ) {
 				if ( Constants.LOG_VERBOSE ) Log.v(TAG,"Found protocol '"+m.group(1)+"'");
@@ -638,13 +623,13 @@ public class AcalRequestor {
 			HttpHost host = new HttpHost(this.hostName, requestPort, requestProtocol);
 
 			if ( Constants.LOG_VERBOSE && Constants.debugDavCommunication ) {
-				Log.v(TAG, method+" "+this.fullUrl());
+				Log.println(Constants.LOGV,TAG, method+" "+this.fullUrl());
 
 				for ( Header h : request.getAllHeaders() ) {
-					Log.v(TAG,"H>  "+h.getName()+":"+h.getValue() );
+					Log.println(Constants.LOGV,TAG,"H>  "+h.getName()+":"+h.getValue() );
 				}
 				if (entityString != null) {
-					Log.v(TAG, "----------------------- vvv Request Body vvv -----------------------" );
+					Log.println(Constants.LOGV,TAG, "----------------------- vvv Request Body vvv -----------------------" );
 					for( String line : entityString.toString().split("\n") ) {
 						if ( line.length() == entityString.toString().length() ) {
 							int end;
@@ -652,14 +637,14 @@ public class AcalRequestor {
 							for( int pos=0; pos < length; pos += 120 ) {
 								end = pos+120;
 								if ( end > length ) end = length;
-								Log.v(TAG, "R>  " + line.substring(pos, end) );
+								Log.println(Constants.LOGV,TAG, "R>  " + line.substring(pos, end) );
 							}
 						}
 						else {
-							Log.v(TAG, "R>  " + line.replaceAll("\r$", "") );
+							Log.println(Constants.LOGV,TAG, "R>  " + line.replaceAll("\r$", "") );
 						}
 					}
-					Log.v(TAG, "----------------------- ^^^ Request Body ^^^ -----------------------" );
+					Log.println(Constants.LOGV,TAG, "----------------------- ^^^ Request Body ^^^ -----------------------" );
 				}
 			}
 			
@@ -689,17 +674,15 @@ public class AcalRequestor {
 			if ( Constants.LOG_DEBUG )
 				Log.d(TAG, "Response: "+statusCode+", Sent: "+up+", Received: "+down+", Took: "+timeTaken+" seconds");
 			
-			if ( Constants.LOG_VERBOSE ) {
-				for (Header h : responseHeaders) {
-					Log.v(TAG,"H<  "+h.getName()+": "+h.getValue() );
-				}
-			}
 			if ( Constants.LOG_VERBOSE && Constants.debugDavCommunication ) {
+				for (Header h : responseHeaders) {
+					Log.println(Constants.LOGV,TAG,"H<  "+h.getName()+": "+h.getValue() );
+				}
 				if (entity != null) {
 					if ( Constants.LOG_DEBUG && Constants.debugDavCommunication ) {
-						Log.v(TAG, "----------------------- vvv Response Body vvv -----------------------" );
+						Log.println(Constants.LOGV,TAG, "----------------------- vvv Response Body vvv -----------------------" );
 						InputStream in = entity.getContent();
-						BufferedReader r = new BufferedReader(new InputStreamReader(in));
+						BufferedReader r = new BufferedReader(new InputStreamReader(in),AcalConnectionPool.DEFAULT_BUFFER_SIZE);
 						StringBuilder total = new StringBuilder();
 						String line;
 						while ((line = r.readLine()) != null) {
@@ -711,14 +694,14 @@ public class AcalRequestor {
 								for( int pos=0; pos < length; pos += 120 ) {
 									end = pos+120;
 									if ( end > length ) end = length;
-									Log.v(TAG, "R<  " + line.substring(pos, end) );
+									Log.println(Constants.LOGV,TAG, "R<  " + line.substring(pos, end) );
 								}
 							}
 							else {
-								Log.v(TAG, "R<  " + line.replaceAll("\r$", "") );
+								Log.println(Constants.LOGV,TAG, "R<  " + line.replaceAll("\r$", "") );
 							}
 						}
-						Log.v(TAG, "----------------------- ^^^ Response Body ^^^ -----------------------" );
+						Log.println(Constants.LOGV,TAG, "----------------------- ^^^ Response Body ^^^ -----------------------" );
 						in.close();
 						return new ByteArrayInputStream( total.toString().getBytes() );
 					}
