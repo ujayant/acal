@@ -433,9 +433,10 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 		this.location = (String) defaults.get(EVENT_FIELD.location);
 		this.repetition = (String) defaults.get(EVENT_FIELD.repeatRule);
 		this.colour = (Integer) defaults.get(EVENT_FIELD.colour);
-		List<?> alarmList = (List<?>) defaults.get(EVENT_FIELD.alarmList);
+		@SuppressWarnings("unchecked")
+		List<AcalAlarm> alarmList = (List<AcalAlarm>) defaults.get(EVENT_FIELD.alarmList);
 		this.hasAlarms = ! alarmList.isEmpty();
-		this.alarmList.addAll((List<AcalAlarm>) alarmList);
+		this.alarmList.addAll(alarmList);
 
 		int theId = -1;
 		if ( (Integer) defaults.get(EVENT_FIELD.resourceId) != null )
