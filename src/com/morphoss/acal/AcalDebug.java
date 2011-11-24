@@ -37,6 +37,6 @@ public final class AcalDebug {
 		double percentUsed = ((double) used) / ((double) r.maxMemory()) * 100.0;
 		used /= 1024;
 		int logLevel = ( percentUsed > 80 ? Log.ERROR : (percentUsed > 50 ? Log.WARN : Log.INFO) );
-		Log.println(logLevel, TAG, String.format("%-40.40s: Heap used: %dk (%.2f%%) of max: %dk", msg, used, percentUsed, r.maxMemory()/1024));
+		Log.println(logLevel, TAG, String.format("%-50.50s: Heap used: %dk (%.2f%%) of max: %dk", msg, used, percentUsed, r.maxMemory()/1024));
 	}
 }
