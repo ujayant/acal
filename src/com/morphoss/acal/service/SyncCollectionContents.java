@@ -172,18 +172,11 @@ public class SyncCollectionContents extends ServiceJob {
 			else 
 				syncMarkedResources( originalData );
 			
-			
-			if ( serverData.getAsInteger(Servers.HAS_SYNC) != null && (1 == serverData.getAsInteger(Servers.HAS_SYNC))) {
-				if (doRegularSyncReport()) {
-					originalData = findSyncNeededResources();
-					syncMarkedResources(originalData);
-				}
-			}
-			else {
-				if (doRegularSyncPropfind()) {
-					originalData = findSyncNeededResources();
-					syncMarkedResources(originalData);
-				}
+			if ( (serverData.getAsInteger(Servers.HAS_SYNC) != null && (1 == serverData.getAsInteger(Servers.HAS_SYNC))
+										? doRegularSyncReport()
+										: doRegularSyncPropfind() ) ) {
+				originalData = findSyncNeededResources();
+				syncMarkedResources(originalData);
 			}
 
 			String lastSynchronized = new AcalDateTime().setMillis(start).fmtIcal();
@@ -308,11 +301,62 @@ public class SyncCollectionContents extends ServiceJob {
 			syncWasCompleted = false;
 			return false;
 		}
-
+/**
+ * SOGO's sync-response looks like this (as of draft-1):
+ *
+<?xml version="1.0" encoding="utf-8"?>
+<D:multistatus xmlns:D="DAV:">
+ <D:sync-response>
+  <D:href>/SOGo/dav/sogo2/Calendar/personal/351dc1af-2aa3-4d14-9704-eadbcfecaf7e.ics</D:href>
+  <D:status>HTTP/1.1 200 OK</D:status>
+  <D:propstat>
+   <D:prop>
+   <D:getetag>&quot;gcs00000001&quot;</D:getetag></D:prop>
+   <D:status>HTTP/1.1 200 OK</D:status>
+  </D:propstat>
+ </D:sync-response>
+ <D:sync-token>1322100412</D:sync-token>
+</D:multistatus>
+ *
+ */
+/**
+ * Correct sync-response looks like this (as of draft-2 and later):
+ *
+<?xml version="1.0" encoding="utf-8" ?>
+<multistatus xmlns="DAV:">
+ <response>
+  <href>/caldav.php/user1/home/DAYPARTY-77C6-4FB7-BDD3-6882E2F1BE74.ics</href>
+  <propstat>
+   <prop>
+    <getetag>"165746adbab8bc0c8336a63cc5332ff2"</getetag>
+    <getlastmodified>Dow, 01 Jan 2000 00:00:00 GMT</getlastmodified>
+   </prop>
+   <status>HTTP/1.1 200 OK</status>
+  </propstat>
+ </response>
+</multistatus>
+ * 
+ */
+		
 		ArrayList<ResourceModification> changeList = new ArrayList<ResourceModification>(); 
 
 		if (Constants.LOG_VERBOSE) Log.v(TAG, "Start processing response");
 		List<DavNode> responses = root.getNodesFromPath("multistatus/response");
+		if ( responses.isEmpty() ) {
+			responses = root.getNodesFromPath("multistatus/sync-response");
+			if ( ! responses.isEmpty() ) {
+				Log.e("aCal","CalDAV Server at "+requestor.getHostName()+" uses obsolete draft sync-response syntax. Falling back to inefficient PROPFIND.  Please upgrade your server.");
+/*
+ * We won't write it back to the server, because at least we can use this much as an indication that
+ * something has changed, so we'll just fall through and do a PROPFIND sync.
+ * 
+				serverData.put(Servers.HAS_SYNC,0);
+				Uri provider = ContentUris.withAppendedId(Servers.CONTENT_URI, serverData.getAsInteger(Servers._ID));
+				cr.update(provider, Servers.cloneValidColumns(serverData), null, null);
+ */
+				return doRegularSyncPropfind();
+			}
+		}
 
 		for (DavNode response : responses) {
 			String name = response.segmentFromFirstHref("href");
@@ -760,6 +804,7 @@ public class SyncCollectionContents extends ServiceJob {
 				String etag = prop.getFirstNodeText("getetag");
 				
 				if ( etag != null ) {
+					etag.replace("&quot;", "\"");  // @todo: This is a hack.  The XML parser should do entity decoding, really. 
 					String oldEtag = cv.getAsString(DavResources.ETAG);
 					if ( oldEtag != null && oldEtag.equals(etag) && cv.get(DavResources.RESOURCE_DATA) != null ) {
 						cv.put(DavResources.NEEDS_SYNC, 0);
