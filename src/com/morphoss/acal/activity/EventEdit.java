@@ -655,18 +655,23 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 							public void onDateTimeSet(AcalDateTime newStart) {
 								AcalDateTime oldStart = event.getStart();
 								AcalDuration delta = oldStart.getDurationTo(newStart);
-								AcalDateTime newEnd = event.getEnd().addDuration(delta);
+								AcalDateTime newEnd = event.getEnd();
+								String endTzId = newEnd.getTimeZoneId();
+								newEnd.addDuration(delta);
 								if ( oldStart.isDate() != newStart.isDate() ) {
 									newEnd.setAsDate(newStart.isDate() );
 								}
 								String oldTzId = oldStart.getTimeZoneId();
 								String newTzId = newStart.getTimeZoneId();
 								if ( ( oldTzId == null && newTzId != null) || (oldTzId != null && !oldTzId.equals(newTzId) ) ) {
-									String endTzId = newEnd.getTimeZoneId();
 									Log.i(TAG,"The timezone changed from "+oldTzId+" to "+newTzId+", EndTzId is "+endTzId);
 									// OK, so the timezone changed.  But did the old one previously match?
-									if ( (oldTzId == null && endTzId == null) || (oldTzId != null && oldTzId.equals(endTzId)) )
+									if ( (oldTzId == null && endTzId == null) ) {
+										newEnd.setTimeZone(newTzId);
+									}
+									else if (oldTzId != null && oldTzId.equals(endTzId)) {
 										newEnd.shiftTimeZone(newTzId);
+									}
 								}
 								event.setField(EVENT_FIELD.startDate, newStart);
 								event.setField(EVENT_FIELD.endDate, newEnd);
