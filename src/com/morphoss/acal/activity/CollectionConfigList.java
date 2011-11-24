@@ -194,9 +194,12 @@ public class CollectionConfigList extends PreferenceActivity
 				preferenceListIds[prefRowId++] = 0;
 				lastServerId = serverId;
 			}
-			Preference thisPreference = new Preference(this);
+			String collectionColour = cv.getAsString(DavCollections.COLOUR);
+			CollectionConfigListItemPreference thisPreference = new CollectionConfigListItemPreference(this);
+			thisPreference.setLayoutResource(R.layout.collections_list_item);
 			thisPreference.setTitle(cv.getAsString(DavCollections.DISPLAYNAME));
 			thisPreference.setSummary(cv.getAsString(DavCollections.COLLECTION_PATH));
+			thisPreference.setCollectionColour(collectionColour);
 			thisPreference.setPersistent(false);
 			thisPreference.setKey(Integer.toString(collectionId));
 			thisPreference.setOnPreferenceClickListener(this);
