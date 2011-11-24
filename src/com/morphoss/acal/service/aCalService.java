@@ -152,7 +152,7 @@ public class aCalService extends Service {
 	
 	public void addWorkerJob(ServiceJob s) {
 		Runtime r = Runtime.getRuntime();
-		if ( ((r.totalMemory() * 100) / r.maxMemory()) > 65 ) {
+		if ( ((r.totalMemory() * 100) / r.maxMemory()) > 115 ) {
 			scheduleServiceRestart();
 		}
 		else {

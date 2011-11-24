@@ -982,7 +982,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 				this.threadHolder.close();
 
 				Runtime r = Runtime.getRuntime();
-				if ( (r.totalMemory() * 100) / r.maxMemory() > 60 ) {
+				if ( (r.totalMemory() * 100) / r.maxMemory() > 125 ) {
 					Log.w(TAG, "Closing down CalendarDataService - out of memory!");
 					this.interrupted = true;
 					if (Thread.currentThread() != worker) worker.interrupt();
