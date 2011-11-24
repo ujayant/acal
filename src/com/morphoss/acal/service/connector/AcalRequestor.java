@@ -606,7 +606,12 @@ public class AcalRequestor {
 			
 
 			// This trick greatly reduces the occurrence of host not found errors. 
-			try { InetAddress.getByName(this.hostName); } catch (UnknownHostException e1) { }
+			try { InetAddress.getByName(this.hostName); } catch (UnknownHostException e1) {
+				Thread.sleep(100);
+				try { InetAddress.getByName(this.hostName); } catch (UnknownHostException e2) {
+					Thread.sleep(100);
+				}
+			}
 			
 			int requestPort = -1;
 			String requestProtocol = this.protocol;
