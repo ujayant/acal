@@ -107,9 +107,6 @@ public class WorkerClass implements Runnable {
 	private synchronized void addJob(ServiceJob s) {
 		if ( Constants.LOG_DEBUG ) Log.d(TAG, "Request to add new job " + s);
 
-		if ( Constants.debugHeap)
-			AcalDebug.heapDebug(TAG, "Adding Job "+s.toString().replace(' ','-'));
-
 		// If it's less than ten days assume offset from now.
 		if ( s.TIME_TO_EXECUTE < 864000000 ) {
 			s.TIME_TO_EXECUTE += System.currentTimeMillis();
@@ -242,7 +239,10 @@ public class WorkerClass implements Runnable {
 				// variable is closed automatically.
 				ServiceJob job;
 				while ( (job = getJob()) != null ) {
-					Log.i(TAG, "Executing job " + job.getDescription());
+//					Log.i(TAG, "Executing job " + job.getDescription());
+//					if ( Constants.debugHeap)
+						AcalDebug.heapDebug(TAG, "Run Job "+job.getDescription().replace(':','-'));
+
 					job.run(this.context);
 					timeOfLastAction = System.currentTimeMillis();
 				}
