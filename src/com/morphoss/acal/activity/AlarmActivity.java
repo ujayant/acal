@@ -60,7 +60,7 @@ import com.morphoss.acal.davacal.AcalEvent;
  * This Activity displays alarms as received from CalendarDataService.
  * 
  * TODO This class will need to be refactored, along with the alarm management code in CalendarDataService as
- * it has to many unsolvable flaws in its current incarnation. Refactored version will probably require a short
+ * it has to many unsolvable flaws in current incarnation. Refactored version will probably require a short
  * lived Service of some kind to maintain all necessary state.
  *
  */
@@ -186,7 +186,7 @@ public class AlarmActivity extends AcalActivity implements OnClickListener  {
 
 	@Override
 	public void onNewIntent(Intent i) {
-		super.onNewIntent(i);
+		//super.onNewIntent(i);
 	}
 
 	@Override

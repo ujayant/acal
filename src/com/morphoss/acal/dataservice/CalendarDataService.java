@@ -471,7 +471,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 		AcalDateTime now = new AcalDateTime();
 		now.applyLocalTimeZone();
 		long timeOfNextAlarm = (now.getDurationTo(alarm.getNextTimeToFire())).getTimeMillis()
-				+ System.currentTimeMillis();
+				+ now.getMillis();
 		if ( this.alarmIntent != null ) {
 			if ( timeOfNextAlarm == nextTriggerTime ) {
 				if ( Constants.LOG_DEBUG ) Log.d(TAG, "Alarm trigger time hasn't changed. Aborting.");
@@ -479,15 +479,14 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 			}
 			else {
 				alarmManager.cancel(alarmIntent);
-				nextTriggerTime = timeOfNextAlarm;
 			}
 		}
-
+		nextTriggerTime = timeOfNextAlarm;
 		Intent intent = new Intent(this, AlarmActivity.class);
-		intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
 		alarmIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_ONE_SHOT);
 		alarmManager.set(AlarmManager.RTC_WAKEUP, timeOfNextAlarm, alarmIntent);
-		if ( Constants.LOG_DEBUG ) Log.d(TAG,
+		//if ( Constants.LOG_DEBUG )
+			Log.d(TAG,
 				"Set alarm trigger for: " + timeOfNextAlarm + "/" + alarm.getNextTimeToFire());
 	}
 
