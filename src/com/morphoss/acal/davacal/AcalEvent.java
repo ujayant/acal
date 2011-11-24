@@ -303,10 +303,10 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 	public void setField(EVENT_FIELD field, Object val) {
 		switch( field ) {
 			case startDate:
-				this.dtstart = (AcalDateTime) val;
+				this.dtstart = ((AcalDateTime) val).clone();
 				break;
 			case endDate:
-				this.dtend = (AcalDateTime) val;
+				this.dtend = ((AcalDateTime) val).clone();
 				break;
 			case summary:
 				this.summary = (String) val;
