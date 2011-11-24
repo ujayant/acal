@@ -18,9 +18,6 @@
 
 package com.morphoss.acal;
 
-import java.lang.reflect.Array;
-import java.lang.reflect.Field;
-
 import android.util.Log;
 
 
