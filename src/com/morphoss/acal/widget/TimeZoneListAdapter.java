@@ -1,10 +1,14 @@
 package com.morphoss.acal.widget;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.TimeZone;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.DataSetObserver;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -41,18 +45,42 @@ public class TimeZoneListAdapter implements SpinnerAdapter {
 		this.context = context;
 		String[] zoneNames = context.getResources().getStringArray(R.array.timezoneNameList);
 		ourZones = new ArrayList<Zone>(ZoneData.zones.length + 10 );
-		boolean found = false;
 		String currentTzId = (currentTz == null ? null : currentTz.getID());
+		
+		Map<String,Zone> zoneMap = new HashMap<String,Zone>(ZoneData.zones.length);
+		Zone aZone;
 		for( int i=0; i< ZoneData.zones.length; i++ ) {
-			Zone z = new Zone(zoneNames[i], ZoneData.zones[i][0]);
-			ourZones.add(z);
-			if ( currentTzId != null && currentTzId.equals(z.tzid) ) found = true;
+			aZone = new Zone(zoneNames[i], ZoneData.zones[i][0]);
+			zoneMap.put(ZoneData.zones[i][0],aZone);
 		}
-		if ( currentTz != null && !found ) {
-			// Add the current timezone into the first position in the list
-			ourZones.add(1, new Zone(currentTzId,currentTzId) );
+		if ( currentTzId != null ) {
+			aZone = zoneMap.get(currentTzId); 
+			if ( aZone == null ) aZone = new Zone(currentTzId,currentTzId);
+			else zoneMap.remove(currentTzId);
+			ourZones.add(aZone);
+		}
+		String floatingZone = context.getString(R.string.floatingTime);
+		ourZones.add(new Zone(floatingZone, null));
+		
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+		String recentZone;
+		for( int i=0; i<10; i++ ) {
+			recentZone = prefs.getString("recentTimeZone-"+i, null);
+			if ( recentZone != null ) {
+				aZone = zoneMap.get(recentZone); 
+				if ( aZone != null && !recentZone.equals(currentTzId) && !recentZone.equals(floatingZone) ) {
+					zoneMap.remove(recentZone);
+					ourZones.add(aZone);
+				}
+			}
+		}
+		
+		for( int i=0; i< ZoneData.zones.length; i++ ) {
+			aZone = zoneMap.get(ZoneData.zones[i][0]);
+			if ( aZone != null ) ourZones.add(aZone);
 		}
 
+		ourZones.add(new Zone("UTC", "UTC"));
 	}
 
 	public int getPositionOf(String tzid) {
