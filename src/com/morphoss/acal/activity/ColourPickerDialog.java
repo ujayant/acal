@@ -47,7 +47,6 @@ public class ColourPickerDialog {
 	public View primaryView;
 	
 	private float satudp;
-	private int warnaLama;
 	public int warnaBaru;
 	private float hue;
 	private float sat;
@@ -64,7 +63,6 @@ public class ColourPickerDialog {
 	
 	public ColourPickerDialog(Context context, int color, OnColourPickerListener listener) {
 		this.listener = listener;
-		this.warnaLama = color;
 		this.warnaBaru = color;
 		Color.colorToHSV(color, tmp01);
 		this.hue = tmp01[0];

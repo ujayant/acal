@@ -442,6 +442,7 @@ public class AcalRepeatRule {
 		if ( repeatRule.until != null && repeatRule.until.before(range.start) )
 			return ;
 
+		@SuppressWarnings("unused")
 		int found = 0;
 		long processingStarted = System.currentTimeMillis();
 		AcalDateTime thisDate = null;

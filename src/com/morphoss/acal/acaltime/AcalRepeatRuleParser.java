@@ -615,8 +615,9 @@ public abstract class AcalRepeatRuleParser {
 	
 
 	protected void debugCurrentSet( String whereAmI ) {
+		if ( !Constants.LOG_VERBOSE ) return; 
 		if ( currentSet.isEmpty() ) {
-			if ( Constants.LOG_VERBOSE ) Log.v(TAG, "Current set "+whereAmI+" is empty" );
+			Log.v(TAG, "Current set "+whereAmI+" is empty" );
 			return;
 		}
 		debugDates = new String[currentSet.size()];
@@ -626,7 +627,7 @@ public abstract class AcalRepeatRuleParser {
 			if ( i > 0 ) dateList += ", ";
 			dateList += debugDates[i]; 
 		}
-		if ( Constants.LOG_VERBOSE ) Log.v(TAG, whereAmI+" is: "+dateList + " -- " + this.toString() );
+		Log.v(TAG, whereAmI+" is: "+dateList + " -- " + this.toString() );
 	}
 
 	

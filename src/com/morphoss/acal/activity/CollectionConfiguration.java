@@ -24,11 +24,7 @@ import java.util.TimeZone;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Intent;
-import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.ColorFilter;
-import android.graphics.Paint;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
@@ -516,39 +512,6 @@ public class CollectionConfiguration extends PreferenceActivity implements OnPre
 			collectionData.put(field, syncAge);
 			return true;
 		}
-	}
-	
-	private class ColorBox extends Drawable {
-
-		public int color = 0xfff;
-		@Override
-		public void draw(Canvas arg0) {
-			// TODO Auto-generated method stub
-			Paint p = new Paint();
-			p.setColor(color);
-			p.setStyle(Paint.Style.FILL);
-			arg0.drawRect(0, 0, arg0.getWidth(), arg0.getHeight(), p);
-			
-		}
-
-		@Override
-		public int getOpacity() {
-			// TODO Auto-generated method stub
-			return 0;
-		}
-
-		@Override
-		public void setAlpha(int arg0) {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public void setColorFilter(ColorFilter arg0) {
-			// TODO Auto-generated method stub
-			
-		}
-		
 	}
 	
 }
