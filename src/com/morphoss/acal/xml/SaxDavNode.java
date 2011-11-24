@@ -16,7 +16,7 @@ import com.morphoss.acal.Constants;
 public class SaxDavNode extends DavNode {
 
 	private static final String TAG = "acal SaxDavNode";
-	
+
 	//vars that define THIS Node
 	private String tagName;
 	private HashMap<String,String> attributes;;
@@ -42,7 +42,7 @@ public class SaxDavNode extends DavNode {
 		for (int i = 0; i<attributes.getLength(); i++) {
 			String name = attributes.getLocalName(i);
 			if (name == null || name.equals("")) name = attributes.getQName(i);
-			this.attributes.put(name, attributes.getValue(i));
+			this.attributes.put(name, Entities.XML.unescape(attributes.getValue(i)));
 		}
 		if (Constants.LOG_VERBOSE) {
 			Log.v(TAG,"Created Child Node: "+tag);
@@ -128,7 +128,7 @@ public class SaxDavNode extends DavNode {
 	    			childHandler.endElement(uri, localName, qName);
 	    		} else if (child.tagName.equals(qName) || child.tagName.equals(localName)){
 	    			if (childHandler.textbuffer != null) {
-	    				child.text = childHandler.textbuffer.toString();
+	    				child.text = Entities.XML.unescape(childHandler.textbuffer.toString());
 	    				childHandler.textbuffer = null;
 	    			}
 	    			inChild = false;
