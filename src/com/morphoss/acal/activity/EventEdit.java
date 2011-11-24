@@ -277,8 +277,9 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 			this.event.setAction(AcalEvent.ACTION_CREATE);
 
 			if ( !event.getStart().isFloating() ) {
-				Log.i(TAG,"Forcing start date to floating on new event...");
+				if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG, "Forcing start/end dates to floating on new event...");
 				event.setField(EVENT_FIELD.startDate, event.getStart().setTimeZone(null));
+				event.setField(EVENT_FIELD.endDate, event.getEnd().setTimeZone(null));
 			}
 		}
 		this.collectionsArray = new String[activeCollections.length];
@@ -547,10 +548,10 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 	private boolean saveChanges() {
 		
 		try {
-			Log.i(TAG,"saveChanges: dtstart = "+event.getStart().toPropertyString(PropertyName.DTSTART));
+			if ( Constants.LOG_DEBUG ) Log.d(TAG,"saveChanges: dtstart = "+event.getStart().toPropertyString(PropertyName.DTSTART));
 			this.dataRequest.eventChanged(event);
 
-			Log.i(TAG,"Saving event with action " + event.getAction() );
+			if ( Constants.LOG_DEBUG ) Log.d(TAG,"Saving event with action " + event.getAction() );
 			if (event.getAction() == AcalEvent.ACTION_CREATE)
 				Toast.makeText(this, getString(R.string.EventSaved), Toast.LENGTH_LONG).show();
 			else if (event.getAction() == AcalEvent.ACTION_MODIFY_ALL)
@@ -644,6 +645,8 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 		this.updateLayout();
 	}
 
+
+	
 	//Dialogs
 	protected Dialog onCreateDialog(int id) {
 		AcalDateTime start = event.getStart();
@@ -651,33 +654,33 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 		switch (id) {
 			case START_DATE_DIALOG:
 				return new DateTimeDialog( this, start.clone(), prefer24hourFormat, true,
-						new DateTimeSetListener() {
-							public void onDateTimeSet(AcalDateTime newStart) {
-								AcalDateTime oldStart = event.getStart();
-								AcalDuration delta = oldStart.getDurationTo(newStart);
-								AcalDateTime newEnd = event.getEnd();
-								String endTzId = newEnd.getTimeZoneId();
-								newEnd.addDuration(delta);
-								if ( oldStart.isDate() != newStart.isDate() ) {
-									newEnd.setAsDate(newStart.isDate() );
-								}
-								String oldTzId = oldStart.getTimeZoneId();
-								String newTzId = newStart.getTimeZoneId();
-								if ( ( oldTzId == null && newTzId != null) || (oldTzId != null && !oldTzId.equals(newTzId) ) ) {
-									Log.i(TAG,"The timezone changed from "+oldTzId+" to "+newTzId+", EndTzId is "+endTzId);
-									// OK, so the timezone changed.  But did the old one previously match?
-									if ( (oldTzId == null && endTzId == null) ) {
-										newEnd.setTimeZone(newTzId);
-									}
-									else if (oldTzId != null && oldTzId.equals(endTzId)) {
-										newEnd.shiftTimeZone(newTzId);
-									}
-								}
-								event.setField(EVENT_FIELD.startDate, newStart);
-								event.setField(EVENT_FIELD.endDate, newEnd);
-								updateLayout();
+						new DateTimeSetListener() { public void onDateTimeSet(AcalDateTime newDateTime) {
+							AcalDateTime oldStart = event.getStart();
+							AcalDuration delta = oldStart.getDurationTo(newDateTime);
+							AcalDateTime newEnd = event.getEnd();
+							String endTzId = newEnd.getTimeZoneId();
+							newEnd.addDuration(delta);
+							if ( oldStart.isDate() != newDateTime.isDate() ) {
+								newEnd.setAsDate(newDateTime.isDate() );
 							}
-						});
+							String oldTzId = oldStart.getTimeZoneId();
+							String newTzId = newDateTime.getTimeZoneId();
+							if ( oldTzId == null && newTzId != null ) {
+								if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,"The timezone changed from floating to "+newTzId+", EndTzId was "+endTzId);
+								if ( endTzId == null ) newEnd.shiftTimeZone(newTzId);
+							}
+							else if ( oldTzId != null && !oldTzId.equals(newTzId) ) {
+								Log.println(Constants.LOGD, TAG,"The timezone changed from "+oldTzId+" to "+newTzId+", EndTzId was "+endTzId);
+								if ( Constants.LOG_DEBUG ) if ( oldTzId.equals(endTzId) ) newEnd.shiftTimeZone(newTzId);
+							}
+							else {
+								if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,"The timezone did not change from "+oldTzId+" to "+newTzId+", EndTzId was "+endTzId);
+							}
+							event.setField(EVENT_FIELD.startDate, newDateTime);
+							event.setField(EVENT_FIELD.endDate, newEnd);
+							updateLayout();
+						}
+				});
 
 			case END_DATE_DIALOG:
 				end.setAsDate(start.isDate());
@@ -689,13 +692,12 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 					end.addDays(-1);
 				}
 				return new DateTimeDialog( this, end, prefer24hourFormat, false,
-						new DateTimeSetListener() {
-							public void onDateTimeSet(AcalDateTime newDateTime) {
-								if ( newDateTime.isDate() ) newDateTime.addDays(1);
-								event.setField(EVENT_FIELD.endDate, newDateTime);
-								updateLayout();
-							}
-						});
+						new DateTimeSetListener() { public void onDateTimeSet(AcalDateTime newDateTime) {
+							if ( newDateTime.isDate() ) newDateTime.addDays(1);
+							event.setField(EVENT_FIELD.endDate, newDateTime);
+							updateLayout();
+						}
+				});
 
 			case SELECT_COLLECTION_DIALOG:
 				AlertDialog.Builder builder = new AlertDialog.Builder(this);
