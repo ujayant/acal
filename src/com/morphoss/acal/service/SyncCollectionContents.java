@@ -892,7 +892,7 @@ public class SyncCollectionContents extends ServiceJob {
 				switch (status) {
 					case 200: // Status O.K.
 						StringBuilder resourceData = new StringBuilder();
-						BufferedReader r = new BufferedReader(new InputStreamReader(in));
+						BufferedReader r = new BufferedReader(new InputStreamReader(in),4096);
 						String line;
 						try {
 							while ((line = r.readLine() ) != null) {

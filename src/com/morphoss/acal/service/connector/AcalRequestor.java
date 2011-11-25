@@ -719,7 +719,7 @@ public class AcalRequestor {
 				// and this hack can be removed...  Need to find a server which does not send Content-Length headers.
 				//
 				InputStream in = entity.getContent();
-				BufferedReader r = new BufferedReader(new InputStreamReader(in));
+				BufferedReader r = new BufferedReader(new InputStreamReader(in),AcalConnectionPool.DEFAULT_BUFFER_SIZE);
 				StringBuilder total = new StringBuilder();
 				String line;
 				while ( (line = r.readLine()) != null ) {

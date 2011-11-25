@@ -22,7 +22,7 @@ import com.morphoss.acal.service.aCalService;
 
 public class AcalConnectionPool {
 	
-	public static final int	DEFAULT_BUFFER_SIZE	= 8192;
+	public static final int	DEFAULT_BUFFER_SIZE	= 4096;
 	
 	private static HttpParams httpParams = null;
 	private static SchemeRegistry schemeRegistry = null;
