@@ -142,7 +142,7 @@ public class SyncCollectionContents extends ServiceJob {
 		}
 
 		if (!(1 == serverData.getAsInteger(Servers.ACTIVE))) {
-			if (Constants.LOG_DEBUG) Log.d(TAG, "Server is no longer active - sync cancelled: " + serverData.getAsInteger(Servers.ACTIVE)
+			if (Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG, "Server is no longer active - sync cancelled: " + serverData.getAsInteger(Servers.ACTIVE)
 							+ " " + serverData.getAsString(Servers.FRIENDLY_NAME));
 			return;
 		}
@@ -161,13 +161,13 @@ public class SyncCollectionContents extends ServiceJob {
 			}
 
 			if ( Constants.LOG_DEBUG )
-				Log.d(TAG, "Starting sync on collection " + this.collectionPath + " (" + this.collectionId + ")");
+				Log.println(Constants.LOGD,TAG, "Starting sync on collection " + this.collectionPath + " (" + this.collectionId + ")");
 
 			aCalService.databaseDispatcher.dispatchEvent(new DatabaseChangedEvent(
 					DatabaseChangedEvent.DATABASE_BEGIN_RESOURCE_CHANGES, DavCollections.class, collectionData));
 
 			if (originalData.size() < 1) {
-				if (Constants.LOG_VERBOSE) Log.v(TAG, "No local resources marked as needing synchronisation.");
+				if (Constants.LOG_VERBOSE) Log.println(Constants.LOGV,TAG, "No local resources marked as needing synchronisation.");
 			}
 			else 
 				syncMarkedResources( originalData );
@@ -210,7 +210,7 @@ public class SyncCollectionContents extends ServiceJob {
 						DatabaseChangedEvent.DATABASE_END_RESOURCE_CHANGES, DavCollections.class, collectionData));
 		}
 		long finish = System.currentTimeMillis();
-		if (Constants.LOG_VERBOSE) Log.v(TAG, "Collection sync finished in " + (finish - start) + "ms");
+		if (Constants.LOG_VERBOSE) Log.println(Constants.LOGV,TAG, "Collection sync finished in " + (finish - start) + "ms");
 
 		scheduleNextInstance();
 
@@ -266,7 +266,7 @@ public class SyncCollectionContents extends ServiceJob {
 			return false;
 		}
 
-		if (Constants.LOG_VERBOSE) Log.v(TAG, "getCollectionInfo() completed in " + (System.currentTimeMillis() - start) + "ms");
+		if (Constants.LOG_VERBOSE) Log.println(Constants.LOGV,TAG, "getCollectionInfo() completed in " + (System.currentTimeMillis() - start) + "ms");
 		return true;
 	}
 
@@ -340,7 +340,7 @@ public class SyncCollectionContents extends ServiceJob {
 		
 		ArrayList<ResourceModification> changeList = new ArrayList<ResourceModification>(); 
 
-		if (Constants.LOG_VERBOSE) Log.v(TAG, "Start processing response");
+		if (Constants.LOG_VERBOSE) Log.println(Constants.LOGV,TAG, "Start processing response");
 		List<DavNode> responses = root.getNodesFromPath("multistatus/response");
 		if ( responses.isEmpty() ) {
 			responses = root.getNodesFromPath("multistatus/sync-response");
@@ -359,14 +359,15 @@ public class SyncCollectionContents extends ServiceJob {
 		}
 
 		for (DavNode response : responses) {
-			String name = response.segmentFromFirstHref("href");
+			String responseHref = response.segmentFromFirstHref("href");
+			if (Constants.LOG_VERBOSE) Log.println(Constants.LOGV,TAG, "Processing response for "+responseHref);
 			WriteActions action = WriteActions.UPDATE;
 
-			ContentValues cv = DavResources.getResourceInCollection( collectionId, name, cr);
+			ContentValues cv = DavResources.getResourceInCollection( collectionId, responseHref, cr);
 			if ( cv == null ) {
 				cv = new ContentValues();
 				cv.put(DavResources.COLLECTION_ID, collectionId);
-				cv.put(DavResources.RESOURCE_NAME, name);
+				cv.put(DavResources.RESOURCE_NAME, responseHref);
 				cv.put(DavResources.NEEDS_SYNC, 1 );
 				action = WriteActions.INSERT;
 			}
@@ -377,7 +378,7 @@ public class SyncCollectionContents extends ServiceJob {
 						|| aNode.get(0).getText().equalsIgnoreCase("HTTP/1.1 201 Created")
 						|| aNode.get(0).getText().equalsIgnoreCase("HTTP/1.1 200 OK") ) {
 
-				Log.i(TAG,"Updating node "+name+" with "+action.toString() );
+				Log.i(TAG,"Updating node "+responseHref+" with "+action.toString() );
 				// We are dealing with an update or insert
 				if ( !parseResponseNode(response, cv) ) continue;
 				if ( cv.getAsInteger(DavResources.NEEDS_SYNC) == 1 ) needSyncAfterwards = true; 
@@ -385,25 +386,25 @@ public class SyncCollectionContents extends ServiceJob {
 				if ( oldEtag != null && cv.getAsString(DavResources.ETAG) != null ) {
 					if ( oldEtag.equals(cv.getAsString(DavResources.ETAG)) ) {
 						// Resource in both places, but is unchanged.
-						Log.d(TAG,"Notified of change to resource but etag already matches!");
+						Log.println(Constants.LOGD,TAG,"Notified of change to resource but etag already matches!");
 						root.removeSubTree(response);
 						continue;
 					}
 					if ( Constants.LOG_DEBUG )
-						Log.d(TAG,"Old etag="+oldEtag+", new etag="+cv.getAsString(DavResources.ETAG));
+						Log.println(Constants.LOGD,TAG,"Old etag="+oldEtag+", new etag="+cv.getAsString(DavResources.ETAG));
 				}
 			}
 			else if ( action == WriteActions.INSERT ) {
 				// It looked like an INSERT because it's not in our DB, but in fact
 				// the status message was not 200/201 so it's a DELETE that we're
 				// seeing reflected back at us.
-				Log.i(TAG,"Ignoring delete sync on node '"+name+"' which is already deleted from our DB." );
+				Log.i(TAG,"Ignoring delete sync on node '"+responseHref+"' which is already deleted from our DB." );
 			}
 			else {
 				// This really *is* a DELETE, since the status could only
 				// have said so.  Or we're getting invalid status messages
 				// and their events all deserve to die anyway!
-				Log.i(TAG,"Deleting node '"+name+"'with status: "+aNode.get(0).getText() );
+				Log.i(TAG,"Deleting node '"+responseHref+"'with status: "+aNode.get(0).getText() );
 				action = WriteActions.DELETE;
 			}
 			root.removeSubTree(response);
@@ -455,23 +456,24 @@ public class SyncCollectionContents extends ServiceJob {
 		ArrayList<ResourceModification> changeList = new ArrayList<ResourceModification>(); 
 
 		try {
-			if (Constants.LOG_VERBOSE) Log.v(TAG, "Start processing PROPFIND response");
+			if (Constants.LOG_VERBOSE) Log.println(Constants.LOGV,TAG, "Start processing PROPFIND response");
 			long start2 = System.currentTimeMillis();
 			List<DavNode> responses = root.getNodesFromPath("multistatus/response");
 
 			for (DavNode response : responses) {
-				String name = response.segmentFromFirstHref("href");
+				String responseHref = response.segmentFromFirstHref("href");
+				if (Constants.LOG_VERBOSE) Log.println(Constants.LOGV,TAG, "Processing response for "+responseHref);
 
 				ContentValues cv = null;				
 				WriteActions action = WriteActions.UPDATE;
-				if ( ourResourceMap != null && ourResourceMap.containsKey(name)) {
-					cv = ourResourceMap.get(name);
-					ourResourceMap.remove(name);
+				if ( ourResourceMap != null && ourResourceMap.containsKey(responseHref)) {
+					cv = ourResourceMap.get(responseHref);
+					ourResourceMap.remove(responseHref);
 				}
 				else {
 					cv = new ContentValues();
 					cv.put(DavResources.COLLECTION_ID, collectionId);
-					cv.put(DavResources.RESOURCE_NAME, name);
+					cv.put(DavResources.RESOURCE_NAME, responseHref);
 					cv.put(DavResources.NEEDS_SYNC, 1);
 					action = WriteActions.INSERT;
 				}
@@ -493,7 +495,7 @@ public class SyncCollectionContents extends ServiceJob {
 				}
 			}
 			
-			if (Constants.LOG_VERBOSE)	Log.v(TAG, "Completed processing of PROPFIND sync in " + (System.currentTimeMillis() - start2) + "ms");
+			if (Constants.LOG_VERBOSE)	Log.println(Constants.LOGV,TAG, "Completed processing of PROPFIND sync in " + (System.currentTimeMillis() - start2) + "ms");
 		}
 		catch (Exception e) {
 			Log.e(TAG, "Exception processing PROPFIND response: " + e.getMessage());
@@ -536,7 +538,7 @@ public class SyncCollectionContents extends ServiceJob {
 	 *         </p>
 	 */
 	private boolean collectionTagChanged() {
-		if (Constants.LOG_DEBUG) Log.d(TAG, "Requesting CTag on collection.");
+		if (Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG, "Requesting CTag on collection.");
 		DavNode root = doCalendarRequest("PROPFIND", 0,
 					"<?xml version=\"1.0\" encoding=\"utf-8\" ?>"
 					+ "<propfind xmlns=\"DAV:\" xmlns:CS=\"http://calendarserver.org/ns/\">"
@@ -604,7 +606,7 @@ public class SyncCollectionContents extends ServiceJob {
 	private void syncMarkedResources( Map<String, ContentValues> originalData ) {
 
 		if (Constants.LOG_DEBUG)
-			Log.d(TAG, "Found " + originalData.size() + " resources marked as needing synchronisation.");
+			Log.println(Constants.LOGD,TAG, "Found " + originalData.size() + " resources marked as needing synchronisation.");
 
 		Set<String> hrefSet = originalData.keySet();
 		Object[] hrefs = hrefSet.toArray();
@@ -662,7 +664,7 @@ public class SyncCollectionContents extends ServiceJob {
 			}
 		
 			if (Constants.LOG_DEBUG)
-				Log.d(TAG, "Requesting " + multigetReportTag + " for " + nPerMultiget + " resources out of "+hrefs.length+"." );
+				Log.println(Constants.LOGD,TAG, "Requesting " + multigetReportTag + " for " + nPerMultiget + " resources out of "+hrefs.length+"." );
 
 			DavNode root = doCalendarRequest( "REPORT", 1, String.format(baseXml,hrefList.toString()) );
 
@@ -672,14 +674,14 @@ public class SyncCollectionContents extends ServiceJob {
 				return;
 			}
 
-			if (Constants.LOG_VERBOSE) Log.v(TAG, "Start processing response");
+			if (Constants.LOG_VERBOSE) Log.println(Constants.LOGV,TAG, "Start processing response");
 			List<DavNode> responses = root.getNodesFromPath("multistatus/response");
 			List<ResourceModification> changeList = new ArrayList<ResourceModification>(hrefList.length());
 
 			for (DavNode response : responses) {
 				String name = response.segmentFromFirstHref("href");
 				if ( toBeRemoved.contains(name) ) {
-					Log.v(TAG,"Found href in our list.");
+					Log.println(Constants.LOGV,TAG,"Found href in our list.");
 					toBeRemoved.remove(name);
 				}
 
@@ -695,7 +697,7 @@ public class SyncCollectionContents extends ServiceJob {
 				if ( cv.getAsString("COLLECTION") != null ) continue;
 
 				if (Constants.LOG_DEBUG)
-					Log.d(TAG, "Multiget response needs sync="+cv.getAsString(DavResources.NEEDS_SYNC)+" for "+name );
+					Log.println(Constants.LOGD,TAG, "Multiget response needs sync="+cv.getAsString(DavResources.NEEDS_SYNC)+" for "+name );
 				
 				changeList.add( new ResourceModification(action, cv, null) );
 			}
@@ -712,7 +714,7 @@ public class SyncCollectionContents extends ServiceJob {
 				}
 				if ( Constants.LOG_DEBUG ) {
 					if ( mi != null ) {
-						Log.d(TAG,String.format("MemoryInfo: Dalvik(%d,%d,%d), Native(%d,%d,%d), Other(%d,%d,%d)",
+						Log.println(Constants.LOGD,TAG,String.format("MemoryInfo: Dalvik(%d,%d,%d), Native(%d,%d,%d), Other(%d,%d,%d)",
 									mi.dalvikPrivateDirty, mi.dalvikPss, mi.dalvikSharedDirty,
 									mi.nativePrivateDirty, mi.nativePss, mi.nativeSharedDirty,
 									mi.otherPrivateDirty,  mi.otherPss,  mi.otherSharedDirty ) );
@@ -732,7 +734,7 @@ public class SyncCollectionContents extends ServiceJob {
 		}
 
 		for( String href : toBeRemoved ) {
-			Log.v(TAG,"Did not find +"+href+"+ in the list.");
+			Log.println(Constants.LOGV,TAG,"Did not find +"+href+"+ in the list.");
 		}
 		if ( toBeRemoved.size() > 0 ) {
 			doRegularSyncPropfind();
@@ -766,7 +768,7 @@ public class SyncCollectionContents extends ServiceJob {
 		cqm.requery();
 		originalData = cqm.getRows();
 		mCursor.close();
-		if (Constants.LOG_VERBOSE) Log.v(TAG, "DavCollections ContentQueryMap retrieved in " + (System.currentTimeMillis() - start) + "ms");
+		if (Constants.LOG_VERBOSE) Log.println(Constants.LOGV,TAG, "DavCollections ContentQueryMap retrieved in " + (System.currentTimeMillis() - start) + "ms");
 		return originalData;
 	}
 
@@ -804,16 +806,16 @@ public class SyncCollectionContents extends ServiceJob {
 				String etag = prop.getFirstNodeText("getetag");
 				
 				if ( etag != null ) {
-					etag.replace("&quot;", "\"");  // @todo: This is a hack.  The XML parser should do entity decoding, really. 
 					String oldEtag = cv.getAsString(DavResources.ETAG);
-					if ( oldEtag != null && oldEtag.equals(etag) && cv.get(DavResources.RESOURCE_DATA) != null ) {
+					if ( Constants.LOG_DEBUG )
+						Log.println(Constants.LOGD,TAG,"Found etag '"+etag+"' in response.  Old etags was '"+oldEtag+"'.");
+					
+					if ( etag.equals(oldEtag) && cv.get(DavResources.RESOURCE_DATA) != null ) {
 						cv.put(DavResources.NEEDS_SYNC, 0);
 						responseNode.getParent().removeSubTree(responseNode);
 						return false;
 					}
 					else {
-						if ( Constants.LOG_DEBUG )
-							Log.d(TAG,"Etags not equal: old="+oldEtag+", new="+etag+", proposing to sync.");
 						cv.put(DavResources.NEEDS_SYNC, 1);
 					}
 				}
@@ -821,9 +823,9 @@ public class SyncCollectionContents extends ServiceJob {
 				String data = prop.getFirstNodeText(dataType + "-data");
 				if ( data != null ) {
 					if ( Constants.LOG_VERBOSE ) {
-						Log.v(TAG,"Found data in response:");
-						Log.v(TAG,data);
-						Log.v(TAG,StaticHelpers.toHexString(data.substring(0,40).getBytes()));
+						Log.println(Constants.LOGV,TAG,"Found data in response:");
+						Log.println(Constants.LOGV,TAG,data);
+						Log.println(Constants.LOGV,TAG,StaticHelpers.toHexString(data.substring(0,40).getBytes()));
 					}
 					cv.put(DavResources.RESOURCE_DATA, data);
 					cv.put(DavResources.ETAG, etag);
@@ -887,7 +889,7 @@ public class SyncCollectionContents extends ServiceJob {
 				continue;
 			}
 			if (in == null) {
-				if (Constants.LOG_DEBUG) Log.d(TAG, "Error - Unable to get data stream from server.");
+				if (Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG, "Error - Unable to get data stream from server.");
 				continue;
 			}
 			else {
@@ -917,7 +919,7 @@ public class SyncCollectionContents extends ServiceJob {
 						cv.put(DavResources.NEEDS_SYNC, 0);
 						changeList.add( new ResourceModification(WriteActions.UPDATE, cv, null) );
 						if (Constants.LOG_DEBUG)
-							Log.d(TAG, "Get response for "+hrefs[hrefIndex] );
+							Log.println(Constants.LOGD,TAG, "Get response for "+hrefs[hrefIndex] );
 						break;
 
 					default: // Unknown code
@@ -928,7 +930,7 @@ public class SyncCollectionContents extends ServiceJob {
 
 		ResourceModification.commitChangeList(context, changeList);
 
-		if (Constants.LOG_VERBOSE)	Log.v(TAG, "syncWithGet() for " + hrefs.length + " resources took "
+		if (Constants.LOG_VERBOSE)	Log.println(Constants.LOGV,TAG, "syncWithGet() for " + hrefs.length + " resources took "
 						+ (System.currentTimeMillis() - fullMethod) + "ms");
 		return;
 	}
@@ -937,17 +939,17 @@ public class SyncCollectionContents extends ServiceJob {
 
 	private boolean timeToRun() {
 		if ( synchronisationForced ) {
-			if (Constants.LOG_VERBOSE) Log.v(TAG, "Synchronising now, since a sync has been forced.");
+			if (Constants.LOG_VERBOSE) Log.println(Constants.LOGV,TAG, "Synchronising now, since a sync has been forced.");
 			return true;
 		}
 		String needsSyncNow = collectionData.getAsString(DavCollections.NEEDS_SYNC);
 		if ( needsSyncNow == null || needsSyncNow.equals("1") ) {
-			if (Constants.LOG_VERBOSE) Log.v(TAG, "Synchronising now, since needs_sync is true.");
+			if (Constants.LOG_VERBOSE) Log.println(Constants.LOGV,TAG, "Synchronising now, since needs_sync is true.");
 			return true; 
 		}
 		String lastSyncString = collectionData.getAsString(DavCollections.LAST_SYNCHRONISED);
 		if ( lastSyncString == null ) { 
-			if (Constants.LOG_VERBOSE) Log.v(TAG, "Synchronising now, since last_sync is null.");
+			if (Constants.LOG_VERBOSE) Log.println(Constants.LOGV,TAG, "Synchronising now, since last_sync is null.");
 			return true; 
 		}
 		AcalDateTime lastRunTime = null;
@@ -967,7 +969,7 @@ public class SyncCollectionContents extends ServiceJob {
 
 		if ( maxAgeMs < minBetweenSyncs ) maxAgeMs = minBetweenSyncs; 
 
-		if (Constants.LOG_VERBOSE) Log.v(TAG, "Considering whether we are " + maxAgeMs / 1000 + "s past "
+		if (Constants.LOG_VERBOSE) Log.println(Constants.LOGV,TAG, "Considering whether we are " + maxAgeMs / 1000 + "s past "
 						+ lastRunTime.fmtIcal() + "("+lastRunTime.getMillis()+") yet? "
 						+ "Now: " + new AcalDateTime().fmtIcal() + "("+System.currentTimeMillis()+")... So: "
 						+ ((maxAgeMs + lastRunTime.getMillis() < System.currentTimeMillis()) ? "yes" : "no"));
@@ -993,7 +995,7 @@ public class SyncCollectionContents extends ServiceJob {
 		}
 
 		if ( Constants.LOG_VERBOSE )
-			Log.v(TAG, "Scheduling next sync status check for "+collectionId+" - '"
+			Log.println(Constants.LOGV,TAG, "Scheduling next sync status check for "+collectionId+" - '"
 						+ collectionData.getAsString(DavCollections.DISPLAYNAME)
 						+"' in " + Long.toString(timeToWait / 1000) + " seconds.");
 		
