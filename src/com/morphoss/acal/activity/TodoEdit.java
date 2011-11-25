@@ -617,7 +617,7 @@ public class TodoEdit extends AcalActivity
 
 		switch ( id ) {
 			case FROM_DIALOG:
-				return new DateTimeDialog( this, start, prefer24hourFormat, true,
+				return new DateTimeDialog( this, start, prefer24hourFormat, true, true,
 						new DateTimeSetListener() {
 							public void onDateTimeSet(AcalDateTime newDateTime) {
 								todo.setStart( newDateTime );
@@ -626,7 +626,7 @@ public class TodoEdit extends AcalActivity
 						});
 
 			case DUE_DIALOG:
-				return new DateTimeDialog( this, due, prefer24hourFormat, true,
+				return new DateTimeDialog( this, due, prefer24hourFormat, true, true,
 						new DateTimeSetListener() {
 							public void onDateTimeSet(AcalDateTime newDateTime) {
 								todo.setDue( newDateTime );
@@ -635,7 +635,7 @@ public class TodoEdit extends AcalActivity
 						});
 
 			case COMPLETED_DIALOG:
-				return new DateTimeDialog( this, completed, prefer24hourFormat, true,
+				return new DateTimeDialog( this, completed, prefer24hourFormat, true, true,
 						new DateTimeSetListener() {
 							public void onDateTimeSet(AcalDateTime newDateTime) {
 								todo.setCompleted( newDateTime );

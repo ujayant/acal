@@ -63,14 +63,17 @@ public class DateTimeDialog extends Dialog
 
 	private AcalDateTime currentDateTime;
 	private final boolean use24HourTime;
+	private final boolean allowTimeZoneSetting;
 
-	public DateTimeDialog(Context context, AcalDateTime dateTimeValue, boolean twentyFourHourTime, boolean allowDateTimeSwitching, DateTimeSetListener listener )  {
+	public DateTimeDialog(Context context, AcalDateTime dateTimeValue, boolean twentyFourHourTime,
+			boolean allowDateTimeSwitching, boolean allowTimeZones, DateTimeSetListener listener )  {
     	super(context);
     	this.context = context;
         this.dialogListener = listener;
         use24HourTime = twentyFourHourTime;
         setContentView(R.layout.datetime_dialog);
         allowDateVsDateTimeSwitching = allowDateTimeSwitching;
+        allowTimeZoneSetting = allowTimeZones;
 
         currentDateTime = (dateTimeValue == null ? new AcalDateTime() : dateTimeValue.clone());
         populateLayout();
@@ -111,6 +114,8 @@ public class DateTimeDialog extends Dialog
 	        	timeZoneSpinner.setVisibility(View.GONE);
 	        }
         }
+        if ( !allowTimeZoneSetting )
+        	timeZoneSpinner.setVisibility(View.GONE);
 
         updateLayout();
     }

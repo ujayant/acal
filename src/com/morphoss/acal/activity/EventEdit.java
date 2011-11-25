@@ -653,7 +653,7 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 		AcalDateTime end = event.getEnd();
 		switch (id) {
 			case START_DATE_DIALOG:
-				return new DateTimeDialog( this, start.clone(), prefer24hourFormat, true,
+				return new DateTimeDialog( this, start.clone(), prefer24hourFormat, true, true,
 						new DateTimeSetListener() { public void onDateTimeSet(AcalDateTime newDateTime) {
 							AcalDateTime oldStart = event.getStart();
 							AcalDuration delta = oldStart.getDurationTo(newDateTime);
@@ -691,7 +691,7 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 					// one day earlier than the actual setting, if we're viewing 
 					end.addDays(-1);
 				}
-				return new DateTimeDialog( this, end, prefer24hourFormat, false,
+				return new DateTimeDialog( this, end, prefer24hourFormat, false, true,
 						new DateTimeSetListener() { public void onDateTimeSet(AcalDateTime newDateTime) {
 							if ( newDateTime.isDate() ) newDateTime.addDays(1);
 							event.setField(EVENT_FIELD.endDate, newDateTime);
