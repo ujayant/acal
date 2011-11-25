@@ -20,15 +20,21 @@ package com.morphoss.acal.widget;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
+import android.text.format.DateFormat;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 
+import com.morphoss.acal.AcalTheme;
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateTime;
+import com.morphoss.acal.acaltime.AcalDateTimeFormatter;
 import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.davacal.AcalAlarm;
 import com.morphoss.acal.davacal.AcalAlarm.ActionType;
@@ -47,8 +53,11 @@ public class AlarmDialog extends Dialog implements OnClickListener, OnSeekBarCha
 	private Button beforeButton;
 	private Button relatedButton;
 	private TextView alarmTimeText;
+	private LinearLayout relativeDurationLayout;
 	private TextView relativeDurationText;
 	private SeekBar alarmAdjustDuration;
+	private LinearLayout absoluteAlarmTimeLayout;
+	private Button absoluteDateTimeButton;
 
 	public interface AlarmSetListener {
 		public void onAlarmSet(AcalAlarm alarmValue);
@@ -65,6 +74,7 @@ public class AlarmDialog extends Dialog implements OnClickListener, OnSeekBarCha
 	private final AcalDateTime originalEnd;
 	private final String parentType;
 	private final ActionType actionType;
+	private boolean	prefer24hourFormat;
 
 
 	/**
@@ -84,7 +94,7 @@ public class AlarmDialog extends Dialog implements OnClickListener, OnSeekBarCha
         setContentView(R.layout.alarm_dialog);
 
         relativeOffset = (alarmValue != null ? alarmValue.relativeTime : new AcalDuration());
-        offsetBefore = (relativeOffset.getTimeMillis() < 0);
+        offsetBefore = (relativeOffset.getTimeMillis() <= 0);
         relativeTo = (alarmValue != null ? alarmValue.relativeTo
         								 : (start != null ? RelateWith.START
         										 		  : (end != null ? RelateWith.END : RelateWith.ABSOLUTE )));
@@ -101,20 +111,34 @@ public class AlarmDialog extends Dialog implements OnClickListener, OnSeekBarCha
         beforeButton.setOnClickListener(this);
         relatedButton = (Button)this.findViewById(R.id.AlarmRelatedButton);
         relatedButton.setOnClickListener(this);
+
+        absoluteDateTimeButton = (Button) findViewById(R.id.AbsoluteDateTime);
+        AcalTheme.setContainerFromTheme(absoluteDateTimeButton, AcalTheme.BUTTON);
+        absoluteDateTimeButton.setOnClickListener(this);
+
         alarmTimeText = (TextView) this.findViewById(R.id.alarmTimeText);
         relativeDurationText = (TextView) this.findViewById(R.id.alarmRelativeDuration);
         alarmAdjustDuration = (SeekBar) this.findViewById(R.id.alarmAdjustDuration);
         alarmAdjustDuration.setMax(120);
-
+        if ( offsetBefore ) alarmAdjustDuration.setProgress(120);
+        
+        relativeDurationLayout = (LinearLayout) findViewById(R.id.RelativeDurationLayout);
+        absoluteAlarmTimeLayout = (LinearLayout) findViewById(R.id.AbsoluteAlarmTimeLayout);
         if ( start == null && end == null ) {
-        	relativeTo = RelateWith.ABSOLUTE;
+        	((LinearLayout) findViewById(R.id.ButtonLayout)).setVisibility(View.GONE);
         	relatedButton.setEnabled(false);
         	beforeButton.setEnabled(false);
-        	alarmAdjustDuration.setVisibility(View.GONE);
+        	relativeDurationText.setText(context.getString(R.string.Exactly));
         }
         else {
         	alarmAdjustDuration.setOnSeekBarChangeListener(this);
         }
+        
+        setTitle(context.getString(R.string.SetCustomAlarm));
+        
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+		prefer24hourFormat = prefs.getBoolean(context.getString(R.string.prefTwelveTwentyfour), DateFormat.is24HourFormat(context));
+		updateLayout();
     }
 
 	
@@ -122,15 +146,21 @@ public class AlarmDialog extends Dialog implements OnClickListener, OnSeekBarCha
 		if ( RelateWith.ABSOLUTE == relativeTo ) {
         	relatedButton.setText(context.getString(R.string.Exactly));
         	beforeButton.setText(context.getString(R.string.Exactly));
-        	relativeDurationText.setVisibility(View.GONE);
-        	alarmAdjustDuration.setEnabled(false);
+        	relativeDurationText.setText(context.getString(R.string.Exactly));
+        	relativeDurationLayout.setVisibility(View.GONE);
+        	absoluteAlarmTimeLayout.setVisibility(View.VISIBLE);
+        	absoluteDateTimeButton.setText(AcalDateTimeFormatter.fmtFull(timeToFire, prefer24hourFormat));
 		}
 		else {
+        	relativeDurationLayout.setVisibility(View.VISIBLE);
+        	absoluteAlarmTimeLayout.setVisibility(View.GONE);
+			String relatedPart = context.getString(R.string.Start);
 			if ( RelateWith.START == relativeTo ) { 
 	        	relatedButton.setText(context.getString(R.string.Start));
 	        	timeToFire = originalStart.clone(); 
 			}
 			else if ( RelateWith.END == relativeTo ) {
+				relatedPart = context.getString(R.string.Finish);
 	        	relatedButton.setText(context.getString( parentType.equals(VComponent.VTODO)? R.string.Due : R.string.Finish ));
 	        	timeToFire = originalEnd.clone(); 
 			}
@@ -141,9 +171,9 @@ public class AlarmDialog extends Dialog implements OnClickListener, OnSeekBarCha
         	alarmAdjustDuration.setEnabled(true);
         	
         	relativeDurationText.setVisibility(View.VISIBLE);
-        	relativeDurationText.setText(relativeOffset.toString());
+        	relativeDurationText.setText(relativeOffset.toPrettyString(relatedPart));
 		}
-    	alarmTimeText.setText(timeToFire.fmtIcal());
+    	alarmTimeText.setText(AcalDateTimeFormatter.fmtFull(timeToFire, prefer24hourFormat));
 	}
 
 
@@ -156,6 +186,8 @@ public class AlarmDialog extends Dialog implements OnClickListener, OnSeekBarCha
 		newDays *= (offsetBefore?-1:1);
 		newSeconds *= (offsetBefore?-1:1);
 		relativeOffset.setDuration(newDays, (int) newSeconds);
+		alarmAdjustDuration.setProgress(alarmAdjustDuration.getMax() - alarmAdjustDuration.getProgress());
+		onProgressChanged(alarmAdjustDuration, alarmAdjustDuration.getProgress(), true);
 		updateLayout();
 	}
 
@@ -177,6 +209,24 @@ public class AlarmDialog extends Dialog implements OnClickListener, OnSeekBarCha
 	}
 
 	
+	protected void absoluteDateTimeDialog() {
+
+		DateTimeSetListener absoluteDateTimeListener = new DateTimeSetListener() {
+
+			@Override
+			public void onDateTimeSet(AcalDateTime newDateTime) {
+				// @todo Auto-generated method stub
+				timeToFire = newDateTime;
+				updateLayout();
+			}
+			
+		};
+
+		DateTimeDialog absoluteDateTime = new DateTimeDialog(context, timeToFire, prefer24hourFormat, false, false, absoluteDateTimeListener);
+		absoluteDateTime.show();
+	}
+
+	
 	@Override
 	public void onClick(View v) {
 		if (v == okButton) {
@@ -187,13 +237,18 @@ public class AlarmDialog extends Dialog implements OnClickListener, OnSeekBarCha
 		if (v == okButton || v == cancelButton ) this.dismiss();
 
 		if ( v == beforeButton ) toggleBeforeButton();
-		else if ( v == relatedButton ) toggleRelatedButton(); 
+		else if ( v == relatedButton ) toggleRelatedButton();
+		else if ( v == absoluteDateTimeButton ) absoluteDateTimeDialog();
+
 	}
 
 	
+	
+
 	@Override
 	public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
 		if ( fromUser ) {
+			if ( offsetBefore ) progress = seekBar.getMax() - progress;
 			int offsetMinutes = 0;
 			if ( progress < 18 ) 		offsetMinutes = progress * 5;			//    0 -   85 by  5
 			else if ( progress < 28 )	offsetMinutes = (progress - 12) *  15;	//   90 -  225 by 15
