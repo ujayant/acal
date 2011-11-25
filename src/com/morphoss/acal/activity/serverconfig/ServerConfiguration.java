@@ -87,8 +87,7 @@ public class ServerConfiguration extends PreferenceActivity implements OnPrefere
 	
 	//Preferences with changeable states
 	private EditTextPreference friendlyName;
-	private EditTextPreference suppliedDomain;
-	private EditTextPreference suppliedPath;
+	private EditTextPreference calendarUserURL;
 	private EditTextPreference hostname;	
 	private EditTextPreference port;
 	private EditTextPreference principalPath;
@@ -149,8 +148,8 @@ public class ServerConfiguration extends PreferenceActivity implements OnPrefere
 		else if (serverData.getAsInteger(MODEKEY) == MODE_EDIT){
 			//ensure all required fields are present
 			if (!	serverData.containsKey(Servers.FRIENDLY_NAME) &&
-					serverData.containsKey(Servers.SUPPLIED_DOMAIN) &&
-					serverData.containsKey(Servers.SUPPLIED_PATH) &&
+					serverData.containsKey(Servers.SUPPLIED_USER_URL) &&
+//					serverData.containsKey(Servers.SUPPLIED_PATH) &&
 					serverData.containsKey(Servers.HOSTNAME) &&
 					serverData.containsKey(Servers.PRINCIPAL_PATH) &&
 					serverData.containsKey(Servers.USERNAME) &&
@@ -172,8 +171,8 @@ public class ServerConfiguration extends PreferenceActivity implements OnPrefere
 
 		//Create a map of Field --> default summaries
 		defaultSummaries.put(Servers.FRIENDLY_NAME, getString(R.string.A_name_for_this_server_configuration));
-		defaultSummaries.put(Servers.SUPPLIED_DOMAIN, getString(R.string.The_domain_for_your_organisation));
-		defaultSummaries.put(Servers.SUPPLIED_PATH, getString(R.string.The_path_on_the_server));
+		defaultSummaries.put(Servers.SUPPLIED_USER_URL, getString(R.string.A_URL_or_domain_name));
+//		defaultSummaries.put(Servers.SUPPLIED_PATH, getString(R.string.The_path_on_the_server));
 		defaultSummaries.put(Servers.USE_SSL, getString(R.string.Whether_to_use_encryption));
 		defaultSummaries.put(Servers.HOSTNAME, getString(R.string.The_servers_hostname));
 		defaultSummaries.put(Servers.PORT, getString(R.string.The_port_to_connect_to));
@@ -213,7 +212,7 @@ public class ServerConfiguration extends PreferenceActivity implements OnPrefere
 	private void createDefaultValuesForMissing() {
 		if (!	serverData.containsKey(Servers.FRIENDLY_NAME)) serverData.put(Servers.FRIENDLY_NAME,"");
 		if (!	serverData.containsKey(Servers.HOSTNAME)) serverData.put(Servers.HOSTNAME,"");
-		if (!	serverData.containsKey(Servers.SUPPLIED_PATH)) serverData.put(Servers.SUPPLIED_PATH,"");
+		if (!	serverData.containsKey(Servers.SUPPLIED_USER_URL)) serverData.put(Servers.SUPPLIED_USER_URL,"");
 		if (!	serverData.containsKey(Servers.USERNAME)) serverData.put(Servers.USERNAME,"");
 		if (!	serverData.containsKey(Servers.PASSWORD)) serverData.put(Servers.PASSWORD,"");
 		if (!	serverData.containsKey(Servers.PORT)) serverData.put(Servers.PORT,"");
@@ -227,7 +226,7 @@ public class ServerConfiguration extends PreferenceActivity implements OnPrefere
 	private void createDefaultValues() {
 		serverData.put(Servers.FRIENDLY_NAME,"");
 		serverData.put(Servers.HOSTNAME,"");
-		serverData.put(Servers.SUPPLIED_PATH,"");
+		serverData.put(Servers.SUPPLIED_USER_URL,"");
 		serverData.put(Servers.USERNAME,"");
 		serverData.put(Servers.PASSWORD,"");
 		serverData.put(Servers.PORT,"");
@@ -360,8 +359,7 @@ public class ServerConfiguration extends PreferenceActivity implements OnPrefere
 		createPreferenceHierarchy();
 		checkTextSummary(friendlyName);
 		checkTextSummary(username);
-		checkTextSummary(suppliedDomain);
-		checkTextSummary(suppliedPath);
+		checkTextSummary(calendarUserURL);
 		if ( iface != INTERFACE_SIMPLE) {
 			checkTextSummary(hostname);
 			checkTextSummary(principalPath);
@@ -420,22 +418,23 @@ public class ServerConfiguration extends PreferenceActivity implements OnPrefere
         password.setOnPreferenceChangeListener(this);
         preferenceHelper(password, getString(R.string.Password), Servers.PASSWORD, defaultSummaries.get(Servers.PASSWORD));
 
-//        if (this.iface != INTERFACE_SIMPLE) {
-        	// TODO These two fields (supplied_domain, supplied_path) will eventually be in the simple configuration screen, not here.
+        if (this.iface == INTERFACE_SIMPLE) {
         	//supplied_domain
-        	suppliedDomain = new EditTextPreference(this);
-        	suppliedDomain.getEditText().setInputType(InputType.TYPE_TEXT_VARIATION_URI);
-        	suppliedDomain.setDialogTitle(getString(R.string.Simple_Domain));
-        	suppliedDomain.setDefaultValue(serverData.getAsString(Servers.SUPPLIED_DOMAIN));
-        	preferenceHelper(suppliedDomain, getString(R.string.Simple_Domain), Servers.SUPPLIED_DOMAIN, defaultSummaries.get(Servers.SUPPLIED_DOMAIN)); 
-        
+        	calendarUserURL = new EditTextPreference(this);
+        	calendarUserURL.getEditText().setInputType(InputType.TYPE_TEXT_VARIATION_URI);
+        	calendarUserURL.setDialogTitle(getString(R.string.Simple_User_URL));
+        	calendarUserURL.setDefaultValue(serverData.getAsString(Servers.SUPPLIED_USER_URL));
+        	preferenceHelper(calendarUserURL, getString(R.string.Simple_User_URL), Servers.SUPPLIED_USER_URL, defaultSummaries.get(Servers.SUPPLIED_USER_URL)); 
+
+        	/*
         	//supplied_path
         	suppliedPath = new EditTextPreference(this);
         	suppliedPath.getEditText().setInputType(InputType.TYPE_TEXT_VARIATION_URI);
         	suppliedPath.setDialogTitle(getString(R.string.Simple_Path));
         	suppliedPath.setDefaultValue(serverData.getAsString(Servers.SUPPLIED_PATH));
         	preferenceHelper(suppliedPath, getString(R.string.Simple_Path), Servers.SUPPLIED_PATH, defaultSummaries.get(Servers.SUPPLIED_PATH));
- //       }
+        	*/
+       }
         
         if (this.iface == INTERFACE_ADVANCED) {
         	//hostname
@@ -572,7 +571,7 @@ public class ServerConfiguration extends PreferenceActivity implements OnPrefere
 
 	private boolean validateDomain(Preference p, Object v) { 
 		if (v != null && v instanceof String && !v.equals("")) {
-			serverData.put(Servers.SUPPLIED_DOMAIN, (String)v);
+			serverData.put(Servers.SUPPLIED_USER_URL, (String)v);
 		}
 		return false;
 	}

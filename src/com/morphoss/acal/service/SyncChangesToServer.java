@@ -204,7 +204,7 @@ public class SyncChangesToServer extends ServiceJob {
 			cr.delete(Uri.withAppendedPath(DavCollections.CONTENT_URI,Long.toString(collectionId)), null, null);
 			return;
 		}
-		requestor.applyFromServer(serverData, false);
+		requestor.applyFromServer(serverData);
 
 		String collectionPath = collectionData.getAsString(DavCollections.COLLECTION_PATH);
 		String newData = pending.getAsString(PendingChanges.NEW_DATA);
@@ -454,7 +454,7 @@ public class SyncChangesToServer extends ServiceJob {
 
 		try {
 			ContentValues serverData = Servers.getRow(collectionData.getAsInteger(DavCollections.SERVER_ID), cr);
-			requestor.applyFromServer(serverData, false);
+			requestor.applyFromServer(serverData);
 			requestor.doRequest("PROPPATCH", collectionData.getAsString(DavCollections.COLLECTION_PATH),
 						proppatchHeaders, proppatchRequest);
 

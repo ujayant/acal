@@ -135,8 +135,20 @@ public class AcalRequestor {
 	 */
 	public static AcalRequestor fromSimpleValues( ContentValues cvServerData ) {
 		AcalRequestor result = new AcalRequestor();
-		result.applyFromServer(cvServerData, true);
-		result.authType  = Servers.AUTH_NONE;
+
+		result.protocol = "http";
+		result.hostName = null;
+		result.port = 0;
+		result.path = "/";
+		result.path = null;
+		result.authType = Servers.AUTH_NONE;
+		result.interpretUriString(cvServerData.getAsString(Servers.SUPPLIED_USER_URL));
+
+		if ( result.hostName == null ) result.hostName = "invalid";
+		if ( result.path == null ) result.path = "/";
+
+		if ( !result.initialised ) result.initialise();
+
 		return result;
 	}
 
@@ -150,7 +162,7 @@ public class AcalRequestor {
 	 */
 	public static AcalRequestor fromServerValues( ContentValues cvServerData ) {
 		AcalRequestor result = new AcalRequestor();
-		result.applyFromServer(cvServerData, false);
+		result.applyFromServer(cvServerData);
 		return result;
 	}
 
@@ -162,26 +174,16 @@ public class AcalRequestor {
 	 * @param cvServerData
 	 * @param simpleSetup true/false whether to use only the 'simple' values to initialise from
 	 */
-	public void applyFromServer( ContentValues cvServerData, boolean simpleSetup ) {
-		String serverHostName = cvServerData.getAsString(Servers.HOSTNAME);
-		if ( simpleSetup || serverHostName == null || serverHostName.equals("") )
-			serverHostName = cvServerData.getAsString(Servers.SUPPLIED_DOMAIN);
-		setHostName(serverHostName);
-
-		String requestPath = cvServerData.getAsString(Servers.PRINCIPAL_PATH);
-		if ( simpleSetup || requestPath == null || requestPath.equals("") )
-			requestPath = cvServerData.getAsString(Servers.SUPPLIED_PATH);
-		setPath(requestPath);
+	public void applyFromServer( ContentValues cvServerData ) {
+		setHostName(cvServerData.getAsString(Servers.HOSTNAME));
+		setPath(cvServerData.getAsString(Servers.PRINCIPAL_PATH));
 
 		String portString = cvServerData.getAsString(Servers.PORT);
 		int tmpPort = 0;
 		if ( portString != null && portString.length() > 0 ) tmpPort = Integer.parseInt(portString);
 		setPortProtocol(tmpPort, cvServerData.getAsInteger(Servers.USE_SSL));
 
-		if ( simpleSetup )
-			authType = Servers.AUTH_NONE;
-		else
-			setAuthType(cvServerData.getAsInteger(Servers.AUTH_TYPE));
+		setAuthType(cvServerData.getAsInteger(Servers.AUTH_TYPE));
 
 		authRequired = ( authType != Servers.AUTH_NONE );
 		username = cvServerData.getAsString(Servers.USERNAME);
@@ -197,13 +199,6 @@ public class AcalRequestor {
 		httpClient = new DefaultHttpClient(connManager, httpParams);
 
 		initialised = true;
-		Log.i(TAG,"AcalRequestor is now initialised.");
-	}
-
-	public void onDestroy() {
-//		if ( Constants.LOG_DEBUG )
-			Log.i(TAG,"Hi!  I'm the onDestroy method for AcalRequestor and I'm shutting down your connections now. kthxbai");
-//		connManager.shutdown();
 	}
 
 	/**
@@ -280,7 +275,7 @@ public class AcalRequestor {
 				}
 			}
 			if ( m.group(4) != null && !m.group(4).equals("") ) {
-				if ( Constants.LOG_VERBOSE ) Log.v(TAG,"Found redirect path '"+m.group(4)+"'");
+				if ( Constants.LOG_VERBOSE ) Log.v(TAG,"Found path '"+m.group(4)+"'");
 				setPath(m.group(4));
 			}
 			if ( !initialised ) initialise();
@@ -288,7 +283,7 @@ public class AcalRequestor {
 		else {
 			m = pathMatcher.matcher(uriString);
 			if (m.find()) {
-				if ( Constants.LOG_VERBOSE ) Log.v(TAG,"Found simple redirect path '"+m.group(1)+"'");
+				if ( Constants.LOG_VERBOSE ) Log.v(TAG,"Found relative path '"+m.group(1)+"'");
 				setPath( m.group(1) );
 			}
 			else {
@@ -861,7 +856,9 @@ public class AcalRequestor {
 
 		DavNode root = null;
 		try {
-			root = DavParserFactory.buildTreeFromXml(Constants.XMLParseMethod, doRequest(method, requestPath, headers, xml));
+			InputStream responseStream = doRequest(method, requestPath, headers, xml);
+			if ( statusCode == 404 ) return root;
+			root = DavParserFactory.buildTreeFromXml(Constants.XMLParseMethod, responseStream );
 		}
 		catch (Exception e) {
 			Log.i(TAG, e.getMessage(), e);
@@ -893,6 +890,10 @@ public class AcalRequestor {
 
 	public String getProtocol() {
 		return protocol;
+	}
+
+	public String getUserName() {
+		return this.username;
 	}
 	
 }

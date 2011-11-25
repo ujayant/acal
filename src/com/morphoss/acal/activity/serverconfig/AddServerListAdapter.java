@@ -176,7 +176,7 @@ public class AddServerListAdapter extends BaseAdapter {
 			title.setText(item.getAsString(Servers.FRIENDLY_NAME));
 			StringBuilder blurbString = new StringBuilder("");
 			if ( item.getAsString(Servers.HOSTNAME) != null && !item.getAsString(Servers.HOSTNAME).equals("null")) blurbString.append(item.getAsString(Servers.HOSTNAME));
-			else if ( item.getAsString(Servers.SUPPLIED_DOMAIN) != null && !item.getAsString(Servers.SUPPLIED_DOMAIN).equals("null") ) blurbString.append(item.getAsString(Servers.SUPPLIED_DOMAIN)); 
+			else if ( item.getAsString(Servers.SUPPLIED_USER_URL) != null && !item.getAsString(Servers.SUPPLIED_USER_URL).equals("null") ) blurbString.append(item.getAsString(Servers.SUPPLIED_USER_URL)); 
 			if ( item.getAsString(Servers.PRINCIPAL_PATH) != null ) blurbString.append(item.getAsString(Servers.PRINCIPAL_PATH));
 			else if ( item.getAsString(Servers.SUPPLIED_PATH) != null )  blurbString.append(item.getAsString(Servers.SUPPLIED_PATH));
 			

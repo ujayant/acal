@@ -212,8 +212,8 @@ public class ServerConfigData {
 			else if (localName.equalsIgnoreCase(Servers.SUPPLIED_PATH)) {
 				currentValues.put(Servers.SUPPLIED_PATH,tempVal.toString());
 			}
-			else if (localName.equalsIgnoreCase(Servers.SUPPLIED_DOMAIN)) {
-				currentValues.put(Servers.SUPPLIED_DOMAIN,tempVal.toString());
+			else if (localName.equalsIgnoreCase(Servers.SUPPLIED_USER_URL)) {
+				currentValues.put(Servers.SUPPLIED_USER_URL,tempVal.toString());
 			}
 			else if (localName.equalsIgnoreCase(Servers.USERNAME)) {
 				currentValues.put(Servers.USERNAME,tempVal.toString());

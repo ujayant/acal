@@ -72,7 +72,7 @@ public class Servers extends ContentProvider {
 	public static final String		_ID				= "_id";
 	public static final String		FRIENDLY_NAME	= "friendly_name";
 	public static final String		LAST_CHECKED	= "last_checked";
-	public static final String		SUPPLIED_DOMAIN	= "supplied_domain";
+	public static final String		SUPPLIED_USER_URL	= "supplied_domain";
 	public static final String		SUPPLIED_PATH	= "supplied_path";
 	public static final String		HOSTNAME		= "hostname";
 	public static final String		PRINCIPAL_PATH	= "principal_path";
@@ -280,7 +280,7 @@ public class Servers extends ContentProvider {
 		StaticHelpers.copyContentValue(cloned, serverData, _ID);
 		StaticHelpers.copyContentValue(cloned, serverData, FRIENDLY_NAME);
 		StaticHelpers.copyContentValue(cloned, serverData, LAST_CHECKED);
-		StaticHelpers.copyContentValue(cloned, serverData, SUPPLIED_DOMAIN);
+		StaticHelpers.copyContentValue(cloned, serverData, SUPPLIED_USER_URL);
 		StaticHelpers.copyContentValue(cloned, serverData, SUPPLIED_PATH);
 		StaticHelpers.copyContentValue(cloned, serverData, HOSTNAME);
 		StaticHelpers.copyContentValue(cloned, serverData, PRINCIPAL_PATH);
