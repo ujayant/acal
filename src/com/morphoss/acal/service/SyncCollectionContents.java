@@ -384,7 +384,8 @@ public class SyncCollectionContents extends ServiceJob {
 						|| aNode.get(0).getText().equalsIgnoreCase("HTTP/1.1 201 Created")
 						|| aNode.get(0).getText().equalsIgnoreCase("HTTP/1.1 200 OK") ) {
 
-				Log.i(TAG,"Updating node "+responseHref+" with "+action.toString() );
+				if ( Constants.LOG_DEBUG )
+					Log.println(Constants.LOGD,TAG,"Updating node "+responseHref+" with "+action.toString() );
 				// We are dealing with an update or insert
 				if ( !parseResponseNode(response, cv) ) continue;
 				if ( cv.getAsInteger(DavResources.NEEDS_SYNC) == 1 ) needSyncAfterwards = true; 
@@ -392,7 +393,8 @@ public class SyncCollectionContents extends ServiceJob {
 				if ( oldEtag != null && cv.getAsString(DavResources.ETAG) != null ) {
 					if ( oldEtag.equals(cv.getAsString(DavResources.ETAG)) ) {
 						// Resource in both places, but is unchanged.
-						Log.println(Constants.LOGD,TAG,"Notified of change to resource but etag already matches!");
+						if ( Constants.LOG_DEBUG )
+							Log.println(Constants.LOGD,TAG,"Notified of change to resource but etag already matches!");
 						root.removeSubTree(response);
 						continue;
 					}
@@ -410,7 +412,8 @@ public class SyncCollectionContents extends ServiceJob {
 				// This really *is* a DELETE, since the status could only
 				// have said so.  Or we're getting invalid status messages
 				// and their events all deserve to die anyway!
-				Log.i(TAG,"Deleting node '"+responseHref+"'with status: "+aNode.get(0).getText() );
+				if ( Constants.LOG_DEBUG )
+					Log.println(Constants.LOGD,TAG,"Deleting node '"+responseHref+"'with status: "+aNode.get(0).getText() );
 				action = WriteActions.DELETE;
 			}
 			root.removeSubTree(response);
@@ -421,7 +424,8 @@ public class SyncCollectionContents extends ServiceJob {
 
 		// Pull the syncToken we will update with.
 		syncToken = root.getFirstNodeText("multistatus/sync-token");
-		Log.i(TAG,"Found sync token of '"+syncToken+"' in sync-report response." );
+		if ( Constants.LOG_DEBUG )
+			Log.println(Constants.LOGD,TAG,"Found sync token of '"+syncToken+"' in sync-report response." );
 		
 		ResourceModification.commitChangeList(context, changeList);
 		
@@ -598,7 +602,7 @@ public class SyncCollectionContents extends ServiceJob {
 		DavNode root = requestor.doXmlRequest(method, collectionPath,
 								SynchronisationJobs.getReportHeaders(depth), xml);
 		if ( requestor.getStatusCode() == 404 ) {
-			Log.i(TAG,"Sync PROPFIND got 404 on "+collectionPath+" so a HomeSetsUpdate is being scheduled.");
+			Log.w(TAG,"Sync PROPFIND got 404 on "+collectionPath+" so a HomeSetsUpdate is being scheduled.");
 			ServiceJob sj = new HomeSetsUpdate(serverId);
 			context.addWorkerJob(sj);
 			return null;
@@ -715,33 +719,6 @@ public class SyncCollectionContents extends ServiceJob {
 
 			ResourceModification.commitChangeList(context, changeList);
 			
-			if ( hrefIndex + nPerMultiget < hrefs.length ) {
-				Debug.MemoryInfo mi = new Debug.MemoryInfo();
-				try {
-					Debug.getMemoryInfo(mi);
-				}
-				catch ( Exception e ) {
-					Log.i(TAG,"Unable to get Debug.MemoryInfo() because: " + e.getMessage());
-				}
-				if ( Constants.LOG_DEBUG ) {
-					if ( mi != null ) {
-						Log.println(Constants.LOGD,TAG,String.format("MemoryInfo: Dalvik(%d,%d,%d), Native(%d,%d,%d), Other(%d,%d,%d)",
-									mi.dalvikPrivateDirty, mi.dalvikPss, mi.dalvikSharedDirty,
-									mi.nativePrivateDirty, mi.nativePss, mi.nativeSharedDirty,
-									mi.otherPrivateDirty,  mi.otherPss,  mi.otherSharedDirty ) );
-					}
-				}
-				ActivityManager.MemoryInfo ammi = new ActivityManager.MemoryInfo();
-				if ( ammi.lowMemory ) {
-					Log.i(TAG, "Android thinks we're low memory right now, rescheduling more sync in 30 seconds time." );
-					// Reschedule for another run, rather than continue now.
-					SyncCollectionContents sj = new SyncCollectionContents(collectionId,true);
-					sj.TIME_TO_EXECUTE = System.currentTimeMillis() + 30000;
-					context.addWorkerJob(sj);
-					syncWasCompleted = false;
-					return;
-				}
-			}
 		}
 
 		for( String href : toBeRemoved ) {
