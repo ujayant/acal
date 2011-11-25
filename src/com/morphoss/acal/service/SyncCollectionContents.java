@@ -167,7 +167,8 @@ public class SyncCollectionContents extends ServiceJob {
 					DatabaseChangedEvent.DATABASE_BEGIN_RESOURCE_CHANGES, DavCollections.class, collectionData));
 
 			if (originalData.size() < 1) {
-				if (Constants.LOG_VERBOSE) Log.println(Constants.LOGV,TAG, "No local resources marked as needing synchronisation.");
+				if (Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents )
+					Log.println(Constants.LOGV,TAG, "No local resources marked as needing synchronisation.");
 			}
 			else 
 				syncMarkedResources( originalData );
@@ -186,7 +187,7 @@ public class SyncCollectionContents extends ServiceJob {
 				collectionData.put(DavCollections.NEEDS_SYNC, 0);
 				if ( syncToken != null ) {
 					collectionData.put(DavCollections.SYNC_TOKEN, syncToken);
-					if ( Constants.LOG_VERBOSE )
+					if (Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents )
 						Log.i(TAG,"Updated collection record with new sync token '"+syncToken+"' at "+lastSynchronized);
 				}
 				cr.update(DavCollections.CONTENT_URI, collectionData, DavCollections._ID + "=?",
@@ -210,7 +211,8 @@ public class SyncCollectionContents extends ServiceJob {
 						DatabaseChangedEvent.DATABASE_END_RESOURCE_CHANGES, DavCollections.class, collectionData));
 		}
 		long finish = System.currentTimeMillis();
-		if (Constants.LOG_VERBOSE) Log.println(Constants.LOGV,TAG, "Collection sync finished in " + (finish - start) + "ms");
+		if (Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents )
+			Log.println(Constants.LOGV,TAG, "Collection sync finished in " + (finish - start) + "ms");
 
 		scheduleNextInstance();
 
@@ -266,7 +268,9 @@ public class SyncCollectionContents extends ServiceJob {
 			return false;
 		}
 
-		if (Constants.LOG_VERBOSE) Log.println(Constants.LOGV,TAG, "getCollectionInfo() completed in " + (System.currentTimeMillis() - start) + "ms");
+		if (Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents )
+			Log.println(Constants.LOGV,TAG,
+				"getCollectionInfo() completed in " + (System.currentTimeMillis() - start) + "ms");
 		return true;
 	}
 
@@ -340,7 +344,8 @@ public class SyncCollectionContents extends ServiceJob {
 		
 		ArrayList<ResourceModification> changeList = new ArrayList<ResourceModification>(); 
 
-		if (Constants.LOG_VERBOSE) Log.println(Constants.LOGV,TAG, "Start processing response");
+		if (Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents )
+			Log.println(Constants.LOGV,TAG, "Start processing response");
 		List<DavNode> responses = root.getNodesFromPath("multistatus/response");
 		if ( responses.isEmpty() ) {
 			responses = root.getNodesFromPath("multistatus/sync-response");
@@ -360,7 +365,8 @@ public class SyncCollectionContents extends ServiceJob {
 
 		for (DavNode response : responses) {
 			String responseHref = response.segmentFromFirstHref("href");
-			if (Constants.LOG_VERBOSE) Log.println(Constants.LOGV,TAG, "Processing response for "+responseHref);
+			if (Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents )
+				Log.println(Constants.LOGV,TAG, "Processing response for "+responseHref);
 			WriteActions action = WriteActions.UPDATE;
 
 			ContentValues cv = DavResources.getResourceInCollection( collectionId, responseHref, cr);
@@ -456,13 +462,15 @@ public class SyncCollectionContents extends ServiceJob {
 		ArrayList<ResourceModification> changeList = new ArrayList<ResourceModification>(); 
 
 		try {
-			if (Constants.LOG_VERBOSE) Log.println(Constants.LOGV,TAG, "Start processing PROPFIND response");
+			if (Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents )
+				Log.println(Constants.LOGV,TAG, "Start processing PROPFIND response");
 			long start2 = System.currentTimeMillis();
 			List<DavNode> responses = root.getNodesFromPath("multistatus/response");
 
 			for (DavNode response : responses) {
 				String responseHref = response.segmentFromFirstHref("href");
-				if (Constants.LOG_VERBOSE) Log.println(Constants.LOGV,TAG, "Processing response for "+responseHref);
+				if (Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents )
+					Log.println(Constants.LOGV,TAG, "Processing response for "+responseHref);
 
 				ContentValues cv = null;				
 				WriteActions action = WriteActions.UPDATE;
@@ -495,7 +503,8 @@ public class SyncCollectionContents extends ServiceJob {
 				}
 			}
 			
-			if (Constants.LOG_VERBOSE)	Log.println(Constants.LOGV,TAG, "Completed processing of PROPFIND sync in " + (System.currentTimeMillis() - start2) + "ms");
+			if (Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents )
+				Log.println(Constants.LOGV,TAG, "Completed processing of PROPFIND sync in " + (System.currentTimeMillis() - start2) + "ms");
 		}
 		catch (Exception e) {
 			Log.e(TAG, "Exception processing PROPFIND response: " + e.getMessage());
@@ -674,14 +683,16 @@ public class SyncCollectionContents extends ServiceJob {
 				return;
 			}
 
-			if (Constants.LOG_VERBOSE) Log.println(Constants.LOGV,TAG, "Start processing response");
+			if (Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents )
+				Log.println(Constants.LOGV,TAG, "Start processing response");
 			List<DavNode> responses = root.getNodesFromPath("multistatus/response");
 			List<ResourceModification> changeList = new ArrayList<ResourceModification>(hrefList.length());
 
 			for (DavNode response : responses) {
 				String name = response.segmentFromFirstHref("href");
 				if ( toBeRemoved.contains(name) ) {
-					Log.println(Constants.LOGV,TAG,"Found href in our list.");
+					if (Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents )
+						Log.println(Constants.LOGV,TAG,"Found href in our list.");
 					toBeRemoved.remove(name);
 				}
 
@@ -768,7 +779,8 @@ public class SyncCollectionContents extends ServiceJob {
 		cqm.requery();
 		originalData = cqm.getRows();
 		mCursor.close();
-		if (Constants.LOG_VERBOSE) Log.println(Constants.LOGV,TAG, "DavCollections ContentQueryMap retrieved in " + (System.currentTimeMillis() - start) + "ms");
+		if (Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents )
+			Log.println(Constants.LOGV,TAG, "DavCollections ContentQueryMap retrieved in " + (System.currentTimeMillis() - start) + "ms");
 		return originalData;
 	}
 
@@ -807,22 +819,24 @@ public class SyncCollectionContents extends ServiceJob {
 				
 				if ( etag != null ) {
 					String oldEtag = cv.getAsString(DavResources.ETAG);
-					if ( Constants.LOG_DEBUG )
-						Log.println(Constants.LOGD,TAG,"Found etag '"+etag+"' in response.  Old etags was '"+oldEtag+"'.");
 					
 					if ( etag.equals(oldEtag) && cv.get(DavResources.RESOURCE_DATA) != null ) {
 						cv.put(DavResources.NEEDS_SYNC, 0);
 						responseNode.getParent().removeSubTree(responseNode);
+						if ( Constants.LOG_DEBUG )
+							Log.println(Constants.LOGD,TAG,"Found etag '"+etag+"' in response.  Old etags was '"+oldEtag+"'.  No sync needed.");
 						return false;
 					}
 					else {
+						if ( Constants.LOG_DEBUG )
+							Log.println(Constants.LOGD,TAG,"Found etag '"+etag+"' in response.  Old etags was '"+oldEtag+"'.  Sync may be needed.");
 						cv.put(DavResources.NEEDS_SYNC, 1);
 					}
 				}
 
 				String data = prop.getFirstNodeText(dataType + "-data");
 				if ( data != null ) {
-					if ( Constants.LOG_VERBOSE ) {
+					if (Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents ) {
 						Log.println(Constants.LOGV,TAG,"Found data in response:");
 						Log.println(Constants.LOGV,TAG,data);
 						Log.println(Constants.LOGV,TAG,StaticHelpers.toHexString(data.substring(0,40).getBytes()));
@@ -830,7 +844,13 @@ public class SyncCollectionContents extends ServiceJob {
 					cv.put(DavResources.RESOURCE_DATA, data);
 					cv.put(DavResources.ETAG, etag);
 					cv.put(DavResources.NEEDS_SYNC, 0);
-				} 
+					if ( Constants.LOG_DEBUG )
+						Log.println(Constants.LOGD,TAG,"Found etag '"+etag+"' in response.  Sync not needed.");
+				}
+				else if ( Constants.LOG_DEBUG ) {
+					Log.println(Constants.LOGD,TAG,"Found etag '"+etag+"' in response.  Sync not needed.");
+					
+				}
 				s = prop.getFirstNodeText("getlastmodified");
 				if ( s != null ) cv.put(DavResources.LAST_MODIFIED, s);
 
@@ -930,7 +950,8 @@ public class SyncCollectionContents extends ServiceJob {
 
 		ResourceModification.commitChangeList(context, changeList);
 
-		if (Constants.LOG_VERBOSE)	Log.println(Constants.LOGV,TAG, "syncWithGet() for " + hrefs.length + " resources took "
+		if (Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents )
+			Log.println(Constants.LOGV,TAG, "syncWithGet() for " + hrefs.length + " resources took "
 						+ (System.currentTimeMillis() - fullMethod) + "ms");
 		return;
 	}
@@ -939,17 +960,20 @@ public class SyncCollectionContents extends ServiceJob {
 
 	private boolean timeToRun() {
 		if ( synchronisationForced ) {
-			if (Constants.LOG_VERBOSE) Log.println(Constants.LOGV,TAG, "Synchronising now, since a sync has been forced.");
+			if (Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents )
+				Log.println(Constants.LOGV,TAG, "Synchronising now, since a sync has been forced.");
 			return true;
 		}
 		String needsSyncNow = collectionData.getAsString(DavCollections.NEEDS_SYNC);
 		if ( needsSyncNow == null || needsSyncNow.equals("1") ) {
-			if (Constants.LOG_VERBOSE) Log.println(Constants.LOGV,TAG, "Synchronising now, since needs_sync is true.");
+			if (Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents )
+				Log.println(Constants.LOGV,TAG, "Synchronising now, since needs_sync is true.");
 			return true; 
 		}
 		String lastSyncString = collectionData.getAsString(DavCollections.LAST_SYNCHRONISED);
 		if ( lastSyncString == null ) { 
-			if (Constants.LOG_VERBOSE) Log.println(Constants.LOGV,TAG, "Synchronising now, since last_sync is null.");
+			if (Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents )
+				Log.println(Constants.LOGV,TAG, "Synchronising now, since last_sync is null.");
 			return true; 
 		}
 		AcalDateTime lastRunTime = null;
@@ -969,7 +993,8 @@ public class SyncCollectionContents extends ServiceJob {
 
 		if ( maxAgeMs < minBetweenSyncs ) maxAgeMs = minBetweenSyncs; 
 
-		if (Constants.LOG_VERBOSE) Log.println(Constants.LOGV,TAG, "Considering whether we are " + maxAgeMs / 1000 + "s past "
+		if (Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents )
+			Log.println(Constants.LOGV,TAG, "Considering whether we are " + maxAgeMs / 1000 + "s past "
 						+ lastRunTime.fmtIcal() + "("+lastRunTime.getMillis()+") yet? "
 						+ "Now: " + new AcalDateTime().fmtIcal() + "("+System.currentTimeMillis()+")... So: "
 						+ ((maxAgeMs + lastRunTime.getMillis() < System.currentTimeMillis()) ? "yes" : "no"));
@@ -994,7 +1019,7 @@ public class SyncCollectionContents extends ServiceJob {
 			if ( minBetweenSyncs > timeToWait ) timeToWait = minBetweenSyncs;
 		}
 
-		if ( Constants.LOG_VERBOSE )
+		if (Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents )
 			Log.println(Constants.LOGV,TAG, "Scheduling next sync status check for "+collectionId+" - '"
 						+ collectionData.getAsString(DavCollections.DISPLAYNAME)
 						+"' in " + Long.toString(timeToWait / 1000) + " seconds.");
