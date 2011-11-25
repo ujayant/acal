@@ -188,7 +188,8 @@ public class VCalendar extends VComponent {
 				String tzId = p.getParam("TZID");
 				if ( tzId != null ) {
 					tzIdSet.add(p.getParam("TZID"));
-					Log.i(TAG,"Found reference to timezone '"+tzId+"' in event.");
+					if ( Constants.LOG_DEBUG )
+						Log.println(Constants.LOGD,TAG,"Found reference to timezone '"+tzId+"' in event.");
 				}
 			}
 		}
@@ -203,16 +204,19 @@ public class VCalendar extends VComponent {
 				}
 				catch( Exception e ) {};
 				if ( tzIdSet.contains(tzId) ) {
-					Log.i(TAG,"Found child vtimezone for '"+tzId+"' in event.");
+					if ( Constants.LOG_DEBUG )
+						Log.println(Constants.LOGD,TAG,"Found child vtimezone for '"+tzId+"' in event.");
 					tzIdSet.remove(tzId);
 				}
 				else {
-					Log.i(TAG,"Removing vtimezone for '"+tzId+"' from event.");
+					if ( Constants.LOG_DEBUG )
+						Log.println(Constants.LOGD,TAG,"Removing vtimezone for '"+tzId+"' from event.");
 					removeChildren.add(child);
 				}
 			}
 			else {
-				Log.i(TAG,"Found "+child.name+" component in event.");
+				if ( Constants.LOG_DEBUG )
+					Log.println(Constants.LOGD,TAG,"Found "+child.name+" component in event.");
 			}
 		}
 		// Have to avoid the concurrent modification
@@ -224,8 +228,10 @@ public class VCalendar extends VComponent {
 			VTimezone vtz;
 			try {
 				String tzBlob = VTimezone.getZoneDefinition(tzId);
-				Log.i(TAG,"New timezone for '"+tzId+"'");
-				Log.i(TAG,tzBlob);
+				if ( Constants.LOG_DEBUG ) {
+					Log.println(Constants.LOGD,TAG,"New timezone for '"+tzId+"'");
+					Log.println(Constants.LOGD,TAG,tzBlob);
+				}
 				vtz = (VTimezone) VComponent.createComponentFromBlob(tzBlob, null, collectionData);
 				vtz.setEditable();
 				this.addChild(vtz);
