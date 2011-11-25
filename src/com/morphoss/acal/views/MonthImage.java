@@ -31,7 +31,6 @@ public class MonthImage extends YearViewNode {
 	
 	private AcalDateTime myDate;
 	private int x;
-	private Context context;
 	private Bitmap headerBMP;
 	private Bitmap dayHeadsBMP;
 	private Bitmap daySectionBMP;
@@ -40,7 +39,6 @@ public class MonthImage extends YearViewNode {
 		super();
 		this.x=x;
 		this.myDate = new AcalDateTime(year,month,1,0,0,0,null);
-		this.context = context;
 		this.headerBMP = ig.getMonthHeader(myDate);
 		this.dayHeadsBMP = ig.getDayHeaders();
 		this.daySectionBMP = ig.getDaySection(myDate);

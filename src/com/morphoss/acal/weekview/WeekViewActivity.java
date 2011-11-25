@@ -662,7 +662,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	        		if ( action == CONTEXT_ACTION_COPY ) {
 	        			sae.operation = SimpleAcalEvent.EVENT_OPERATION_COPY;
 	        		}
-	        		else {
+	        		else if ( action == CONTEXT_ACTION_EDIT ) {
 	        			sae.operation = SimpleAcalEvent.EVENT_OPERATION_EDIT;
 	        		}
 	        		Bundle bundle = new Bundle();

@@ -169,44 +169,6 @@ public class YearView extends AcalActivity implements OnGestureListener, OnTouch
 		return false;
 	}
 	
-	/**
-	 * <p>Called when user has selected 'Settings' from menu. Starts Settings Activity.</p>
-	 */
-	private void settings() {
-		//Intent settingsIntent = new Intent();
-		//settingsIntent.setClassName("com.morphoss.acal", "com.morphoss.acal.activity.Settings");
-		//this.startActivity(settingsIntent);
-	}
-	
-	/**
-	 * <p>Responsible for handling the menu button push.</p>
-	 * 
-	 * @see android.app.Activity#onCreateOptionsMenu(android.view.Menu)
-	 */
-//	@Override
-//	public boolean onCreateOptionsMenu(Menu menu) {
-		//MenuInflater inflater = getMenuInflater();
-		//inflater.inflate(R.menu.main_options_menu, menu);
-		//return true;
-	//}
-	
-	/**
-	 * <p>Called when the user selects an option from the options menu. Determines what (if any)
-	 * Activity should start.</p>
-	 * 
-	 * @see android.app.Activity#onOptionsItemSelected(android.view.MenuItem)
-	 */
-//	@Override
-//	public boolean onOptionsItemSelected(MenuItem item) {
-//		// Handle item selection
-//		switch (item.getItemId()) {
-///		case R.id.settingsMenuItem:
-//			settings();
-//			return true;
-//		default:
-//			return super.onOptionsItemSelected(item);
-//		}
-//	}
 	
 	@Override 
 	public void onNumberSelected(int number) {

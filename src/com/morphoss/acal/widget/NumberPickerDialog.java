@@ -38,9 +38,6 @@ public class NumberPickerDialog extends Dialog implements OnClickListener {
 	private Button cancelButton;
 	private NumberSelectedListener nsl; 
 	private EditText current;
-	private int initialValue;
-	
-	
 	public NumberPickerDialog(Context context, NumberSelectedListener nsl, int initialValue, int min, int max)  {
     	super(context);
         setContentView(R.layout.number_picker_dialog);
@@ -52,8 +49,6 @@ public class NumberPickerDialog extends Dialog implements OnClickListener {
         numberPicker.setCurrent(initialValue);
         
         current = (EditText)this.findViewById(R.id.timepicker_input);
-        this.initialValue = initialValue;
-        
         okButton = (Button)this.findViewById(R.id.NumberPickerOkButton);
         cancelButton = (Button)this.findViewById(R.id.NumberPickerCancelButton);
         okButton.setOnClickListener(this);

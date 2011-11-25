@@ -498,7 +498,6 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 	public ArrayList<AcalAlarm> getAlarmsForDateRange(AcalDateRange dateRange) {
 		int processed = 0;
 		int skipped = 0;
-		long startProcessing = System.currentTimeMillis();
 		ArrayList<AcalAlarm> alarms = new ArrayList<AcalAlarm>();
 
 		if ( Constants.LOG_DEBUG ) Log.d(TAG,"Looking for alarms in range "+dateRange);
@@ -1059,30 +1058,16 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 		
 		@Override
 		public List<AcalEvent> getEventsForDateRange(AcalDateRange dateRange)	throws RemoteException {
-			int processed = 0;
-			int skipped = 0;
-			long startProcessing = System.currentTimeMillis();
 			List<AcalEvent> events = new ArrayList<AcalEvent>();
 			for (VCalendar vc : calendars.values()) {
-				if ( vc.appendEventInstancesBetween(events, dateRange, false) )
-					processed++;
-				else
-					skipped++;
+				vc.appendEventInstancesBetween(events, dateRange, false);
 			}
 
 			// display newly added events
 			for (VCalendar vc : newResources.values()) {
-				if ( vc.appendEventInstancesBetween(events, dateRange, true) )
-					processed++;
-				else
-					skipped++;
+				vc.appendEventInstancesBetween(events, dateRange, true);
 			}
 			updateEarlyTimeStamp(dateRange.start);
-
-			if ( Constants.LOG_DEBUG ) 	Log.d(TAG, "Got "+events.size()+" events for range ("
-						+dateRange.start.fmtIcal()+","+dateRange.end.fmtIcal()+"): processed "
-						+processed+", skipped "+skipped+" in "
-						+(System.currentTimeMillis() - startProcessing)+"ms");
 
 			return events;
 		}
@@ -1254,24 +1239,13 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 		
 		@Override
 		public List<SimpleAcalTodo> getTodos(boolean listCompleted, boolean listFuture) throws RemoteException {
-			int processed = 0;
-			int skipped = 0;
-			long startProcessing = System.currentTimeMillis();
 			todoItems.reset();
 			for (VCalendar vc : calendars.values() ) {
 				Masterable master = vc.getMasterChild();
 				if ( master instanceof VTodo ) {
 					todoItems.add( new SimpleAcalTodo(master, false) );
-					processed++;
 				}
-				else
-					skipped++;
 			}
-
-			if ( Constants.LOG_DEBUG ) 
-				Log.d(TAG, "Got "+todoItems.count(listCompleted, listFuture)+" tasks for range ("
-						+processed+", skipped "+skipped+" in "
-						+(System.currentTimeMillis() - startProcessing)+"ms");
 
 			return todoItems.getList(listCompleted, listFuture);
 		}

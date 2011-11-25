@@ -40,11 +40,6 @@ import com.morphoss.acal.acaltime.AcalDuration;
  */
 public class SimpleAcalTodo implements Parcelable, Comparable<SimpleAcalTodo> {
 
-	/**
-	 * 
-	 */
-	private static final long	serialVersionUID	= 1L;
-
 	private static final String TAG = "SimpleAcalTodo"; 
 
 	//Start and end times are in UTC
@@ -80,8 +75,6 @@ public class SimpleAcalTodo implements Parcelable, Comparable<SimpleAcalTodo> {
 	
 	public int operation = TODO_OPERATION_NONE;
 	
-	final private static SimpleDateFormat fmtDebugDate = new SimpleDateFormat("MMM d HH:mm");
-	
 	/**
 	 * Construct a new SimpleAcalEvent from all of the parameters
 	 * @param start
@@ -113,26 +106,6 @@ public class SimpleAcalTodo implements Parcelable, Comparable<SimpleAcalTodo> {
 		this.percentComplete = (percentComplete < 1 ? 0 : (percentComplete > 99 ? 100 : percentComplete));
 		this.status = (percentComplete > 99 ? TODO_STATUS_COMPLETED : (status < 1 || status > 4 ? TODO_STATUS_MISSING : status ));
 
-//		if ( Constants.LOG_VERBOSE ) {
-//			Log.v(TAG,"Event at " + fmtDebugDate.format(new Date(this.start*1000)) + " ("+this.start+")" +
-//						" to " + fmtDebugDate.format(new Date(this.end*1000)) + " ("+this.end+")" +
-//						" for: " + this.summary
-//						);
-/*
-			try {
-				throw new Exception("debug");
-			}
-			catch ( Exception e ) {
-				Log.v(TAG,Log.getStackTraceString(e));
-			}
-*/
-//		}
-
-	}
-
-	private int getDateHash(long epochSecs) {
-		Date d = new Date(epochSecs*1000);
-		return getDateHash(d.getDate(), d.getMonth() + 1, d.getYear()+1900);
 	}
 
 	static public int getDateHash(int day, int month, int year) {

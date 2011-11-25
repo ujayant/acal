@@ -25,17 +25,11 @@ import android.graphics.Paint;
 
 public class YearHeader extends YearViewNode {
 	
-	private Context context;
-	private int year;
 	private int x;
-	private MonthImageGenerator ig;
 	private Bitmap myBMP;
 
 	public YearHeader(Context context, int year, int x, MonthImageGenerator ig) {
-		this.context = context;
-		this.year = year;
 		this.x = x;
-		this.ig = ig;
 		myBMP = ig.getYearHeader(year);
 		
 		

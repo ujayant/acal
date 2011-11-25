@@ -39,7 +39,6 @@ public class MonthImageGenerator {
 	private HashMap<Integer,Bitmap> daySection = new HashMap<Integer,Bitmap>();
 	private Bitmap[] days = new Bitmap[31];
 	private Bitmap shadowedDay;
-	private HashMap<Integer,Bitmap> monthImages = new HashMap<Integer,Bitmap>();
 	private HashMap<Integer,Bitmap> yearHeaders = new HashMap<Integer,Bitmap>();
 	private Bitmap dayHeaders = null;
 	private Bitmap[] monthHeaders = new Bitmap[AcalDateTime.DECEMBER+1];
@@ -79,10 +78,6 @@ public class MonthImageGenerator {
 		int numDaysInMonth = month.getActualMaximum(AcalDateTime.DAY_OF_MONTH);
 		month.setMonthDay(1);
 		int dayOfFirst = (month.getWeekDay()+this.firstCol)%7;
-		int lastMonthNum = month.getMonth()-1;
-		int lastYearNum = month.getYear();
-		if (lastMonthNum < AcalDateTime.JANUARY) { lastMonthNum+=12; lastYearNum--; }
-		int ndilm = AcalDateTime.monthDays(lastYearNum, lastMonthNum);
 		int hash = dayOfFirst+(numDaysInMonth*10);
 		if (daySection.containsKey(hash)) return daySection.get(hash);
 		generateDaySectionBitmap(month);

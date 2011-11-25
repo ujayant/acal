@@ -45,7 +45,6 @@ import com.morphoss.acal.R;
 public class NumberPicker extends LinearLayout implements OnClickListener,
         OnFocusChangeListener, OnLongClickListener {
 
-    private static final String TAG = "NumberPicker";
     private static final int DEFAULT_MAX = 200;
     private static final int DEFAULT_MIN = 0;
 
@@ -113,7 +112,6 @@ public class NumberPicker extends LinearLayout implements OnClickListener,
     	
     }
 
-    @SuppressWarnings({"UnusedDeclaration"})
     public NumberPicker(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs);
         setOrientation(VERTICAL);

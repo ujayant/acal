@@ -42,8 +42,6 @@ import com.morphoss.acal.Constants;
 public class AcalProperty {
 	public static final String TAG = "aCal AcalProperty";
 	private static final boolean DEBUG = false; 
-	private static final Pattern propertyValueSplit = Pattern.compile("^(.*?)(?<!\\\\):(.*)",Pattern.DOTALL);
-	private static final Pattern propertyParamSplit = Pattern.compile("(?<!\\\\);");
 	private static final Pattern valueReplaceEscaped = Pattern.compile("\\\\([,;'\"\\\\])");
 	private static final Pattern propertiesUnescaped = Pattern.compile(
 				"^(ATTACH|GEO|PERCENT-COMPLETE|PRIORITY|DURATION|FREEBUSY|TZOFFSETFROM|TZOFFSETTO|TZURL" +

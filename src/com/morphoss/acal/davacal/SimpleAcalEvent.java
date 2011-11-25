@@ -63,8 +63,6 @@ public class SimpleAcalEvent implements Parcelable, Comparable<SimpleAcalEvent> 
 	
 	public int operation = EVENT_OPERATION_NONE;
 	
-	final private static SimpleDateFormat fmtDebugDate = new SimpleDateFormat("MMM d HH:mm");
-	
 	/**
 	 * Construct a new SimpleAcalEvent from all of the parameters
 	 * @param start

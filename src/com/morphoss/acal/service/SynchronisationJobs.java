@@ -28,13 +28,8 @@ import android.util.Log;
 
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.DatabaseChangedEvent;
-import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
-import com.morphoss.acal.acaltime.AcalRepeatRule;
-import com.morphoss.acal.davacal.VCalendar;
-import com.morphoss.acal.davacal.VComponent;
 import com.morphoss.acal.providers.DavCollections;
-import com.morphoss.acal.providers.DavResources;
 import com.morphoss.acal.providers.Servers;
 
 public class SynchronisationJobs extends ServiceJob {
@@ -160,33 +155,6 @@ public class SynchronisationJobs extends ServiceJob {
 		return this.jobtype;
 	}
 
-
-
-	private static void updateInstanceRange(ContentValues resourceValues) {
-		VComponent vCal = null;
-		try {
-			vCal = VCalendar.createComponentFromResource(resourceValues, null);
-		}
-		catch (Exception e) {
-			return;
-		}
-		if ( ! (vCal instanceof VCalendar ) ) return;
-
-		try {
-			AcalRepeatRule rRule = AcalRepeatRule.fromVCalendar((VCalendar) vCal);
-			AcalDateRange instancesRange = rRule.getInstancesRange();
-		
-			resourceValues.put(DavResources.EARLIEST_START, instancesRange.start.getMillis());
-			if ( instancesRange.end == null )
-				resourceValues.putNull(DavResources.LATEST_END);
-			else
-				resourceValues.put(DavResources.LATEST_END, instancesRange.end.getMillis());
-		}
-		catch ( Exception e ) {
-			
-		}
-		
-	}
 
 
 	/**

@@ -111,6 +111,7 @@ public class ShowUpgradeChanges extends AcalActivity implements OnClickListener 
 		seenEm.setOnClickListener(this);
 	}
 
+	
     private ArrayList<String> readLines() {
         
         ArrayList<String> res = new ArrayList<String>(200);

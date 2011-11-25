@@ -34,6 +34,7 @@ import android.widget.ImageView;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 
+@SuppressWarnings("deprecation")
 public class ColourPickerDialog {
 	private static final String TAG = "aCal ColourPickerDialog";
 	private AlertDialog dialog;
@@ -168,7 +169,6 @@ public class ColourPickerDialog {
 		
 	}
 	
-	@SuppressWarnings("deprecation")
 	protected void positionSlider() {
 		float y = ukuranUiPx - (hue * ukuranUiPx / 360.f);
 		if (y == ukuranUiPx) y = 0.f;
@@ -178,7 +178,6 @@ public class ColourPickerDialog {
 		hueSlider.setLayoutParams(layoutParams);
 	}
 
-	@SuppressWarnings("deprecation")
 	protected void positionPointer() {
 		float x = sat * ukuranUiPx;
 		float y = (1.f - val) * ukuranUiPx;

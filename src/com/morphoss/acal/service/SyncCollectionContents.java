@@ -33,7 +33,6 @@ import javax.net.ssl.SSLException;
 
 import org.apache.http.Header;
 
-import android.app.ActivityManager;
 import android.content.ContentQueryMap;
 import android.content.ContentResolver;
 import android.content.ContentValues;
@@ -42,7 +41,6 @@ import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
-import android.os.Debug;
 import android.util.Log;
 
 import com.morphoss.acal.AcalDebug;

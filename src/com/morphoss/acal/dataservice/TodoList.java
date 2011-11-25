@@ -15,8 +15,6 @@ import com.morphoss.acal.davacal.SimpleAcalTodo;
  */
 public class TodoList {
 
-	private static final String TAG = "Acal TodoList"; 
-
 	private static List<SimpleAcalTodo> allTasks = new ArrayList<SimpleAcalTodo>();
 	private static List<SimpleAcalTodo> dueTasks = new ArrayList<SimpleAcalTodo>();
 	private static List<SimpleAcalTodo> incompleteTasks = new ArrayList<SimpleAcalTodo>();
