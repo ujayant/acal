@@ -13,7 +13,7 @@
 	<string name="A_name_for_this_server_configuration">A name to use for this server configuration</string>
 	<string name="Authentication_Type">Authentication Type</string>
 	<string name="Simple_Path">Simple Path</string>
-	<string name="Simple_Domain">Simple Domain</string>
+	<string name="Simple_User_URL">User URL</string>
 	<string name="Enter_a_brief_summary_of_the_event">Enter a brief summary of the event</string>
 	<string name="Name">Name</string>
 	<string name="Force_full_resync">Force resynchronisation</string>
@@ -34,7 +34,7 @@
 	<string name="The_authentication_type_used">The authentication type used by the server</string>
 	<string name="The_password_to_use">The password to use for authentication with the server</string>
 	<string name="The_path_on_the_server">The path on the server, such as "/caldav.php/user/"</string>
-	<string name="The_domain_for_your_organisation">The domain name of your organisation, such as "morphoss.com"</string>
+	<string name="A_URL_or_domain_name">A URL or domain name for your calendar server</string>
 	<string name="The_servers_hostname">The server\'s full hostname such as "calendar.davical.com"</string>
 	<string name="The_username_to_use">The username to use for authentication with the server</string>
 	<string name="Username">Username</string>
