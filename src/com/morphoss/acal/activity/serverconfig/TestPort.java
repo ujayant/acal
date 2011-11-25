@@ -336,16 +336,16 @@ public class TestPort {
 		else
 			testPortSet.clear();
 
-//		testPortSet.add( new TestPort(requestor,443,true) );
-//		testPortSet.add( new TestPort(requestor,8443,true) );
+		testPortSet.add( new TestPort(requestor,443,true) );
+		testPortSet.add( new TestPort(requestor,8443,true) );
 		testPortSet.add( new TestPort(requestor,80,false) );
-//		testPortSet.add( new TestPort(requestor,8008,false) );
-//		testPortSet.add( new TestPort(requestor,8843,true) );
-//		testPortSet.add( new TestPort(requestor,4443,true) );
-//		testPortSet.add( new TestPort(requestor,8043,true) );
-//		testPortSet.add( new TestPort(requestor,8800,false) );
-//		testPortSet.add( new TestPort(requestor,8888,false) );
-//		testPortSet.add( new TestPort(requestor,7777,false) );
+		testPortSet.add( new TestPort(requestor,8008,false) );
+		testPortSet.add( new TestPort(requestor,8843,true) );
+		testPortSet.add( new TestPort(requestor,4443,true) );
+		testPortSet.add( new TestPort(requestor,8043,true) );
+		testPortSet.add( new TestPort(requestor,8800,false) );
+		testPortSet.add( new TestPort(requestor,8888,false) );
+		testPortSet.add( new TestPort(requestor,7777,false) );
 
 		return testPortSet.iterator();
 	}
