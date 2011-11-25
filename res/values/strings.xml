@@ -283,4 +283,5 @@
 	<string name="After">After</string>
 	<string name="Custom">Custom</string>
 	<string name="floatingTime">Floating Time</string>
+	<string name="SetCustomAlarm">Set a custom alarm</string>
 </resources>
