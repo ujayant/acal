@@ -7,7 +7,7 @@
 		android:minSdkVersion="4"
 		android:targetSdkVersion="7" />
 	<application
-		android:debuggable="true"
+		android:debuggable="false"
 		android:description="@string/appDescription"
 		android:icon="@drawable/icon"
 		android:label="@string/appName"
@@ -35,8 +35,6 @@
 			android:name=".activity.MonthView" >
 			<intent-filter >
 				<action android:name="com.morphoss.acal.activity.MonthView" />
-
-             
 				<category android:name="android.intent.category.DEFAULT" />
 			</intent-filter>
 		</activity>
@@ -47,8 +45,6 @@
 			android:name=".activity.YearView" >
 			<intent-filter >
 				<action android:name="com.morphoss.acal.activity.YearView" />
-
-             
 				<category android:name="android.intent.category.DEFAULT" />
 			</intent-filter>
 		</activity>
@@ -59,8 +55,6 @@
 			android:name=".weekview.WeekViewActivity" >
 			<intent-filter >
 				<action android:name="com.morphoss.acal.weekview.WeekViewActivity" />
-
-             	
 				<category android:name="android.intent.category.DEFAULT" />
 			</intent-filter>
 		</activity>
@@ -72,8 +66,6 @@
 			android:screenOrientation="portrait" >
 			<intent-filter >
 				<action android:name="com.morphoss.acal.activity.serverconfig.ServerConfigList" />
-
-             
 				<category android:name="android.intent.category.DEFAULT" />
 			</intent-filter>
 		</activity>
@@ -85,8 +77,6 @@
 			android:screenOrientation="portrait" >
 			<intent-filter >
 				<action android:name="com.morphoss.acal.activity.serverconfig.AddServerList" />
-
-             
 				<category android:name="android.intent.category.DEFAULT" />
 			</intent-filter>
 		</activity>
@@ -98,8 +88,6 @@
 			android:screenOrientation="portrait" >
 			<intent-filter >
 				<action android:name="com.morphoss.acal.activity.CollectionConfigList" />
-
-             
 				<category android:name="android.intent.category.DEFAULT" />
 			</intent-filter>
 		</activity>
@@ -111,8 +99,6 @@
 			android:screenOrientation="portrait" >
 			<intent-filter >
 				<action android:name="com.morphoss.acal.activity.Settings" />
-
-             
 				<category android:name="android.intent.category.DEFAULT" />
 			</intent-filter>
 		</activity>
@@ -124,8 +110,6 @@
 			android:screenOrientation="portrait" >
 			<intent-filter >
 				<action android:name="com.morphoss.acal.activity.DebugSettings" />
-
-             
 				<category android:name="android.intent.category.DEFAULT" />
 			</intent-filter>
 		</activity>
@@ -135,8 +119,6 @@
 			android:screenOrientation="portrait" >
 			<intent-filter >
 				<action android:name="com.morphoss.acal.activity.serverconfig.ServerConfiguration" />
-
-    	         
 				<category android:name="android.intent.category.DEFAULT" />
 			</intent-filter>
 		</activity>
@@ -146,8 +128,6 @@
 			android:screenOrientation="portrait" >
 			<intent-filter >
 				<action android:name="com.morphoss.acal.activity.CollectionConfiguration" />
-
-    	         
 				<category android:name="android.intent.category.DEFAULT" />
 			</intent-filter>
 		</activity>
@@ -156,8 +136,6 @@
 			android:name=".activity.EventView" >
 			<intent-filter >
 				<action android:name="com.morphoss.acal.activity.EventView" />
-
-    	         
 				<category android:name="android.intent.category.DEFAULT" />
 			</intent-filter>
 		</activity>
@@ -167,8 +145,6 @@
 			<intent-filter >
 				<action android:name="com.morphoss.acal.activity.EventEdit" />
 				<action android:name="android.intent.action.VIEW" />
-
-    	         
 				<category android:name="android.intent.category.DEFAULT" />
 				<data android:scheme="content" />
 				<data android:scheme="file" />
@@ -189,8 +165,6 @@
 			android:name=".activity.TodoListView" >
 			<intent-filter >
 				<action android:name="com.morphoss.acal.activity.TodoListView" />
-
-    	         
 				<category android:name="android.intent.category.DEFAULT" />
 			</intent-filter>
 		</activity>
@@ -199,8 +173,6 @@
 			android:name=".activity.TodoView" >
 			<intent-filter >
 				<action android:name="com.morphoss.acal.activity.TodoView" />
-
-    	         
 				<category android:name="android.intent.category.DEFAULT" />
 			</intent-filter>
 		</activity>
@@ -209,8 +181,6 @@
 			android:name=".activity.TodoEdit" >
 			<intent-filter >
 				<action android:name="com.morphoss.acal.activity.TodoEdit" />
-
-    	         
 				<category android:name="android.intent.category.DEFAULT" />
 			</intent-filter>
 		</activity>
@@ -219,8 +189,6 @@
 			android:name=".activity.ShowUpgradeChanges" >
 			<intent-filter >
 				<action android:name="com.morphoss.acal.activity.ShowUpgradeChanges" />
-
-    	         
 				<category android:name="android.intent.category.DEFAULT" />
 			</intent-filter>
 		</activity>
@@ -230,8 +198,6 @@
 			android:screenOrientation="portrait" >
 			<intent-filter >
 				<action android:name="com.morphoss.acal.activity.AlarmActivity" />
-
-    	         
 				<category android:name="android.intent.category.DEFAULT" />
 			</intent-filter>
 		</activity>
@@ -242,8 +208,6 @@
 			android:screenOrientation="portrait" >
 			<intent-filter >
 				<action android:name="com.morphoss.acal.activity.AcalPreferences" />
-
-    	         
 				<category android:name="android.intent.category.DEFAULT" />
 			</intent-filter>
 		</activity>
