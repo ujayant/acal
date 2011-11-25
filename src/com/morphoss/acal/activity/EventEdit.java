@@ -53,9 +53,9 @@ import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.morphoss.acal.AcalTheme;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
-import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDateTimeFormatter;
 import com.morphoss.acal.acaltime.AcalDuration;
@@ -359,10 +359,10 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 		setListen(alarmsView,ADD_ALARM_DIALOG);
 		setListen(repeatsView,SET_REPEAT_RULE_DIALOG);
 
-		StaticHelpers.setContainerColour(btnStartDate, Constants.themeColour );
-		StaticHelpers.setContainerColour(btnEndDate, Constants.themeColour );
-		StaticHelpers.setContainerColour(alarmsView, Constants.themeColour );
-		StaticHelpers.setContainerColour(repeatsView, Constants.themeColour );
+		AcalTheme.setContainerFromTheme(btnStartDate, AcalTheme.BUTTON );
+		AcalTheme.setContainerFromTheme(btnEndDate, AcalTheme.BUTTON );
+		AcalTheme.setContainerFromTheme(alarmsView, AcalTheme.BUTTON );
+		AcalTheme.setContainerFromTheme(repeatsView, AcalTheme.BUTTON );
 		
 		String title = event.getSummary();
 		eventName.setText(title);
@@ -386,10 +386,10 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 		sidebar.setBackgroundColor(colour);
 		sidebarBottom.setBackgroundColor(colour);
 		eventName.setTextColor(colour);
-		if (activeCollections.length < 2) {
+		if (activeCollections.length > 1) {
 			btnSelectCollection.setText(this.currentCollection.getAsString(DavCollections.DISPLAYNAME));
-			StaticHelpers.setContainerColour(btnSelectCollection, colour);
-			btnSelectCollection.setTextColor(StaticHelpers.pickForegroundForBackground(colour));
+			AcalTheme.setContainerColour(btnSelectCollection, colour);
+			btnSelectCollection.setTextColor(AcalTheme.pickForegroundForBackground(colour));
 		}
 		Log.d(TAG,"Start date is "+(start.isFloating()?"":"not ")+"floating in updateLayout...");
 
@@ -579,7 +579,7 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 		Button button = (Button) this.findViewById(id);
 		button.setOnClickListener(this);
 		button.setTag(val);
-		StaticHelpers.setContainerColour(button, Constants.themeColour );
+		AcalTheme.setContainerFromTheme(button, AcalTheme.BUTTON);
 		if ( val == APPLY )
 			button.setText((event.isModifyAction() ? getString(R.string.Save) : getString(R.string.Add)));
 	}

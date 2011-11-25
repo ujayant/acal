@@ -48,9 +48,9 @@ import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.morphoss.acal.AcalTheme;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
-import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDateTimeFormatter;
 import com.morphoss.acal.acaltime.AcalDuration;
@@ -317,14 +317,8 @@ public class TodoEdit extends AcalActivity
 		setButtonDialog(btnAddRepeat, SET_REPEAT_RULE_DIALOG);
 		setButtonDialog(btnCollection, SELECT_COLLECTION_DIALOG);
 
-		StaticHelpers.setContainerColour(btnStartDate, Constants.themeColour );
-		StaticHelpers.setContainerColour(btnDueDate, Constants.themeColour);
-		StaticHelpers.setContainerColour(btnCompleteDate, Constants.themeColour);
-		StaticHelpers.setContainerColour(btnAddAlarm, Constants.themeColour);
-		StaticHelpers.setContainerColour(btnAddRepeat, Constants.themeColour);
-		StaticHelpers.setContainerColour(btnCollection, Constants.themeColour);
-		StaticHelpers.setContainerColour(btnSaveChanges, Constants.themeColour);
-		StaticHelpers.setContainerColour(btnCancelChanges, Constants.themeColour);
+		AcalTheme.setContainerFromTheme(btnSaveChanges, AcalTheme.BUTTON);
+		AcalTheme.setContainerFromTheme(btnCancelChanges, AcalTheme.BUTTON);
 		
 		btnSaveChanges.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View arg0) {
@@ -381,10 +375,10 @@ public class TodoEdit extends AcalActivity
 		btnCompleteDate.setText( AcalDateTimeFormatter.fmtFull( completed, prefer24hourFormat) );
 
 		if ( start != null && due != null && due.before(start) ) {
-			StaticHelpers.setContainerColour(btnStartDate,0xffff3030);
+			AcalTheme.setContainerColour(btnStartDate,0xffff3030);
 		}
 		else {
-			StaticHelpers.setContainerColour(btnStartDate,Constants.themeColour);
+			AcalTheme.setContainerFromTheme(btnStartDate, AcalTheme.BUTTON);
 		}
 		
 		if ( start == null && due == null ) {
@@ -507,14 +501,15 @@ public class TodoEdit extends AcalActivity
 	}
 
 	
-	private void setButtonDialog(Button b, final int dialogIndicator) {
-		b.setOnClickListener(new View.OnClickListener() {
+	private void setButtonDialog(Button myButton, final int dialogIndicator) {
+		myButton.setOnClickListener(new View.OnClickListener() {
 
 			@Override
 			public void onClick(View arg0) {
 				showDialog(dialogIndicator);
 			}
 		});
+		AcalTheme.setContainerFromTheme(myButton, AcalTheme.BUTTON);
 	}
 
 

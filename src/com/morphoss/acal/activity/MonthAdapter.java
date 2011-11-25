@@ -34,6 +34,7 @@ import android.view.ViewParent;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
+import com.morphoss.acal.AcalTheme;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateTime;
@@ -158,7 +159,7 @@ public class MonthAdapter extends BaseAdapter {
 			
 			ViewParent vp = dayColumnHeader.getParent();
 			if ( vp instanceof View ) {
-				((View) vp).setBackgroundColor(Constants.themeColour);
+				((View) vp).setBackgroundColor(AcalTheme.getElementColour(AcalTheme.BUTTON));
 				dayColumnHeader.setBackgroundDrawable(context.getResources().getDrawable(R.drawable.dayheadings_fg));
 			}
 			

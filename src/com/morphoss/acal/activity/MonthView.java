@@ -50,9 +50,9 @@ import android.widget.Button;
 import android.widget.GridView;
 import android.widget.TextView;
 
+import com.morphoss.acal.AcalTheme;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
-import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.dataservice.CalendarDataService;
 import com.morphoss.acal.dataservice.DataRequest;
@@ -355,7 +355,7 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 			myButton.setText(buttonLabel);
 			myButton.setOnClickListener(this);
 			myButton.setTag(val);
-			StaticHelpers.setContainerColour(myButton, Constants.themeColour );
+			AcalTheme.setContainerFromTheme(myButton, AcalTheme.BUTTON);
 		}
 	}
 

@@ -24,15 +24,12 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.RemoteException;
-import android.preference.PreferenceManager;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -42,9 +39,9 @@ import android.widget.Button;
 import android.widget.GridView;
 import android.widget.TextView;
 
+import com.morphoss.acal.AcalTheme;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
-import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.dataservice.CalendarDataService;
 import com.morphoss.acal.dataservice.DataRequest;
 import com.morphoss.acal.dataservice.DataRequestCallBack;
@@ -94,7 +91,6 @@ public class TodoListView extends AcalActivity implements OnClickListener {
 
 	public static final String TAG = "aCal TodoListView";
 
-	private SharedPreferences prefs = null; 
 	private boolean invokedFromView = false;
 	
 	private GridView todoList;
@@ -134,8 +130,6 @@ public class TodoListView extends AcalActivity implements OnClickListener {
 		Bundle b = this.getIntent().getExtras();
 		if ( b != null && b.containsKey("InvokedFromView") )
 			invokedFromView = true;
-
-		prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
 		// make sure aCalService is running
 		this.startService(new Intent(this, aCalService.class));
@@ -239,7 +233,7 @@ public class TodoListView extends AcalActivity implements OnClickListener {
 			myButton.setText(buttonLabel);
 			myButton.setOnClickListener(this);
 			myButton.setTag(val);
-			StaticHelpers.setContainerColour(myButton, Constants.themeColour );
+			AcalTheme.setContainerFromTheme(myButton, AcalTheme.BUTTON);
 		}
 	}
 
@@ -275,8 +269,6 @@ public class TodoListView extends AcalActivity implements OnClickListener {
 	 */
 	private void createListView(boolean addParent) {
 		try {
-			LayoutInflater inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-
 			// List
 			todoList = (GridView) findViewById(R.id.todo_list);
 			todoList.setSelector(R.drawable.no_border);
@@ -512,7 +504,6 @@ public class TodoListView extends AcalActivity implements OnClickListener {
 		@Override
 		public void handleMessage(Message msg) {
 			int type = msg.arg1;
-			int val = msg.arg2;
 			switch (type) {
 			case CalendarDataService.UPDATE:
 				if ( Constants.LOG_DEBUG ) Log.i(TAG,"Received update notification from CalendarDataService.");

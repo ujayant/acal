@@ -35,9 +35,9 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.morphoss.acal.AcalTheme;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
-import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
 import com.morphoss.acal.davacal.AcalAlarm;
@@ -178,7 +178,7 @@ public class EventView extends AcalActivity implements OnGestureListener, OnTouc
 		Button myButton = (Button) this.findViewById(id);
 		myButton.setOnClickListener(this);
 		myButton.setTag(val);
-		StaticHelpers.setContainerColour(myButton, Constants.themeColour );
+		AcalTheme.setContainerFromTheme(myButton, AcalTheme.BUTTON);
 	}
 
 	@Override

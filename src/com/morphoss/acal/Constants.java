@@ -47,7 +47,7 @@ public class Constants {
 	public static final Pattern	matchSegmentName	= Pattern.compile("([^/]+)$");
 
 	/** Set this to false and all debug logging is turned off */
-	private static final boolean DEBUG_MODE = false;
+	public static final boolean DEBUG_MODE = false;
 
 	/** How much stuff to spit out into the logs */
 	public static final boolean LOG_VERBOSE = true & DEBUG_MODE;		//Very verbose play by play execution information
@@ -58,13 +58,10 @@ public class Constants {
 	public static final int LOGV = Log.INFO;  // Normally should be Log.VERBOSE of course.
 	public static final int LOGD = Log.INFO;  // Normally should be Log.DEBUG of course.
 	
-	/** Switch theme colour in debug builds */
-	public static final int themeColour = (DEBUG_SETTINGS ? 0xff30b0ff /* blue */ : 0xfff0a020 /* orange */ );
-	
 	/** And sometimes we want to really deeply debug specific bits */
 	public static final boolean	debugRepeatRule					= false & DEBUG_MODE;
 	public static final boolean	debugCalendar					= false & DEBUG_MODE;
-	public static final boolean	debugSyncCollectionContents		= false & DEBUG_MODE;
+	public static final boolean	debugSyncCollectionContents		= true & DEBUG_MODE;
 	public static final boolean	debugCalendarDataService		= false & DEBUG_MODE;
 	public static final boolean	debugMonthView					= false & DEBUG_MODE;
 	public static final boolean	debugWeekView					= false & DEBUG_MODE;
