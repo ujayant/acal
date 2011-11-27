@@ -51,6 +51,7 @@ import android.view.View.OnTouchListener;
 import android.view.Window;
 import android.widget.Button;
 
+import com.morphoss.acal.AcalTheme;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateRange;
@@ -521,14 +522,14 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	 * </p>
 	 */
 	private void setupButton(int id, int val) {
-		Button today = (Button) this.findViewById(id);
-		if (today == null) {
-			Log.e(TAG, "Cannot find button '" + id + "' by ID, to set value '"
-					+ val + "'");
-			Log.i(TAG, Log.getStackTraceString(new Exception()));
-		} else {
-			today.setOnClickListener(this);
-			today.setTag(val);
+		Button myButton = (Button) this.findViewById(id);
+		if ( myButton == null ) {
+			Log.e(TAG, "Cannot find button '" + id + "' by ID, to set value '" + val + "'", new Exception());
+		}
+		else {
+			myButton.setOnClickListener(this);
+			myButton.setTag(val);
+			AcalTheme.setContainerFromTheme(myButton, AcalTheme.BUTTON);
 		}
 	}
 	

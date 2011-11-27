@@ -62,7 +62,7 @@ import com.morphoss.acal.xml.DavNode;
 public class SyncCollectionContents extends ServiceJob {
 
 	public static final String	TAG					= "aCal SyncCollectionContents";
-	private static final int	nPerMultiget		= 30;
+	private static final int	nPerMultiget		= 100;
 
 	private int					collectionId		= -5;
 	private int					serverId			= -5;
@@ -691,6 +691,7 @@ public class SyncCollectionContents extends ServiceJob {
 			List<ResourceModification> changeList = new ArrayList<ResourceModification>(hrefList.length());
 
 			for (DavNode response : responses) {
+				try { Thread.sleep(2); } catch ( InterruptedException e ) { }  // Give the UI thread more of a chance to do stuff.
 				String name = response.segmentFromFirstHref("href");
 				if ( toBeRemoved.contains(name) ) {
 					if (Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents )
@@ -798,13 +799,13 @@ public class SyncCollectionContents extends ServiceJob {
 					if ( etag.equals(oldEtag) && cv.get(DavResources.RESOURCE_DATA) != null ) {
 						cv.put(DavResources.NEEDS_SYNC, 0);
 						responseNode.getParent().removeSubTree(responseNode);
-						if ( Constants.LOG_DEBUG )
-							Log.println(Constants.LOGD,TAG,"Found etag '"+etag+"' in response.  Old etags was '"+oldEtag+"'.  No sync needed.");
+						if ( Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents ) Log.println(Constants.LOGD,TAG,
+								"Found etag '"+etag+"' in response.  Old etags was '"+oldEtag+"'.  No sync needed.");
 						return false;
 					}
 					else {
-						if ( Constants.LOG_DEBUG )
-							Log.println(Constants.LOGD,TAG,"Found etag '"+etag+"' in response.  Old etags was '"+oldEtag+"'.  Sync may be needed.");
+						if ( Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents ) Log.println(Constants.LOGD,TAG,
+								"Found etag '"+etag+"' in response.  Old etags was '"+oldEtag+"'.  Sync may be needed.");
 						cv.put(DavResources.NEEDS_SYNC, 1);
 					}
 				}
@@ -819,13 +820,13 @@ public class SyncCollectionContents extends ServiceJob {
 					cv.put(DavResources.RESOURCE_DATA, data);
 					cv.put(DavResources.ETAG, etag);
 					cv.put(DavResources.NEEDS_SYNC, 0);
-					if ( Constants.LOG_DEBUG )
-						Log.println(Constants.LOGD,TAG,"Found etag '"+etag+"' in response.  Sync not needed.");
+					if ( Constants.LOG_DEBUG && Constants.debugSyncCollectionContents ) Log.println(Constants.LOGD,TAG,
+							"Found data for etag '"+etag+"' in response.  Sync not needed.");
 				}
-				else if ( Constants.LOG_DEBUG ) {
-					Log.println(Constants.LOGD,TAG,"Found etag '"+etag+"' in response.  Sync not needed.");
+				else if ( Constants.LOG_DEBUG && Constants.debugSyncCollectionContents ) Log.println(Constants.LOGD,TAG,
+						"Found no data for etag '"+etag+"' in response.  Sync is needed.");
 					
-				}
+
 				s = prop.getFirstNodeText("getlastmodified");
 				if ( s != null ) cv.put(DavResources.LAST_MODIFIED, s);
 

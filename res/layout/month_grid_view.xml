@@ -1,33 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android" 
-	android:layout_height="fill_parent" 
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
 	android:layout_width="fill_parent"
+	android:layout_height="fill_parent"
 	android:layout_alignParentBottom="true"
-	android:layout_alignParentTop="true">
-
-	<TextView 
-		android:id="@+id/month_grid_title" 
-		android:layout_height="wrap_content" 
-		android:layout_width="fill_parent" 
-		android:gravity="center"
-		android:textColor="#F0F0F0" 
+	android:layout_alignParentTop="true" >
+	<TextView
+		android:id="@+id/month_grid_title"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
 		android:background="@drawable/titlebg"
-		android:tileMode="repeat">
+		android:gravity="center"
+		android:textColor="#F0F0F0"
+		android:tileMode="repeat" >
 	</TextView>
-	
-	<GridView 
+	<GridView
 		android:id="@+id/month_default_gridview"
-   		android:layout_width="fill_parent" 
-   		android:layout_height="fill_parent"
-   		android:numColumns="7"
-   		android:verticalSpacing="1dp"
-   		android:horizontalSpacing="1dp"
-   		android:layout_below="@id/month_grid_title"
-   		android:gravity="center|center_horizontal|center_vertical"
-   		android:layout_gravity="center_horizontal|center_vertical"
-   		android:layout_weight="1"
-   		android:layout_alignParentBottom="true">
-   	</GridView>
-
-
+		android:layout_width="fill_parent"
+		android:layout_height="fill_parent"
+		android:layout_alignParentBottom="true"
+		android:layout_below="@id/month_grid_title"
+		android:layout_gravity="center_horizontal|center_vertical"
+		android:layout_weight="1"
+		android:gravity="center|center_horizontal|center_vertical"
+		android:horizontalSpacing="1dp"
+		android:numColumns="7"
+		android:verticalSpacing="1dp" >
+	</GridView>
 </RelativeLayout>

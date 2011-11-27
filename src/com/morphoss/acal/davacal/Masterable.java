@@ -107,7 +107,7 @@ public abstract class Masterable extends VComponent {
 		
 		AcalProperty dProp = getProperty(PropertyName.DURATION);
 		if ( dProp == null ) {
-			if ( result.isDate() ) result.applyLocalTimeZone().addDays(1);
+			if ( result != null && result.isDate() ) result.applyLocalTimeZone().addDays(1);
 			return result;
 		}
 
@@ -131,8 +131,14 @@ public abstract class Masterable extends VComponent {
 			Iterator<VComponent> it = children.iterator();
 			while( it.hasNext() ) {
 				VComponent child = it.next();
-				if ( child instanceof VAlarm )
-					alarms.add( new AcalAlarm((VAlarm) child, this, getStart(), getEnd()) );
+				if ( child instanceof VAlarm ) {
+					try {
+						alarms.add( new AcalAlarm((VAlarm) child, this, getStart(), getEnd()) );
+					}
+					catch( IllegalStateException e ) {
+						Log.w(TAG,"Invalid alarm in list", e);
+					}
+				}
 			}
 		}
 		catch (YouMustSurroundThisMethodInTryCatchOrIllEatYouException e) { }

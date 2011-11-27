@@ -69,26 +69,27 @@ public class Servers extends ContentProvider {
     }
 
 	//Table Fields - All other classes should use these constants to access fields.
-	public static final String		_ID				= "_id";
-	public static final String		FRIENDLY_NAME	= "friendly_name";
-	public static final String		LAST_CHECKED	= "last_checked";
-	public static final String		SUPPLIED_USER_URL	= "supplied_domain";
-	public static final String		SUPPLIED_PATH	= "supplied_path";
-	public static final String		HOSTNAME		= "hostname";
-	public static final String		PRINCIPAL_PATH	= "principal_path";
-	public static final String		USERNAME		= "username";
-	public static final String		PASSWORD		= "password";
-	public static final String		PORT			= "port";
-	public static final String		AUTH_TYPE		= "auth_type";
-	public static final String		HAS_SRV			= "has_srv";
-	public static final String		HAS_WELLKNOWN	= "has_wellknown";
-	public static final String		HAS_CALDAV		= "has_caldav";
-	public static final String		HAS_MULTIGET	= "has_multiget";
-	public static final String		HAS_SYNC		= "has_sync";
-	public static final String		ACTIVE			= "active";
-	public static final String		USE_SSL			= "use_ssl";
-	public static final String		USE_ADVANCED	= "use_advanced";
-	public static final String		PREPARED_CONFIG	= "prepared_config";
+	public static final String		_ID					= "_id";
+	public static final String		FRIENDLY_NAME		= "friendly_name";
+	public static final String		LAST_CHECKED		= "last_checked";
+	public static final String		SUPPLIED_USER_URL	= "supplied_user_url";
+	public static final String		OLD_SUPPLIED_PATH	= "supplied_path";
+	public static final String		OLD_SUPPLIED_DOMAIN	= "supplied_domain";
+	public static final String		HOSTNAME			= "hostname";
+	public static final String		PRINCIPAL_PATH		= "principal_path";
+	public static final String		USERNAME			= "username";
+	public static final String		PASSWORD			= "password";
+	public static final String		PORT				= "port";
+	public static final String		AUTH_TYPE			= "auth_type";
+	public static final String		HAS_SRV				= "has_srv";
+	public static final String		HAS_WELLKNOWN		= "has_wellknown";
+	public static final String		HAS_CALDAV			= "has_caldav";
+	public static final String		HAS_MULTIGET		= "has_multiget";
+	public static final String		HAS_SYNC			= "has_sync";
+	public static final String		ACTIVE				= "active";
+	public static final String		USE_SSL				= "use_ssl";
+	public static final String		USE_ADVANCED		= "use_advanced";
+	public static final String		PREPARED_CONFIG		= "prepared_config";
 
 	// Possible values for authentication
 	public static final int			AUTH_NONE		= 0;
@@ -281,7 +282,6 @@ public class Servers extends ContentProvider {
 		StaticHelpers.copyContentValue(cloned, serverData, FRIENDLY_NAME);
 		StaticHelpers.copyContentValue(cloned, serverData, LAST_CHECKED);
 		StaticHelpers.copyContentValue(cloned, serverData, SUPPLIED_USER_URL);
-		StaticHelpers.copyContentValue(cloned, serverData, SUPPLIED_PATH);
 		StaticHelpers.copyContentValue(cloned, serverData, HOSTNAME);
 		StaticHelpers.copyContentValue(cloned, serverData, PRINCIPAL_PATH);
 		StaticHelpers.copyContentValue(cloned, serverData, USERNAME);

@@ -31,6 +31,7 @@ import com.morphoss.acal.R;
 import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDuration;
+import com.morphoss.acal.activity.TodoEdit;
 
 
 /**
@@ -65,15 +66,7 @@ public class SimpleAcalTodo implements Parcelable, Comparable<SimpleAcalTodo> {
 	final public static int TODO_STATUS_IN_PROCESS = 3;
 	final public static int TODO_STATUS_CANCELLED = 4;
 
-	final public static int TODO_OPERATION_NONE = 0;
-	final public static int TODO_OPERATION_VIEW = 1;
-	final public static int TODO_OPERATION_EDIT = 2;
-	final public static int TODO_OPERATION_COPY = 3;
-	final public static int TODO_OPERATION_MOVE = 4;
-	final public static int TODO_OPERATION_DELETE = 5;
-	final public static int TODO_OPERATION_COMPLETE = 6;
-	
-	public int operation = TODO_OPERATION_NONE;
+	public int operation = TodoEdit.ACTION_NONE;
 	
 	/**
 	 * Construct a new SimpleAcalEvent from all of the parameters

@@ -175,10 +175,12 @@ public class AddServerListAdapter extends BaseAdapter {
 			icon.setBackgroundDrawable(context.getResources().getDrawable(R.drawable.icon));
 			title.setText(item.getAsString(Servers.FRIENDLY_NAME));
 			StringBuilder blurbString = new StringBuilder("");
-			if ( item.getAsString(Servers.HOSTNAME) != null && !item.getAsString(Servers.HOSTNAME).equals("null")) blurbString.append(item.getAsString(Servers.HOSTNAME));
-			else if ( item.getAsString(Servers.SUPPLIED_USER_URL) != null && !item.getAsString(Servers.SUPPLIED_USER_URL).equals("null") ) blurbString.append(item.getAsString(Servers.SUPPLIED_USER_URL)); 
-			if ( item.getAsString(Servers.PRINCIPAL_PATH) != null ) blurbString.append(item.getAsString(Servers.PRINCIPAL_PATH));
-			else if ( item.getAsString(Servers.SUPPLIED_PATH) != null )  blurbString.append(item.getAsString(Servers.SUPPLIED_PATH));
+			if ( item.getAsString(Servers.HOSTNAME) != null && !item.getAsString(Servers.HOSTNAME).equals("null")) {
+				blurbString.append(item.getAsString(Servers.HOSTNAME));
+				if ( item.getAsString(Servers.PRINCIPAL_PATH) != null ) blurbString.append(item.getAsString(Servers.PRINCIPAL_PATH));
+			}
+			else if ( item.getAsString(Servers.SUPPLIED_USER_URL) != null && !item.getAsString(Servers.SUPPLIED_USER_URL).equals("null") )
+				blurbString.append(item.getAsString(Servers.SUPPLIED_USER_URL)); 
 			
 			if ( blurbString.equals("") ) blurbString.append(context.getString(R.string.SavedServerConfigurationBlurb)); 
 			blurb.setText(blurbString);

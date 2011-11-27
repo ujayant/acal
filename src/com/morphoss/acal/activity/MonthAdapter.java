@@ -26,6 +26,7 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -128,10 +129,9 @@ public class MonthAdapter extends BaseAdapter {
 		if ( parent != null ) {
 			gridHeight = parent.getHeight();
 			int boxWidth = (parent.getWidth() / 7) - 1;
-			boxHeight = gridHeight / 7;
-			headerHeight = gridHeight - (boxHeight * 6);
-			boxHeight--;  // Allow for vertical spacing
-			headerHeight--;
+			boxHeight = (gridHeight / 7) - 1;
+			headerHeight = boxHeight - 1;
+			gridHeight = (boxHeight + 1) * 7;
 			if ( boxWidth > (boxHeight * 1.3) ) boxScaleFactor = 1.2f;
 			else if ( boxWidth < (boxHeight * 0.9) )  boxScaleFactor = 0.9f;
 		}
@@ -154,6 +154,7 @@ public class MonthAdapter extends BaseAdapter {
 				case AcalDateTime.SATURDAY: colText=(context.getString(R.string.Sat)); break;
 				case AcalDateTime.SUNDAY: colText=(context.getString(R.string.Sun)); break;
 			}
+			dayColumnHeader.setGravity(Gravity.CENTER_HORIZONTAL | Gravity.TOP);
 			dayColumnHeader.setText(colText);
 			dayColumnHeader.setTextSize( TypedValue.COMPLEX_UNIT_PX, (float) 0.50 * boxScaleFactor * headerHeight);
 			

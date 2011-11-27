@@ -23,7 +23,6 @@ import java.util.List;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.util.Log;
 import android.view.GestureDetector.OnGestureListener;
 import android.view.MotionEvent;
@@ -38,7 +37,6 @@ import android.widget.TextView;
 import com.morphoss.acal.AcalTheme;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
-import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.davacal.AcalAlarm;
 import com.morphoss.acal.davacal.AcalCollection;
 import com.morphoss.acal.davacal.SimpleAcalTodo;
@@ -50,7 +48,6 @@ import com.morphoss.acal.service.aCalService;
 public class TodoView extends AcalActivity implements OnGestureListener, OnTouchListener, OnClickListener{
 
 	public static final String TAG = "aCal TodoView";
-	public static final int TODAY = 0;
 	public static final int EDIT = 1;
 	public static final int ADD = 2;
 	public static final int SHOW_ON_MAP = 3;
@@ -72,7 +69,6 @@ public class TodoView extends AcalActivity implements OnGestureListener, OnTouch
 		//gestureDetector = new GestureDetector(this);
 
 		//Set up buttons
-		this.setupButton(R.id.todo_today_button, TODAY);
 		this.setupButton(R.id.todo_edit_button, EDIT);
 		this.setupButton(R.id.todo_add_button, ADD);
 		
@@ -139,17 +135,12 @@ public class TodoView extends AcalActivity implements OnGestureListener, OnTouch
 		time.setText(sat.getTimeText( this, prefs.getBoolean(getString(R.string.prefTwelveTwentyfour),false)));
 		time.setTextColor(colour);
 
-		TextView titlebar = (TextView)this.findViewById(R.id.TodoViewTitle);
-		titlebar.setText(time.getText());
-		
-
 		TextView locationView = (TextView) this.findViewById(R.id.TodoLocationContent);
 		if ( location != null && ! location.equals("") ) {
 			locationView.setText(location);
 		}
 		else {
-			RelativeLayout locationLayout = (RelativeLayout) this.findViewById(R.id.TodoLocationLayout);
-			locationLayout.setVisibility(View.GONE);
+			((RelativeLayout) this.findViewById(R.id.TodoLocationLayout)).setVisibility(View.GONE);
 		}
 
 		TextView notesView = (TextView) this.findViewById(R.id.TodoNotesContent);
@@ -157,8 +148,7 @@ public class TodoView extends AcalActivity implements OnGestureListener, OnTouch
 			notesView.setText(description);
 		}
 		else {
-			RelativeLayout notesLayout = (RelativeLayout) this.findViewById(R.id.TodoNotesLayout);
-			notesLayout.setVisibility(View.GONE);
+			((RelativeLayout) this.findViewById(R.id.TodoNotesLayout)).setVisibility(View.GONE);
 		}
 		
 		TextView alarmsView = (TextView) this.findViewById(R.id.TodoAlarmsContent);
@@ -243,7 +233,7 @@ public class TodoView extends AcalActivity implements OnGestureListener, OnTouch
 			case EDIT: {
 				//start todo activity
 				Bundle bundle = new Bundle();
-				sat.operation = SimpleAcalTodo.TODO_OPERATION_EDIT;
+				sat.operation = TodoEdit.ACTION_EDIT;
 				bundle.putParcelable("SimpleAcalTodo", sat);
 				Intent todoEditIntent = new Intent(this, TodoEdit.class);
 				todoEditIntent.putExtras(bundle);
@@ -255,14 +245,6 @@ public class TodoView extends AcalActivity implements OnGestureListener, OnTouch
 				Intent todoEditIntent = new Intent(this, TodoEdit.class);
 				todoEditIntent.putExtras(bundle);
 				this.startActivityForResult(todoEditIntent,EDIT_ADD);
-				break;
-			}
-			case TODAY: {
-				AcalDateTime selectedDate = new AcalDateTime();
-				Intent res = new Intent();
-				res.putExtra("selectedDate", (Parcelable) selectedDate);
-				this.setResult(RESULT_OK, res);
-				this.finish();
 				break;
 			}
 		}

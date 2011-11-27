@@ -28,6 +28,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -48,6 +49,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.GridView;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.morphoss.acal.AcalTheme;
@@ -131,8 +133,8 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 	private AcalViewFlipper listViewFlipper;
 	/** The root view containing the GridView Object for the Event View */
 	private View listRoot;
-	/** The GridView object that displays the Event View */
-	private GridView eventList = null;
+	/** The ListView object that displays the Event View */
+	private ListView eventList = null;
 	/** The TextView that displays which day we are looking at */
 	private TextView eventListTitle;
 	/** The current event list adapter */
@@ -171,6 +173,9 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 	Animation leftOut = null;
 	Animation rightIn = null;
 	Animation rightOut = null;
+
+	private int	eventListIndex = 0;
+	private int	eventListTop = 0;
 
 	/********************************************************
 	 * Activity Overrides *
@@ -285,6 +290,7 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 	public void onPause() {
 		super.onPause();
 
+		rememberCurrentPosition();
 		try {
 			if (dataRequest != null) {
 				dataRequest.flushCache();
@@ -303,37 +309,26 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 		prefs.edit().putLong(getString(R.string.prefSelectedDate), selectedDate.getMillis()).commit();
 		prefs.edit().putLong(getString(R.string.prefDisplayedMonth), displayedMonth.getMillis()).commit();
 
-/*		
-		if (Constants.LOG_DEBUG)	Log.d(TAG, "Writing month view state to file.");
-		AcalDateTime now = new AcalDateTime().applyLocalTimeZone();
-		ObjectOutputStream outputStream = null;
-		try {
-			outputStream = new ObjectOutputStream(new FileOutputStream(STATE_FILE));
-			outputStream.writeObject(this.selectedDate);
-			outputStream.writeObject(this.displayedMonth);
-			outputStream.writeObject(now);
-		} catch (FileNotFoundException ex) {
-			Log.w(TAG,
-					"Error saving MonthView State - File Not Found: "
-							+ ex.getMessage());
-		} catch (IOException ex) {
-			Log.w(TAG,
-					"Error saving MonthView State - IO Error: "
-							+ ex.getMessage());
-		} finally {
-			// Close the ObjectOutputStream
-			try {
-				if (outputStream != null) {
-					outputStream.flush();
-					outputStream.close();
-				}
-			} catch (IOException ex) {
-				Log.w(TAG,
-						"Error closing MonthView file - IO Error: "
-								+ ex.getMessage());
-			}
-		}
-*/
+	}
+
+	private void rememberCurrentPosition() {
+    	// save index and top position
+    	if ( eventList != null ) {
+        	eventListIndex = eventList.getFirstVisiblePosition();
+        	View v = eventList.getChildAt(0);
+        	eventListTop = (v == null) ? 0 : v.getTop();
+        	if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,
+    				"Saved list view position of "+eventListIndex+", "+eventListTop);
+    	}
+	}
+
+    
+    private void restoreCurrentPosition() {
+    	if ( eventList != null ) {
+        	eventList.setSelectionFromTop(eventListIndex, eventListTop);
+    	}
+    	if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,
+    				"Set list view to position "+eventListIndex+", "+eventListTop);
 	}
 
 	/****************************************************
@@ -430,7 +425,7 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 			eventListTitle = (TextView) listRoot.findViewById(R.id.month_list_title);
 
 			// List
-			eventList = (GridView) listRoot.findViewById(R.id.month_default_list);
+			eventList = (ListView) listRoot.findViewById(R.id.month_default_list);
 			eventList.setSelector(R.drawable.no_border);
 			eventList.setOnTouchListener(this);
 
@@ -671,7 +666,13 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 	 */
 	public void changeDisplayedMonth(AcalDateTime calendar) {
 		this.displayedMonth = calendar.applyLocalTimeZone();
-		this.monthTitle.setText(AcalDateTime.fmtMonthYear(calendar));
+		if ( getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT ) {
+			this.monthTitle.setVisibility(View.GONE);
+		}
+		else {
+			this.monthTitle.setText(AcalDateTime.fmtMonthYear(calendar));
+			this.monthTitle.setVisibility(View.VISIBLE);
+		}
 		if (AcalDateTime.isWithinMonth(selectedDate, displayedMonth))
 			this.gridView.setAdapter(new MonthAdapter(this, selectedDate, selectedDate));
 		else
@@ -679,6 +680,7 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 		this.gridView.refreshDrawableState();
 	}
 
+	
 	/**
 	 * <p>
 	 * Changes the selected date to the date represented by the provided
@@ -687,11 +689,21 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 	 */
 	public void changeSelectedDate(AcalDateTime c) {
 
-		this.selectedDate = c.applyLocalTimeZone();
-		this.eventListTitle.setText(AcalDateTime.fmtDayMonthYear(c));
-		this.eventListAdapter = new EventListAdapter(this, selectedDate.clone());
-		this.eventList.setAdapter(eventListAdapter);
-		this.eventList.refreshDrawableState();
+		if ( selectedDate != null && selectedDate.equals(c) ) {
+			rememberCurrentPosition();
+		}
+		else {
+			selectedDate = c.applyLocalTimeZone();
+			eventListTop = 0;
+			eventListIndex = 0;
+		}
+		eventListAdapter = new EventListAdapter(this, selectedDate.clone());
+		eventList.setAdapter(eventListAdapter);
+		eventList.refreshDrawableState();
+		restoreCurrentPosition();
+		
+		eventListTitle.setText(AcalDateTime.fmtDayMonthYear(c));
+
 		if (AcalDateTime.isWithinMonth(selectedDate, displayedMonth)) {
 			this.gridView.setAdapter(new MonthAdapter(this, displayedMonth.clone(), selectedDate.clone()));
 			this.gridView.refreshDrawableState();
@@ -703,6 +715,7 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 			this.gridView.refreshDrawableState();
 		}
 	}
+
 
 	/**
 	 * Methods for managing event structure
@@ -747,8 +760,7 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 			SimpleAcalEvent sae = dataRequest.getNthEventForDay(day, n);
 			AcalEvent ae = AcalEvent.fromDatabase(this, sae.resourceId, new AcalDateTime().setEpoch(sae.start));
 			ae.setAction(action);
-			this.dataRequest.eventChanged(ae);
-			dataRequest.deleteEvent(day, n);
+			dataRequest.eventChanged(ae);
 		} catch (RemoteException e) {
 			Log.e(TAG,"Error deleting event: "+e);
 		}

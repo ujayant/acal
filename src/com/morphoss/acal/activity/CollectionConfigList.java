@@ -279,7 +279,7 @@ public class CollectionConfigList extends PreferenceActivity
 		try {
 		    AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
 		    int id = preferenceListIds[info.position];
-			if (Constants.LOG_DEBUG) Log.d(TAG, "Context menu on preferenceItem " + info.position + " which I reckon is id " + id);
+			if (Constants.LOG_DEBUG) Log.println(Constants.LOGD, TAG, "Context menu on preferenceItem " + info.position + " which I reckon is id " + id);
 		    switch (item.getItemId()) {
 				case CONTEXT_SYNC_NOW:
 					return syncCollection(id, false);

@@ -6,26 +6,26 @@
 	android:orientation="vertical" >
 	<TextView
 		android:id="@+id/alarmRelativeDuration"
-		android:layout_width="fill_parent"
+		android:layout_width="wrap_content"
 		android:layout_height="fill_parent"
 		android:layout_marginLeft="15sp"
-		android:layout_marginRight="15sp"
+		android:layout_marginRight="5sp"
 		android:layout_marginTop="3sp"
 		android:layout_weight="1"
 		android:gravity="left"
 		android:minLines="3"
-		android:text="TextView"
-		android:textAppearance="?android:attr/textAppearanceSmall"
+		android:text="3 days 12 hours and 30 minutes before start"
+		android:textAppearance="?android:attr/textAppearanceMedium"
 		android:textColor="#ff000000" />
 	<TextView
 		android:id="@+id/alarmTimeText"
-		android:layout_width="fill_parent"
+		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
 		android:layout_marginLeft="15sp"
-		android:layout_marginRight="15sp"
+		android:layout_marginRight="5sp"
 		android:layout_marginTop="3sp"
 		android:gravity="left"
-		android:text="2011-03-21 17:45"
+		android:text="7:00pm, 29 November 2011"
 		android:textAppearance="?android:attr/textAppearanceLarge"
 		android:textColor="#ff000000" />
 	<LinearLayout
@@ -47,7 +47,7 @@
 					android:layout_width="fill_parent"
 					android:layout_height="40sp"
 					android:minHeight="36sp"
-					android:text="7:00pm, 29 October 2011" />
+					android:text="7:00pm, 29 November 2011" />
 			</LinearLayout>
 		</LinearLayout>
 		<LinearLayout

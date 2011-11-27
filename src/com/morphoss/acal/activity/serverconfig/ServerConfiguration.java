@@ -494,17 +494,16 @@ public class ServerConfiguration extends PreferenceActivity implements OnPrefere
 	public boolean onPreferenceChange(Preference pref, Object newValue) {
 		String key = pref.getKey();
 		boolean ret = false;
-		if (key.equals("friendly_name")) ret = validateFriendlyName(pref,newValue);
-		else if (key.equals("use_ssl")) ret = validateUseSSL(pref,newValue);
-		else if (key.equals("hostname")) ret = validateHostName(pref,newValue);
-		else if (key.equals("port")) ret = validatePort(pref,newValue);
-		else if (key.equals("supplied_domain")) ret = validateDomain(pref,newValue);
-		else if (key.equals("supplied_path")) ret = validateSuppliedPath(pref,newValue);
-		else if (key.equals("principal_path")) ret = validatePrincipalPath(pref,newValue);
-		else if (key.equals("auth_type")) ret = validateAuth(pref,newValue);
-		else if (key.equals("username")) ret = validateUsername(pref,newValue);
-		else if (key.equals("password")) ret = validatePassword(pref,newValue);
-		else if (key.equals("active")) ret = validateActive(pref,newValue);
+		if ( key.equals(Servers.FRIENDLY_NAME) ) ret = validateFriendlyName(pref, newValue);
+		else if ( key.equals(Servers.USE_SSL) ) ret = validateUseSSL(pref, newValue);
+		else if ( key.equals(Servers.HOSTNAME) ) ret = validateHostName(pref, newValue);
+		else if ( key.equals(Servers.PORT) ) ret = validatePort(pref, newValue);
+		else if ( key.equals(Servers.SUPPLIED_USER_URL) ) ret = validateUrl(pref, newValue);
+		else if ( key.equals(Servers.PRINCIPAL_PATH) ) ret = validatePrincipalPath(pref, newValue);
+		else if ( key.equals(Servers.AUTH_TYPE) ) ret = validateAuth(pref, newValue);
+		else if ( key.equals(Servers.USERNAME) ) ret = validateUsername(pref, newValue);
+		else if ( key.equals(Servers.PASSWORD) ) ret = validatePassword(pref, newValue);
+		else if ( key.equals(Servers.ACTIVE) ) ret = validateActive(pref, newValue);
 		if (!this.originalServerData.equals(this.serverData)) apply.setEnabled(true);
 		updateSummaries();
 		return ret;
@@ -569,7 +568,7 @@ public class ServerConfiguration extends PreferenceActivity implements OnPrefere
 		return false;
 	}
 
-	private boolean validateDomain(Preference p, Object v) { 
+	private boolean validateUrl(Preference p, Object v) { 
 		if (v != null && v instanceof String && !v.equals("")) {
 			serverData.put(Servers.SUPPLIED_USER_URL, (String)v);
 		}
@@ -597,17 +596,6 @@ public class ServerConfiguration extends PreferenceActivity implements OnPrefere
 		}
 	}
 	
-	private boolean validateSuppliedPath(Preference p, Object v) {
-		if (v == null || v.equals("")) {
-			v = "/";
-		}
-		if ( ! ((String)v).substring(0,1).equals("/") ) {
-			v = "/".concat((String)v); 
-		}
-		serverData.put(Servers.SUPPLIED_PATH, (String)v);
-		return true;
-	}
-
 	private boolean validatePrincipalPath(Preference p, Object v) {
 		if (v == null || v.equals("")) {
 			v = "/";

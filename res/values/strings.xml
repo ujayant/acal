@@ -284,4 +284,10 @@
 	<string name="Custom">Custom</string>
 	<string name="floatingTime">Floating Time</string>
 	<string name="SetCustomAlarm">Set a custom alarm</string>
+	<string name="showUpdateInformation">Show Update Information</string>
+	<string name="General_aCal_Information">General aCal Information</string>
+	<string name="aCal_Website">The <b>aCal</b> website is %s</string>
+	<string name="aCal_IRC_Channel">You can chat with the aCal authors on IRC in the #acal on irc.oftc.net</string>
+	<string name="aCal_Mailing_Lists">The <em>aCal</em> mailing lists are public and you can subscribe at <a href="http://lists.acal.me/">lists.acal.me</a>. There are archives there too.</string>
+	<string name="aCal_is_Free_Software">aCal is "Free Software" (that\'s "free" as in "freedom") which is licensed under the General Public License v3 or later.  You can download &lt;a href="http://gitorious.org/acal">the source code for aCal from Gitorious&lt;/a></string>
 </resources>

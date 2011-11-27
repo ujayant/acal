@@ -5,16 +5,6 @@
 	android:layout_height="fill_parent"
 	android:background="@drawable/morphossbg"
 	android:orientation="vertical" >
-	<!-- Title bar -->
-	<TextView
-		android:id="@+id/EventEditTitle"
-		android:layout_width="fill_parent"
-		android:layout_height="wrap_content"
-		android:background="@drawable/titlebg"
-		android:gravity="center"
-		android:textColor="#F0F0F0"
-		android:tileMode="repeat" >
-	</TextView>
 	<LinearLayout
 		android:id="@+id/EventEditBelowTitleLayout"
 		android:layout_width="fill_parent"
@@ -24,7 +14,7 @@
 		<!-- Colour bar -->
 		<LinearLayout
 			android:id="@+id/EventEditColourBar"
-			android:layout_width="10sp"
+			android:layout_width="13sp"
 			android:layout_height="fill_parent"
 			android:background="#704080f0" />
 		<ScrollView
@@ -247,7 +237,7 @@
 		<!-- Colour bar -->
 		<LinearLayout
 			android:id="@+id/EventEditColourBarBottom"
-			android:layout_width="10sp"
+			android:layout_width="13sp"
 			android:layout_height="fill_parent"
 			android:background="#704080f0" />
 		<LinearLayout

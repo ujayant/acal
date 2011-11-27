@@ -102,15 +102,15 @@ public class SyncChangesToServer extends ServiceJob {
 		}
 
 		if ( !marshallChangesToSync() ) {
-			if (Constants.LOG_DEBUG) Log.d(TAG, "No local changes to synchronise.");
+			if (Constants.debugSyncChangesToServer) Log.println(Constants.LOGD,TAG, "No local changes to synchronise.");
 			return; // without rescheduling
 		}
 		else if ( !connectivityAvailable() ) {
-			if (Constants.LOG_DEBUG) Log.d(TAG, "No connectivity available to sync local changes.");
+			if (Constants.debugSyncChangesToServer) Log.println(Constants.LOGD,TAG, "No connectivity available to sync local changes.");
 		}
 		else {
-			if (Constants.LOG_DEBUG)
-				Log.d(TAG, "Starting sync of local changes");
+			if (Constants.debugSyncChangesToServer)
+				Log.println(Constants.LOGD,TAG, "Starting sync of local changes");
 			
 			collectionsToSync = new HashSet<Integer>();
 	
@@ -241,10 +241,10 @@ public class SyncChangesToServer extends ServiceJob {
 					resourcePath = StaticHelpers.rTrim(((VCalendar) vc).getMasterChild().getProperty("UID").getValue()) + ".ics";
 			}
 			catch ( Exception e ) {
-				if ( Constants.LOG_DEBUG )
-					Log.d(TAG,"Unable to get UID from resource");
+				if ( Constants.debugSyncChangesToServer )
+					Log.println(Constants.LOGD,TAG,"Unable to get UID from resource");
 				if ( Constants.LOG_VERBOSE )
-					Log.v(TAG,Log.getStackTraceString(e));
+					Log.println(Constants.LOGV,TAG,Log.getStackTraceString(e));
 			};
 			if ( resourcePath == null ) {
 					resourcePath = UUID.randomUUID().toString() + ".ics";
@@ -279,7 +279,8 @@ public class SyncChangesToServer extends ServiceJob {
 
 		Header[] headers = new Header[] { eTagHeader, contentHeader};
 		
-		if (Constants.LOG_DEBUG)	Log.d(TAG, "Making "+action.toString()+" request to "+path);
+		if (Constants.debugSyncChangesToServer)	Log.println(Constants.LOGD,TAG,
+				"Making "+action.toString()+" request to "+path);
 
 		// If we made it this far we should do a sync on this collection ASAP after we're done
 		collectionsToSync.add(collectionId);
@@ -304,14 +305,14 @@ public class SyncChangesToServer extends ServiceJob {
 		switch (status) {
 			case 201: // Status Created (normal for INSERT).
 			case 204: // Status No Content (normal for DELETE).
-			case 200: // Status OK.
-				if (Constants.LOG_DEBUG) Log.d(TAG, "Response "+status+" against "+path);
+			case 200: // Status OK. (normal for UPDATE)
+				if (Constants.debugSyncChangesToServer) Log.println(Constants.LOGD,TAG, "Response "+status+" against "+path);
 				resourceData.put(DavResources.RESOURCE_DATA, newData);
 				resourceData.put(DavResources.NEEDS_SYNC, true);
 				resourceData.put(DavResources.ETAG, "unknown etag after PUT before sync");
 /**
- * This is sadly unreliable.  Various servers will return an ETag and yet
- * still change the event server-side.
+ * This is sadly unreliable.  Some servers will return an ETag and yet
+ * still change the event server-side, without consequently changing the ETag
  * 
 				for (Header hdr : requestor.getResponseHeaders()) {
 					if (hdr.getName().equalsIgnoreCase("ETag")) {
@@ -322,7 +323,8 @@ public class SyncChangesToServer extends ServiceJob {
 				}
 */
 				
-				if (Constants.LOG_DEBUG) Log.d(TAG, "Applying resource modification to local database");
+				if ( Constants.debugSyncChangesToServer ) Log.println(Constants.LOGD,TAG, 
+						"Applying resource modification to local database");
 				ResourceModification changeUnit = new ResourceModification( action, resourceData, pendingId);
 				AcalDBHelper dbHelper = new AcalDBHelper(this.context);
 				SQLiteDatabase db = dbHelper.getWritableDatabase();
@@ -336,7 +338,7 @@ public class SyncChangesToServer extends ServiceJob {
 				}
 				catch (Exception e) {
 					Log.w(TAG, action.toString()+": Exception applying resource modification: " + e.getMessage());
-					Log.d(TAG, Log.getStackTraceString(e));
+					Log.println(Constants.LOGD,TAG, Log.getStackTraceString(e));
 				}
 				finally {
 					db.endTransaction();
@@ -349,6 +351,7 @@ public class SyncChangesToServer extends ServiceJob {
 
 			case 412: // Server won't accept it
 			case 403: // Server won't accept it
+			case 405: // Server won't accept it - Method not allowed
 				Log.w(TAG, action.toString()+": Status " + status + " on request for " + path + " giving up on change.");
 				PendingChanges.deletePendingChange(context, pendingId);
 				break;
@@ -464,7 +467,7 @@ public class SyncChangesToServer extends ServiceJob {
 		}
 		catch (Exception e) {
 			Log.e(TAG,"Error with proppatch to "+requestor.fullUrl());
-			Log.d(TAG,Log.getStackTraceString(e));
+			Log.println(Constants.LOGD,TAG,Log.getStackTraceString(e));
 		}
 
 	}

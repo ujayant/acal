@@ -360,7 +360,6 @@ public class TodoListView extends AcalActivity implements OnClickListener {
 		try {
 			SimpleAcalTodo sat = dataRequest.getNthTodo(listCompleted,listFuture, n);
 			this.dataRequest.todoChanged((VCalendar) VComponent.fromDatabase(this, sat.resourceId), action);
-			dataRequest.deleteTodo(listCompleted,listFuture, n);
 		}
 		catch (RemoteException e) {
 			Log.e(TAG,"Error deleting task: "+e);
@@ -375,7 +374,6 @@ public class TodoListView extends AcalActivity implements OnClickListener {
 		try {
 			SimpleAcalTodo sat = dataRequest.getNthTodo(listCompleted,listFuture, n);
 			this.dataRequest.todoChanged((VCalendar) VComponent.fromDatabase(this, sat.resourceId), action);
-			dataRequest.completeTodo(listCompleted,listFuture, n);
 		}
 		catch (RemoteException e) {
 			Log.e(TAG,"Error marking task completed: "+e);

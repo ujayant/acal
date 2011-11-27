@@ -88,6 +88,9 @@ public class TodoEdit extends AcalActivity
 	public static final int ACTION_DELETE_SINGLE = 4;
 	public static final int ACTION_DELETE_ALL = 5;
 	public static final int ACTION_DELETE_ALL_FUTURE = 6;
+	public static final int ACTION_COMPLETE = 7;
+	public static final int ACTION_EDIT = 8;
+	public static final int ACTION_COPY = 9;
 
 	private int action = ACTION_NONE;
 
@@ -154,6 +157,8 @@ public class TodoEdit extends AcalActivity
 	private boolean originalHasOccurrence = false;
 	private String originalOccurence = "";
 
+	private int	currentOperation;
+
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		this.setContentView(R.layout.todo_edit);
@@ -179,10 +184,10 @@ public class TodoEdit extends AcalActivity
 
 	
 	private VTodo getTodoAction(Bundle b) {
-		int operation = SimpleAcalTodo.TODO_OPERATION_EDIT;
+		currentOperation = ACTION_EDIT;
 		if ( b != null && b.containsKey("SimpleAcalTodo") ) {
 			this.sat = (SimpleAcalTodo) b.getParcelable("SimpleAcalTodo");
-			operation = sat.operation;
+			currentOperation = sat.operation;
 			try {
 				if (Constants.LOG_DEBUG)
 					Log.d(TAG, "Loading Todo: "+sat.summary );
@@ -208,7 +213,7 @@ public class TodoEdit extends AcalActivity
 		}
 		this.collectionsArray = new String[activeCollections.length];
 		
-		if ( operation == SimpleAcalTodo.TODO_OPERATION_EDIT ) {
+		if ( currentOperation == ACTION_EDIT ) {
 			try {
 				collectionId = (Integer) todo.getCollectionId();
 				this.action = ACTION_MODIFY_ALL;
@@ -230,7 +235,7 @@ public class TodoEdit extends AcalActivity
 				if (Constants.LOG_DEBUG) Log.d(TAG, "No data from caller ");
 			}
 		}
-		else if ( operation == SimpleAcalTodo.TODO_OPERATION_COPY ) {
+		else if ( currentOperation == ACTION_COPY ) {
 			// Duplicate the todo into a new one.
 			try {
 				collectionId = todo.getCollectionId();
@@ -268,10 +273,13 @@ public class TodoEdit extends AcalActivity
 		return todo;
 	}
 
-	
+
+	/**
+	 * Populate the screen initially.
+	 */
 	private void populateLayout() {
 
-		//Todo Colour
+		//Sidebar
 		sidebar = (LinearLayout)this.findViewById(R.id.TodoEditColourBar);
 		sidebarBottom = (LinearLayout)this.findViewById(R.id.EventEditColourBarBottom);
 
@@ -282,10 +290,12 @@ public class TodoEdit extends AcalActivity
 		//Collection
 		collectionsLayout = (LinearLayout)this.findViewById(R.id.TodoCollectionLayout);
 		btnCollection = (Button) this.findViewById(R.id.TodoEditCollectionButton);
-		btnCollection.setText(currentCollection.getAsString(DavCollections.DISPLAYNAME));
 		if (activeCollections.length < 2) {
 			btnCollection.setEnabled(false);
 			collectionsLayout.setVisibility(View.GONE);
+		}
+		if ( action != ACTION_CREATE ) {
+			btnCollection.setEnabled(false);
 		}
 		
 		
@@ -356,19 +366,23 @@ public class TodoEdit extends AcalActivity
 		updateLayout();
 	}
 
-	
+
+	/**
+	 * Update the screen whenever something has changed.
+	 */
 	private void updateLayout() {
 		AcalDateTime start = todo.getStart();
 		AcalDateTime due = todo.getDue();
 		AcalDateTime completed = todo.getCompleted();
 
-		Integer colour = todo.getCollectionColour();
+		Integer colour = todo.getTopParent().getCollectionColour();
 		if ( colour == null ) colour = 0x70a0a0a0;
 		sidebar.setBackgroundColor(colour);
 		sidebarBottom.setBackgroundColor(colour);
-		btnCollection.setText(todo.getCollectionName());
-		btnCollection.setBackgroundColor(colour);
+		AcalTheme.setContainerColour(btnCollection,colour);
+		btnCollection.setTextColor(AcalTheme.pickForegroundForBackground(colour));
 		todoName.setTextColor(colour);
+		btnCollection.setText(todo.getTopParent().getCollectionName());
 		
 		btnStartDate.setText( AcalDateTimeFormatter.fmtFull( start, prefer24hourFormat) );
 		btnDueDate.setText( AcalDateTimeFormatter.fmtFull( due, prefer24hourFormat) );

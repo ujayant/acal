@@ -33,7 +33,6 @@ import android.view.View.OnClickListener;
 import android.view.View.OnCreateContextMenuListener;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListAdapter;
@@ -184,9 +183,14 @@ public class TodoListAdapter extends BaseAdapter implements OnClickListener, Lis
 		else
 			location.setHeight(2);
 
-		CheckBox completed = (CheckBox) rowLayout.findViewById(R.id.TodoListItemCompleted);
-		completed.setChecked(todo.isCompleted());
-		completed.setBackgroundColor(Color.WHITE);
+		ImageView completed = (ImageView) rowLayout.findViewById(R.id.TodoListItemCompleted);
+		if ( todo.isCompleted() ) {
+			completed.setVisibility(View.VISIBLE);
+		}
+		else {
+			completed.setVisibility(View.GONE);
+			completed.setBackgroundColor(Color.WHITE);
+		}
 		
 		rowLayout.setTag(todo);
 		rowLayout.setOnClickListener(this);
@@ -239,10 +243,10 @@ public class TodoListAdapter extends BaseAdapter implements OnClickListener, Lis
 			id = id & 0xffff;
 
 			SimpleAcalTodo todo = getItem(id);
-			todo.operation = SimpleAcalTodo.TODO_OPERATION_EDIT;
+			todo.operation = TodoEdit.ACTION_EDIT;
 			switch( action ) {
 				case CONTEXT_COPY:
-					todo.operation = SimpleAcalTodo.TODO_OPERATION_COPY;
+					todo.operation = TodoEdit.ACTION_COPY;
 				case CONTEXT_EDIT:
 					//start TodoEdit activity
 					Bundle bundle = new Bundle();
@@ -253,11 +257,11 @@ public class TodoListAdapter extends BaseAdapter implements OnClickListener, Lis
 					return true;
 				
 				case CONTEXT_DELETE:
-					this.context.deleteTodo(listCompleted,listFuture,id,SimpleAcalTodo.TODO_OPERATION_DELETE);
+					this.context.deleteTodo(listCompleted,listFuture,id,TodoEdit.ACTION_DELETE_ALL);
 					return true;
 
 				case CONTEXT_COMPLETE:
-					this.context.completeTodo(listCompleted,listFuture,id,SimpleAcalTodo.TODO_OPERATION_COMPLETE);
+					this.context.completeTodo(listCompleted,listFuture,id,TodoEdit.ACTION_COMPLETE);
 					return true;
 
 			}

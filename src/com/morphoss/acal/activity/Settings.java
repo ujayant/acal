@@ -62,6 +62,7 @@ public class Settings extends ListActivity {
 		
 		TASKS = new String[] { getString(R.string.appActivityServerConfigList),
 					getString(R.string.appActivityCollectionConfigList),
+					getString(R.string.showUpdateInformation),
 					getString(R.string.appActivityPreference)};
 		
 		if (Constants.DEBUG_SETTINGS) {
@@ -102,6 +103,18 @@ public class Settings extends ListActivity {
 	}
 	
 	/**
+	 * Method for starting "ShowUpgradeChanges" activity. 
+	 */
+	public void showUpdateInformation() {
+		Intent upgradeChangesIntent = new Intent();
+		Bundle b = new Bundle();
+		b.putCharSequence("REDISPLAY", "REDISPLAY");
+		upgradeChangesIntent.putExtras(b);
+    	upgradeChangesIntent.setClassName("com.morphoss.acal", "com.morphoss.acal.activity.ShowUpgradeChanges");
+    	this.startActivity(upgradeChangesIntent);
+	}
+	
+	/**
 	 * Method for starting "Debug Options" activity. 
 	 */
 	public void debugOptions() {
@@ -126,18 +139,21 @@ public class Settings extends ListActivity {
 		 */
 		public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 			String task = taskList[position];
-			if (task.equals(getString(R.string.appActivityServerConfigList))) {
-	    		serverConfig();
-	    		return;
-	    	} else if (task.equals(getString(R.string.appActivityCollectionConfigList))) {
-	    		collectionConfig();
-	    		return;
-	    	} else if (task.equals(getString(R.string.appActivityPreference))) {
-	    		preferences();
-	    		return;
-	    	} else if (task.equals("Debug Options")){
-	    		debugOptions();
-	    	} 
+			if ( task.equals(getString(R.string.appActivityServerConfigList)) ) {
+				serverConfig();
+			}
+			else if ( task.equals(getString(R.string.appActivityCollectionConfigList)) ) {
+				collectionConfig();
+			}
+			else if ( task.equals(getString(R.string.appActivityPreference)) ) {
+				preferences();
+			}
+			else if ( task.equals(getString(R.string.showUpdateInformation)) ) {
+				showUpdateInformation();
+			}
+			else if ( task.equals("Debug Options") ) {
+				debugOptions();
+			}
 		}
 	}
 }

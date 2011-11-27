@@ -64,7 +64,14 @@ public class ServerConfigData {
 		if (cv.containsKey("INFO")) cv.remove("INFO");	//information string describing server
 	}
 	
-	public ContentValues getContentValues() { 
+	public ContentValues getContentValues() {
+		if ( server.getAsString(Servers.SUPPLIED_USER_URL) == null
+				&& server.getAsString(Servers.OLD_SUPPLIED_DOMAIN) != null
+				&& server.getAsString(Servers.OLD_SUPPLIED_PATH) != null ) {
+			server.put(Servers.SUPPLIED_USER_URL,
+					server.getAsString(Servers.OLD_SUPPLIED_DOMAIN) + server.getAsString(Servers.OLD_SUPPLIED_PATH));
+		}
+		
 		return server;
 	}
 
@@ -209,9 +216,6 @@ public class ServerConfigData {
 			else if (localName.equalsIgnoreCase(Servers.HOSTNAME)) {
 				currentValues.put(Servers.HOSTNAME,tempVal.toString());
 			}
-			else if (localName.equalsIgnoreCase(Servers.SUPPLIED_PATH)) {
-				currentValues.put(Servers.SUPPLIED_PATH,tempVal.toString());
-			}
 			else if (localName.equalsIgnoreCase(Servers.SUPPLIED_USER_URL)) {
 				currentValues.put(Servers.SUPPLIED_USER_URL,tempVal.toString());
 			}
@@ -232,6 +236,12 @@ public class ServerConfigData {
 			}
 			else if (localName.equalsIgnoreCase(Servers.USE_SSL)) {
 				currentValues.put(Servers.USE_SSL,tempVal.toString());
+			}
+			else if (localName.equalsIgnoreCase(Servers.OLD_SUPPLIED_PATH)) {
+				currentValues.put(Servers.OLD_SUPPLIED_PATH,tempVal.toString());
+			}
+			else if (localName.equalsIgnoreCase(Servers.OLD_SUPPLIED_DOMAIN)) {
+				currentValues.put(Servers.OLD_SUPPLIED_DOMAIN,tempVal.toString());
 			}
 		}
 

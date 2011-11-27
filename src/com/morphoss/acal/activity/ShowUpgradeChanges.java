@@ -24,10 +24,8 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -42,8 +40,9 @@ public class ShowUpgradeChanges extends AcalActivity implements OnClickListener 
 
 	WebView upgradeNotes;
 	Button seenEm;
-	SharedPreferences prefs;
 	int thisRevision=0;
+
+	boolean isRedisplay = false;
 	
 	private static final Pattern versionLinePattern = Pattern.compile("^v(\\d+)=([0-9.-]+)$");
 	
@@ -52,7 +51,13 @@ public class ShowUpgradeChanges extends AcalActivity implements OnClickListener 
 		this.setContentView(R.layout.changes_on_upgrade);
 		upgradeNotes = (WebView) this.findViewById(R.id.UpgradeNotes);
 		seenEm = (Button) this.findViewById(R.id.FinishedWithUpgradeNotes);
-		prefs = PreferenceManager.getDefaultSharedPreferences(this);
+
+		try {
+			Bundle b = this.getIntent().getExtras();
+			String x = b.getString("REDISPLAY");
+			if ( x != null ) isRedisplay = true;
+		}
+		catch (Exception e) {}
 		
 		thisRevision = 1;
 		try {
@@ -62,6 +67,7 @@ public class ShowUpgradeChanges extends AcalActivity implements OnClickListener 
 			Log.e(aCal.TAG,Log.getStackTraceString(e));
 		}
 		int lastRevision = prefs.getInt(Constants.lastRevisionPreference, thisRevision - 1);
+		if ( isRedisplay ) lastRevision = thisRevision - 5;
 		
 		StringBuilder upNotes = new StringBuilder("<html><head>" +
 					"<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">" +
@@ -78,6 +84,8 @@ public class ShowUpgradeChanges extends AcalActivity implements OnClickListener 
 		String versionName = null;
 		int versionNum = 0;
 		boolean newFeatures = false;
+		StringBuilder aVersion = new StringBuilder();
+		ArrayList<String> versions = new ArrayList<String>();
 		Matcher versionLineMatcher;
 		for( String line : readLines() ) {
 			versionLineMatcher = versionLinePattern.matcher(line);
@@ -86,24 +94,44 @@ public class ShowUpgradeChanges extends AcalActivity implements OnClickListener 
 				if ( versionNum < lastRevision ) continue;
 				if ( versionName == null || ! versionName.equals(versionLineMatcher.group(2)) ) {
 					versionName = versionLineMatcher.group(2);
-					if ( newFeatures ) // More than one new version
-						upNotes.append("</ul>");
-					upNotes.append("<h2>");
-					upNotes.append(getString(R.string.newWithVersion,versionName));
-					upNotes.append("</h2><ul>");
+					if ( newFeatures ) {
+						// More than one new version
+						aVersion.append("</ul>");
+						versions.add(aVersion.toString());
+						aVersion = new StringBuilder();
+					}
+					aVersion.append("<h2>");
+					aVersion.append(getString(R.string.newWithVersion,versionName));
+					aVersion.append("</h2><ul>");
 				}
 				newFeatures = true;
 			}
 			else if ( newFeatures ){
-				upNotes.append("<li>");
-				upNotes.append(line);
-				upNotes.append("</li>");
+				aVersion.append("<li>");
+				aVersion.append(line);
+				aVersion.append("</li>");
 			}
 		}
 		if ( newFeatures ) {
-			upNotes.append("</ul>");
-			upNotes.append("</body></html>");
+			aVersion.append("</ul>");
+			versions.add(aVersion.toString());
+			aVersion = new StringBuilder();
+
+			for( int i=versions.size(); i-- > 0; ) {
+				upNotes.append(versions.get(i));
+			}
 		}
+
+		upNotes.append("<h2>"+getString(R.string.General_aCal_Information)+"</h2>");
+		upNotes.append("</ul>");
+		upNotes.append("<li>"+getString(R.string.aCal_Website, "<a href=\"http://wiki.acal.me/\">wiki.acal.me</a>")+"</li>");
+		upNotes.append("<li>"+getString(R.string.aCal_IRC_Channel)+"</li>");
+		upNotes.append("<li>"+getString(R.string.aCal_Mailing_Lists)+"</li>");
+		upNotes.append("<li>aCal is developed by <a href=\"http://www.morphoss.com/\">Morphoss</a> and others.</li>");
+		upNotes.append("</ul>");
+		upNotes.append("<p>"+getString(R.string.aCal_is_Free_Software).replace("\"", "&quot;")+"</p>");
+
+		upNotes.append("<p><br/></p></body></html>");
 		
 		upgradeNotes.loadData(upNotes.toString(), "text/html", "utf-8");
 		upgradeNotes.setBackgroundColor(0); // transparent
@@ -155,11 +183,13 @@ public class ShowUpgradeChanges extends AcalActivity implements OnClickListener 
 
 	@Override
 	public void onClick(View v) {
-		
-		// Save the new version preference
-		prefs.edit().putInt(Constants.lastRevisionPreference, thisRevision).commit();
-		
-		aCal.startPreferredView(prefs,this);
+
+		if ( !isRedisplay ) {
+			// Save the new version preference
+			prefs.edit().putInt(Constants.lastRevisionPreference, thisRevision).commit();
+			
+			aCal.startPreferredView(prefs,this);
+		}
 
 		this.finish();
 		

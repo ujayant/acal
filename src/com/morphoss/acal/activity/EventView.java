@@ -20,6 +20,7 @@ package com.morphoss.acal.activity;
 
 import java.util.List;
 
+import android.content.ContentValues;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -43,6 +44,7 @@ import com.morphoss.acal.acaltime.AcalRepeatRule;
 import com.morphoss.acal.davacal.AcalAlarm;
 import com.morphoss.acal.davacal.AcalEvent;
 import com.morphoss.acal.davacal.SimpleAcalEvent;
+import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.service.aCalService;
 
 public class EventView extends AcalActivity implements OnGestureListener, OnTouchListener, OnClickListener{
@@ -130,10 +132,6 @@ public class EventView extends AcalActivity implements OnGestureListener, OnTouc
 					prefs.getBoolean(getString(R.string.prefTwelveTwentyfour), false)));
 		time.setTextColor(colour);
 
-		TextView titlebar = (TextView)this.findViewById(R.id.EventViewTitle);
-		titlebar.setText(time.getText());
-		
-
 		TextView locationView = (TextView) this.findViewById(R.id.EventLocationContent);
 		if ( location != null && ! location.equals("") ) {
 			locationView.setText(location);
@@ -164,7 +162,23 @@ public class EventView extends AcalActivity implements OnGestureListener, OnTouc
 			RelativeLayout alarmsLayout = (RelativeLayout) this.findViewById(R.id.EventAlarmsLayout);
 			alarmsLayout.setVisibility(View.GONE);
 		}
+
 		
+		ContentValues[] activeCollections = DavCollections.getCollections( getContentResolver(), DavCollections.INCLUDE_EVENTS );
+		RelativeLayout collectionLayout = (RelativeLayout) this.findViewById(R.id.EventCollectionLayout);
+		if ( activeCollections.length < 2 ) {
+			collectionLayout.setVisibility(View.GONE);
+		}
+		else {
+			TextView collectionText = (TextView) this.findViewById(R.id.EventCollectionContent);
+			collectionText.setTextColor(colour);
+			int i=0;
+			while( i<activeCollections.length && event.getCollectionId() != activeCollections[i].getAsInteger(DavCollections._ID)) i++;
+			if ( i<activeCollections.length )
+				collectionText.setText(activeCollections[i].getAsString(DavCollections.DISPLAYNAME));
+			else
+				collectionLayout.setVisibility(View.GONE);
+		}
 		TextView repeatsView = (TextView) this.findViewById(R.id.EventRepeatsContent);
 		AcalRepeatRule RRule = new AcalRepeatRule(start, repetition); 
 		String rr = RRule.repeatRule.toPrettyString(this);

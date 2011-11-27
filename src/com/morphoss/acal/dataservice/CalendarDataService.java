@@ -373,8 +373,9 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 				for (int key : keys ) {
 					size+= calendars.get(key).size();
 				}
-				if ( Constants.LOG_DEBUG)	Log.d(TAG, "Processed "+count+" resources in : "+(System.currentTimeMillis()-begin)+"ms");
-				if ( Constants.debugCalendarDataService && Constants.LOG_VERBOSE)	Log.v(TAG, "Now have "+size+" Nodes created from "+calendars.size()+" Calendar objects");
+				Log.d(TAG, "Processed "+count+" resources in : "+(System.currentTimeMillis()-begin)+"ms");
+				if ( Constants.debugCalendarDataService && Constants.LOG_VERBOSE)	Log.println(Constants.LOGV,TAG, 
+						"Now have "+size+" Nodes created from "+calendars.size()+" Calendar objects");
 			}
 		} catch (Exception e) {
 			Log.e(TAG,"Uncaught exeception occured during resource processing: "+e.getMessage());
@@ -1035,8 +1036,8 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 			return eventCache.getNthEventForDay(day, n); 
 		}
 		public synchronized void deleteEvent(AcalDateTime day, int n) {
-			eventCache.addDay(day,this);
 			eventCache.deleteEvent(day, n); 
+			eventCache.addDay(day,this);
 		}
 		public synchronized void flushCache() {
 			eventCache.flushCache();
@@ -1180,6 +1181,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 					int rid = action.getResourceId();
 					VCalendar original = calendars.get(rid);
 					String newBlob = original.applyEventAction(action);
+					VCalendar changedResource = (VCalendar) VComponent.createComponentFromBlob(newBlob, rid, collection);
 					if (newBlob == null || newBlob.equalsIgnoreCase(""))
 						throw new IllegalStateException(
 									"Blob creation resulted in null or empty string during modify event");
@@ -1189,6 +1191,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 					cv.put(PendingChanges.OLD_DATA, action.getOriginalBlob());
 					cv.put(PendingChanges.NEW_DATA, newBlob);
 					getContentResolver().insert(PendingChanges.CONTENT_URI, cv);
+					calendars.put(rid,changedResource);
 					break;
 				}
 				case AcalEvent.ACTION_DELETE_ALL: {
@@ -1199,6 +1202,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 					cv.put(PendingChanges.OLD_DATA, action.getOriginalBlob());
 					cv.putNull(PendingChanges.NEW_DATA);
 					getContentResolver().insert(PendingChanges.CONTENT_URI, cv);
+					calendars.remove(rid);
 					break;
 				}
 				default:
@@ -1207,7 +1211,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 
 			try {
 				ServiceJob sj = new SyncChangesToServer();
-				sj.TIME_TO_EXECUTE = 1;
+				sj.TIME_TO_EXECUTE = 100;
 				WorkerClass.getExistingInstance().addJobAndWake(sj);
 			}
 			catch (Exception e) {
@@ -1250,17 +1254,6 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 			return todoItems.getList(listCompleted, listFuture);
 		}
 
-		
-		@Override
-		public void deleteTodo(boolean listCompleted, boolean listFuture, int n) throws RemoteException {
-			// TODO Auto-generated method stub
-		}
-
-		@Override
-		public void completeTodo(boolean listCompleted, boolean listFuture, int n) throws RemoteException {
-			// TODO Auto-generated method stub
-		}
-
 		@Override
 		public SimpleAcalTodo getNthTodo(boolean listCompleted, boolean listFuture, int n) throws RemoteException {
 			return todoItems.getNth(listCompleted, listFuture,n);
@@ -1290,6 +1283,14 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 					newResources.put(r, changedResource);
 					break;
 				}
+
+				case TodoEdit.ACTION_COMPLETE:
+					Masterable vTodo = changedResource.getMasterChild();
+					if ( vTodo instanceof VTodo ) {
+						((VTodo) vTodo).setCompleted(new AcalDateTime());
+						((VTodo) vTodo).setPercentComplete(100);
+						((VTodo) vTodo).setStatus(VTodo.Status.COMPLETED);
+					}
 				case TodoEdit.ACTION_MODIFY_ALL:
 				case TodoEdit.ACTION_MODIFY_SINGLE:
 				case TodoEdit.ACTION_MODIFY_ALL_FUTURE:
@@ -1307,6 +1308,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 					cv.put(PendingChanges.OLD_DATA, original.getOriginalBlob());
 					cv.put(PendingChanges.NEW_DATA, newBlob);
 					getContentResolver().insert(PendingChanges.CONTENT_URI, cv);
+					calendars.put(rid, changedResource);
 					break;
 				}
 				case TodoEdit.ACTION_DELETE_ALL: {
@@ -1317,6 +1319,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 					cv.put(PendingChanges.OLD_DATA, changedResource.getOriginalBlob());
 					cv.putNull(PendingChanges.NEW_DATA);
 					getContentResolver().insert(PendingChanges.CONTENT_URI, cv);
+					calendars.remove(rid);
 					break;
 				}
 				default:
@@ -1325,7 +1328,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 
 			try {
 				ServiceJob sj = new SyncChangesToServer();
-				sj.TIME_TO_EXECUTE = 1;
+				sj.TIME_TO_EXECUTE = 100;
 				WorkerClass.getExistingInstance().addJobAndWake(sj);
 			}
 			catch (Exception e) {

@@ -18,6 +18,8 @@
 
 package com.morphoss.acal.database;
 
+import com.morphoss.acal.providers.Servers;
+
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -46,7 +48,7 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 	/**
 	 * The version of this database. Used to determine if an upgrade is required.
 	 */
-	public static final int DB_VERSION = 12;
+	public static final int DB_VERSION = 13;
 	
 	/**
 	 * <p>The dav_server Table as stated in the specification.</p>
@@ -55,7 +57,7 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 			"CREATE TABLE dav_server ("
 				+"_id INTEGER PRIMARY KEY AUTOINCREMENT"
 				+",friendly_name TEXT"
-				+",supplied_domain TEXT"
+				+",supplied_user_url TEXT"
 				+",supplied_path TEXT"
 				+",use_ssl BOOLEAN"
 				+",hostname TEXT"
@@ -74,7 +76,7 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 				+",use_advanced BOOLEAN"
 				+",prepared_config TEXT"
 				+",UNIQUE(use_ssl,hostname,port,principal_path,username)"
-			+");";
+			+")";
 
 	/**
 	 * <p>The dav_path_set table holds the paths which are collections containing
@@ -252,6 +254,12 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 			db.execSQL("UPDATE dav_resource SET effective_type = 'VTODO' WHERE lower(data) LIKE 'begin:vtodo';");
 			db.execSQL(EVENT_INDEX_SQL);
 			db.execSQL(TODO_INDEX_SQL);
+			oldVersion++;
+		}
+		if ( oldVersion == 12 ) {
+			db.execSQL("PRAGMA writable_schema = 1");
+			db.execSQL("UPDATE SQLITE_MASTER SET SQL = '"+DAV_SERVER_TABLE_SQL+"' WHERE name = '"+Servers.DATABASE_TABLE+"'");
+			db.execSQL("PRAGMA writable_schema = 0");
 			oldVersion++;
 		}
 

@@ -117,7 +117,6 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 	private LinearLayout sidebar;
 	private LinearLayout sidebarBottom;
 	private TextView eventName;
-	private TextView titlebar;
 	private TextView locationView;
 	private TextView notesView;
 	private TableLayout alarmsList;
@@ -338,9 +337,6 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 		btnStartDate = (Button) this.findViewById(R.id.EventFromDateTime);
 		btnEndDate = (Button) this.findViewById(R.id.EventUntilDate);
 
-		//Title bar
-		titlebar = (TextView)this.findViewById(R.id.EventEditTitle);
-
 		locationView = (TextView) this.findViewById(R.id.EventLocationContent);
 		
 
@@ -401,7 +397,6 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 			end.addDays(-1);
 		}
 		btnEndDate.setText(AcalDateTimeFormatter.fmtFull(end, prefer24hourFormat));
-		titlebar.setText(eventName.getText());
 		
 		//Display Alarms
 		alarmList = event.getAlarms();
@@ -666,12 +661,14 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 							String oldTzId = oldStart.getTimeZoneId();
 							String newTzId = newDateTime.getTimeZoneId();
 							if ( oldTzId == null && newTzId != null ) {
-								if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,"The timezone changed from floating to "+newTzId+", EndTzId was "+endTzId);
+								if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,
+										"The timezone changed from floating to "+newTzId+", EndTzId was "+endTzId);
 								if ( endTzId == null ) newEnd.shiftTimeZone(newTzId);
 							}
 							else if ( oldTzId != null && !oldTzId.equals(newTzId) ) {
-								Log.println(Constants.LOGD, TAG,"The timezone changed from "+oldTzId+" to "+newTzId+", EndTzId was "+endTzId);
-								if ( Constants.LOG_DEBUG ) if ( oldTzId.equals(endTzId) ) newEnd.shiftTimeZone(newTzId);
+								if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,
+										"The timezone changed from "+oldTzId+" to "+newTzId+", EndTzId was "+endTzId);
+								if ( oldTzId.equals(endTzId) ) newEnd.shiftTimeZone(newTzId);
 							}
 							else {
 								if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,"The timezone did not change from "+oldTzId+" to "+newTzId+", EndTzId was "+endTzId);
