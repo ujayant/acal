@@ -1,17 +1,22 @@
 package com.morphoss.acal;
 
-import android.graphics.Color;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewParent;
+import android.widget.TextView;
 
 public final class AcalTheme {
 
 	private static int themeDefaultColour = (Constants.DEBUG_MODE ? 0xffff3020 /* red */ : 0xfff0a020 /* orange */ ); 
 	private static int themeButtonColour = (Constants.DEBUG_MODE ? 0xffff3020 /* red */ : 0xfff0a020 /* orange */ ); 
-	private static int themeBackgroundColour = 0xffffffff; 
+	private static int themeBackgroundColour = 0xffffffff;
+	
+	private final static int themeTextDark   = 0xff001060;
+	private final static int themeTextLight  = 0xfffff8e8; 
 
 	public static final int BUTTON = 1;
 	public static final int BACKGROUND = 2;
+	private static final String	TAG	= "AcalTheme";
 
 
 	final public static View getContainerView(View someView) {
@@ -47,6 +52,12 @@ public final class AcalTheme {
 	 * @param themeElementID
 	 */
 	public static void setContainerFromTheme(View someView, int themeElementID) {
+		if ( someView instanceof TextView ) {
+			try {
+				((TextView) someView).setTextColor(pickForegroundForBackground(getElementColour(themeElementID)));
+			}
+			catch( Exception e ) {};
+		}
 		setContainerColour(someView, getElementColour(themeElementID));
 	}
 
@@ -75,12 +86,24 @@ public final class AcalTheme {
 	 * @return
 	 */
 	public static int pickForegroundForBackground( int backgroundColour ) {
-		int r = (backgroundColour & 0xff0000) >> 32;
-		int g = (backgroundColour & 0xff00) >> 16;
+		int r = (backgroundColour >> 16) & 0xff;
+		int g = (backgroundColour >> 8) & 0xff;
 		int b = (backgroundColour & 0xff);
-		
-		if ( ((r + g + b) / 3) < 150 ) return Color.WHITE;
-		return Color.BLACK;
+
+		if (( r > 200 && g < 50 && b < 50 ) || ( b > 200 && g < 50 && r < 50 ) || ( g > 200 && r < 50 && b < 50 ) ) {
+			if ( Constants.debugTheming ) Log.println(Constants.LOGD, TAG,
+					"Choosing ("+(255 - g)+","+(255 - b)+","+(255 - r)+") foreground for ("+r+","+g+","+b+")");
+			return 0xff000000 | ((255 - g) << 16) | ((255 - b) << 8) | (255 - r);
+		}
+
+		if ( ((r + g + b) / 3) < 120 ) {
+			if ( Constants.debugTheming ) Log.println(Constants.LOGD, TAG,
+					"Choosing a white foreground for ("+r+","+g+","+b+")");
+			return themeTextLight;
+		}
+		if ( Constants.debugTheming ) Log.println(Constants.LOGD, TAG,
+				"Choosing a black foreground for ("+r+","+g+","+b+")");
+		return themeTextDark;
 	}
 	
 }
