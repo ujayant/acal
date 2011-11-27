@@ -36,7 +36,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
-import android.widget.GridView;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.morphoss.acal.AcalTheme;
@@ -93,7 +93,7 @@ public class TodoListView extends AcalActivity implements OnClickListener {
 
 	private boolean invokedFromView = false;
 	
-	private GridView todoList;
+	private ListView todoList;
 	private TodoListAdapter todoListAdapter;
 
 	/* Fields relating to state */
@@ -107,6 +107,10 @@ public class TodoListView extends AcalActivity implements OnClickListener {
 
 	/* Fields relating to calendar data */
 	private DataRequest dataRequest = null;
+
+	private int	todoListTop;
+
+	private int	todoListIndex;
 
 	/********************************************************
 	 * Activity Overrides *
@@ -158,10 +162,9 @@ public class TodoListView extends AcalActivity implements OnClickListener {
 	
 	private synchronized void serviceIsConnected() {
 		if ( this.todoList == null ) createListView(true);
-		if ( this.todoListAdapter == null ) {
-			this.todoListAdapter = new TodoListAdapter(this, showCompleted, showFuture );
-			this.todoList.setAdapter(todoListAdapter);
-		}
+		this.todoListAdapter = new TodoListAdapter(this, showCompleted, showFuture );
+		this.todoList.setAdapter(todoListAdapter);
+		restoreCurrentPosition();
 	}
 
 	private synchronized void serviceIsDisconnected() {
@@ -180,7 +183,7 @@ public class TodoListView extends AcalActivity implements OnClickListener {
 	@Override
 	public void onResume() {
 		super.onResume();
-		Log.v(TAG,TAG + " - onResume");
+		if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD,TAG,"Resuming activity");
 
 		connectToService();
 	}
@@ -198,6 +201,7 @@ public class TodoListView extends AcalActivity implements OnClickListener {
 	@Override
 	public void onPause() {
 		super.onPause();
+		rememberCurrentPosition();
 
 		try {
 			if (dataRequest != null) {
@@ -210,9 +214,31 @@ public class TodoListView extends AcalActivity implements OnClickListener {
 		finally {
 			dataRequest = null;
 		}
+		if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD,TAG,"Pausing activity");
 
 	}
 
+	private void rememberCurrentPosition() {
+    	// save index and top position
+    	if ( todoList != null ) {
+    		todoListIndex = todoList.getFirstVisiblePosition();
+        	View v = todoList.getChildAt(0);
+        	todoListTop = (v == null) ? 0 : v.getTop();
+        	if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,
+    				"Saved list view position of "+todoListIndex+", "+todoListTop);
+    	}
+	}
+
+    
+    private void restoreCurrentPosition() {
+    	if ( todoList != null ) {
+    		todoList.setSelectionFromTop(todoListIndex, todoListTop);
+    	}
+    	if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,
+    				"Set list view to position "+todoListIndex+", "+todoListTop);
+	}
+
+	
 	/****************************************************
 	 * Private Methods *
 	 ****************************************************/
@@ -256,21 +282,21 @@ public class TodoListView extends AcalActivity implements OnClickListener {
 	
 	/**
 	 * <p>
-	 * Creates a new GridView object based on this Activities current state. The
-	 * GridView created will display this Activities ListView
+	 * Creates a new ListView object based on this Activities current state. The
+	 * ListView created will display this Activities ListView
 	 * </p>
 	 * 
 	 * @param addParent
 	 *            <p>
 	 *            Whether or not to set the ViewFlipper as the new GridView's
 	 *            Parent. if set to false the caller is contracted to add a
-	 *            parent to the GridView.
+	 *            parent to the ListView.
 	 *            </p>
 	 */
 	private void createListView(boolean addParent) {
 		try {
 			// List
-			todoList = (GridView) findViewById(R.id.todo_list);
+			todoList = (ListView) findViewById(R.id.todo_list);
 			todoList.setSelector(R.drawable.no_border);
 
 		} catch (Exception e) {
@@ -453,6 +479,7 @@ public class TodoListView extends AcalActivity implements OnClickListener {
 		}
 	}
 
+
 	/************************************************************************
 	 * Service Connection management *
 	 ************************************************************************/
@@ -504,7 +531,9 @@ public class TodoListView extends AcalActivity implements OnClickListener {
 			int type = msg.arg1;
 			switch (type) {
 			case CalendarDataService.UPDATE:
-				if ( Constants.LOG_DEBUG ) Log.i(TAG,"Received update notification from CalendarDataService.");
+				if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD,TAG,
+						"Received update notification from CalendarDataService.");
+				setSelections();
 				break;
 			}
 

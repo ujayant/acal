@@ -76,7 +76,10 @@ public class TodoEdit extends AcalActivity
 
 	public static final String TAG = "aCal TodoEdit";
 
-	public static final String activityResultName = "changedTodo";
+	public static final String	resultSimpleAcalTodo	= "changedTodo";
+	public static final String	resultVCalendar	= "changedVCalendar";
+	public static final String	resultCollectionId	= "changedCollectionId";
+	
 	private SimpleAcalTodo sat;
 	private VTodo todo;
 
@@ -118,7 +121,7 @@ public class TodoEdit extends AcalActivity
 		new AcalDuration("-PT2H"),
 		//** Custom **//
 	};
-	
+
 	private String[] repeatRulesValues;
 	
 	private DataRequest dataRequest = null;
@@ -574,7 +577,11 @@ public class TodoEdit extends AcalActivity
 				Toast.makeText(this, getString(R.string.TaskModifiedThisAndFuture), Toast.LENGTH_LONG).show();
 
 			Intent ret = new Intent();
-			ret.putExtra(activityResultName, sat);
+			Bundle b = new Bundle();
+			b.putParcelable(resultSimpleAcalTodo, sat);
+			b.putString(resultVCalendar, vc.getCurrentBlob());
+			b.putLong(resultCollectionId, currentCollection.getAsInteger(DavCollections._ID));
+			ret.putExtras(b);
 			this.setResult(RESULT_OK, ret);
 
 			this.finish();

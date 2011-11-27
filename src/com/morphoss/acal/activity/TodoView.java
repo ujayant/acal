@@ -52,9 +52,6 @@ public class TodoView extends AcalActivity implements OnGestureListener, OnTouch
 	public static final int ADD = 2;
 	public static final int SHOW_ON_MAP = 3;
 	
-	public static final int EDIT_TASK = 0;
-	public static final int EDIT_ADD = 0;
-
 	private VCalendar vc = null;
 	private VTodo todo = null;
 	private SimpleAcalTodo sat = null;
@@ -119,6 +116,8 @@ public class TodoView extends AcalActivity implements OnGestureListener, OnTouch
 				alarms.append(alarm.toPrettyString());
 			}
 		}
+		if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD,TAG,
+				"Populating view layout for '"+title+"'");
 		
 //		String repetition = todo.getRepetition();
 		int colour = sat.colour;
@@ -138,6 +137,7 @@ public class TodoView extends AcalActivity implements OnGestureListener, OnTouch
 		TextView locationView = (TextView) this.findViewById(R.id.TodoLocationContent);
 		if ( location != null && ! location.equals("") ) {
 			locationView.setText(location);
+			((RelativeLayout) this.findViewById(R.id.TodoLocationLayout)).setVisibility(View.VISIBLE);
 		}
 		else {
 			((RelativeLayout) this.findViewById(R.id.TodoLocationLayout)).setVisibility(View.GONE);
@@ -146,6 +146,7 @@ public class TodoView extends AcalActivity implements OnGestureListener, OnTouch
 		TextView notesView = (TextView) this.findViewById(R.id.TodoNotesContent);
 		if ( description != null && ! description.equals("") ) {
 			notesView.setText(description);
+			((RelativeLayout) this.findViewById(R.id.TodoNotesLayout)).setVisibility(View.VISIBLE);
 		}
 		else {
 			((RelativeLayout) this.findViewById(R.id.TodoNotesLayout)).setVisibility(View.GONE);
@@ -153,6 +154,7 @@ public class TodoView extends AcalActivity implements OnGestureListener, OnTouch
 		
 		TextView alarmsView = (TextView) this.findViewById(R.id.TodoAlarmsContent);
 		if ( alarms != null && alarms.length() > 0 ) {
+			((RelativeLayout) this.findViewById(R.id.TodoAlarmsLayout)).setVisibility(View.VISIBLE);
 			alarmsView.setText(alarms);
 			if ( !todo.getAlarmEnabled() ) {
 				TextView alarmsWarning = (TextView) this.findViewById(R.id.CalendarAlarmsDisabled);
@@ -160,8 +162,7 @@ public class TodoView extends AcalActivity implements OnGestureListener, OnTouch
 			}
 		}
 		else {
-			RelativeLayout alarmsLayout = (RelativeLayout) this.findViewById(R.id.TodoAlarmsLayout);
-			alarmsLayout.setVisibility(View.GONE);
+			((RelativeLayout) this.findViewById(R.id.TodoAlarmsLayout)).setVisibility(View.GONE);
 		}
 		
 		RelativeLayout repeatsLayout = (RelativeLayout) this.findViewById(R.id.TodoRepeatsLayout);
@@ -237,14 +238,16 @@ public class TodoView extends AcalActivity implements OnGestureListener, OnTouch
 				bundle.putParcelable("SimpleAcalTodo", sat);
 				Intent todoEditIntent = new Intent(this, TodoEdit.class);
 				todoEditIntent.putExtras(bundle);
-				this.startActivityForResult(todoEditIntent,EDIT_TASK);
+				if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG, 
+						"Starting activity for result request="+TodoEdit.ACTION_EDIT);
+				this.startActivityForResult(todoEditIntent,TodoEdit.ACTION_EDIT);
 				break;
 			}
 			case ADD: {
 				Bundle bundle = new Bundle();
 				Intent todoEditIntent = new Intent(this, TodoEdit.class);
 				todoEditIntent.putExtras(bundle);
-				this.startActivityForResult(todoEditIntent,EDIT_ADD);
+				this.startActivityForResult(todoEditIntent,TodoEdit.ACTION_CREATE);
 				break;
 			}
 		}
@@ -253,24 +256,26 @@ public class TodoView extends AcalActivity implements OnGestureListener, OnTouch
 
 	
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-    	if (requestCode == EDIT_TASK && resultCode == RESULT_OK) {
+		if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG, 
+				"onActivityResult request="+requestCode+", result="+resultCode);
+    	if (requestCode == TodoEdit.ACTION_EDIT && resultCode == RESULT_OK) {
 			try {
 				Bundle b = data.getExtras();
-				SimpleAcalTodo tmpSat = (SimpleAcalTodo) b.getParcelable(TodoEdit.activityResultName);
+				SimpleAcalTodo tmpSat = (SimpleAcalTodo) b.getParcelable(TodoEdit.resultSimpleAcalTodo);
 				if ( tmpSat != null ) sat = tmpSat;
-				String blob = b.getString("VCalendar");
-				long collectionId = b.getLong("collectionId");
+				String blob = b.getString(TodoEdit.resultVCalendar);
+				if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG, "Received blob is:\n"+blob);
+				long collectionId = b.getLong(TodoEdit.resultCollectionId);
 				AcalCollection collection = AcalCollection.fromDatabase(this, collectionId);
 				this.vc = (VCalendar) VComponent.createComponentFromBlob(blob, sat.resourceId, collection);
 				this.todo = (VTodo) vc.getMasterChild();
-						
 			}
 			catch (Exception e) {
 				if (Constants.LOG_DEBUG)Log.d(TAG, "Error getting data from caller: "+e.getMessage());
 			}
 			populateLayout();
     	}
-    	else if (requestCode == EDIT_ADD && resultCode == RESULT_OK) {
+    	else if (requestCode == TodoEdit.ACTION_CREATE && resultCode == RESULT_OK) {
 			Intent res = new Intent();
 			this.setResult(RESULT_OK, res);
 			this.finish();
