@@ -24,12 +24,12 @@ Increase server discovery timeouts to try and improve resilience
 v32=1.3
 Improved server discovery process
 Add initial support for tasks (VTODO) in CalDAV  
-Improved XML Parsing performance
+Improved underlying XML Parsing
 Fixed bug where default audio sound would not play on some devices.
 Stopped alarm from playing during a phone call (Requires new 'READ PHONE STATE' Permission)
 Server discovery is much simpler and more reliable
+Timezones are now fully supported.
 Event editing is redesigned.
 Events now support custom alarms.
-Timezones are now fully supported.
-Memory footprint is somewhat reduced.
+Memory footprint is improved.
 ... and many bug fixes.
