@@ -9,9 +9,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: aCal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-08-22 21:42+1200\n"
-"PO-Revision-Date: 2011-10-22 15:11+0000\n"
-"Last-Translator: svale <srcvale@minaslivre.org>\n"
+"POT-Creation-Date: 2011-11-28 00:18+1300\n"
+"PO-Revision-Date: 2011-11-27 11:18+0000\n"
+"Last-Translator: karora <andrew@mcmillan.net.nz>\n"
 "Language-Team: Portuguese (Brazilian) (http://www.transifex.net/projects/p/acal/team/pt_BR/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -19,6 +19,7 @@ msgstr ""
 "Language: pt_BR\n"
 "Plural-Forms: nplurals=2; plural=(n > 1)\n"
 
+# SourceFileStart:../res/values/strings.xml
 # Strings that should not be localised belong in unlocalisable_strings.xml
 msgid "theDayEachWeekStartsWith"
 msgstr "O dia em que a semana se inicia"
@@ -31,6 +32,9 @@ msgstr "OK"
 
 msgid "cancel"
 msgstr "Cancelar"
+
+msgid "setButtonLabel"
+msgstr ""
 
 msgid "appDescription"
 msgstr ""
@@ -58,8 +62,8 @@ msgstr "Tipo de autenticação"
 msgid "Simple_Path"
 msgstr "Caminho simples"
 
-msgid "Simple_Domain"
-msgstr "Domínio"
+msgid "Simple_User_URL"
+msgstr ""
 
 msgid "Enter_a_brief_summary_of_the_event"
 msgstr "Entre uma breve descrição do compromisso"
@@ -121,8 +125,8 @@ msgstr "A senha para autenticação no servidor"
 msgid "The_path_on_the_server"
 msgstr "O caminho no servidor, como &quot;/caldav.php/user/&quot;"
 
-msgid "The_domain_for_your_organisation"
-msgstr "O nome do domínio de sua organização, como &quot;morphoss.com&quot;"
+msgid "A_URL_or_domain_name"
+msgstr ""
 
 msgid "The_servers_hostname"
 msgstr "O nome completo do servidor, como &quot;calendar.davical.com&quot;"
@@ -356,12 +360,20 @@ msgid "thDec"
 msgstr "Dez"
 
 # If the user is displaying AM/PM we need a single character to display e.g.
-# 1p for 1:00pm
+# 9a for 9:00am in the morning
 msgid "oneCharMorning"
 msgstr "a"
 
+# If the user is displaying AM/PM we need a single character to display e.g.
+# 1p for 1:00pm in the afternoon
 msgid "oneCharAfternoon"
 msgstr "p"
+
+msgid "abbrevMorning"
+msgstr ""
+
+msgid "abbrevAfternoon"
+msgstr ""
 
 msgid "YearViewSize_PrefTitle"
 msgstr "Número de meses na visualização anual"
@@ -388,6 +400,18 @@ msgstr "Toque padrão para alarmes"
 
 msgid "DefaultAlarmTone_PrefSummary"
 msgstr "O som que será usado nos alarmes de compromissos."
+
+msgid "AlarmVolumeType_PrefTitle"
+msgstr ""
+
+msgid "AlarmVolumeType_PrefSummary"
+msgstr ""
+
+msgid "AlarmBellVolume"
+msgstr ""
+
+msgid "MediaPlayerVolume"
+msgstr ""
 
 msgid "prefWorkdayStart_Title"
 msgstr "Início do dia útil"
@@ -461,6 +485,9 @@ msgstr "Evento dura o dia todo:"
 msgid "FromPrompt"
 msgstr "De:"
 
+msgid "TodoFromPrompt"
+msgstr ""
+
 msgid "UntilPrompt"
 msgstr "Até:"
 
@@ -469,6 +496,18 @@ msgstr "Prazo:"
 
 msgid "CompletedPrompt"
 msgstr "Completo:"
+
+msgid "DaysPrompt"
+msgstr ""
+
+msgid "StartPrompt"
+msgstr ""
+
+msgid "CompletePrompt"
+msgstr ""
+
+msgid "CollectionPrompt"
+msgstr ""
 
 msgid "defaultCalendar"
 msgstr "Agenda padrão"
@@ -614,6 +653,9 @@ msgstr "Na hora do compromisso"
 msgid "alarm10MinutesPrior"
 msgstr "10 minutos antes"
 
+msgid "alarm15MinutesPrior"
+msgstr ""
+
 msgid "alarm30MinutesPrior"
 msgstr "30 minutos antes"
 
@@ -622,12 +664,6 @@ msgstr "Uma hora antes"
 
 msgid "alarm2HoursPrior"
 msgstr "Duas horas antes"
-
-msgid "alarm12HoursPrior"
-msgstr "12 horas antes"
-
-msgid "alarm1DayPrior"
-msgstr "Um dia antes"
 
 msgid "alarmCustom"
 msgstr "Alarme Personalizado"
@@ -686,14 +722,8 @@ msgstr "Conectando ao servidor, aguarde..."
 msgid "checkServer_Internet"
 msgstr "Verificando a conexão com a internet"
 
-msgid "checkServer_ProbePorts"
-msgstr "Testando o servidor na porta %1$d usando o protocolo %2$s"
-
-msgid "checkServer_SearchingPrincipal"
-msgstr "Buscando o caminho principal em &quot;%s&quot;"
-
-msgid "checkServer_CheckingCapabilities"
-msgstr "Verificando capacidade do servidor"
+msgid "checkServer_SearchingForServer"
+msgstr ""
 
 msgid "serverRecordAlreadyExists"
 msgstr ""
@@ -777,5 +807,316 @@ msgstr "Tarefas não Concluídas"
 
 msgid "allTasksTitle"
 msgstr "Todas as Tarefas"
+
+msgid "NewTaskTitle"
+msgstr ""
+
+msgid "TaskSaved"
+msgstr ""
+
+msgid "TaskModifiedAll"
+msgstr ""
+
+msgid "TaskModifiedOne"
+msgstr ""
+
+msgid "TaskModifiedThisAndFuture"
+msgstr ""
+
+msgid "TaskErrorSaving"
+msgstr ""
+
+msgid "username"
+msgstr ""
+
+msgid "password"
+msgstr ""
+
+msgid "setRepeatRule"
+msgstr ""
+
+msgid "eventName"
+msgstr ""
+
+msgid "plus"
+msgstr ""
+
+msgid "url"
+msgstr ""
+
+msgid "todoName"
+msgstr ""
+
+msgid "IsADate"
+msgstr ""
+
+msgid "NotSet"
+msgstr ""
+
+msgid "Exactly"
+msgstr ""
+
+msgid "Start"
+msgstr ""
+
+msgid "Finish"
+msgstr ""
+
+msgid "Before"
+msgstr ""
+
+msgid "After"
+msgstr ""
+
+msgid "Custom"
+msgstr ""
+
+msgid "floatingTime"
+msgstr ""
+
+msgid "SetCustomAlarm"
+msgstr ""
+
+msgid "showUpdateInformation"
+msgstr ""
+
+msgid "General_aCal_Information"
+msgstr ""
+
+msgid "aCal_Website"
+msgstr ""
+
+msgid "aCal_IRC_Channel"
+msgstr ""
+
+msgid "aCal_Mailing_Lists"
+msgstr ""
+
+msgid "aCal_is_Free_Software"
+msgstr ""
+
+# SourceFileEnd:../res/values/strings.xml
+# SourceFileStart:../res/values/timezonenames.xml
+msgid "tzNameAfricaCairo"
+msgstr ""
+
+msgid "tzNameAfricaCasablanca"
+msgstr ""
+
+msgid "tzNameAfricaHarare"
+msgstr ""
+
+msgid "tzNameAfricaNairobi"
+msgstr ""
+
+msgid "tzNameAfricaNdjamena"
+msgstr ""
+
+msgid "tzNameAmericaAnchorage"
+msgstr ""
+
+msgid "tzNameAmericaArgentinaBuenos_Aires"
+msgstr ""
+
+msgid "tzNameAmericaBogota"
+msgstr ""
+
+msgid "tzNameAmericaChicago"
+msgstr ""
+
+msgid "tzNameAmericaDenver"
+msgstr ""
+
+msgid "tzNameAmericaGodthab"
+msgstr ""
+
+msgid "tzNameAmericaHalifax"
+msgstr ""
+
+msgid "tzNameAmericaIndianaIndianapolis"
+msgstr ""
+
+msgid "tzNameAmericaLa_Paz"
+msgstr ""
+
+msgid "tzNameAmericaLos_Angeles"
+msgstr ""
+
+msgid "tzNameAmericaNew_York"
+msgstr ""
+
+msgid "tzNameAmericaNoronha"
+msgstr ""
+
+msgid "tzNameAmericaPanama"
+msgstr ""
+
+msgid "tzNameAmericaPhoenix"
+msgstr ""
+
+msgid "tzNameAmericaRegina"
+msgstr ""
+
+msgid "tzNameAmericaSantiago"
+msgstr ""
+
+msgid "tzNameAmericaSao_Paulo"
+msgstr ""
+
+msgid "tzNameAmericaSt_Johns"
+msgstr ""
+
+msgid "tzNameAmericaTegucigalpa"
+msgstr ""
+
+msgid "tzNameAsiaBaghdad"
+msgstr ""
+
+msgid "tzNameAsiaBangkok"
+msgstr ""
+
+msgid "tzNameAsiaColombo"
+msgstr ""
+
+msgid "tzNameAsiaDhaka"
+msgstr ""
+
+msgid "tzNameAsiaIrkutsk"
+msgstr ""
+
+msgid "tzNameAsiaJerusalem"
+msgstr ""
+
+msgid "tzNameAsiaKabul"
+msgstr ""
+
+msgid "tzNameAsiaKarachi"
+msgstr ""
+
+msgid "tzNameAsiaKathmandu"
+msgstr ""
+
+msgid "tzNameAsiaKolkata"
+msgstr ""
+
+msgid "tzNameAsiaKrasnoyarsk"
+msgstr ""
+
+msgid "tzNameAsiaMagadan"
+msgstr ""
+
+msgid "tzNameAsiaMuscat"
+msgstr ""
+
+msgid "tzNameAsiaNovosibirsk"
+msgstr ""
+
+msgid "tzNameAsiaRangoon"
+msgstr ""
+
+msgid "tzNameAsiaRiyadh"
+msgstr ""
+
+msgid "tzNameAsiaSeoul"
+msgstr ""
+
+msgid "tzNameAsiaShanghai"
+msgstr ""
+
+msgid "tzNameAsiaSingapore"
+msgstr ""
+
+msgid "tzNameAsiaTaipei"
+msgstr ""
+
+msgid "tzNameAsiaTehran"
+msgstr ""
+
+msgid "tzNameAsiaTokyo"
+msgstr ""
+
+msgid "tzNameAsiaVladivostok"
+msgstr ""
+
+msgid "tzNameAsiaYakutsk"
+msgstr ""
+
+msgid "tzNameAsiaYekaterinburg"
+msgstr ""
+
+msgid "tzNameAsiaYerevan"
+msgstr ""
+
+msgid "tzNameAtlanticAzores"
+msgstr ""
+
+msgid "tzNameAtlanticCape_Verde"
+msgstr ""
+
+msgid "tzNameAustraliaAdelaide"
+msgstr ""
+
+msgid "tzNameAustraliaBrisbane"
+msgstr ""
+
+msgid "tzNameAustraliaDarwin"
+msgstr ""
+
+msgid "tzNameAustraliaHobart"
+msgstr ""
+
+msgid "tzNameAustraliaPerth"
+msgstr ""
+
+msgid "tzNameAustraliaSydney"
+msgstr ""
+
+msgid "tzNameEuropeAthens"
+msgstr ""
+
+msgid "tzNameEuropeBerlin"
+msgstr ""
+
+msgid "tzNameEuropeBucharest"
+msgstr ""
+
+msgid "tzNameEuropeHelsinki"
+msgstr ""
+
+msgid "tzNameEuropeLisbon"
+msgstr ""
+
+msgid "tzNameEuropeLondon"
+msgstr ""
+
+msgid "tzNameEuropeMoscow"
+msgstr ""
+
+msgid "tzNameEuropeParis"
+msgstr ""
+
+msgid "tzNameEuropePrague"
+msgstr ""
+
+msgid "tzNamePacificApia"
+msgstr ""
+
+msgid "tzNamePacificAuckland"
+msgstr ""
+
+msgid "tzNamePacificFiji"
+msgstr ""
+
+msgid "tzNamePacificGuam"
+msgstr ""
+
+msgid "tzNamePacificHonolulu"
+msgstr ""
+
+msgid "tzNamePacificKwajalein"
+msgstr ""
+
+msgid "tzNamePacificTongatapu"
+msgstr ""
 
 

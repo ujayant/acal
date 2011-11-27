@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-11-20 19:15+1300\n"
+"POT-Creation-Date: 2011-11-28 00:18+1300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -60,8 +60,8 @@ msgstr "Authentication Type"
 msgid "Simple_Path"
 msgstr "Simple Path"
 
-msgid "Simple_Domain"
-msgstr "Simple Domain"
+msgid "Simple_User_URL"
+msgstr "User URL"
 
 msgid "Enter_a_brief_summary_of_the_event"
 msgstr "Enter a brief summary of the event"
@@ -123,8 +123,8 @@ msgstr "The password to use for authentication with the server"
 msgid "The_path_on_the_server"
 msgstr "The path on the server, such as &quot;/caldav.php/user/&quot;"
 
-msgid "The_domain_for_your_organisation"
-msgstr "The domain name of your organisation, such as &quot;morphoss.com&quot;"
+msgid "A_URL_or_domain_name"
+msgstr "A URL or domain name for your calendar server"
 
 msgid "The_servers_hostname"
 msgstr "The server's full hostname such as &quot;calendar.davical.com&quot;"
@@ -361,7 +361,7 @@ msgstr "Dec"
 msgid "oneCharMorning"
 msgstr "a"
 
-# If the user is displaying AM/PM we need a single character to display e.g. 1p for 1:00pm in the afternoon
+# If the user is displaying AM/PM we need a single character to display e.g. 1p for 1:00pm in the afternoon 
 msgid "oneCharAfternoon"
 msgstr "p"
 
@@ -863,6 +863,37 @@ msgstr "After"
 
 msgid "Custom"
 msgstr "Custom"
+
+msgid "floatingTime"
+msgstr "Floating Time"
+
+msgid "SetCustomAlarm"
+msgstr "Set a custom alarm"
+
+msgid "showUpdateInformation"
+msgstr "Show Update Information"
+
+msgid "General_aCal_Information"
+msgstr "General aCal Information"
+
+msgid "aCal_Website"
+msgstr "The <b>aCal</b> website is %s"
+
+msgid "aCal_IRC_Channel"
+msgstr "You can chat with the aCal authors on IRC in the #acal on irc.oftc.net"
+
+msgid "aCal_Mailing_Lists"
+msgstr ""
+"The &lt;em>aCal&lt;/em> mailing lists are public and you can subscribe at "
+"&lt;a href=&quot;http://lists.acal.me/&quot;>lists.acal.me&lt;/a>. There are "
+"archives there too."
+
+msgid "aCal_is_Free_Software"
+msgstr ""
+"aCal is &quot;Free Software&quot; (that's &quot;free&quot; as in &quot;"
+"freedom&quot;) which is licensed under the General Public License v3 or "
+"later.  You can download &lt;a href=&quot;http://gitorious.org/acal&quot;"
+">the source code for aCal from Gitorious&lt;/a>"
 
 # SourceFileEnd:../res/values/strings.xml
 # SourceFileStart:../res/values/timezonenames.xml
