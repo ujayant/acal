@@ -34,7 +34,7 @@
 					android:layout_width="fill_parent"
 					android:layout_height="wrap_content"
 					android:layout_below="@+id/EventEditTitle"
-					android:inputType="textCapWords|textAutoCorrect|textEmailSubject"
+					android:inputType="textCapSentences|textAutoCorrect|textEmailSubject"
 					android:paddingBottom="10sp"
 					android:paddingLeft="3sp"
 					android:textSize="26sp" />

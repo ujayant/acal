@@ -35,7 +35,7 @@
 					android:layout_width="fill_parent"
 					android:layout_height="wrap_content"
 					android:layout_below="@+id/TodoEditTitle"
-					android:inputType="textCapWords|textAutoCorrect|textEmailSubject"
+					android:inputType="textCapSentences|textAutoCorrect|textEmailSubject"
 					android:paddingBottom="10sp"
 					android:paddingLeft="3sp"
 					android:textSize="26sp" />
@@ -186,6 +186,7 @@
 						android:layout_width="fill_parent"
 						android:layout_height="wrap_content"
 						android:layout_below="@+id/TodoNotesLabel"
+						android:gravity="top"
 						android:inputType="textMultiLine|textCapSentences|textLongMessage|textAutoCorrect"
 						android:minHeight="100sp"
 						android:minWidth="100sp" />
