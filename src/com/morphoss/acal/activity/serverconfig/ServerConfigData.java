@@ -19,6 +19,7 @@
 package com.morphoss.acal.activity.serverconfig;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -66,10 +67,10 @@ public class ServerConfigData {
 	
 	public ContentValues getContentValues() {
 		if ( server.getAsString(Servers.SUPPLIED_USER_URL) == null
-				&& server.getAsString(Servers.OLD_SUPPLIED_DOMAIN) != null
-				&& server.getAsString(Servers.OLD_SUPPLIED_PATH) != null ) {
+				&& server.getAsString(Servers.OLD_SUPPLIED_DOMAIN) != null ) {
 			server.put(Servers.SUPPLIED_USER_URL,
-					server.getAsString(Servers.OLD_SUPPLIED_DOMAIN) + server.getAsString(Servers.OLD_SUPPLIED_PATH));
+					server.getAsString(Servers.OLD_SUPPLIED_DOMAIN) +
+					(server.getAsString(Servers.OLD_SUPPLIED_PATH) == null ? "/" : server.getAsString(Servers.OLD_SUPPLIED_PATH)));
 		}
 		
 		return server;
@@ -149,27 +150,13 @@ public class ServerConfigData {
 	}
 
 	public static List<ServerConfigData> getServerConfigDataFromFile(File file) {
-		//use Sax to deconstruct xml
-		SAXParserFactory spf = SAXParserFactory.newInstance();
-		ServerDataSaxParser sdsp = new ServerDataSaxParser();
 		try {
-
-			//get a new instance of parser
-			SAXParser sp = spf.newSAXParser();
-
-			//parse the file and also register this class for call backs
-			sp.parse(file, sdsp);
-
-		}catch(SAXException se) {
-			if (Constants.LOG_DEBUG)Log.d(TAG,Log.getStackTraceString(se));
-		}catch(ParserConfigurationException pce) {
-			if (Constants.LOG_DEBUG)Log.d(TAG,Log.getStackTraceString(pce));
-		}catch (IOException ie) {
-			if (Constants.LOG_DEBUG)Log.d(TAG,Log.getStackTraceString(ie));
+			return getServerConfigDataFromFile(new FileInputStream(file));
 		}
-
-		return sdsp.getList();
-
+		catch ( FileNotFoundException e ) {
+			Log.e(TAG,"File '"+file.getAbsolutePath()+"' not found", e);
+		}
+		return null;
 	}
 
 	private static class ServerDataSaxParser extends DefaultHandler {
