@@ -118,7 +118,7 @@ for my $zone_name ( sort @zonelist ) {
     <$fh>;
   };
   $zone_data =~ s/^.*(BEGIN:VTIMEZONE.*END:VTIMEZONE\r?\n).*$/$1/gs;
-  $zone_data =~ s/\r?\n/\\r\\n;/g;
+  $zone_data =~ s/\r?\n/\\r\\n/g;
   $name_strings .= qq{<string name="tzName$varname">$zone_name</string>\n};
   $zone_strings .= qq{		new String[] {"$zone_name", "$zone_data" },\n};
 
