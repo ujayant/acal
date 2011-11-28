@@ -124,7 +124,7 @@
 						android:layout_height="64sp"
 						android:layout_toRightOf="@+id/EventLocationLabel"
 						android:gravity="top"
-						android:inputType="textCapWords|textAutoCorrect|textPostalAddress|textMultiLine"
+						android:inputType="textCapSentences|textAutoCorrect|textPostalAddress|textMultiLine"
 						android:paddingBottom="0px" />
 				</RelativeLayout>
 				<!-- End location label and button -->
