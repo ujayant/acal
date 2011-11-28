@@ -230,6 +230,8 @@
 	<string name="serverValidationSuccess">Server validation was successful.</string>
 	<string name="authenticationFailed">Unable to authenticate with server.</string>
 	<string name="WeekViewPreferences">Week View settings</string>
+	<string name="AlarmPreferences">Alarm settings</string>
+	<string name="GeneralPreferences">General settings</string>
 	<string name="checkServer">Validating server</string>
 	<string name="checkServer_Connecting">Connecting to server please wait...</string>
 	<string name="checkServer_Internet">Checking internet connectivity</string>
@@ -290,4 +292,6 @@
 	<string name="aCal_IRC_Channel">You can chat with the aCal authors on IRC in the &lt;a href="irc://irc.oftc.net/#acal">"#acal on irc.oftc.net&lt;/a></string>
 	<string name="aCal_Mailing_Lists">The &lt;em>aCal&lt;/em> mailing lists are public and you can subscribe at &lt;a href="http://lists.acal.me/">lists.acal.me&lt;/a>. There are archives there too.</string>
 	<string name="aCal_is_Free_Software">aCal is "Free Software" (that\'s "free" as in "freedom") which is licensed under the General Public License v3 or later.  You can download &lt;a href="http://gitorious.org/acal">the source code for aCal from Gitorious&lt;/a></string>
+	<string name="TaskMarkedComplete">Task marked as completed.</string>
+	<string name="TaskDeleted">Task was deleted.</string>
 </resources>
