@@ -1,5 +1,6 @@
 package com.morphoss.acal.activity.serverconfig;
 
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -213,14 +214,16 @@ public class TestPort {
 								}
 								else if ( thisTag.equals("principal-collection-set") ) {
 									principalCollectionHref = prop.getFirstNodeText("href");
-									String userName = requestor.getUserName();
+									String userName = URLEncoder.encode(requestor.getUserName(), "UTF-8");
 									if ( principalCollectionHref.length() > 0 && userName != null ) {
 										principalCollectionHref = principalCollectionHref + 
-												(principalCollectionHref.substring(principalCollectionHref.length()-1) == "/" ? "" : "/") +
+												(principalCollectionHref.length() > 0 && principalCollectionHref.charAt(principalCollectionHref.length()-1) == '/' ? "" : "/") +
 												userName + "/";
-										if ( !principalCollectionHref.equals(responseHref) ) {
+										if ( !principalCollectionHref.equals(requestPath) ) {
 											return doPropfindPrincipal(principalCollectionHref);
 										}
+										if ( Constants.debugCheckServerDialog ) Log.println(Constants.LOGD, TAG,
+												"We've tried this URL already.  Let's move on... "+requestPath);
 									}
 									// @todo Next: Try a Depth: 1 propfind on the principalCollectionHref trying to match it to this user
 								}
