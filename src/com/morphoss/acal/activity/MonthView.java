@@ -239,8 +239,6 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 	
 	private synchronized void serviceIsConnected() {
 		if ( this.gridView == null ) createGridView(true);
-		if ( this.eventList == null ) createListView(true);
-
 		changeSelectedDate(selectedDate);
 		changeDisplayedMonth(displayedMonth);
 	}
@@ -290,6 +288,7 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 		super.onPause();
 
 		rememberCurrentPosition();
+		eventList = null;
 		try {
 			if (dataRequest != null) {
 				dataRequest.flushCache();
@@ -429,7 +428,7 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 			eventList.setOnTouchListener(this);
 
 		} catch (Exception e) {
-			Log.e(TAG, "Error occured creating listview: " + e.getMessage());
+			Log.e(TAG, "Error occured creating listview: " + e.getMessage(), e);
 		}
 	}
 
@@ -664,19 +663,28 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 	 * </p>
 	 */
 	public void changeDisplayedMonth(AcalDateTime calendar) {
-		this.displayedMonth = calendar.applyLocalTimeZone();
-//		if ( getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT ) {
-//			this.monthTitle.setVisibility(View.GONE);
-//		}
-//		else {
-			this.monthTitle.setText(AcalDateTime.fmtMonthYear(calendar));
-//			this.monthTitle.setVisibility(View.VISIBLE);
-//		}
+		displayedMonth = calendar.applyLocalTimeZone();
+		monthTitle.setText(AcalDateTime.fmtMonthYear(calendar));
+		gridView.setScrollBarStyle(GridView.SCROLLBARS_INSIDE_OVERLAY);
+		gridView.setStretchMode(GridView.STRETCH_COLUMN_WIDTH);
+		gridView.setPadding(2, 0, 2, 0);
+
+		/*
+		ViewParent vp = gridView.getParent();
+		while( vp != null && !(vp instanceof View) ) {
+			vp = vp.getParent();
+		}
+		if ( vp != null ) {
+			int spare = ((View) vp).getWidth() - gridView.getWidth();
+			gridView.setPadding(spare/2, 0, spare/2, 0);
+		}
+		*/
+		
 		if (AcalDateTime.isWithinMonth(selectedDate, displayedMonth))
-			this.gridView.setAdapter(new MonthAdapter(this, selectedDate, selectedDate));
+			gridView.setAdapter(new MonthAdapter(this, selectedDate, selectedDate));
 		else
-			this.gridView.setAdapter(new MonthAdapter(this, displayedMonth, selectedDate));
-		this.gridView.refreshDrawableState();
+			gridView.setAdapter(new MonthAdapter(this, displayedMonth, selectedDate));
+		gridView.refreshDrawableState();
 	}
 
 	
@@ -697,6 +705,8 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 			eventListIndex = 0;
 		}
 		eventListAdapter = new EventListAdapter(this, selectedDate.clone());
+
+		if ( eventList == null ) createListView(true);
 		eventList.setAdapter(eventListAdapter);
 		eventList.refreshDrawableState();
 		restoreCurrentPosition();
