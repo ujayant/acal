@@ -367,14 +367,15 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 			}
 
 			//Output useful information	
-			if (Constants.LOG_DEBUG) {
+			if ( Constants.debugCalendarDataService && Constants.LOG_DEBUG ) {
 				int size = 0;
 				Set<Integer> keys = calendars.keySet();
 				for (int key : keys ) {
 					size+= calendars.get(key).size();
 				}
-				Log.d(TAG, "Processed "+count+" resources in : "+(System.currentTimeMillis()-begin)+"ms");
-				if ( Constants.debugCalendarDataService && Constants.LOG_VERBOSE)	Log.println(Constants.LOGV,TAG, 
+				Log.println(Constants.LOGD, TAG,
+						"Processed "+count+" resources in : "+(System.currentTimeMillis()-begin)+"ms");
+				if ( Constants.LOG_VERBOSE)	Log.println(Constants.LOGV,TAG, 
 						"Now have "+size+" Nodes created from "+calendars.size()+" Calendar objects");
 			}
 		} catch (Exception e) {
@@ -400,6 +401,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 		worker.start();
 	}
 
+	
 	/** Calculates the next time an alarm will go off AFTER the lastTriggeredAlarmtime 
 	 * If no alarm is found alarms are disabled. Otherwise, set the alarm trigger for this time
 	 */
@@ -859,7 +861,8 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 			this.inResourceTx = 0;
 		}
 		else if (changeEvent.getEventType() == DatabaseChangedEvent.DATABASE_INVALIDATED) {
-			if (Constants.LOG_DEBUG) Log.d(TAG,"Database invalidated message received. Clearing memory.");
+			if (Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG,
+					"Database invalidated message received. Clearing memory.");
 			resourcesPending = new ConcurrentLinkedQueue<ContentValues>();
 			calendars = new ConcurrentHashMap<Integer,VCalendar>();
 			collections = new ConcurrentHashMap<Integer,AcalCollection>();
