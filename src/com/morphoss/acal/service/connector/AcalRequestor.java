@@ -742,7 +742,6 @@ public class AcalRequestor {
 		}
 		catch (SocketException e) {
 			Log.i(TAG, e.getClass().getSimpleName() + ": " + e.getMessage() + " to " + fullUrl() );
-			throw new ConnectionFailedException( e.getClass().getSimpleName() + ": " + fullUrl() );
 		}
 		catch (ConnectionPoolTimeoutException e)		{
 			Log.i(TAG, e.getClass().getSimpleName() + ": " + e.getMessage() + " to " + fullUrl() );
