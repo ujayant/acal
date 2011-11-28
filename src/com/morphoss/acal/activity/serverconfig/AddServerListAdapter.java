@@ -102,29 +102,38 @@ public class AddServerListAdapter extends BaseAdapter {
 				if (name == null || name.length() < 11) continue;
 				if (name.substring(0,10).equalsIgnoreCase("serverconf")) { 
 					list.put(name.substring(11), f.getInt(null));
-					if ( Constants.LOG_DEBUG )
-						Log.d(TAG, "Found preconfigured setup for '"+name.substring(11)+"'");
+					if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD,TAG, 
+								"Found preconfigured setup for '"+name.substring(11)+"'");
 				}
 				else if (name.substring(0,11).equalsIgnoreCase("serverimage")) {
 					imageIds.put(name.substring(12), f.getInt(null));
-					if ( Constants.LOG_DEBUG )
-						Log.d(TAG, "Found image for '"+name.substring(12)+"'");
+					if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD,TAG, 
+							"Found image for '"+name.substring(12)+"'");
 				}
-		    } catch (IllegalArgumentException e) {
-		    } catch (IllegalAccessException e) { }
+				else if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD,TAG, 
+						"Skipping raw file '"+name+"'");
+			} catch (IllegalArgumentException e) {
+				Log.w(TAG,"Problem adding preconfigured setup.", e);
+		    } catch (IllegalAccessException e) { 
+				Log.w(TAG,"Problem adding preconfigured setup.", e);
+		    }
 		}
 		    
 		for ( Entry<String,Integer> confEntry : list.entrySet()) {
 			try {
 				InputStream in = context.getResources().openRawResource(confEntry.getValue());
 				List<ServerConfigData> l = ServerConfigData.getServerConfigDataFromFile(in);
+				if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD,TAG, 
+						"Found "+l.size()+" pre-written serverconfig entries for '"+confEntry.getKey()+"'");
 				for (ServerConfigData scd : l) {
 					ContentValues cv = scd.getContentValues();
 					cv.put(ServerConfiguration.MODEKEY, ServerConfiguration.MODE_IMPORT);
+					if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD,TAG, 
+							"Added pre-written serverconfig for '"+confEntry.getKey()+"'");
 					if ( imageIds.getAsInteger(confEntry.getKey()) != null ) {
 						cv.put(ServerConfiguration.IMAGE_KEY, imageIds.getAsInteger(confEntry.getKey()));
-						if ( Constants.LOG_DEBUG )
-							Log.d(TAG, "Setup image for '"+confEntry.getKey()+"'");
+						if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD,TAG, 
+								"Setup image for '"+confEntry.getKey()+"'");
 					}
 					data.add(cv);
 				}

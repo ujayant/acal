@@ -31,6 +31,7 @@ import android.content.DialogInterface;
 import android.database.sqlite.SQLiteConstraintException;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -53,7 +54,7 @@ import com.morphoss.acal.service.connector.AcalRequestor;
  * @author Morphoss Ltd
  *
  */
-public class CheckServerDialog implements Runnable {
+public class CheckServerDialog {
 
 
 	private static final String TAG = "aCal CheckServerDialog";
@@ -73,7 +74,6 @@ public class CheckServerDialog implements Runnable {
 	private List<String> successMessages = new ArrayList<String>();
 	private boolean advancedMode = false;
 
-	
 	//dialog types
 	
 	private Handler handler = new Handler() {
@@ -104,6 +104,7 @@ public class CheckServerDialog implements Runnable {
 			}
 		}
 	};
+	private RunAllTests	testRunner;
 	
 	
 	public CheckServerDialog(ServerConfiguration serverConfiguration, ContentValues serverData, Context cx, ServiceManager sm) {
@@ -116,148 +117,194 @@ public class CheckServerDialog implements Runnable {
 		ServerConfigData.removeNonDBFields(serverData);
 		this.serverData = serverData;
 	}
-	
-	public void start() {
-		dialog = ProgressDialog.show(sc, context.getString(R.string.checkServer), context.getString(R.string.checkServer_Connecting));
-		dialog.setIndeterminate(true);
-		Thread t = new Thread(this);
-		t.start();
-	}
-	
-	public void run() {
-		if ( advancedMode )
-			this.requestor = AcalRequestor.fromServerValues(serverData);
-		else {
-			this.requestor = AcalRequestor.fromSimpleValues(serverData);
-			requestor.applyToServerSettings(serverData);
-		}
-		checkServer();
-	}
 
-	/**
-	 * <p>
-	 * Checks the server they have entered for validity. Endeavouring to profile it in some ways that we can
-	 * use later to control how we will conduct synchronisations and discovery against it.
-	 * </p>
-	 */
-	private void checkServer() {
-		TestPort tester = null;
-		try {
-			// Step 1, check for internet connectivity
-			updateProgress(context.getString(R.string.checkServer_Internet));
-			if ( !checkInternetConnected() ) {
-				throw new CheckServerFailedError(context.getString(R.string.internetNotAvailable));
-			}
 
-			// Step 2, check we can connect to the server on the given port
-			if ( advancedMode ) {
-				tester = new TestPort(requestor);
-				updateProgress(context.getString(R.string.checkServer_SearchingForServer, requestor.fullUrl()));
-				if ( !tester.hasCalDAV() ) {
-					// Try harder!
-					requestor.applyFromServer(serverData);
-					tester.reProbe();
-				}
-			}
+	private class RunAllTests extends AsyncTask<Boolean, Integer, Void> {
+		
+		private class TestsCancelledException extends Exception {
+			private static final long	serialVersionUID	= 1L;
+		};
+		
+		protected Void doInBackground(Boolean... params) {
+			if ( advancedMode )
+				requestor = AcalRequestor.fromServerValues(serverData);
 			else {
-				Iterator<TestPort> testers = TestPort.defaultIterator(requestor);
-
-				do {
-					tester = testers.next();
-					requestor.applyFromServer(serverData);
-					updateProgress(context.getString(R.string.checkServer_SearchingForServer,
-							tester.getProtocolUrlPrefix() + serverData.getAsString(Servers.SUPPLIED_USER_URL) + ":"
-									+ tester.port));
+				requestor = AcalRequestor.fromSimpleValues(serverData);
+				requestor.applyToServerSettings(serverData);
+			}
+			try {
+				checkServer();
+			}
+			catch(  TestsCancelledException t ) { }
+			return null;
+		}
+		
+		protected void onProgressUpdate(Integer... progress) {
+		}
+		
+	    protected void onPostExecute(Void result) {
+	    }
+		
+		/**
+		 * <p>
+		 * Checks the server they have entered for validity. Endeavouring to profile it in some ways that we can
+		 * use later to control how we will conduct synchronisations and discovery against it.
+		 * </p>
+		 */
+		private void checkServer() throws TestsCancelledException {
+			TestPort tester = null;
+			try {
+				// Step 1, check for internet connectivity
+				updateProgress(context.getString(R.string.checkServer_Internet));
+				if ( !checkInternetConnected() ) {
+					throw new CheckServerFailedError(context.getString(R.string.internetNotAvailable));
 				}
-				while ( !tester.hasCalDAV() && testers.hasNext() );
 
-				if ( !tester.hasCalDAV() ) {
-					// Try harder!
-					testers = TestPort.defaultIterator(requestor);
+				// Step 2, check we can connect to the server on the given port
+				if ( advancedMode ) {
+					tester = new TestPort(requestor);
+					updateProgress(context.getString(R.string.checkServer_SearchingForServer, requestor.fullUrl()));
+					if ( !tester.hasCalDAV() ) {
+						// Try harder!
+						requestor.applyFromServer(serverData);
+						tester.reProbe();
+					}
+				}
+				else {
+					Iterator<TestPort> testers = TestPort.defaultIterator(requestor);
+
 					do {
 						tester = testers.next();
 						requestor.applyFromServer(serverData);
-						tester.reProbe(); // Extend the timeout
-						updateProgress(context.getString(R.string.checkServer_SearchingForServer,
-								tester.getProtocolUrlPrefix() + serverData.getAsString(Servers.SUPPLIED_USER_URL) + ":"
-										+ tester.port));
+						requestor.setPortProtocol(tester.port, (tester.useSSL?1:0));
+						updateProgress(context.getString(R.string.checkServer_SearchingForServer, requestor.fullUrl()));
 					}
 					while ( !tester.hasCalDAV() && testers.hasNext() );
+
+					if ( !tester.hasCalDAV() ) {
+						// Try harder!
+						testers = TestPort.defaultIterator(requestor);
+						do {
+							tester = testers.next();
+							requestor.applyFromServer(serverData);
+							requestor.setPortProtocol(tester.port, (tester.useSSL?1:0));
+							tester.reProbe(); // Extend the timeout
+							updateProgress(context.getString(R.string.checkServer_SearchingForServer, requestor.fullUrl()));
+						}
+						while ( !tester.hasCalDAV() && testers.hasNext() );
+					}
 				}
-			}
 
-			if ( tester.hasCalDAV() ) {
-				Log.w(TAG, "Found CalDAV: " + requestor.fullUrl());
-				serverData.put(Servers.HAS_CALDAV, 1);
-				successMessages.add(context.getString(R.string.serverSupportsCalDAV));
-				successMessages.add(String.format(context.getString(R.string.foundPrincipalPath), requestor.fullUrl()));
-				requestor.applyToServerSettings(serverData);
-			}
-			else if ( !tester.authOK() ) {
-				Log.w(TAG, "Failed Auth: " + requestor.fullUrl());
-				successMessages.add(context.getString(R.string.authenticationFailed));
-			}
-			else {
-				Log.w(TAG, "Found no CalDAV");
-				serverData.put(Servers.HAS_CALDAV, 0);
-				successMessages.add(context.getString(R.string.serverLacksCalDAV));
-			}
+				if ( tester.hasCalDAV() ) {
+					Log.w(TAG, "Found CalDAV: " + requestor.fullUrl());
+					serverData.put(Servers.HAS_CALDAV, 1);
+					successMessages.add(context.getString(R.string.serverSupportsCalDAV));
+					successMessages.add(String.format(context.getString(R.string.foundPrincipalPath), requestor.fullUrl()));
+					requestor.applyToServerSettings(serverData);
+				}
+				else if ( !tester.authOK() ) {
+					Log.w(TAG, "Failed Auth: " + requestor.fullUrl());
+					successMessages.add(context.getString(R.string.authenticationFailed));
+				}
+				else {
+					Log.w(TAG, "Found no CalDAV");
+					serverData.put(Servers.HAS_CALDAV, 0);
+					successMessages.add(context.getString(R.string.serverLacksCalDAV));
+				}
 
 
-			// Step 6, Exit with success message
+				// Step 6, Exit with success message
+				Message m = Message.obtain();
+				Bundle b = new Bundle();
+				b.putInt(TYPE, (tester.hasCalDAV() && tester.authOK() ? CHECK_COMPLETE : SHOW_FAIL_DIALOG));
+
+				StringBuilder successMessage = new StringBuilder("");
+				for( String msg : successMessages ) {
+					successMessage.append("\n");
+					successMessage.append(msg);
+				}
+				b.putString(MESSAGE, successMessage.toString());
+
+				m.setData(b);
+				handler.sendMessage(m);
+
+			}
+			catch (CheckServerFailedError e) {
+
+				// Getting server details failed
+				if (Constants.LOG_DEBUG)
+					Log.d(TAG, "Connect failed: " + e.getMessage());
+				Message m = Message.obtain();
+				Bundle b = new Bundle();
+				b.putInt(TYPE, SHOW_FAIL_DIALOG);
+				b.putString(MESSAGE, e.getMessage());
+				m.setData(b);
+				handler.sendMessage(m);
+
+			}
+			catch (TestsCancelledException e) {
+				Message m = Message.obtain();
+				Bundle b = new Bundle();
+				b.putInt(TYPE, SHOW_FAIL_DIALOG);
+				b.putString(MESSAGE, context.getString(R.string.checkServer_DiscoveryCancelled));
+				m.setData(b);
+				handler.sendMessage(m);
+			}
+			catch (Exception e) {
+				// Something unknown went wrong
+				Log.w(TAG, "Unexpected Failure: " + e.getMessage());
+				Log.w(TAG, Log.getStackTraceString(e));
+				Message m = Message.obtain();
+				Bundle b = new Bundle();
+				b.putInt(TYPE, SHOW_FAIL_DIALOG);
+				b.putString(MESSAGE, "Unknown Error: " + e.getMessage());
+				m.setData(b);
+				handler.sendMessage(m);
+			}
+		}
+
+		/**
+		 * Update the progress dialog with a friendly string.
+		 * @param newMessage
+		 * @throws TestsCancelledException 
+		 */
+		private void updateProgress( String newMessage ) throws TestsCancelledException {
+			if ( this.isCancelled() ) throw new TestsCancelledException();
 			Message m = Message.obtain();
 			Bundle b = new Bundle();
-			b.putInt(TYPE, (tester.hasCalDAV() && tester.authOK() ? CHECK_COMPLETE : SHOW_FAIL_DIALOG));
-
-			StringBuilder successMessage = new StringBuilder("");
-			for( String msg : successMessages ) {
-				successMessage.append("\n");
-				successMessage.append(msg);
-			}
-			b.putString(MESSAGE, successMessage.toString());
-
-			m.setData(b);
-			handler.sendMessage(m);
-
-		}
-		catch (CheckServerFailedError e) {
-
-			// Getting server details failed
-			if (Constants.LOG_DEBUG)
-				Log.d(TAG, "Connect failed: " + e.getMessage());
-			Message m = Message.obtain();
-			Bundle b = new Bundle();
-			b.putInt(TYPE, SHOW_FAIL_DIALOG);
-			b.putString(MESSAGE, e.getMessage());
-			m.setData(b);
-			handler.sendMessage(m);
-
-		}
-		catch (Exception e) {
-			// Something unknown went wrong
-			Log.w(TAG, "Unexpected Failure: " + e.getMessage());
-			Log.w(TAG, Log.getStackTraceString(e));
-			Message m = Message.obtain();
-			Bundle b = new Bundle();
-			b.putInt(TYPE, SHOW_FAIL_DIALOG);
-			b.putString(MESSAGE, "Unknown Error: " + e.getMessage());
+			b.putInt(TYPE, REFRESH_PROGRESS);
+			b.putString(REFRESH, newMessage);
 			m.setData(b);
 			handler.sendMessage(m);
 		}
+
 	}
 
-	/**
-	 * Update the progress dialog with a friendly string.
-	 * @param newMessage
-	 */
-	private void updateProgress( String newMessage ) {
-		Message m = Message.obtain();
-		Bundle b = new Bundle();
-		b.putInt(TYPE, REFRESH_PROGRESS);
-		b.putString(REFRESH, newMessage);
-		m.setData(b);
-		handler.sendMessage(m);
+	private void createProgressDialog(String title, String message, String buttonText)
+	{
+		dialog = new ProgressDialog(sc);
+	    dialog.setTitle(title);
+	    dialog.setMessage(message);
+	    dialog.setButton(buttonText, new DialogInterface.OnClickListener() 
+	    {
+	        public void onClick(DialogInterface dialog, int which) 
+	        {
+	            // Use either finish() or return() to either close the activity or just the dialog
+	        	testRunner.cancel(true);
+	            return;
+	        }
+	    });
+	    dialog.show();
 	}
+
+	public void start() {
+		createProgressDialog( context.getString(R.string.checkServer), context.getString(R.string.checkServer_Connecting), context.getString(R.string.cancel));
+		dialog.setIndeterminate(true);
+		
+		testRunner = new RunAllTests();
+		testRunner.execute();
+	}
+	
 
 	private void showFailDialog(String msg) {
 		AlertDialog.Builder builder = new AlertDialog.Builder(sc);
