@@ -671,7 +671,7 @@ public class SyncCollectionContents extends ServiceJob {
 			
 			hrefList = new StringBuilder();
 			for (int i = hrefIndex; i < limit; i++) {
-				hrefList.append(String.format("<D:href>%s</D:href>", collectionPath + hrefs[i].toString()));
+				hrefList.append(String.format("<D:href>%s</D:href>\n", collectionPath + hrefs[i].toString()));
 			}
 		
 			if (Constants.LOG_DEBUG)
@@ -767,7 +767,6 @@ public class SyncCollectionContents extends ServiceJob {
 	 * @return true If we need to write to the database, false otherwise.
 	 */
 	private boolean parseResponseNode(DavNode responseNode, ContentValues cv) {
-		boolean validResourceResponse = true;
 
 		DavNode prop = null;
 		for ( DavNode testPs : responseNode.getNodesFromPath("propstat")) {
@@ -779,7 +778,7 @@ public class SyncCollectionContents extends ServiceJob {
 		}
 		
 		if ( prop == null ) {
-			validResourceResponse = false;
+			return false;
 		}
 		else {
 			String s = prop.getFirstNodeText("getctag");
@@ -787,8 +786,8 @@ public class SyncCollectionContents extends ServiceJob {
 				collectionChanged = (collectionData.getAsString(DavCollections.COLLECTION_TAG) == null
 									|| s.equals(collectionData.getAsString(DavCollections.COLLECTION_TAG)));
 				if ( collectionChanged ) collectionData.put(DavCollections.COLLECTION_TAG, s);
-				validResourceResponse = false;
 				cv.put("COLLECTION", true);
+				return false;
 			}
 			else {
 				String etag = prop.getFirstNodeText("getetag");
@@ -798,10 +797,9 @@ public class SyncCollectionContents extends ServiceJob {
 					
 					if ( etag.equals(oldEtag) && cv.get(DavResources.RESOURCE_DATA) != null ) {
 						cv.put(DavResources.NEEDS_SYNC, 0);
-						responseNode.getParent().removeSubTree(responseNode);
 						if ( Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents ) Log.println(Constants.LOGD,TAG,
 								"Found etag '"+etag+"' in response.  Old etags was '"+oldEtag+"'.  No sync needed.");
-						return false;
+						return true;
 					}
 					else {
 						if ( Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents ) Log.println(Constants.LOGD,TAG,
@@ -835,11 +833,7 @@ public class SyncCollectionContents extends ServiceJob {
 			}
 		}
 
-
-		// Remove our references to this now that we've finished with it.
-		responseNode.getParent().removeSubTree(responseNode);
-
-		return validResourceResponse;
+		return true;
 	}
 
 	/**
