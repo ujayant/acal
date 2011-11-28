@@ -57,8 +57,8 @@ public class ResourceModification {
 						}
 					}
 					catch ( Exception e ) {
-						Log.e(TAG,"Failed to get type for resource - assuming VEVENT");
-						Log.e(TAG,Log.getStackTraceString(e));
+						Log.i(TAG,"Failed to get type for resource - assuming VEVENT\n"+vCal.getOriginalBlob());
+						Log.i(TAG,Log.getStackTraceString(e));
 						effectiveType = "VEVENT";
 					}
 				}
@@ -66,8 +66,8 @@ public class ResourceModification {
 					inResourceValues.put(DavResources.EFFECTIVE_TYPE, effectiveType);
 			}
 			catch (Exception e) {
-				Log.e(TAG,"Type of resource is just plain weird!");
-				Log.e(TAG,Log.getStackTraceString(e));
+				Log.w(TAG,"Type of resource is just plain weird!\n"+inResourceValues.getAsString(DavResources.RESOURCE_DATA));
+				Log.w(TAG,Log.getStackTraceString(e));
 			}
 		}
 
