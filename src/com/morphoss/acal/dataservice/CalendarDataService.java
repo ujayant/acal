@@ -1246,25 +1246,25 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 		
 		@Override
 		public List<SimpleAcalTodo> getTodos(boolean listCompleted, boolean listFuture) throws RemoteException {
-			todoItems.reset();
+			todoItems.reset(listCompleted, listFuture);
 			for (VCalendar vc : calendars.values() ) {
 				Masterable master = vc.getMasterChild();
 				if ( master instanceof VTodo ) {
 					todoItems.add( new SimpleAcalTodo(master, false) );
 				}
 			}
-
-			return todoItems.getList(listCompleted, listFuture);
+			todoItems.sort();
+			return todoItems.getList();
 		}
 
 		@Override
-		public SimpleAcalTodo getNthTodo(boolean listCompleted, boolean listFuture, int n) throws RemoteException {
-			return todoItems.getNth(listCompleted, listFuture,n);
+		public SimpleAcalTodo getNthTodo(int n) throws RemoteException {
+			return todoItems.getNth(n);
 		}
 
 		@Override
-		public int getNumberTodos(boolean listCompleted, boolean listFuture) throws RemoteException {
-			return todoItems.count(listCompleted, listFuture);
+		public int getNumberTodos() throws RemoteException {
+			return todoItems.count();
 		}
 
 		@Override

@@ -269,9 +269,11 @@ public class TodoListView extends AcalActivity implements OnClickListener {
 		this.setupButton(R.id.todo_all_button, TODO, (this.showCompleted ? getString(R.string.Todo) : getString(R.string.All)));
 
 		TextView title = (TextView) this.findViewById(R.id.todo_list_title);
-		title.setText( !showFuture ? R.string.dueTasksTitle
-								   : (!showCompleted ? R.string.incompleteTasksTitle
-										   			 : R.string.allTasksTitle)
+		title.setText( showFuture && showCompleted ? R.string.allTasksTitle
+													: ( showFuture ? R.string.incompleteTasksTitle 
+																	: (showCompleted ? R.string.dueTasksTitle
+																					: R.string.incompleteTasksDue)
+														)
 					);
 
 		this.todoListAdapter = null;
@@ -353,7 +355,12 @@ public class TodoListView extends AcalActivity implements OnClickListener {
 			return new ArrayList<SimpleAcalTodo>();
 		}
 		try {
-			return (ArrayList<SimpleAcalTodo>) dataRequest.getTodos(listCompleted,listFuture);
+			if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG, 
+					"Requesting TodoList where isCompleted="+listCompleted+", isFuture="+listFuture);
+			ArrayList<SimpleAcalTodo> result = (ArrayList<SimpleAcalTodo>) dataRequest.getTodos(listCompleted,listFuture);
+			if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,
+					"Got "+result.size()+" tasks");
+			return result;
 		}
 		catch (RemoteException e) {
 			if (Constants.LOG_DEBUG) Log.d(TAG,"Remote Exception accessing eventcache: "+e);
@@ -361,30 +368,30 @@ public class TodoListView extends AcalActivity implements OnClickListener {
 		}
 	}
 
-	public int getNumberTodos(boolean listCompleted, boolean listFuture) {
+	public int getNumberTodos() {
 		if (dataRequest == null) return 0;
 		try {
-			return dataRequest.getNumberTodos(listCompleted,listFuture);
+			return dataRequest.getNumberTodos();
 		} catch (RemoteException e) {
 			if (Constants.LOG_DEBUG) Log.d(TAG,"Remote Exception accessing eventcache: "+e);
 			return 0;
 		}
 	}
 
-	public SimpleAcalTodo getNthTodo(boolean listCompleted, boolean listFuture, int n) {
+	public SimpleAcalTodo getNthTodo(int n) {
 		if (dataRequest == null) return null;
 		try {
-			return dataRequest.getNthTodo(listCompleted,listFuture, n);
+			return dataRequest.getNthTodo(n);
 		} catch (RemoteException e) {
 			if (Constants.LOG_DEBUG) Log.d(TAG,"Remote Exception accessing todolist from dataservice: "+e);
 			return null;
 		}
 	}
 
-	public void deleteTodo(boolean listCompleted, boolean listFuture, int n, int action ) {
+	public void deleteTodo( int n, int action ) {
 		if (dataRequest == null) return;
 		try {
-			SimpleAcalTodo sat = dataRequest.getNthTodo(listCompleted,listFuture, n);
+			SimpleAcalTodo sat = dataRequest.getNthTodo(n);
 			this.dataRequest.todoChanged((VCalendar) VComponent.fromDatabase(this, sat.resourceId), action);
 		}
 		catch (RemoteException e) {
@@ -395,10 +402,10 @@ public class TodoListView extends AcalActivity implements OnClickListener {
 		}
 	}
 
-	public void completeTodo(boolean listCompleted, boolean listFuture, int n, int action ) {
+	public void completeTodo( int n, int action ) {
 		if (dataRequest == null) return;
 		try {
-			SimpleAcalTodo sat = dataRequest.getNthTodo(listCompleted,listFuture, n);
+			SimpleAcalTodo sat = dataRequest.getNthTodo(n);
 			this.dataRequest.todoChanged((VCalendar) VComponent.fromDatabase(this, sat.resourceId), action);
 		}
 		catch (RemoteException e) {

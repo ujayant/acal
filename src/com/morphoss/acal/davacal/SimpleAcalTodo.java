@@ -315,5 +315,11 @@ public class SimpleAcalTodo implements Parcelable, Comparable<SimpleAcalTodo> {
 		if ( due > System.currentTimeMillis() / 1000L ) return false;
 		return true;
 	}
+
+	public boolean isFuture() {
+		if ( due == null ) return true;
+		if ( due > (System.currentTimeMillis() + 86400000L * 7) / 1000L ) return true;
+		return false;
+	}
 	
 }

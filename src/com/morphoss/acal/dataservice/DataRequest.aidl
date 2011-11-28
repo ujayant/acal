@@ -27,8 +27,8 @@ interface DataRequest {
 	void deleteEvent(in AcalDateTime day, int n);
 	List<SimpleAcalTodo> getTodos(in boolean listCompleted, in boolean listFuture);
 	void todoChanged(in VCalendar changedResource, in int action);
-	int getNumberTodos(in boolean listCompleted, in boolean listFuture);
-	SimpleAcalTodo getNthTodo(in boolean listCompleted, in boolean listFuture, int n);
+	int getNumberTodos();
+	SimpleAcalTodo getNthTodo(int n);
 	void flushCache();
 	void flushDay(in AcalDateTime day);
 }

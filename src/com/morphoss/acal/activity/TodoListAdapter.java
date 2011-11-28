@@ -99,7 +99,7 @@ public class TodoListAdapter extends BaseAdapter implements OnClickListener, Lis
 	 */
 	@Override
 	public int getCount() {
-		return context.getNumberTodos(listCompleted,listFuture);
+		return context.getNumberTodos();
 	}
 
 	/**
@@ -110,7 +110,7 @@ public class TodoListAdapter extends BaseAdapter implements OnClickListener, Lis
 	 */
 	@Override
 	public SimpleAcalTodo getItem(int position) {
-		return context.getNthTodo(listCompleted,listFuture, position);
+		return context.getNthTodo(position);
 	}
 
 	/**
@@ -257,11 +257,11 @@ public class TodoListAdapter extends BaseAdapter implements OnClickListener, Lis
 					return true;
 				
 				case CONTEXT_DELETE:
-					this.context.deleteTodo(listCompleted,listFuture,id,TodoEdit.ACTION_DELETE_ALL);
+					this.context.deleteTodo(id,TodoEdit.ACTION_DELETE_ALL);
 					return true;
 
 				case CONTEXT_COMPLETE:
-					this.context.completeTodo(listCompleted,listFuture,id,TodoEdit.ACTION_COMPLETE);
+					this.context.completeTodo(id,TodoEdit.ACTION_COMPLETE);
 					return true;
 
 			}
