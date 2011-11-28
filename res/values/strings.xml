@@ -236,6 +236,7 @@
 	<string name="checkServer_Connecting">Connecting to server please wait...</string>
 	<string name="checkServer_Internet">Checking internet connectivity</string>
 	<string name="checkServer_SearchingForServer">Searching for CalDAV server at "%s"</string>
+	<string name="checkServer_DiscoveryCancelled">Server discovery was cancelled</string>
 	<string name="serverRecordAlreadyExists">A server already exists for that protocol, port, host, path &amp; username</string>
 	<string name="newEventFromThis">Copy to New Event</string>
 	<string name="Delete">Delete</string>
@@ -262,6 +263,7 @@
 	<string name="newTaskFromThis">Copy to New Task</string>
 	<string name="dueTasksTitle">Tasks due within a week</string>
 	<string name="incompleteTasksTitle">Incomplete Tasks</string>
+	<string name="incompleteTasksDue">Incomplete tasks due within a week</string>
 	<string name="allTasksTitle">All Tasks</string>
 	<string name="NewTaskTitle">New Task</string>
 	<string name="TaskSaved">Task Saved.</string>
