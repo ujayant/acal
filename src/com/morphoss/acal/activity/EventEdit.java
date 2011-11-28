@@ -81,6 +81,11 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 	public static final int APPLY = 0;
 	public static final int CANCEL = 1;
 
+	// keys for the data we return.
+	public static final String			resultSimpleAcalEvent		= "newSimpleEvent";
+	public static final String			resultAcalEvent					= "newAcalEvent";
+	public static final String			resultCollectionId			= "newCollectionId";
+	
 	private SimpleAcalEvent sae;
 	private AcalEvent event;
 	private static final int START_DATE_DIALOG = 0;
@@ -557,7 +562,11 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 				Toast.makeText(this, getString(R.string.ModifiedThisAndFuture), Toast.LENGTH_LONG).show();
 
 			Intent ret = new Intent();
-			ret.putExtra("changedEvent", sae);
+			Bundle b = new Bundle();
+			b.putParcelable(resultSimpleAcalEvent, sae);
+			b.putParcelable(resultAcalEvent, event);
+			b.putLong(resultCollectionId, currentCollection.getAsInteger(DavCollections._ID));
+			ret.putExtras(b);
 			this.setResult(RESULT_OK, ret);
 
 			this.finish();

@@ -278,7 +278,10 @@ public class EventView extends AcalActivity implements OnGestureListener, OnTouc
 	}
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
     	if (requestCode == EDIT_EVENT && resultCode == RESULT_OK) {
-			this.event = sae.getAcalEvent(this);
+			Bundle b = data.getExtras();
+			SimpleAcalEvent tmpSae = (SimpleAcalEvent) b.getParcelable(EventEdit.resultSimpleAcalEvent);
+			if ( tmpSae != null ) sae = tmpSae;
+			this.event = (AcalEvent) b.getParcelable(EventEdit.resultAcalEvent);
 			populateLayout();
     	}
     	else if (requestCode == EDIT_ADD && resultCode == RESULT_OK) {
