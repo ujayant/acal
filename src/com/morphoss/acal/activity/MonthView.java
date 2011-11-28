@@ -28,7 +28,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -666,13 +665,13 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 	 */
 	public void changeDisplayedMonth(AcalDateTime calendar) {
 		this.displayedMonth = calendar.applyLocalTimeZone();
-		if ( getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT ) {
-			this.monthTitle.setVisibility(View.GONE);
-		}
-		else {
+//		if ( getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT ) {
+//			this.monthTitle.setVisibility(View.GONE);
+//		}
+//		else {
 			this.monthTitle.setText(AcalDateTime.fmtMonthYear(calendar));
-			this.monthTitle.setVisibility(View.VISIBLE);
-		}
+//			this.monthTitle.setVisibility(View.VISIBLE);
+//		}
 		if (AcalDateTime.isWithinMonth(selectedDate, displayedMonth))
 			this.gridView.setAdapter(new MonthAdapter(this, selectedDate, selectedDate));
 		else

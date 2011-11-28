@@ -9,7 +9,7 @@
 		xmlns:android="http://schemas.android.com/apk/res/android"
 		android:layout_width="fill_parent"
 		android:layout_height="fill_parent"
-		android:layout_weight="55"
+		android:layout_weight="50"
 		android:maxHeight="350dp"
 		android:minHeight="250dp" >
 		<com.morphoss.acal.widget.AcalViewFlipper
@@ -21,7 +21,7 @@
 		xmlns:android="http://schemas.android.com/apk/res/android"
 		android:layout_width="fill_parent"
 		android:layout_height="fill_parent"
-		android:layout_weight="45"
+		android:layout_weight="50"
 		android:minHeight="250dp" >
 		<com.morphoss.acal.widget.AcalViewFlipper
 			android:id="@+id/month_list_flipper"

@@ -129,9 +129,9 @@ public class MonthAdapter extends BaseAdapter {
 		if ( parent != null ) {
 			gridHeight = parent.getHeight();
 			int boxWidth = (parent.getWidth() / 7) - 1;
-			boxHeight = (gridHeight / 7) - 1;
-			headerHeight = boxHeight - 1;
-			gridHeight = (boxHeight + 1) * 7;
+			boxHeight = (gridHeight / 7) + 1;
+			headerHeight = boxHeight - 7;
+			gridHeight = (boxHeight * 6) + headerHeight + 1;
 			if ( boxWidth > (boxHeight * 1.3) ) boxScaleFactor = 1.2f;
 			else if ( boxWidth < (boxHeight * 0.9) )  boxScaleFactor = 0.9f;
 		}
@@ -162,6 +162,7 @@ public class MonthAdapter extends BaseAdapter {
 			if ( vp instanceof View ) {
 				((View) vp).setBackgroundColor(AcalTheme.getElementColour(AcalTheme.BUTTON));
 				dayColumnHeader.setBackgroundDrawable(context.getResources().getDrawable(R.drawable.dayheadings_fg));
+				dayColumnHeader.setTextColor(AcalTheme.pickForegroundForBackground(AcalTheme.getElementColour(AcalTheme.BUTTON)));
 			}
 			
 			if ( headerHeight != 0 ) dayColumnHeader.setHeight(headerHeight - dayColumnHeader.getCompoundPaddingBottom());

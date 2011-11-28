@@ -5,11 +5,11 @@
 	android:background="#00000000" >
 	<TextView
 		android:id="@+id/month_list_title"
+		style="@style/MonthTitleBar"
 		android:layout_width="fill_parent"
-		android:layout_height="wrap_content"
+		android:layout_height="24sp"
 		android:background="@drawable/titlebg"
 		android:gravity="center"
-		android:textColor="#F0F0F0"
 		android:tileMode="repeat" />
 	<ListView
 		android:id="@+id/month_default_list"
