@@ -359,65 +359,61 @@ public class SyncCollectionContents extends ServiceJob {
  */
 				return doRegularSyncPropfind();
 			}
+			responses = root.getNodesFromPath("multistatus/sync-token");
+			if ( responses.isEmpty() ) {
+				Log.i("aCal","No sync-token in sync-report response. Falling back to PROPFIND.");
+				return doRegularSyncPropfind();
+			}
+
 		}
+		else {
 
-		for (DavNode response : responses) {
-			String responseHref = response.segmentFromFirstHref("href");
-			if (Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents )
-				Log.println(Constants.LOGV,TAG, "Processing response for "+responseHref);
-			WriteActions action = WriteActions.UPDATE;
-
-			ContentValues cv = DavResources.getResourceInCollection( collectionId, responseHref, cr);
-			if ( cv == null ) {
-				cv = new ContentValues();
-				cv.put(DavResources.COLLECTION_ID, collectionId);
-				cv.put(DavResources.RESOURCE_NAME, responseHref);
-				cv.put(DavResources.NEEDS_SYNC, 1 );
-				action = WriteActions.INSERT;
-			}
-			String oldEtag = cv.getAsString(DavResources.ETAG);
-			
-			List<DavNode> aNode = response.getNodesFromPath("status");
-			if ( aNode.isEmpty()
-						|| aNode.get(0).getText().equalsIgnoreCase("HTTP/1.1 201 Created")
-						|| aNode.get(0).getText().equalsIgnoreCase("HTTP/1.1 200 OK") ) {
-
-				if ( Constants.LOG_DEBUG )
-					Log.println(Constants.LOGD,TAG,"Updating node "+responseHref+" with "+action.toString() );
-				// We are dealing with an update or insert
-				if ( !parseResponseNode(response, cv) ) continue;
-				if ( cv.getAsInteger(DavResources.NEEDS_SYNC) == 1 ) needSyncAfterwards = true; 
-
-				if ( oldEtag != null && cv.getAsString(DavResources.ETAG) != null ) {
-					if ( oldEtag.equals(cv.getAsString(DavResources.ETAG)) ) {
-						// Resource in both places, but is unchanged.
-						if ( Constants.LOG_DEBUG )
-							Log.println(Constants.LOGD,TAG,"Notified of change to resource but etag already matches!");
-						root.removeSubTree(response);
-						continue;
-					}
-					if ( Constants.LOG_DEBUG )
-						Log.println(Constants.LOGD,TAG,"Old etag="+oldEtag+", new etag="+cv.getAsString(DavResources.ETAG));
+			for (DavNode response : responses) {
+				String responseHref = response.segmentFromFirstHref("href");
+				if (Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents )
+					Log.println(Constants.LOGV,TAG, "Processing response for "+responseHref);
+				WriteActions action = WriteActions.UPDATE;
+	
+				ContentValues cv = DavResources.getResourceInCollection( collectionId, responseHref, cr);
+				if ( cv == null ) {
+					cv = new ContentValues();
+					cv.put(DavResources.COLLECTION_ID, collectionId);
+					cv.put(DavResources.RESOURCE_NAME, responseHref);
+					cv.put(DavResources.NEEDS_SYNC, 1 );
+					action = WriteActions.INSERT;
 				}
+				
+				List<DavNode> aNode = response.getNodesFromPath("status");
+				if ( aNode.isEmpty()
+							|| aNode.get(0).getText().equalsIgnoreCase("HTTP/1.1 201 Created")
+							|| aNode.get(0).getText().equalsIgnoreCase("HTTP/1.1 200 OK") ) {
+	
+					if ( Constants.LOG_DEBUG )
+						Log.println(Constants.LOGD,TAG,"Updating node "+responseHref+" with "+action.toString() );
+					// We are dealing with an update or insert
+					if ( !parseResponseNode(response, cv) ) continue;
+					if ( cv.getAsInteger(DavResources.NEEDS_SYNC) == 1 ) needSyncAfterwards = true; 
+	
+				}
+				else if ( action == WriteActions.INSERT ) {
+					// It looked like an INSERT because it's not in our DB, but in fact
+					// the status message was not 200/201 so it's a DELETE that we're
+					// seeing reflected back at us.
+					Log.i(TAG,"Ignoring delete sync on node '"+responseHref+"' which is already deleted from our DB." );
+				}
+				else {
+					// This really *is* a DELETE, since the status could only
+					// have said so.  Or we're getting invalid status messages
+					// and their events all deserve to die anyway!
+					if ( Constants.LOG_DEBUG )
+						Log.println(Constants.LOGD,TAG,"Deleting node '"+responseHref+"'with status: "+aNode.get(0).getText() );
+					action = WriteActions.DELETE;
+				}
+				root.removeSubTree(response);
+	
+				changeList.add( new ResourceModification(action, cv, null) );
+				
 			}
-			else if ( action == WriteActions.INSERT ) {
-				// It looked like an INSERT because it's not in our DB, but in fact
-				// the status message was not 200/201 so it's a DELETE that we're
-				// seeing reflected back at us.
-				Log.i(TAG,"Ignoring delete sync on node '"+responseHref+"' which is already deleted from our DB." );
-			}
-			else {
-				// This really *is* a DELETE, since the status could only
-				// have said so.  Or we're getting invalid status messages
-				// and their events all deserve to die anyway!
-				if ( Constants.LOG_DEBUG )
-					Log.println(Constants.LOGD,TAG,"Deleting node '"+responseHref+"'with status: "+aNode.get(0).getText() );
-				action = WriteActions.DELETE;
-			}
-			root.removeSubTree(response);
-
-			changeList.add( new ResourceModification(action, cv, null) );
-			
 		}
 
 		// Pull the syncToken we will update with.
@@ -489,9 +485,9 @@ public class SyncCollectionContents extends ServiceJob {
 				}
 				
 				if ( !parseResponseNode(response, cv) ) continue;
+				if ( cv.getAsInteger(DavResources.NEEDS_SYNC) == 1 ) needSyncAfterwards = true; 
 
 				needSyncAfterwards = true; 
-				cv.put(DavResources.NEEDS_SYNC, 1);
 
 				changeList.add( new ResourceModification(action, cv, null) );
 			}
@@ -795,15 +791,15 @@ public class SyncCollectionContents extends ServiceJob {
 				if ( etag != null ) {
 					String oldEtag = cv.getAsString(DavResources.ETAG);
 					
-					if ( etag.equals(oldEtag) && cv.get(DavResources.RESOURCE_DATA) != null ) {
+					if ( etag.equals(oldEtag) ) {
 						cv.put(DavResources.NEEDS_SYNC, 0);
 						if ( Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents ) Log.println(Constants.LOGD,TAG,
-								"Found etag '"+etag+"' in response.  Old etags was '"+oldEtag+"'.  No sync needed.");
+								"Found etag "+etag+" in response.  Old etag was "+oldEtag+".  No sync needed.");
 						return true;
 					}
 					else {
 						if ( Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents ) Log.println(Constants.LOGD,TAG,
-								"Found etag '"+etag+"' in response.  Old etags was '"+oldEtag+"'.  Sync may be needed.");
+								"Found etag "+etag+" in response.  Old etags was "+oldEtag+".  Sync will be needed.");
 						cv.put(DavResources.NEEDS_SYNC, 1);
 					}
 				}
