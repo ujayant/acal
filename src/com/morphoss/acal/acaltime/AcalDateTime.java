@@ -363,6 +363,7 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 		}
 		if ( tzIdParam.equals("UTC") ) return tzIdParam;
 		if ( tzIdParam.equals("Etc/UTC") ) return "UTC";
+		if ( tzIdParam.equals("Etc/GMT") ) return "UTC";
 		if ( Pattern.matches("^[0-9]+$", tzIdParam) ) {
 			switch( Integer.parseInt(tzIdParam) ) {
 				case 0:    return("UTC");
