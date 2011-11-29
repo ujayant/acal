@@ -118,11 +118,11 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 	/* Fields relating to the Month View: */
 
 	/** The flipper for the month view */
-	private AcalViewFlipper gridViewFlipper;
+	private AcalViewFlipper monthGridFlipper;
 	/** The root view containing the GridView Object for the Month View */
-	private View gridRoot;
+	private View monthGridRoot;
 	/** The GridView object that displays the month */
-	private GridView gridView = null;
+	private GridView monthGrid = null;
 	/** The TextView that displays which month we are looking at */
 	private TextView monthTitle;
 
@@ -130,8 +130,8 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 
 	/** The flipper for the Event View */
 	private AcalViewFlipper listViewFlipper;
-	/** The root view containing the GridView Object for the Event View */
-	private View listRoot;
+	/** The root view containing the ListView Object for the Event View */
+	private View eventListRoot;
 	/** The ListView object that displays the Event View */
 	private ListView eventList = null;
 	/** The TextView that displays which day we are looking at */
@@ -238,7 +238,7 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 
 	
 	private synchronized void serviceIsConnected() {
-		if ( this.gridView == null ) createGridView(true);
+		if ( this.monthGrid == null ) createGridView(true);
 		changeSelectedDate(selectedDate);
 		changeDisplayedMonth(displayedMonth);
 	}
@@ -372,20 +372,20 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 					.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
 			// Get grid flipper and add month grid
-			gridViewFlipper = (AcalViewFlipper) findViewById(R.id.month_grid_flipper);
-			gridViewFlipper.setAnimationCacheEnabled(true);
+			monthGridFlipper = (AcalViewFlipper) findViewById(R.id.month_grid_flipper);
+			monthGridFlipper.setAnimationCacheEnabled(true);
 
 			// Add parent if directed to do so
-			gridRoot = inflater.inflate(R.layout.month_grid_view, (addParent?gridViewFlipper:null));
+			monthGridRoot = inflater.inflate(R.layout.month_grid_view, (addParent?monthGridFlipper:null));
 
 			// Title
-			monthTitle = (TextView) gridRoot
+			monthTitle = (TextView) monthGridRoot
 					.findViewById(R.id.month_grid_title);
 			// Grid
-			gridView = (GridView) gridRoot
+			monthGrid = (GridView) monthGridRoot
 					.findViewById(R.id.month_default_gridview);
-			gridView.setSelector(R.drawable.no_border);
-			gridView.setOnTouchListener(this);
+			monthGrid.setSelector(R.drawable.no_border);
+			monthGrid.setOnTouchListener(this);
 		} catch (Exception e) {
 			Log.e(TAG, "Error occured creating gridview: " + e.getMessage());
 		}
@@ -414,16 +414,16 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 
 			// Add parent if directed to do so
 			if (addParent)
-				listRoot = inflater.inflate(R.layout.month_list_view,
+				eventListRoot = inflater.inflate(R.layout.month_list_view,
 						listViewFlipper);
 			else
-				listRoot = inflater.inflate(R.layout.month_list_view, null);
+				eventListRoot = inflater.inflate(R.layout.month_list_view, null);
 
 			// Title
-			eventListTitle = (TextView) listRoot.findViewById(R.id.month_list_title);
+			eventListTitle = (TextView) eventListRoot.findViewById(R.id.month_list_title);
 
 			// List
-			eventList = (ListView) listRoot.findViewById(R.id.month_default_list);
+			eventList = (ListView) eventListRoot.findViewById(R.id.month_default_list);
 			eventList.setSelector(R.drawable.no_border);
 			eventList.setOnTouchListener(this);
 
@@ -446,7 +446,7 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 	 */
 	private void flipMonth(int flipAmount) {
 		try {
-			int cur = gridViewFlipper.getDisplayedChild();
+			int cur = monthGridFlipper.getDisplayedChild();
 			createGridView(false); // We will attach the parent ourselves.
 			AcalDateTime newDate = (AcalDateTime) displayedMonth.clone();
 
@@ -471,12 +471,12 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 
 			// Set the new views parent. We need to ensure that the view does
 			// not already have one.
-			if (gridView.getParent() == gridViewFlipper)
-				gridViewFlipper.removeView(gridView);
-			gridViewFlipper.addView(gridRoot, cur + 1);
+			if (monthGrid.getParent() == monthGridFlipper)
+				monthGridFlipper.removeView(monthGrid);
+			monthGridFlipper.addView(monthGridRoot, cur + 1);
 
 			// Make sure View responds to gestures
-			gridView.setFocusableInTouchMode(true);
+			monthGrid.setFocusableInTouchMode(true);
 		} catch (Exception e) {
 			Log.e(TAG, "Error occured in flipMonth: " + e.getMessage());
 		}
@@ -497,9 +497,9 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 	 */
 	private void flipDay() {
 		try {
-			int cur = gridViewFlipper.getDisplayedChild();
+			int cur = listViewFlipper.getDisplayedChild();
 			createListView(false);
-			listViewFlipper.addView(listRoot, cur + 1);
+			listViewFlipper.addView(eventListRoot, cur + 1);
 		} catch (Exception e) {
 			Log.e(TAG, "Error occured in flipDay: " + e.getMessage());
 		}
@@ -563,19 +563,19 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 	private boolean swipe(Object objectTouched, boolean left) {
 		if (objectTouched == null)
 			return false;
-		else if (objectTouched == gridView) {
+		else if (objectTouched == monthGrid) {
 			if (left) {
-				gridViewFlipper.setInAnimation(leftIn);
-				gridViewFlipper.setOutAnimation(leftOut);
+				monthGridFlipper.setInAnimation(leftIn);
+				monthGridFlipper.setOutAnimation(leftOut);
 				flipMonth(1);
 			} else {
-				gridViewFlipper.setInAnimation(rightIn);
-				gridViewFlipper.setOutAnimation(rightOut);
+				monthGridFlipper.setInAnimation(rightIn);
+				monthGridFlipper.setOutAnimation(rightOut);
 				flipMonth(-1);
 			}
-			int cur = gridViewFlipper.getDisplayedChild();
-			gridViewFlipper.showNext();
-			gridViewFlipper.removeViewAt(cur);
+			int cur = monthGridFlipper.getDisplayedChild();
+			monthGridFlipper.showNext();
+			monthGridFlipper.removeViewAt(cur);
 			return true;
 
 		} else if (objectTouched == eventList) {
@@ -607,7 +607,7 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 			if ((curMonth == dispMonth)
 					&& (curMonth != selectedDate.get(AcalDateTime.MONTH))) {
 				// Flip month as well
-				swipe(gridView, left);
+				swipe(monthGrid, left);
 			}
 			return true;
 		}
@@ -642,12 +642,12 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 			return this.eventList;
 
 		int[] gvc = new int[2];
-		this.gridView.getLocationOnScreen(gvc);
-		int gvh = this.gridView.getHeight();
-		int gvw = this.gridView.getWidth();
+		this.monthGrid.getLocationOnScreen(gvc);
+		int gvh = this.monthGrid.getHeight();
+		int gvw = this.monthGrid.getWidth();
 		if ((x >= gvc[0]) && (x <= gvc[0] + gvw) && (y >= gvc[1])
 				&& (y <= gvc[1] + gvh))
-			return this.gridView;
+			return this.monthGrid;
 
 		return null;
 	}
@@ -665,9 +665,9 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 	public void changeDisplayedMonth(AcalDateTime calendar) {
 		displayedMonth = calendar.applyLocalTimeZone();
 		monthTitle.setText(AcalDateTime.fmtMonthYear(calendar));
-		gridView.setScrollBarStyle(GridView.SCROLLBARS_INSIDE_OVERLAY);
-		gridView.setStretchMode(GridView.STRETCH_COLUMN_WIDTH);
-		gridView.setPadding(2, 0, 2, 0);
+		monthGrid.setScrollBarStyle(GridView.SCROLLBARS_INSIDE_OVERLAY);
+		monthGrid.setStretchMode(GridView.STRETCH_COLUMN_WIDTH);
+		monthGrid.setPadding(2, 0, 2, 0);
 
 		/*
 		ViewParent vp = gridView.getParent();
@@ -681,10 +681,10 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 		*/
 		
 		if (AcalDateTime.isWithinMonth(selectedDate, displayedMonth))
-			gridView.setAdapter(new MonthAdapter(this, selectedDate, selectedDate));
+			monthGrid.setAdapter(new MonthAdapter(this, selectedDate, selectedDate));
 		else
-			gridView.setAdapter(new MonthAdapter(this, displayedMonth, selectedDate));
-		gridView.refreshDrawableState();
+			monthGrid.setAdapter(new MonthAdapter(this, displayedMonth, selectedDate));
+		monthGrid.refreshDrawableState();
 	}
 
 	
@@ -714,14 +714,14 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 		eventListTitle.setText(AcalDateTime.fmtDayMonthYear(c));
 
 		if (AcalDateTime.isWithinMonth(selectedDate, displayedMonth)) {
-			this.gridView.setAdapter(new MonthAdapter(this, displayedMonth.clone(), selectedDate.clone()));
-			this.gridView.refreshDrawableState();
+			this.monthGrid.setAdapter(new MonthAdapter(this, displayedMonth.clone(), selectedDate.clone()));
+			this.monthGrid.refreshDrawableState();
 		} else {
-			MonthAdapter ma = ((MonthAdapter) this.gridView.getAdapter());
+			MonthAdapter ma = ((MonthAdapter) this.monthGrid.getAdapter());
 			if ( ma == null )
 				ma = new MonthAdapter(this, displayedMonth.clone(), selectedDate.clone());
 			ma.updateSelectedDay(selectedDate);
-			this.gridView.refreshDrawableState();
+			this.monthGrid.refreshDrawableState();
 		}
 	}
 
@@ -909,12 +909,12 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 			if (Constants.debugMonthView && Constants.LOG_DEBUG)Log.d(TAG, "Valid onScroll detected.");
 
 			// If we are here, we have a valid scroll event to process
-			if (gridView != null && scrolledOn == gridView) {
+			if (monthGrid != null && scrolledOn == monthGrid) {
 				if (isHorizontal) {
 					if (distX > 0)
-						swipe(gridView, false);
+						swipe(monthGrid, false);
 					else
-						swipe(gridView, true);
+						swipe(monthGrid, true);
 					consumedX = startX;
 					consumedY = startY;
 					return true;
@@ -990,7 +990,7 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 				AcalDateTime cal = new AcalDateTime();
 
 				if (cal.getEpochDay() == this.selectedDate.getEpochDay()) {
-					this.gridViewFlipper.setAnimation(AnimationUtils.loadAnimation(this, R.anim.shake));
+					this.monthGridFlipper.setAnimation(AnimationUtils.loadAnimation(this, R.anim.shake));
 					this.listViewFlipper.setAnimation(AnimationUtils.loadAnimation(this, R.anim.shake));
 				}
 				this.changeSelectedDate(cal);
