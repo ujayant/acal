@@ -23,6 +23,7 @@ import java.util.HashMap;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.preference.PreferenceManager;
@@ -50,11 +51,16 @@ public class MonthImageGenerator {
 	private int headerHeight;
 	private int dayHeaderHeight;
 	
+	private Bitmap titleBg = null;
+	private Bitmap monthHeaderBg = null;
+	
 	public MonthImageGenerator(int monthWidth, int height, int screenWidth, Context context) {
 		this.width = monthWidth;
 		this.height = height;
 		this.screenWidth = screenWidth;
 		this.context = context;
+		titleBg = BitmapFactory.decodeResource(context.getResources(), R.drawable.titlebg);
+		monthHeaderBg = BitmapFactory.decodeResource(context.getResources(), R.drawable.monthdayheadingsbg);
 		this.getFirstDay(context);
 	}
 	
@@ -91,7 +97,7 @@ public class MonthImageGenerator {
 		title.setText(year+"");
 		title.measure(MeasureSpec.makeMeasureSpec(this.screenWidth, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(this.height, MeasureSpec.UNSPECIFIED));
 		title.layout(0, 0, screenWidth, title.getMeasuredHeight());
-		Bitmap returnedBitmap = Bitmap.createBitmap(screenWidth, title.getMeasuredHeight(),Bitmap.Config.ARGB_8888);
+		Bitmap returnedBitmap = Bitmap.createScaledBitmap(titleBg, screenWidth, title.getMeasuredHeight(), false);
 		Canvas tempCanvas = new Canvas(returnedBitmap);
 		title.draw(tempCanvas);
 		this.yearHeaders.put(year, returnedBitmap);
@@ -104,7 +110,7 @@ public class MonthImageGenerator {
 		title.setText(month.getMonthName());
 		title.measure(MeasureSpec.makeMeasureSpec(this.width, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(this.height, MeasureSpec.UNSPECIFIED));
 		title.layout(0, 0, width, title.getMeasuredHeight());
-		Bitmap returnedBitmap = Bitmap.createBitmap(width, title.getMeasuredHeight(),Bitmap.Config.ARGB_8888);
+		Bitmap returnedBitmap = Bitmap.createScaledBitmap(titleBg, width, title.getMeasuredHeight(), false);
 		Canvas tempCanvas = new Canvas(returnedBitmap);
 		title.draw(tempCanvas);
 		this.headerHeight = title.getMeasuredHeight();
@@ -138,7 +144,7 @@ public class MonthImageGenerator {
 		for (int i =0; i<7; i++) {
 			headerViews[i].measure(MeasureSpec.makeMeasureSpec((this.width/7), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(this.height, MeasureSpec.UNSPECIFIED));
 			headerViews[i].layout(0, 0, width/7, headerViews[i].getMeasuredHeight());
-			headerBMP[i] = Bitmap.createBitmap(width, headerViews[i].getMeasuredHeight(),Bitmap.Config.ARGB_8888);
+			headerBMP[i] = Bitmap.createScaledBitmap(monthHeaderBg, screenWidth, headerViews[i].getMeasuredHeight(), false);
 			Canvas tempCanvas = new Canvas(headerBMP[i]);
 			headerViews[i].draw(tempCanvas);
 		}
