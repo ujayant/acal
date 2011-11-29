@@ -18,11 +18,11 @@
 
 package com.morphoss.acal.activity;
 
+import java.util.ArrayList;
+
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
@@ -68,8 +68,10 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 	public static final int CONTEXT_DELETE_JUSTTHIS = 0x20000;
 	public static final int CONTEXT_DELETE_FROMNOW = 0x30000;
 	public static final int CONTEXT_COPY = 0x40000;
+
+	private ArrayList<SimpleAcalEvent> dayEvents = null;
 	
-	private SharedPreferences prefs;	
+//	private SharedPreferences prefs;	
 
 	/**
 	 * <p>Create a new adaptor with the attributes provided. The date range provided specifies the date range that all
@@ -83,8 +85,7 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 		viewDate.setDaySecond(0);
 		viewDateEnd = AcalDateTime.addDays(viewDate, 1);
 
-		// Get preferences
-		prefs = PreferenceManager.getDefaultSharedPreferences(this.context);
+		dayEvents = context.getEventsForDay(viewDate);
 	}
 
 	/**
@@ -95,7 +96,7 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 	 */
 	@Override
 	public int getCount() {
-		return context.getNumberEventsForDay(viewDate);
+		return dayEvents.size();
 	}
 
 	/**
@@ -106,7 +107,7 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 	 */
 	@Override
 	public Object getItem(int position) {
-		return context.getNthEventForDay(viewDate, position);
+		return dayEvents.get(position);
 	}
 
 	/**
@@ -141,7 +142,7 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 		
 		LinearLayout sideBar = (LinearLayout) rowLayout.findViewById(R.id.EventListItemColorBar);
 
-		SimpleAcalEvent event = context.getNthEventForDay(viewDate, position);
+		SimpleAcalEvent event = dayEvents.get(position);
 		if ( event == null ) return rowLayout;
 		
 		final boolean isPending = event.isPending;
@@ -168,7 +169,7 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 		}
 		
 		time.setText(event.getTimeText(context, viewDate.getEpoch(), viewDateEnd.getEpoch(),
-					prefs.getBoolean(context.getString(R.string.prefTwelveTwentyfour), false))
+					MonthView.prefs.getBoolean(context.getString(R.string.prefTwelveTwentyfour), false))
 					+ (isPending ? " (saving)" : "") );
 
 		if (event.location != null && event.location.length() > 0 )
