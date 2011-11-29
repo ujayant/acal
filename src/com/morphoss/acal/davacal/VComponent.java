@@ -74,8 +74,7 @@ public abstract class VComponent implements Parcelable {
 	// match the case choices since that is faster than using a case insensitive match
 	private static final Pattern myBegin = Pattern.compile("[Bb][Ee][Gg][Ii][Nn]:([A-Za-z]+)\\r?",
 				Pattern.MULTILINE  | Pattern.UNIX_LINES); 
-	private static final Pattern myEnd = Pattern.compile("[Ee][Nn][Dd]:([A-Za-z]+)\\r?",
-				Pattern.MULTILINE | Pattern.UNIX_LINES);
+	private static final Pattern myEnd = Pattern.compile("[Ee][Nn][Dd]:([A-Za-z]+)\\r?(\\n|$)");
 
 	
 	// These members MUST remain private - if you must access them elsewhere create appropriate
@@ -199,10 +198,9 @@ public abstract class VComponent implements Parcelable {
 		this.populateChildren();
 		if ( persistenceCount == 0 ) {
 			List<VComponent> ret = Collections.unmodifiableList(this.children);
-			if (this.persistenceCount == 0) this.destroyChildren();
+			destroyChildren();
 			return ret;
 		}
-		persistenceCount++;
 		return children;
 	}
 
@@ -368,7 +366,7 @@ public abstract class VComponent implements Parcelable {
 	/****************************************
 	 * 			Protected Methods			*
 	 ****************************************/
-	protected synchronized boolean isPersistenceOn() {
+	public synchronized boolean isPersistenceOn() {
 		return this.persistenceCount > 0;
 	}
 	
@@ -380,27 +378,34 @@ public abstract class VComponent implements Parcelable {
 			this.populateChildren();
 			contentString.append(name);
 			contentString.append(Constants.CRLF);
-			for( String p : properties.keySet() ) {
+			for (String p : properties.keySet()) {
 				contentString.append(properties.get(p).toRfcString());
 				contentString.append(Constants.CRLF);
 			}
-			for( VComponent child : children ) {
-				contentString.append(child.buildContent());
+			StringBuilder timezonesString = new StringBuilder();
+			StringBuilder componentsString = new StringBuilder();
+			for (VComponent child : children) {
+				if ( child instanceof VTimezone ) timezonesString.append(child.buildContent());
+				else
+					componentsString.append(child.buildContent());
 			}
+			contentString.append(timezonesString);
+			contentString.append(componentsString);
 			contentString.append("END:");
 			contentString.append(name);
 			contentString.append(Constants.CRLF);
 			this.setPersistentOff();
-		} catch (Exception e) {
-			Log.e(TAG,"ContentBuilder threw error when creating blob: "+e);
+		}
+		catch ( Exception e ) {
+			Log.e(TAG, "ContentBuilder threw error when creating blob: " + e);
 			Log.e(TAG, Log.getStackTraceString(e));
 			return "";
 		}
-			if (!this.isPersistenceOn()) {
-				this.destroyChildren();
-				this.destroyProperties();
+		if ( !this.isPersistenceOn() ) {
+			this.destroyChildren();
+			this.destroyProperties();
 		}
-		return contentString.toString(); 
+		return contentString.toString();
 	}
 
 	
@@ -533,43 +538,57 @@ public abstract class VComponent implements Parcelable {
 		
 		ComponentParts( final String blob ) {
 			this.componentString = blob;
+//			Log.w(TAG,"vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv");
+//			Log.w(TAG,"Parsing a component:\n"+blob.replace("\r", "\\r"));
 			Matcher begin = myBegin.matcher(blob);
 			Matcher end = myEnd.matcher(blob);
 			partInfo = new ArrayList<PartInfo>();
 			int pos = 0;
-			int endPos = 0;
 			int thisFound = 0;
 			int loopLimiter = 0;
-			String props = "";
+			StringBuilder props = new StringBuilder();
 			String componentName = "";
-			if( begin.find(pos) ) {
+			if( begin.find(0) ) {
 				thisComponent = begin.group(1);
 				pos = begin.end()+1;
-				endPos = pos;
-				if( !begin.find(pos) && end.find(pos) ) {
-					int endpos = end.start() - 1;
-					if ( endpos > pos ) props += blob.substring(pos, endpos);
+				if( !begin.find(pos) ) {
+//					Log.w(TAG,"No more begins, looking for end of "+thisComponent+" component.");
+					if ( end.find(pos) ) {
+						// If we couldn't find another BEGIN, but we can find our END then we're done.
+						int thisComponentEndPos = end.start();
+						if ( thisComponentEndPos > pos ) {
+//							Log.w(TAG,"Appending early property lines:\n"+blob.substring(pos, thisComponentEndPos).replace("\r", "\\r"));
+							props.append(blob.substring(pos, thisComponentEndPos));
+						}
+					}
+//					else {
+//						Log.w(TAG,"No END:"+thisComponent+" either!");
+//					}
 				}
 			}
 			else {
 				thisComponent = "";
 			}
-			while( begin.find(pos) && loopLimiter++ < 10000 ) {
+			int endPos;
+			while( begin.find(pos) && loopLimiter++ < 1000 ) {
 				thisFound = begin.start();
 				if ( thisFound > pos ) {
-					props += blob.substring(pos, thisFound - 1);
+					// Append any properties between the last place we were up to this BEGIN
+					props.append(blob.substring(pos, thisFound));
+//					Log.w(TAG,"Appending some property lines:\n"+blob.substring(pos, thisFound).replace("\r", "\\r"));
 					pos = thisFound;
 				}
 				componentName = begin.group(1);
+//				Log.w(TAG,"Looking for end of "+componentName+" component.");
 				endPos = pos;
-				while( end.find(endPos) && loopLimiter++ < 10000 ) {
+				while( end.find(endPos) && loopLimiter++ < 1000 ) {
+					endPos = end.end();
+//					Log.w(TAG,"Found END:"+end.group(1)+" which does "+(end.group(1).equals(componentName)?"":"not ")+"equal "+componentName);
 					if ( end.group(1).equals(componentName) ) {
-						PartInfo info = new PartInfo(componentName, pos, end.end()); 
-						partInfo.add( info );
-						pos = end.end()+1;
+						partInfo.add( new PartInfo(componentName, pos, endPos) );
+						pos = endPos;
 						break;
 					}
-					endPos = end.end()+1;
 				}
 			}
 			if ( props.length() > 0 ) {
@@ -577,6 +596,15 @@ public abstract class VComponent implements Parcelable {
 			}
 			else
 				propertyLines = new String[0];
+			
+//			for( String line : propertyLines ) {
+//				Log.w(TAG,thisComponent+">>>"+line.replace("\r", "\\r"));
+//			}
+//			Log.w(TAG,"-----------------------------------");
+//			for( PartInfo p : partInfo ) {
+//				Log.w(TAG,thisComponent+"+++"+p.type);
+//			}
+//			Log.w(TAG,"^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
 		}
 	}
 	
