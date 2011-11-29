@@ -62,6 +62,8 @@ public class AcalRequestor {
 
 	final private static String TAG = "AcalRequestor";
 
+	private static final int	LONG_LINE_WRAP_FOR_DEBUG	= 500;
+
 	private boolean initialised = false;
 	
 	// Basic URI components
@@ -634,8 +636,8 @@ public class AcalRequestor {
 						if ( line.length() == entityString.toString().length() ) {
 							int end;
 							int length = line.length();
-							for( int pos=0; pos < length; pos += 120 ) {
-								end = pos+120;
+							for( int pos=0; pos < length; pos += LONG_LINE_WRAP_FOR_DEBUG ) {
+								end = pos+LONG_LINE_WRAP_FOR_DEBUG;
 								if ( end > length ) end = length;
 								Log.println(Constants.LOGV,TAG, "R>  " + line.substring(pos, end) );
 							}
@@ -688,17 +690,12 @@ public class AcalRequestor {
 						while ((line = r.readLine()) != null) {
 						    total.append(line);
 						    total.append("\n");
-							if ( line.length() > 180 ) {
-								int end;
-								int length = line.length();
-								for( int pos=0; pos < length; pos += 120 ) {
-									end = pos+120;
-									if ( end > length ) end = length;
-									Log.println(Constants.LOGV,TAG, "R<  " + line.substring(pos, end) );
-								}
-							}
-							else {
-								Log.println(Constants.LOGV,TAG, "R<  " + line.replaceAll("\r$", "") );
+							int end;
+							int length = line.length();
+							for( int pos=0; pos < length; pos += LONG_LINE_WRAP_FOR_DEBUG ) {
+								end = pos+LONG_LINE_WRAP_FOR_DEBUG;
+								if ( end > length ) end = length;
+								Log.println(Constants.LOGV,TAG, "R<  " + line.substring(pos, end).replaceAll("\r", "\\r") );
 							}
 						}
 						Log.println(Constants.LOGV,TAG, "----------------------- ^^^ Response Body ^^^ -----------------------" );
@@ -856,7 +853,25 @@ public class AcalRequestor {
 		DavNode root = null;
 		try {
 			InputStream responseStream = doRequest(method, requestPath, headers, xml);
-			if ( statusCode == 404 ) return root;
+			if ( responseHeaders == null ) {
+				responseStream.close();
+				return root;
+			}
+			for( Header h : responseHeaders ) {
+				if ( "Content-Type".equals(h.getName()) ) {
+					for( HeaderElement he : h.getElements() ) {
+						if ( "text/plain".equals(he.getName()) || "text/html".equals(he.getName()) ) {
+							Log.println(Constants.LOGI, TAG, "Response is not an XML document");
+							responseStream.close();
+							return root;
+						}
+					}
+				}
+			}
+			if ( statusCode == 404 ) {
+				responseStream.close();
+				return root;
+			}
 			root = DavParserFactory.buildTreeFromXml(Constants.XMLParseMethod, responseStream );
 		}
 		catch (Exception e) {
