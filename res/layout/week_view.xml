@@ -45,8 +45,7 @@
 			android:layout_width="fill_parent"
 			android:layout_height="fill_parent"
 			android:layout_weight="1" />
-	</LinearLayout>
-	<LinearLayout
+	</LinearLayout><LinearLayout
 		android:id="@+id/button_layout"
 		android:layout_width="fill_parent"
 		android:layout_height="36sp"
@@ -70,26 +69,6 @@
 					android:layout_height="wrap_content"
 					android:gravity="center"
 					android:text="@string/Today" />
-			</LinearLayout>
-		</LinearLayout>
-		<LinearLayout
-			android:layout_width="fill_parent"
-			android:layout_height="fill_parent"
-			android:layout_weight="1"
-			android:gravity="center"
-			android:paddingLeft="1sp"
-			android:paddingRight="1sp" >
-			<LinearLayout
-				android:layout_width="fill_parent"
-				android:layout_height="wrap_content"
-				android:background="@color/themed_button_colour" >
-				<Button
-					android:id="@+id/week_year_button"
-					style="@style/themed_bottom_button"
-					android:layout_width="fill_parent"
-					android:layout_height="wrap_content"
-					android:gravity="center"
-					android:text="@string/Year" />
 			</LinearLayout>
 		</LinearLayout>
 		<LinearLayout
