@@ -19,7 +19,6 @@
 package com.morphoss.acal.activity;
 
 import java.util.HashMap;
-import java.util.TimeZone;
 
 import android.content.ContentUris;
 import android.content.ContentValues;
@@ -29,7 +28,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
-import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceChangeListener;
 import android.preference.PreferenceActivity;
@@ -136,7 +134,7 @@ public class CollectionConfiguration extends PreferenceActivity implements OnPre
 				collectionData.containsKey(DavCollections.HOLDS_TASKS) &&
 				collectionData.containsKey(DavCollections.COLLECTION_PATH) &&
 				collectionData.containsKey(DavCollections.COLOUR) &&
-				collectionData.containsKey(DavCollections.DEFAULT_TIMEZONE) &&
+//				collectionData.containsKey(DavCollections.DEFAULT_TIMEZONE) &&
 				collectionData.containsKey(DavCollections.MAX_SYNC_AGE_3G) &&
 				collectionData.containsKey(DavCollections.MAX_SYNC_AGE_WIFI) &&
 				collectionData.containsKey(DavCollections.USE_ALARMS)) {
@@ -156,7 +154,7 @@ public class CollectionConfiguration extends PreferenceActivity implements OnPre
 		defaultSummaries.put(DavCollections.ACTIVE_JOURNAL, getString(R.string.Active_for_journal));
 		defaultSummaries.put(DavCollections.ACTIVE_TASKS, getString(R.string.Active_for_tasks));
 		defaultSummaries.put(DavCollections.COLOUR, getString(R.string.The_colour_associated_with_this_collection));
-		defaultSummaries.put(DavCollections.DEFAULT_TIMEZONE, getString(R.string.The_timezone_new_events_default_to));
+//		defaultSummaries.put(DavCollections.DEFAULT_TIMEZONE, getString(R.string.The_timezone_new_events_default_to));
 		defaultSummaries.put(DavCollections.MAX_SYNC_AGE_3G, getString(R.string.The_maximum_age_for_data_while_on_3g));
 		defaultSummaries.put(DavCollections.MAX_SYNC_AGE_WIFI, getString(R.string.The_maximum_age_for_data_while_on_wifi));
 		defaultSummaries.put(DavCollections.USE_ALARMS, getString(R.string.Use_alarms_from_this_calendar));
@@ -338,14 +336,12 @@ public class CollectionConfiguration extends PreferenceActivity implements OnPre
 
 
         //timezone
-        ListPreference defaultTimezone = new ListPreference(this);
-//        defaultTimezone.setEntries(new String[] { "Use Current System Timezone", "Pacific/Auckland", "America/Los_Angeles"});
-//        defaultTimezone.setEntryValues(new String[] {"0","1","2"});
-        defaultTimezone.setEntries(TimeZone.getAvailableIDs());
-        defaultTimezone.setEntryValues(TimeZone.getAvailableIDs());
-        defaultTimezone.setDialogTitle(getString(R.string.Default_timezone));
-        defaultTimezone.setDefaultValue(collectionData.getAsString(DavCollections.DEFAULT_TIMEZONE));
-        preferenceHelper(defaultTimezone, getString(R.string.Default_timezone), DavCollections.DEFAULT_TIMEZONE, defaultSummaries.get(DavCollections.DEFAULT_TIMEZONE));
+//        ListPreference defaultTimezone = new ListPreference(this);
+//        defaultTimezone.setEntries(StaticHelpers.getZoneNames());
+//        defaultTimezone.setEntryValues(StaticHelpers.getZoneIDs());
+//        defaultTimezone.setDialogTitle(getString(R.string.Default_timezone));
+//        defaultTimezone.setDefaultValue(collectionData.getAsString(DavCollections.DEFAULT_TIMEZONE));
+//        preferenceHelper(defaultTimezone, getString(R.string.Default_timezone), DavCollections.DEFAULT_TIMEZONE, defaultSummaries.get(DavCollections.DEFAULT_TIMEZONE));
 
         //colour
         ColourPickerPreference collectionColor = new ColourPickerPreference(this, null);
@@ -410,7 +406,7 @@ public class CollectionConfiguration extends PreferenceActivity implements OnPre
 		else if (key.equals(DavCollections.ACTIVE_JOURNAL)) ret = validateActive(pref,newValue,DavCollections.ACTIVE_JOURNAL,DavCollections.HOLDS_JOURNAL);
 		else if (key.equals(DavCollections.ACTIVE_TASKS)) ret = validateActive(pref,newValue,DavCollections.ACTIVE_TASKS,DavCollections.HOLDS_TASKS);
 		else if (key.equals(DavCollections.USE_ALARMS)) ret = validateAlarms(pref,newValue);
-		else if (key.equals(DavCollections.DEFAULT_TIMEZONE)) ret = validateDefaultTimezone(pref,newValue);
+//		else if (key.equals(DavCollections.DEFAULT_TIMEZONE)) ret = validateDefaultTimezone(pref,newValue);
 		else if (key.equals(DavCollections.COLOUR)) ret = validateColor(pref,newValue); 
 		else if (key.equals(DavCollections.MAX_SYNC_AGE_3G))   ret = validateSyncAge(pref,newValue, DavCollections.MAX_SYNC_AGE_3G); 
 		else if (key.equals(DavCollections.MAX_SYNC_AGE_WIFI)) ret = validateSyncAge(pref,newValue, DavCollections.MAX_SYNC_AGE_WIFI); 
@@ -473,15 +469,15 @@ public class CollectionConfiguration extends PreferenceActivity implements OnPre
 		return true;
 	}
 
-	private boolean validateDefaultTimezone(Preference p, Object v) { 
-		if (v != null && v instanceof String && !v.equals("")) {
-			this.collectionData.put(DavCollections.DEFAULT_TIMEZONE, (String)v);
-			return true;
-		} 
-		else {
-			return false;
-		}
-	}
+//	private boolean validateDefaultTimezone(Preference p, Object v) { 
+//		if (v != null && v instanceof String && !v.equals("")) {
+//			this.collectionData.put(DavCollections.DEFAULT_TIMEZONE, (String)v);
+//			return true;
+//		} 
+//		else {
+//			return false;
+//		}
+//	}
 	
 	private boolean validateColor(Preference p, Object v) {
 			//we don't need to validate colour - but we do need to turn it into a string
