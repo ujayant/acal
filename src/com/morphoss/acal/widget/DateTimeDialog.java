@@ -18,8 +18,13 @@
 
 package com.morphoss.acal.widget;
 
+import java.util.ArrayList;
+
 import android.app.Dialog;
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
+import android.preference.PreferenceManager;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
@@ -47,6 +52,7 @@ public class DateTimeDialog extends Dialog
 					OnCheckedChangeListener, OnItemSelectedListener
 {
 
+	private static final String	TZPREFNAME	= "recentTimeZone-";
 	private Context context;
 	private DateTimeSetListener dialogListener;
 
@@ -60,10 +66,13 @@ public class DateTimeDialog extends Dialog
 	private boolean allowDateVsDateTimeSwitching = true;
 
 	private int oldTimeZoneWas = 0;
+	
+	private ArrayList<String> recentZones;
 
 	private AcalDateTime currentDateTime;
 	private final boolean use24HourTime;
 	private final boolean allowTimeZoneSetting;
+	private SharedPreferences	prefs;
 
 	public DateTimeDialog(Context context, AcalDateTime dateTimeValue, boolean twentyFourHourTime,
 			boolean allowDateTimeSwitching, boolean allowTimeZones, DateTimeSetListener listener )  {
@@ -74,6 +83,16 @@ public class DateTimeDialog extends Dialog
         setContentView(R.layout.datetime_dialog);
         allowDateVsDateTimeSwitching = allowDateTimeSwitching;
         allowTimeZoneSetting = allowTimeZones;
+
+        recentZones = new ArrayList<String>(10);
+        prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        String recentZonePref;
+		for( int i=0; i<10; i++ ) {
+        	recentZonePref = prefs.getString(TZPREFNAME+i, null);
+        	if ( recentZonePref != null ) {
+        		recentZones.add(recentZonePref);
+        	}
+        }
 
         currentDateTime = (dateTimeValue == null ? new AcalDateTime() : dateTimeValue.clone());
         populateLayout();
@@ -99,7 +118,7 @@ public class DateTimeDialog extends Dialog
         dateOnlyCheckBox = (CheckBox) this.findViewById(R.id.DateTimeIsDate);
 
         timeZoneSpinner = (Spinner) this.findViewById(R.id.DateTimeZoneSelect);
-        tzListAdapter = new TimeZoneListAdapter(this.context, currentDateTime.getTimeZone());
+        tzListAdapter = new TimeZoneListAdapter(this.context, currentDateTime.getTimeZone(), recentZones);
         timeZoneSpinner.setAdapter(tzListAdapter);
         timeZoneSpinner.setOnItemSelectedListener(this);
         
@@ -142,8 +161,22 @@ public class DateTimeDialog extends Dialog
 	
 	@Override
 	public void onClick(View v) {
-		if (v == setButton)
+		if (v == setButton) {
 			dialogListener.onDateTimeSet(currentDateTime);
+
+			if ( !currentDateTime.isFloating() ) {
+				String currentZone = currentDateTime.getTimeZoneId();
+				Editor e = prefs.edit();
+				e.putString(TZPREFNAME+0, currentZone);
+				for( int i=0; i<recentZones.size() && i<9; i++) {
+					if ( recentZones.get(i).equals(currentZone) ) recentZones.remove(i);
+					if ( i<recentZones.size() ) {
+						e.putString(TZPREFNAME+i, recentZones.get(i));
+					}
+				}
+				e.commit();
+			}
+		}
 
 		this.dismiss();
 	}
