@@ -91,6 +91,7 @@ public class SyncCollectionContents extends ServiceJob {
 	private AcalRequestor 		requestor			= null;
 	private boolean	resourcesWereSynchronized;
 	private boolean	syncWasCompleted;
+	private int	errorCounter = 0;
 	
 	
 	/**
@@ -190,7 +191,6 @@ public class SyncCollectionContents extends ServiceJob {
 				}
 				cr.update(DavCollections.CONTENT_URI, collectionData, DavCollections._ID + "=?",
 																new String[] { "" + collectionId });
-
 			}
 
 			if ( resourcesWereSynchronized ) {
@@ -346,6 +346,18 @@ public class SyncCollectionContents extends ServiceJob {
 			Log.println(Constants.LOGV,TAG, "Start processing response");
 		List<DavNode> responses = root.getNodesFromPath("multistatus/response");
 		if ( responses.isEmpty() ) {
+			if ( errorCounter == 0 ) {
+				responses = root.getNodesFromPath("error/valid-sync-token");
+				errorCounter++;
+				
+				if ( ! responses.isEmpty() ) {
+					Log.i("aCal","We sent an invalid sync-token.  Retrying without a sync-token.");
+					syncToken = null;
+					updateCollectionToken(syncToken);
+					return doRegularSyncPropfind();
+				}
+			}
+
 			responses = root.getNodesFromPath("multistatus/sync-response");
 			if ( ! responses.isEmpty() ) {
 				Log.e("aCal","CalDAV Server at "+requestor.getHostName()+" uses obsolete draft sync-response syntax. Falling back to inefficient PROPFIND.  Please upgrade your server.");
@@ -362,9 +374,10 @@ public class SyncCollectionContents extends ServiceJob {
 			responses = root.getNodesFromPath("multistatus/sync-token");
 			if ( responses.isEmpty() ) {
 				Log.i("aCal","No sync-token in sync-report response. Falling back to PROPFIND.");
+				updateCollectionToken(null);
 				return doRegularSyncPropfind();
 			}
-
+			
 		}
 		else {
 
@@ -424,6 +437,17 @@ public class SyncCollectionContents extends ServiceJob {
 		ResourceModification.commitChangeList(context, changeList);
 		
 		return needSyncAfterwards;
+	}
+
+
+	private void updateCollectionToken(String newToken) {
+		ContentValues updateData = new ContentValues();
+		updateData.put(DavCollections.SYNC_TOKEN, newToken);
+		if (Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents )
+			Log.i(TAG,"Updated collection record with new sync token '"+syncToken+"'");
+
+		cr.update(DavCollections.CONTENT_URI, collectionData, DavCollections._ID + "=?",
+														new String[] { "" + collectionId });
 	}
 
 
