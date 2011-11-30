@@ -80,7 +80,7 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 	 */
 	public EventListAdapter(MonthView monthview, AcalDateTime date) {
 		this.context = monthview;
-		viewDate = date;
+		viewDate = date.clone();
 		viewDate.applyLocalTimeZone();
 		viewDate.setDaySecond(0);
 		viewDateEnd = AcalDateTime.addDays(viewDate, 1);
