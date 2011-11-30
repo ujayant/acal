@@ -60,6 +60,11 @@ public class TimeZoneListAdapter implements SpinnerAdapter {
 			else zoneMap.remove(incomingZone);
 			ourZones.add(aZone);
 		}
+		else {
+			// We add the floating zone right at the top.
+			String floatingZone = context.getString(R.string.floatingTime);
+			ourZones.add(new Zone(floatingZone, null));
+		}
 
 		// Next, we use the local timezone (unless it's the same, of course!)
 		String localZone = TimeZone.getDefault().getID();
@@ -80,9 +85,11 @@ public class TimeZoneListAdapter implements SpinnerAdapter {
 			}
 		}
 
-		// Fourthly, a floating zone.
-		String floatingZone = context.getString(R.string.floatingTime);
-		ourZones.add(new Zone(floatingZone, null));
+		// Fourthly, a floating zone - unless we added it already.
+		if ( incomingZone != null ) {
+			String floatingZone = context.getString(R.string.floatingTime);
+			ourZones.add(new Zone(floatingZone, null));
+		}
 
 		// Fifthly, all of the zones we have which are not yet in the list.
 		for( int i=0; i< ZoneData.zones.length; i++ ) {
