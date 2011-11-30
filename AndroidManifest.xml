@@ -7,7 +7,7 @@
 		android:minSdkVersion="4"
 		android:targetSdkVersion="7" />
 	<application
-		android:debuggable="false"
+		android:debuggable="true"
 		android:description="@string/appDescription"
 		android:icon="@drawable/icon"
 		android:label="@string/appName"
@@ -249,6 +249,14 @@
 				<action android:name="android.intent.action.BOOT_COMPLETED" />
 				<category android:name="android.intent.category.HOME" />
 			</intent-filter>
+		</receiver>
+		<receiver android:name="com.morphoss.acal.desktop.ShowUpcomingWidgetProvider" >
+			<intent-filter >
+				<action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+			</intent-filter>
+			<meta-data
+				android:name="android.appwidget.provider"
+				android:resource="@xml/show_upcoming_widget_info" />
 		</receiver>
 	</application>
 	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" >

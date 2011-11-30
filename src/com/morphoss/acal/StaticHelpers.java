@@ -21,12 +21,34 @@ package com.morphoss.acal;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.morphoss.acal.desktop.ShowUpcomingWidgetProvider;
+
+import android.appwidget.AppWidgetManager;
+import android.appwidget.AppWidgetProvider;
+import android.content.ComponentName;
 import android.content.ContentValues;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Parcel;
 
 
 public final class StaticHelpers {
 
+	/** 
+	 * Force the update of all widgets associated with a provider. While not the Android way of doing things,
+	 * its bloody useful. 
+	 * @param context	- A context - must belong to the aCal package!
+	 * @param provider  - An App Widget Provider - MUST extend AppWidget Provider
+	 */
+	public static void updateWidgets(Context context, Class<? extends AppWidgetProvider> provider) {
+		AppWidgetManager man = AppWidgetManager.getInstance(context);
+		int[] ids = man.getAppWidgetIds(new ComponentName(context,provider));
+		Intent updateIntent = new Intent();	
+		updateIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+		updateIntent.putExtra(ShowUpcomingWidgetProvider.SHOW_UPCOMING_WIDGET_IDS_KEY, ids);
+		context.sendBroadcast(updateIntent);
+	}
+	
 	public static String[] mergeArrays(String[] first, String[] second) {
 		String[] result = new String[first.length+second.length];
 		for (int i = 0; i < first.length; i++) result[i] = first[i];

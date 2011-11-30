@@ -48,7 +48,7 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 	/**
 	 * The version of this database. Used to determine if an upgrade is required.
 	 */
-	public static final int DB_VERSION = 13;
+	public static final int DB_VERSION = 15;
 	
 	/**
 	 * <p>The dav_server Table as stated in the specification.</p>
@@ -185,6 +185,23 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 
 	
 	/**
+	 * A Table for storing data pertinent to the Show Upcoming Widget.
+	 * Introduced into version 13.
+	 */
+	public static final String SHOW_UPCOMING_WIDGET_TABLE_SQL = 
+		"CREATE TABLE show_upcoming_widget_data ("
+	        +"_id INTEGER PRIMARY KEY AUTOINCREMENT"
+			+",resource_id INTEGER REFERENCES dav_resource(_id)"
+			+",etag TEXT"
+			+",colour INTEGER"
+			+",dtstart NUMERIC"
+			+",dtend NUMERIC"
+			+",summary TEXT"
+		+");";
+
+	
+	
+	/**
 	 * Visible single argument constructor. Calls super with default values.
 	 * 
 	 * @param context The context in which this DB will be used.
@@ -215,6 +232,8 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 
 		db.execSQL(EVENT_INDEX_SQL);
 		db.execSQL(TODO_INDEX_SQL);
+		
+		db.execSQL(SHOW_UPCOMING_WIDGET_TABLE_SQL);
 		
 		db.setTransactionSuccessful();
 		db.endTransaction();
@@ -263,6 +282,17 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 			oldVersion++;
 		}
 
+		if ( oldVersion == 13 ) {
+			db.execSQL(SHOW_UPCOMING_WIDGET_TABLE_SQL);
+			oldVersion++;
+		}
+		
+		if (oldVersion == 14) {
+			db.execSQL("DROP TABLE show_upcoming_widget_data");
+			db.execSQL(SHOW_UPCOMING_WIDGET_TABLE_SQL);
+			oldVersion++;
+		}
+		
 		if ( oldVersion != newVersion ) {
 			// Fallback to try and drop all tables, except the server table and
 			// then recreate them.
@@ -272,6 +302,7 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 				db.execSQL("DROP TABLE dav_collection");
 				db.execSQL("DROP TABLE dav_resource");
 				db.execSQL("DROP TABLE pending_change");
+				db.execSQL("DROP TABLE show_upcoming_widget_data");
 		
 				// Recreate the tables we just dropped.
 				db.execSQL(DAV_PATH_SET_TABLE_SQL);
@@ -280,6 +311,7 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 				db.execSQL(PENDING_CHANGE_TABLE_SQL);
 				db.execSQL(EVENT_INDEX_SQL);
 				db.execSQL(TODO_INDEX_SQL);
+				db.execSQL(SHOW_UPCOMING_WIDGET_TABLE_SQL);
 				db.setTransactionSuccessful();
 			}
 			catch( Exception e ) {
@@ -294,4 +326,11 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 		
 	}
 
+	@Override
+	public void onOpen(SQLiteDatabase db) {
+		super.onOpen(db);
+		
+	//	Log.e(TAG,"Database opened: ");
+	//	Thread.dumpStack();
+	}
 }

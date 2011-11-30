@@ -31,6 +31,7 @@ public class DatabaseChangedEvent {
 	public static final int DATABASE_INVALIDATED = 4;
 	public static final int DATABASE_BEGIN_RESOURCE_CHANGES = 5;
 	public static final int DATABASE_END_RESOURCE_CHANGES = 6;
+	public static final int DATABASE_SHOW_UPCOMING_WIDGET_UPDATE = 7;
 	
 	private int eventType;
 	private Class<?> table;
@@ -49,7 +50,7 @@ public class DatabaseChangedEvent {
 	}
 
 	public DatabaseChangedEvent(int eventType, Class<?> table, ContentValues data) {
-		if (eventType < 1 || eventType > 6) throw new IllegalArgumentException("DatabaseChangedEvent instantiated with invalid event type.");
+		if (eventType < 1 || eventType > 7) throw new IllegalArgumentException("DatabaseChangedEvent instantiated with invalid event type.");
 		this.eventType = eventType;
 		this.table = table;
 		this.data = data;

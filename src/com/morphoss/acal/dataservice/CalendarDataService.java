@@ -26,13 +26,14 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -74,6 +75,7 @@ import com.morphoss.acal.davacal.VComponent;
 import com.morphoss.acal.davacal.VComponentCreationException;
 import com.morphoss.acal.davacal.VTodo;
 import com.morphoss.acal.davacal.YouMustSurroundThisMethodInTryCatchOrIllEatYouException;
+import com.morphoss.acal.desktop.ShowUpcomingWidgetProvider;
 import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.providers.DavResources;
 import com.morphoss.acal.providers.PendingChanges;
@@ -122,7 +124,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 	public Thread worker;
 
 	private DataRequest.Stub dataRequest = new DataRequestHandler();
-	
+
 	private DataRequestCallBack callback = null;
 
 	private static long lastSetEarlyStamp = 0;
@@ -145,7 +147,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 	private PendingIntent alarmIntent = null;
 	private AlarmManager alarmManager;
 	private long nextTriggerTime = Long.MAX_VALUE;
-	
+
 	private long inResourceTx = 0;
 	private boolean changesDuringTx = false;
 	final private static long MAX_TX_AGE = 30000;
@@ -165,10 +167,10 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 
 		//Set up alarm manager for alarms
 		alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-		
+
 		//load state info
 		this.loadState();
-		
+
 		//Get our worker thread ready for action
 		this.threadHolder.close();
 		if (worker == null) {
@@ -285,7 +287,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 		AcalDateTime latestEarlyTimeStamp = new AcalDateTime().applyLocalTimeZone().addMonths(-1).setDaySecond(0);
 		latestEarlyTimeStamp.setMonthDay(1);
 		latestEarlyTimeStamp.addDays(-5);
-		
+
 		if ( earliestVisible.after(earlyTimeStamp) ) return;
 
 		AcalDateTime wantEarlyStamp = earliestVisible.clone().addDays(-5);
@@ -299,10 +301,10 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 		long now = System.currentTimeMillis();
 		if ( daysDiff > 0 && lastSetEarlyStamp > (now - 30000L) ) return;
 		lastSetEarlyStamp = now;
-		
+
 		if (Constants.LOG_DEBUG) Log.d(TAG, "Considering setting early timestamp to "+wantEarlyStamp.fmtIcal() );
 		if ( daysDiff < 0 || daysDiff > 10 ) {
-				if (Constants.LOG_DEBUG)Log.d(TAG, "Setting early timestamp to "+wantEarlyStamp.fmtIcal() );
+			if (Constants.LOG_DEBUG)Log.d(TAG, "Setting early timestamp to "+wantEarlyStamp.fmtIcal() );
 
 			AcalDateTime oldEarlyStamp = earlyTimeStamp;
 			earlyTimeStamp = wantEarlyStamp;
@@ -400,6 +402,37 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 		worker.start();
 	}
 
+	//If you write a widget for acal, feel free to add update code here, but keep it nicely separated
+	private void updateWidgets() {
+		//this method is called to determine weather any aCal widgets need to be told to update.
+		//Strictly speaking this wasn't the way the Android people wanted widgets to be used
+		//but too bad, we want our widgets to update exactly when they need to - no more/ no less
+
+		/** Start 'Show Upcoming' Widget Logic */
+		if (Constants.LOG_DEBUG) {
+			Log.d(TAG,"Checking if Show Upcoming Widget(s) needs update.");
+		}
+		try {
+			//step 1, get the next N events
+			AcalDateTime now = new AcalDateTime();
+			AcalDateTime later = new AcalDateTime().addDays(ShowUpcomingWidgetProvider.NUM_DAYS_TO_LOOK_AHEAD);
+			AcalDateRange range = new AcalDateRange(now,later);
+
+			List<AcalEvent> events = dataRequest.getEventsForDateRange(range);
+			Collections.sort(events);
+			while (events.size() > ShowUpcomingWidgetProvider.NUMBER_OF_EVENTS_TO_SHOW) events.remove(events.size()-1);
+
+			//step 2, notify provider of new data
+			ShowUpcomingWidgetProvider.checkIfUpdateRequired(this, events);
+
+		} catch (RemoteException e) {
+			//A remote exception from calling the method of an inner class? I don't think so.
+			if (Constants.LOG_DEBUG)
+				Log.d(TAG, "RemoteException during widget update?!?!");
+		}
+		/** End 'Show Upcoming' Widget Logic */
+	}
+
 	/** Calculates the next time an alarm will go off AFTER the lastTriggeredAlarmtime 
 	 * If no alarm is found alarms are disabled. Otherwise, set the alarm trigger for this time
 	 */
@@ -472,7 +505,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 		AcalDateTime now = new AcalDateTime();
 		now.applyLocalTimeZone();
 		long timeOfNextAlarm = (now.getDurationTo(alarm.getNextTimeToFire())).getTimeMillis()
-				+ now.getMillis();
+		+ now.getMillis();
 		if ( this.alarmIntent != null ) {
 			if ( timeOfNextAlarm == nextTriggerTime ) {
 				if ( Constants.LOG_DEBUG ) Log.d(TAG, "Alarm trigger time hasn't changed. Aborting.");
@@ -487,7 +520,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 		alarmIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_ONE_SHOT);
 		alarmManager.set(AlarmManager.RTC_WAKEUP, timeOfNextAlarm, alarmIntent);
 		//if ( Constants.LOG_DEBUG )
-			Log.d(TAG,
+		Log.d(TAG,
 				"Set alarm trigger for: " + timeOfNextAlarm + "/" + alarm.getNextTimeToFire());
 	}
 
@@ -578,7 +611,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 				vc.setPersistentOff();
 			}
 		}
-		
+
 		if ( Constants.debugAlarms ) {
 			Log.d(TAG,"Checked "+processed+" pending resources for alarms, skipped "+skipped);
 			Log.d(TAG,"Got "+alarms.size()+" alarms for "+dateRange);
@@ -704,8 +737,8 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 			collectionCreated(collectionData);
 		else
 			c.updateCollectionRow(collectionData);
-		
-		
+
+
 	}
 
 
@@ -714,7 +747,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 	 * When we first start, we need to set up all collections from the database.
 	 * </p>
 	 */
-	private void setupCollections() {
+	private synchronized void setupCollections() {
 		Cursor cursor = this.getContentResolver().query( DavCollections.CONTENT_URI, null,
 				"("+DavCollections.ACTIVE_EVENTS
 				+" OR "+DavCollections.ACTIVE_TASKS
@@ -814,9 +847,9 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 		whereClause.append(" AND latest_end < ");
 		whereClause.append(Long.toString(previousTimeStamp.getMillis()));
 		Cursor cursor = this.getContentResolver().query(DavResources.CONTENT_URI, null, whereClause.toString(), null, null);
-//		if (Constants.debugCalendarDataService && Constants.LOG_DEBUG)	
-			Log.d(TAG, "Fetching old resources now possibly useful in view: "
-					+ cursor.getCount() + " records to process.");
+		//		if (Constants.debugCalendarDataService && Constants.LOG_DEBUG)	
+		Log.d(TAG, "Fetching old resources now possibly useful in view: "
+				+ cursor.getCount() + " records to process.");
 		for( cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext() ) {
 			ContentValues cv = new ContentValues();
 			DatabaseUtils.cursorRowToContentValues(cursor, cv);
@@ -830,8 +863,8 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 
 
 	private void discardOldResources() {
-//		if (Constants.debugCalendarDataService && Constants.LOG_DEBUG) 
-			Log.d(TAG, "Discarding old resources not useful in view.");
+		//		if (Constants.debugCalendarDataService && Constants.LOG_DEBUG) 
+		Log.d(TAG, "Discarding old resources not useful in view.");
 
 		for( Entry<Integer, VCalendar> vCal : calendars.entrySet() ) {
 			if ( earlyTimeStamp.after(vCal.getValue().getRangeEnd()) ) {
@@ -850,7 +883,8 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 	@Override
 	public void databaseChanged(DatabaseChangedEvent changeEvent) {
 		ContentValues cv = changeEvent.getContentValues();
-		if (changeEvent.getEventType() == DatabaseChangedEvent.DATABASE_BEGIN_RESOURCE_CHANGES) {
+		if (changeEvent.getEventType() == DatabaseChangedEvent.DATABASE_SHOW_UPCOMING_WIDGET_UPDATE) updateWidgets();
+		else if (changeEvent.getEventType() == DatabaseChangedEvent.DATABASE_BEGIN_RESOURCE_CHANGES) {
 			this.inResourceTx = System.currentTimeMillis() + MAX_TX_AGE;
 			this.changesDuringTx = false;
 			return;
@@ -873,25 +907,25 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 			if ( Constants.debugCalendarDataService && Constants.LOG_VERBOSE)
 				Log.v(TAG, "Received notification of Resources Table change.");
 			switch (changeEvent.getEventType()) {
-				case DatabaseChangedEvent.DATABASE_RECORD_DELETED :
-					calendars.remove(cv.getAsInteger(DavResources._ID));
-					break;
-				case DatabaseChangedEvent.DATABASE_RECORD_UPDATED :
-					this.resourceChanged(cv);
-					break;
-				case DatabaseChangedEvent.DATABASE_RECORD_INSERTED:
-					this.resourceChanged(cv);
-					break;
+			case DatabaseChangedEvent.DATABASE_RECORD_DELETED :
+				calendars.remove(cv.getAsInteger(DavResources._ID));
+				break;
+			case DatabaseChangedEvent.DATABASE_RECORD_UPDATED :
+				this.resourceChanged(cv);
+				break;
+			case DatabaseChangedEvent.DATABASE_RECORD_INSERTED:
+				this.resourceChanged(cv);
+				break;
 			}
 		}
 		else if ( changeEvent.getTable() == DavCollections.class ) {
 			if ( Constants.debugCalendarDataService && Constants.LOG_VERBOSE)
 				Log.v(TAG, "Received notification of Collections Table change.");
-			
+
 			int id = -1;
 			boolean active = false;
 			boolean exists = false;
-			
+
 			if (cv.containsKey(DavCollections._ID)) {
 				if (cv.getAsInteger(DavCollections._ID) != null)
 					id = cv.getAsInteger(DavCollections._ID);
@@ -901,22 +935,22 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 					active = cv.getAsInteger(DavCollections.ACTIVE_EVENTS) == 1;
 			}
 			exists = (id != -1) && this.collections.containsKey(id);
-			
+
 			switch (changeEvent.getEventType()) {
-				case DatabaseChangedEvent.DATABASE_RECORD_DELETED:
-					if (exists) this.collectionDeleted(cv.getAsInteger(DavResources._ID));
-					break;
-				case DatabaseChangedEvent.DATABASE_RECORD_UPDATED:
-					if (!exists && active) collectionCreated(cv);
-					else if (exists && !active) collectionDeleted(id);
-					else if (exists) this.collectionUpdated(cv);
-					break;
-				case DatabaseChangedEvent.DATABASE_RECORD_INSERTED:
-					if (!exists) this.collectionCreated(cv);
-					else this.collectionUpdated(cv);
-					break;
-				default:
-					throw new IllegalArgumentException();
+			case DatabaseChangedEvent.DATABASE_RECORD_DELETED:
+				if (exists) this.collectionDeleted(cv.getAsInteger(DavResources._ID));
+				break;
+			case DatabaseChangedEvent.DATABASE_RECORD_UPDATED:
+				if (!exists && active) collectionCreated(cv);
+				else if (exists && !active) collectionDeleted(id);
+				else if (exists) this.collectionUpdated(cv);
+				break;
+			case DatabaseChangedEvent.DATABASE_RECORD_INSERTED:
+				if (!exists) this.collectionCreated(cv);
+				else this.collectionUpdated(cv);
+				break;
+			default:
+				throw new IllegalArgumentException();
 			}
 
 		}
@@ -924,8 +958,8 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 			if (Constants.debugCalendarDataService && Constants.LOG_VERBOSE)
 				Log.v(TAG, "Received notification of pendingChanges Table Change.");
 			switch (changeEvent.getEventType()) {
-				case DatabaseChangedEvent.DATABASE_RECORD_DELETED :
-					this.pendingResourceDeleted(cv.getAsInteger(PendingChanges._ID));
+			case DatabaseChangedEvent.DATABASE_RECORD_DELETED :
+				this.pendingResourceDeleted(cv.getAsInteger(PendingChanges._ID));
 			}
 
 		}
@@ -966,6 +1000,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 				if ( this.processPendingResources() ) {
 					if ( Constants.debugHeap ) AcalDebug.heapDebug(TAG, "Updating alarms");
 					updateAlarms();
+					updateWidgets();
 				}
 				if (callback != null) {
 					try {
@@ -1016,9 +1051,9 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 	 *
 	 */
 	private class DataRequestHandler extends DataRequest.Stub {
-		
+
 		private EventCache eventCache = new EventCache();
-		
+
 		//EventCache methods
 		public synchronized List<SimpleAcalEvent> getEventsForDay(AcalDateTime day) {
 			eventCache.addDay(day,this);
@@ -1045,8 +1080,8 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 		public synchronized void flushDay( AcalDateTime day ) {
 			eventCache.flushDay(day,this);
 		}
-		
-		
+
+
 		@Override
 		public void resetCache() {
 			resourcesPending = new ConcurrentLinkedQueue<ContentValues>();
@@ -1055,8 +1090,8 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 			newResources = new ConcurrentHashMap<Integer,VCalendar>();
 			setupCollections();
 		}
-		
-		
+
+
 		@Override
 		public List<AcalEvent> getEventsForDateRange(AcalDateRange dateRange)	throws RemoteException {
 			List<AcalEvent> events = new ArrayList<AcalEvent>();
@@ -1114,8 +1149,8 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 					ret = nextSnooze;
 				} else {
 					if (Constants.LOG_DEBUG)Log.d(TAG, "Both snooze and regular alarms available. Calculating which one has prioty\n"+
-						"\t\tReg alarm time: "+nextReg.getNextTimeToFire()+"\n"+
-						"\t\tSnooze alarm time: "+nextSnooze.getNextTimeToFire());
+							"\t\tReg alarm time: "+nextReg.getNextTimeToFire()+"\n"+
+							"\t\tSnooze alarm time: "+nextSnooze.getNextTimeToFire());
 					if (nextReg.compareTo(nextSnooze) <= 0) {
 						if (Constants.LOG_DEBUG)Log.d(TAG, "Next regular alarm has priority. Returning alarm: "+nextReg);
 						ret = nextReg;
@@ -1124,7 +1159,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 						ret = nextSnooze;
 					}
 				}
-				
+
 				if (ret == null) {
 					setNextAlarmTrigger();	//calculate next trigger time
 					return null;
@@ -1133,7 +1168,7 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 				now.applyLocalTimeZone();
 				if (ret.getNextTimeToFire().after(now)) {
 					if (Constants.LOG_DEBUG) Log.d(TAG, "Next alarm is not due to fire until "+ret.getNextTimeToFire()+" returning null and ensuring next trigger is set.");
- 					setNextAlarmTrigger();
+					setNextAlarmTrigger();
 					return null;
 				}
 				return ret;
@@ -1159,54 +1194,54 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 			Log.i(TAG,"eventChanged: dtstart = "+action.getStart());
 
 			switch (action.getAction()) {
-				case AcalEvent.ACTION_CREATE: {
-					VCalendar newCal = VCalendar.getGenericCalendar(collection, action);
-					action.setAction(AcalEvent.ACTION_MODIFY_ALL);
-					newCal.applyEventAction(action);
-					ContentValues cv = new ContentValues();
-					cv.put(PendingChanges.COLLECTION_ID, collectionId);
-					cv.put(PendingChanges.OLD_DATA, "");
-					cv.put(PendingChanges.NEW_DATA, newCal.getOriginalBlob());
-					Uri row = getContentResolver().insert(PendingChanges.CONTENT_URI, cv);
-					int r = Integer.parseInt(row.getLastPathSegment());
-					// add to pending map
-					newResources.put(r, newCal);
-					break;
-				}
-				case AcalEvent.ACTION_MODIFY_ALL:
-				case AcalEvent.ACTION_MODIFY_SINGLE:
-				case AcalEvent.ACTION_MODIFY_ALL_FUTURE:
-				case AcalEvent.ACTION_DELETE_SINGLE:
-				case AcalEvent.ACTION_DELETE_ALL_FUTURE: {
-					int rid = action.getResourceId();
-					VCalendar original = calendars.get(rid);
-					String newBlob = original.applyEventAction(action);
-					VCalendar changedResource = (VCalendar) VComponent.createComponentFromBlob(newBlob, rid, collection);
-					if (newBlob == null || newBlob.equalsIgnoreCase(""))
-						throw new IllegalStateException(
-									"Blob creation resulted in null or empty string during modify event");
-					ContentValues cv = new ContentValues();
-					cv.put(PendingChanges.COLLECTION_ID, collectionId);
-					cv.put(PendingChanges.RESOURCE_ID, rid);
-					cv.put(PendingChanges.OLD_DATA, action.getOriginalBlob());
-					cv.put(PendingChanges.NEW_DATA, newBlob);
-					getContentResolver().insert(PendingChanges.CONTENT_URI, cv);
-					calendars.put(rid,changedResource);
-					break;
-				}
-				case AcalEvent.ACTION_DELETE_ALL: {
-					int rid = action.getResourceId();
-					ContentValues cv = new ContentValues();
-					cv.put(PendingChanges.COLLECTION_ID, collectionId);
-					cv.put(PendingChanges.RESOURCE_ID, rid);
-					cv.put(PendingChanges.OLD_DATA, action.getOriginalBlob());
-					cv.putNull(PendingChanges.NEW_DATA);
-					getContentResolver().insert(PendingChanges.CONTENT_URI, cv);
-					calendars.remove(rid);
-					break;
-				}
-				default:
-					throw new IllegalArgumentException("Invalid event action");
+			case AcalEvent.ACTION_CREATE: {
+				VCalendar newCal = VCalendar.getGenericCalendar(collection, action);
+				action.setAction(AcalEvent.ACTION_MODIFY_ALL);
+				newCal.applyEventAction(action);
+				ContentValues cv = new ContentValues();
+				cv.put(PendingChanges.COLLECTION_ID, collectionId);
+				cv.put(PendingChanges.OLD_DATA, "");
+				cv.put(PendingChanges.NEW_DATA, newCal.getOriginalBlob());
+				Uri row = getContentResolver().insert(PendingChanges.CONTENT_URI, cv);
+				int r = Integer.parseInt(row.getLastPathSegment());
+				// add to pending map
+				newResources.put(r, newCal);
+				break;
+			}
+			case AcalEvent.ACTION_MODIFY_ALL:
+			case AcalEvent.ACTION_MODIFY_SINGLE:
+			case AcalEvent.ACTION_MODIFY_ALL_FUTURE:
+			case AcalEvent.ACTION_DELETE_SINGLE:
+			case AcalEvent.ACTION_DELETE_ALL_FUTURE: {
+				int rid = action.getResourceId();
+				VCalendar original = calendars.get(rid);
+				String newBlob = original.applyEventAction(action);
+				VCalendar changedResource = (VCalendar) VComponent.createComponentFromBlob(newBlob, rid, collection);
+				if (newBlob == null || newBlob.equalsIgnoreCase(""))
+					throw new IllegalStateException(
+					"Blob creation resulted in null or empty string during modify event");
+				ContentValues cv = new ContentValues();
+				cv.put(PendingChanges.COLLECTION_ID, collectionId);
+				cv.put(PendingChanges.RESOURCE_ID, rid);
+				cv.put(PendingChanges.OLD_DATA, action.getOriginalBlob());
+				cv.put(PendingChanges.NEW_DATA, newBlob);
+				getContentResolver().insert(PendingChanges.CONTENT_URI, cv);
+				calendars.put(rid,changedResource);
+				break;
+			}
+			case AcalEvent.ACTION_DELETE_ALL: {
+				int rid = action.getResourceId();
+				ContentValues cv = new ContentValues();
+				cv.put(PendingChanges.COLLECTION_ID, collectionId);
+				cv.put(PendingChanges.RESOURCE_ID, rid);
+				cv.put(PendingChanges.OLD_DATA, action.getOriginalBlob());
+				cv.putNull(PendingChanges.NEW_DATA);
+				getContentResolver().insert(PendingChanges.CONTENT_URI, cv);
+				calendars.remove(rid);
+				break;
+			}
+			default:
+				throw new IllegalArgumentException("Invalid event action");
 			}
 
 			try {
@@ -1238,9 +1273,9 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 			saveState();
 		}
 
-		
+
 		private TodoList todoItems = new TodoList();
-		
+
 		@Override
 		public List<SimpleAcalTodo> getTodos(boolean listCompleted, boolean listFuture) throws RemoteException {
 			todoItems.reset();
@@ -1272,58 +1307,58 @@ public class CalendarDataService extends Service implements Runnable, DatabaseEv
 				Log.d(TAG, "Changed VTODO in collection "+collectionId+" - "+changedResource.getCollectionName());
 
 			switch (action) {
-				case TodoEdit.ACTION_CREATE: {
-					ContentValues cv = new ContentValues();
-					cv.put(PendingChanges.COLLECTION_ID, collectionId);
-					cv.put(PendingChanges.OLD_DATA, "");
-					cv.put(PendingChanges.NEW_DATA, changedResource.getCurrentBlob());
-					Uri row = getContentResolver().insert(PendingChanges.CONTENT_URI, cv);
-					int r = Integer.parseInt(row.getLastPathSegment());
-					// add to pending map
-					newResources.put(r, changedResource);
-					break;
-				}
+			case TodoEdit.ACTION_CREATE: {
+				ContentValues cv = new ContentValues();
+				cv.put(PendingChanges.COLLECTION_ID, collectionId);
+				cv.put(PendingChanges.OLD_DATA, "");
+				cv.put(PendingChanges.NEW_DATA, changedResource.getCurrentBlob());
+				Uri row = getContentResolver().insert(PendingChanges.CONTENT_URI, cv);
+				int r = Integer.parseInt(row.getLastPathSegment());
+				// add to pending map
+				newResources.put(r, changedResource);
+				break;
+			}
 
-				case TodoEdit.ACTION_COMPLETE:
-					Masterable vTodo = changedResource.getMasterChild();
-					if ( vTodo instanceof VTodo ) {
-						((VTodo) vTodo).setCompleted(new AcalDateTime());
-						((VTodo) vTodo).setPercentComplete(100);
-						((VTodo) vTodo).setStatus(VTodo.Status.COMPLETED);
-					}
-				case TodoEdit.ACTION_MODIFY_ALL:
-				case TodoEdit.ACTION_MODIFY_SINGLE:
-				case TodoEdit.ACTION_MODIFY_ALL_FUTURE:
-				case TodoEdit.ACTION_DELETE_SINGLE:
-				case TodoEdit.ACTION_DELETE_ALL_FUTURE: {
-					int rid = changedResource.getResourceId();
-					VCalendar original = calendars.get(rid);
-					String newBlob = changedResource.getCurrentBlob();
-					if (newBlob == null || newBlob.equalsIgnoreCase(""))
-						throw new IllegalStateException(
-									"Blob creation resulted in null or empty string during modify event");
-					ContentValues cv = new ContentValues();
-					cv.put(PendingChanges.COLLECTION_ID, collectionId);
-					cv.put(PendingChanges.RESOURCE_ID, rid);
-					cv.put(PendingChanges.OLD_DATA, original.getOriginalBlob());
-					cv.put(PendingChanges.NEW_DATA, newBlob);
-					getContentResolver().insert(PendingChanges.CONTENT_URI, cv);
-					calendars.put(rid, changedResource);
-					break;
+			case TodoEdit.ACTION_COMPLETE:
+				Masterable vTodo = changedResource.getMasterChild();
+				if ( vTodo instanceof VTodo ) {
+					((VTodo) vTodo).setCompleted(new AcalDateTime());
+					((VTodo) vTodo).setPercentComplete(100);
+					((VTodo) vTodo).setStatus(VTodo.Status.COMPLETED);
 				}
-				case TodoEdit.ACTION_DELETE_ALL: {
-					int rid = changedResource.getResourceId();
-					ContentValues cv = new ContentValues();
-					cv.put(PendingChanges.COLLECTION_ID, collectionId);
-					cv.put(PendingChanges.RESOURCE_ID, rid);
-					cv.put(PendingChanges.OLD_DATA, changedResource.getOriginalBlob());
-					cv.putNull(PendingChanges.NEW_DATA);
-					getContentResolver().insert(PendingChanges.CONTENT_URI, cv);
-					calendars.remove(rid);
-					break;
-				}
-				default:
-					throw new IllegalArgumentException("Invalid change action");
+			case TodoEdit.ACTION_MODIFY_ALL:
+			case TodoEdit.ACTION_MODIFY_SINGLE:
+			case TodoEdit.ACTION_MODIFY_ALL_FUTURE:
+			case TodoEdit.ACTION_DELETE_SINGLE:
+			case TodoEdit.ACTION_DELETE_ALL_FUTURE: {
+				int rid = changedResource.getResourceId();
+				VCalendar original = calendars.get(rid);
+				String newBlob = changedResource.getCurrentBlob();
+				if (newBlob == null || newBlob.equalsIgnoreCase(""))
+					throw new IllegalStateException(
+					"Blob creation resulted in null or empty string during modify event");
+				ContentValues cv = new ContentValues();
+				cv.put(PendingChanges.COLLECTION_ID, collectionId);
+				cv.put(PendingChanges.RESOURCE_ID, rid);
+				cv.put(PendingChanges.OLD_DATA, original.getOriginalBlob());
+				cv.put(PendingChanges.NEW_DATA, newBlob);
+				getContentResolver().insert(PendingChanges.CONTENT_URI, cv);
+				calendars.put(rid, changedResource);
+				break;
+			}
+			case TodoEdit.ACTION_DELETE_ALL: {
+				int rid = changedResource.getResourceId();
+				ContentValues cv = new ContentValues();
+				cv.put(PendingChanges.COLLECTION_ID, collectionId);
+				cv.put(PendingChanges.RESOURCE_ID, rid);
+				cv.put(PendingChanges.OLD_DATA, changedResource.getOriginalBlob());
+				cv.putNull(PendingChanges.NEW_DATA);
+				getContentResolver().insert(PendingChanges.CONTENT_URI, cv);
+				calendars.remove(rid);
+				break;
+			}
+			default:
+				throw new IllegalArgumentException("Invalid change action");
 			}
 
 			try {

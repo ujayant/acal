@@ -58,14 +58,20 @@ public class EventView extends AcalActivity implements OnGestureListener, OnTouc
 	public static final int EDIT_EVENT = 0;
 	public static final int EDIT_ADD = 0;
 	
-	private AcalEvent event;
+	
+	public static final String SIMPLE_ACAL_EVENT_KEY = "SimpleAcalEvent";
+	public static final String ACAL_EVENT_KEY = "AcalEvent";
+	public static final String RESOURCE_ID_KEY = "resourceid";
+	public static final String DTSTART_KEY = "start";
+	
+	private AcalEvent event = null;
 	private SimpleAcalEvent sae = null;
 	
 	
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		this.setContentView(R.layout.event_view);
-
+		
 		//Ensure service is actually running
 		this.startService(new Intent(this, aCalService.class));
 		//gestureDetector = new GestureDetector(this);
@@ -78,8 +84,25 @@ public class EventView extends AcalActivity implements OnGestureListener, OnTouc
 		
 		Bundle b = this.getIntent().getExtras();
 		try {
-			this.sae = (SimpleAcalEvent) b.getParcelable("SimpleAcalEvent");
-			this.event = sae.getAcalEvent(this);
+			long start = -1;
+			int rid = -1;
+			
+			if (b.containsKey(ACAL_EVENT_KEY)) this.event = b.getParcelable(ACAL_EVENT_KEY);
+			if (b.containsKey(SIMPLE_ACAL_EVENT_KEY)) this.sae = b.getParcelable(SIMPLE_ACAL_EVENT_KEY);
+			if (b.containsKey(RESOURCE_ID_KEY)) rid = b.getInt(RESOURCE_ID_KEY);
+			if (b.containsKey(DTSTART_KEY)) start = b.getLong(DTSTART_KEY);
+			
+			if (this.event == null && this.sae == null && rid >= 0 && start >=0) {
+				this.event = AcalEvent.fromDatabase(this, rid, AcalDateTime.fromMillis(start));
+				this.sae = SimpleAcalEvent.getSimpleEvent(this.event);
+			}
+			else if (this.event != null && this.sae == null) this.sae = SimpleAcalEvent.getSimpleEvent(this.event);
+			else if (this.sae != null && this.event == null) this.event = sae.getAcalEvent(this);
+			else {
+				if (Constants.LOG_DEBUG)Log.d(TAG, "Calling activity has not provided required data.");
+				this.finish();
+				return;
+			}
 			this.populateLayout();
 		}
 		catch (Exception e) {
