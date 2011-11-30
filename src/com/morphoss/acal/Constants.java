@@ -40,18 +40,18 @@ public class Constants {
 	public static final long SERVICE_WORKER_GRACE_PERIOD = 1000*60*60*1;		//Amount of time we will allow worker to be 'late' before assuming its hung
 
 	/** Generally useful patterns */
-	public static final Pattern lineSplitter = Pattern.compile("\r?\n"); 
-	public static final Pattern rfc5545UnWrapper = Pattern.compile("\r?\n ");
+	public static final Pattern lineSplitter = Pattern.compile("\\r?\\n"); 
+	public static final Pattern rfc5545UnWrapper = Pattern.compile("\r?\n ",Pattern.DOTALL);
 	public static final Pattern tzOlsonExtractor = Pattern.compile(".*((?:Antarctica|America|Africa|Atlantic|Asia|Australia|Indian|Europe|Pacific|US)/(?:(?:[^/\"]+)/)?[^/\"]+)\"?");
 	public final static Pattern splitOnCommas = Pattern.compile(",");
 	public static final Pattern	matchSegmentName	= Pattern.compile("([^/]+)$");
 
 	/** Set this to false and all debug logging is turned off */
-	public static final boolean DEBUG_MODE = true;
+	public static final boolean DEBUG_MODE = false;
 
 	/** How much stuff to spit out into the logs */
 	public static final boolean LOG_VERBOSE = false && DEBUG_MODE;		//Very verbose play by play execution information
-	public static final boolean LOG_DEBUG = true && DEBUG_MODE;			//Information relevant to debugging tasks.
+	public static final boolean LOG_DEBUG = false && DEBUG_MODE;			//Information relevant to debugging tasks.
 	public static final boolean DEBUG_SETTINGS = true && DEBUG_MODE;	// Does the debugging menu appear in Settings
 
 	/** Since Andrew's device won't display logs at DEBUG level he needs a way to fake that! */

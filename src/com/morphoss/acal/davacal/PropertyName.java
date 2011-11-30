@@ -4,9 +4,18 @@ public enum PropertyName {
 	UID, DTSTAMP, CREATED, LAST_MODIFIED, DTSTART, DTEND, DUE, DURATION, LOCATION, SUMMARY,
 	DESCRIPTION, RRULE, RDATE, EXDATE, PERCENT_COMPLETE, COMPLETED, STATUS, TRIGGER, ACTION,
 	RECURRENCE_ID, INVALID;
+
+	private String arbitraryName = null;
 	
 	public String toString() {
+		if ( arbitraryName != null ) return arbitraryName;
 		return super.toString().replace('_', '-');
+	}
+
+	public static PropertyName arbitrary( String name ) {
+		PropertyName p = INVALID;
+		INVALID.arbitraryName = name;
+		return p;
 	}
 
 	/**
