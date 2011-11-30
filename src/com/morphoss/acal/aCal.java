@@ -19,9 +19,12 @@
 package com.morphoss.acal;
 
 import android.app.Activity;
+import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.text.format.DateFormat;
@@ -29,6 +32,7 @@ import android.text.format.DateFormat;
 import com.morphoss.acal.activity.AcalActivity;
 import com.morphoss.acal.activity.MonthView;
 import com.morphoss.acal.activity.ShowUpgradeChanges;
+import com.morphoss.acal.desktop.ShowUpcomingWidgetProvider;
 import com.morphoss.acal.service.aCalService;
 import com.morphoss.acal.weekview.WeekViewActivity;
 
@@ -38,7 +42,7 @@ public class aCal extends AcalActivity {
 
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
+		
 		// make sure aCalService is running
 		Intent serviceIntent = new Intent(this, aCalService.class);
 		serviceIntent.putExtra("UISTARTED", System.currentTimeMillis());
