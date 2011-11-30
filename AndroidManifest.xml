@@ -7,7 +7,7 @@
 		android:minSdkVersion="4"
 		android:targetSdkVersion="7" />
 	<application
-		android:debuggable="true"
+		android:debuggable="false"
 		android:description="@string/appDescription"
 		android:icon="@drawable/icon"
 		android:label="@string/appName"
