@@ -64,7 +64,8 @@ public class EventCache {
 	
 	//Converts a datetime to a day hash
 	static private int getDateHash(AcalDateTime day) {
-		day.applyLocalTimeZone();
+		AcalDateTime d = day.clone();
+		d.applyLocalTimeZone();
 		return SimpleAcalEvent.getDateHash( day.getMonthDay(), day.getMonth(), day.getYear() );
 	}
 	
@@ -85,7 +86,8 @@ public class EventCache {
 		ensureSize();
 
 		// We get a month at a time, since RRule calculations are more efficient over longer periods
-		AcalDateTime workingStart = day.clone().applyLocalTimeZone().setDaySecond(0);
+		AcalDateTime workingStart = day.clone();
+		workingStart.applyLocalTimeZone().setDaySecond(0);
 		workingStart.setMonthDay(1);
 		AcalDateTime workingEnd = workingStart.clone().addMonths(1);
 		AcalDateRange rangeToFetch = new AcalDateRange(workingStart, workingEnd);
@@ -98,7 +100,6 @@ public class EventCache {
 			List<AcalEvent> sourceEvents = dataRequest.getEventsForDateRange(rangeToFetch);
 			ArrayList<SimpleAcalEvent> result = new ArrayList<SimpleAcalEvent>(sourceEvents.size());
 			for (AcalEvent se : sourceEvents) {
-				se.getStart().applyLocalTimeZone();
 				result.add( SimpleAcalEvent.getSimpleEvent(se));
 			}
 			
@@ -191,8 +192,10 @@ public class EventCache {
 	
 	/** Methods required by month view */
 	public synchronized ArrayList<SimpleAcalEvent> getEventsForDays(AcalDateRange range, DataRequest dr) {
-		AcalDateTime current = range.start.applyLocalTimeZone().clone().setDaySecond(0);
-		AcalDateTime end = range.end.applyLocalTimeZone().clone().setDaySecond(0).addDays(1);
+		AcalDateTime current = range.start.clone();
+		current.applyLocalTimeZone().setDaySecond(0);
+		AcalDateTime end = range.end.clone();
+		end.applyLocalTimeZone().setDaySecond(0).addDays(1);
 
 		ArrayList<SimpleAcalEvent> ret = new ArrayList<SimpleAcalEvent>();
 		while ( current.before(end) ) {
