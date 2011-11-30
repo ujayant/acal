@@ -622,6 +622,7 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 		if ( newDay < 1 || newDay > 31 ) throw new IllegalArgumentException("Day must be from 1 to 31");
 		if ( newDay > monthDays(year,month) ) newDay = monthDays(year,month);
 		if ( year == YEAR_NOT_SET ) calculateDateTime();
+		year = (short) newYear;
 		month = (short) newMonth;
 		day = (short) newDay;
 		epoch = EPOCH_NOT_SET;
