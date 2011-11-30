@@ -1031,8 +1031,10 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	 */
 	public synchronized AcalDateTime applyLocalTimeZone() {
 		String newTimeZone = TimeZone.getDefault().getID();
-		if ( Constants.LOG_VERBOSE && Constants.debugDateTime )
-			Log.v(TAG,"Applying local ("+newTimeZone+") to date which is "+(tzName==null?"floating":tzName));
+//		if ( Constants.LOG_VERBOSE && isFloating() ) { // && Constants.debugDateTime )
+//			Log.println(Constants.LOGV,TAG,"Applying local ("+newTimeZone+") to date which is "+(tzName==null?"floating":tzName));
+//			Log.w(TAG,Log.getStackTraceString(new Exception("convert from floating.")));
+//		}
 		if ( isFloating() )
 			return setTimeZone(newTimeZone);
 		else
@@ -1502,11 +1504,11 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 				Log.e(TAG, Log.getStackTraceString(e));
 				c = new AcalDateTime();
 				c.year = year;
-				c.month = month;
-				c.day = (day < 0 ? 1: day);
-				c.hour = hour;
-				c.minute = minute;
-				c.second = second;
+				c.month = (month < 1 ? 1 : (month > 12 ? 12 : month));
+				c.day = (short) (day < 1 ? 1 : (day > monthDays(year,month) ? monthDays(year,month) : day));
+				c.hour = (hour < 0 ? 0 : (hour > 23 ? 23 : hour));
+				c.minute = (minute < 0 ? 0 : (minute > 59 ? 59 : minute));
+				c.second = (second < 0 ? 0 : (second > 59 ? 59 : second));
 			}
 		}
 		
