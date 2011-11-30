@@ -44,6 +44,7 @@ import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDateTimeFormatter;
 
 /**
+ * A dialog for selecting a date, with a time and a timezone (or perhaps floating, or just as a date)
  * @author Morphoss Ltd
  */
 
@@ -74,11 +75,21 @@ public class DateTimeDialog extends Dialog
 	private final boolean allowTimeZoneSetting;
 	private SharedPreferences	prefs;
 
+	/**
+	 * A dialog for selecting a date, with a time and a timezone (or perhaps floating, or just as a date)
+	 * @param context A UIcontext.
+	 * @param dateTimeValue The initial setting
+	 * @param twentyFourHourTime Whether to use am/pm or 24hour time
+	 * @param allowDateTimeSwitching Whether the user can control whether this is a pure date.
+	 * @param allowTimeZones Whether the user can select a time zone.
+	 * @param listener The listener for the result.
+	 */
 	public DateTimeDialog(Context context, AcalDateTime dateTimeValue, boolean twentyFourHourTime,
 			boolean allowDateTimeSwitching, boolean allowTimeZones, DateTimeSetListener listener )  {
     	super(context);
     	this.context = context;
         this.dialogListener = listener;
+
         use24HourTime = twentyFourHourTime;
         setContentView(R.layout.datetime_dialog);
         allowDateVsDateTimeSwitching = allowDateTimeSwitching;
@@ -114,6 +125,7 @@ public class DateTimeDialog extends Dialog
         timePicker.setCurrentHour((int) currentDateTime.getHour());
         timePicker.setCurrentMinute((int) currentDateTime.getMinute());
         timePicker.setOnTimeChangedListener(this);
+        timePicker.setAddStatesFromChildren(true);
 
         dateOnlyCheckBox = (CheckBox) this.findViewById(R.id.DateTimeIsDate);
 
@@ -158,10 +170,12 @@ public class DateTimeDialog extends Dialog
 		updateLayout();
 	}
 
-	
 	@Override
 	public void onClick(View v) {
 		if (v == setButton) {
+
+			fixFocusAndApply();
+			
 			dialogListener.onDateTimeSet(currentDateTime);
 
 			if ( !currentDateTime.isFloating() ) {
@@ -201,6 +215,17 @@ public class DateTimeDialog extends Dialog
     }
 
 
+	private void fixFocusAndApply() {
+		// force the datepicker & timepicker to lose focus and the typed value is available !
+		timePicker.clearFocus();
+
+		// re-read the values, in my case they are now changed
+		currentDateTime.setHour(timePicker.getCurrentHour());
+		currentDateTime.setMinute(timePicker.getCurrentMinute());
+
+		datePicker.clearFocus();
+		currentDateTime.setYearMonthDay(datePicker.getYear(), datePicker.getMonth()+1, datePicker.getDayOfMonth());
+	}
 
 
 	@Override
@@ -216,4 +241,6 @@ public class DateTimeDialog extends Dialog
 		currentDateTime.setYearMonthDay(year, monthOfYear+1, dayOfMonth);
 		updateLayout();
 	}
+
+
 }
