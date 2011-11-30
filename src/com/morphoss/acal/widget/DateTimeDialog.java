@@ -182,10 +182,10 @@ public class DateTimeDialog extends Dialog
 				String currentZone = currentDateTime.getTimeZoneId();
 				Editor e = prefs.edit();
 				e.putString(TZPREFNAME+0, currentZone);
-				for( int i=0; i<recentZones.size() && i<9; i++) {
-					if ( recentZones.get(i).equals(currentZone) ) recentZones.remove(i);
-					if ( i<recentZones.size() ) {
-						e.putString(TZPREFNAME+i, recentZones.get(i));
+				for( int i=0,j=1; i<recentZones.size() && j<10; i++) {
+					if ( !recentZones.get(i).equals(currentZone) ) {
+						e.putString(TZPREFNAME+j, recentZones.get(i));
+						j++;
 					}
 				}
 				e.commit();
