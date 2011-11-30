@@ -184,17 +184,17 @@ public class MonthAdapter extends BaseAdapter {
 		//What day of the month are we?
 		if (position < offset) {
 			//previous month
-			bDate = (AcalDateTime)this.prevMonth.clone();
-			bDate.set(AcalDateTime.DAY_OF_MONTH, this.daysInLastMonth-((offset-1)-position)); 
-		} else if (position > offset+this.daysInThisMonth-1) {
+			bDate = prevMonth.clone();
+			bDate.setMonthDay(this.daysInLastMonth - ((offset-1)-position) ); 
+		} else if (position >= offset+this.daysInThisMonth) {
 			//next month
-			bDate = (AcalDateTime)this.nextMonth.clone();
-			bDate.set(AcalDateTime.DAY_OF_MONTH,  (position+1) - (offset+this.daysInThisMonth));
+			bDate = nextMonth.clone();
+			bDate.setMonthDay( (position+1) - (offset+this.daysInThisMonth));
 		} else {
 			//this month
 			inMonth = true;
-			bDate = (AcalDateTime) displayDate.clone();
-			bDate.set(AcalDateTime.DAY_OF_MONTH, position-offset+1);
+			bDate = displayDate.clone();
+			bDate.setMonthDay(position-offset+1);
 		}
 		LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		View v = (View) inflater.inflate(R.layout.month_view_assets, null);
@@ -203,7 +203,7 @@ public class MonthAdapter extends BaseAdapter {
 		float textScaleFactor = 0.0f;
 	
 		if ( inMonth ) {
-			if ( bDate.get(AcalDateTime.DAY_OF_YEAR) == this.selectedDate.get(AcalDateTime.DAY_OF_YEAR) && this.selectedDate.getYear() == this.displayDate.getYear() ) {
+			if ( bDate.getYearDay() == selectedDate.getYearDay() && bDate.getYear() == selectedDate.getYear() ) {
 				mDayBox = (MonthDayBox) v.findViewById(R.id.DayBoxHighlightDay);
 				textScaleFactor = 0.6f;
 				mDayBox.setSelected();
@@ -222,8 +222,7 @@ public class MonthAdapter extends BaseAdapter {
 			}
 			mDayBox.setEvents(context.getEventsForDay(bDate));
 		}
-		else if   ((bDate.get(AcalDateTime.DAY_OF_YEAR) == this.selectedDate.get(AcalDateTime.DAY_OF_YEAR))&&
-				(bDate.get(AcalDateTime.YEAR) == this.selectedDate.get(AcalDateTime.YEAR))) {
+		else if ( bDate.getYearDay() == selectedDate.getYearDay() && bDate.getYear() == selectedDate.getYear() ) {
 			mDayBox = (MonthDayBox) v.findViewById(R.id.DayBoxOutMonthHighlighted);
 			textScaleFactor = 0.55f;
 			mDayBox.setSelected();
