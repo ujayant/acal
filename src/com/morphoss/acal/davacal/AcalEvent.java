@@ -141,13 +141,15 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 			return null;
 		}
 
-		//  This bit of mucking around preserves any timezones
+		//  This bit of mucking around preserves any timezone we got from the database
 		AcalDateTime eventStart = event.getStart();
 		AcalDateTime eventEnd = event.getEnd();
-		if ( dtStart != null && !dtStart.equals(eventStart) ) {
-			AcalDuration delta = eventStart.getDurationTo(dtStart);
-			eventStart.addDuration(delta);
-			eventEnd.addDuration(delta);
+		if ( dtStart != null ) {
+			if ( ! dtStart.equals(eventStart) ) {
+				long delta =  dtStart.getEpoch() - eventStart.getEpoch();
+				eventStart.addSeconds(delta);
+				eventEnd.addSeconds(delta);
+			}
 		}
 		return new AcalEvent( (VEvent) event, eventStart, eventEnd, false );
 	}
@@ -279,7 +281,7 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 	}
 
 	public AcalDateTime getEnd() {
-		return this.dtend;
+		return this.dtend.clone();
 	}
 	
 	public AcalDuration getDuration() {
@@ -337,14 +339,22 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 	}
 
 	public AcalDateTime getStart() {
-		return this.dtstart;
+		return this.dtstart.clone();
+	}
+
+	public AcalDateTime getLocalStart() {
+		return this.getStart().applyLocalTimeZone();
+	}
+
+	public AcalDateTime getLocalEnd() {
+		AcalDateTime finish = getEnd();
+		if ( finish != null ) finish.applyLocalTimeZone();
+		return finish;
 	}
 
 	public String getTimeText(AcalDateTime viewDateStart, AcalDateTime viewDateEnd, boolean as24HourTime ) {
-		AcalDateTime start = this.getStart();
-		start.applyLocalTimeZone();
-		AcalDateTime finish = this.getEnd();
-		if ( finish != null ) finish.applyLocalTimeZone();
+		AcalDateTime start = this.getLocalStart();
+		AcalDateTime finish = this.getLocalEnd();
 		String timeText = "";
 		String timeFormatString = (as24HourTime ? "HH:mm" : "hh:mmaa");
 		SimpleDateFormat timeFormatter = new SimpleDateFormat(timeFormatString);
@@ -459,43 +469,4 @@ public class AcalEvent implements Serializable, Parcelable, Comparable<AcalEvent
 		this(vEvent, dtstart, dtstart.clone().addDuration(duration), isPending);
 	}
 
-
-	/**	
-	private AcalEvent(AcalDateTime dtstart,	AcalDuration duration, String summary,
-						String description, String location, 
-						String repetition, int colour, boolean hasAlarms,
-						int resourceId, List<AcalAlarm> alarmList, String originalBlob, int collectionId) {
-		this.dtstart = dtstart;
-		this.duration = duration;
-		this.summary = summary;
-		this.description = description;
-		this.location = location;
-		this.repetition = repetition;
-		this.colour = colour;
-		this.hasAlarms = hasAlarms;
-		this.resourceId = resourceId;
-		this.alarmList.addAll(alarmList);
-		this.originalBlob = originalBlob;
-		this.collection = collectionId;
-		
-	}
-
-	public static AcalEvent emptyEvent() {
-
-		return new AcalEvent(
-					null,
-					null,
-					null,
-					null,
-					null,
-					null,
-					0,
-					false,
-					-1,
-					new ArrayList<AcalAlarm>(),
-					null,
-					-1
-				);
-	}
-	*/
 }
