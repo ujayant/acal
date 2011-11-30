@@ -19,6 +19,7 @@ package com.morphoss.acal.davacal;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -132,20 +133,22 @@ public class SimpleAcalEvent implements Parcelable, Comparable<SimpleAcalEvent> 
 	public static SimpleAcalEvent getSimpleEvent(AcalEvent event) {
 		if ( event == null ) return null;
 		AcalDateTime start = event.getStart();
-//		if ( Constants.LOG_VERBOSE 
-//			Log.v(TAG,"AcalEvent at " + start + " to " + event.getEnd() + " for: " + event.summary );
+		String zoneId = start.getTimeZoneId();
 
+		// (a) is a date
+		// (b) is floating, with a duration of exact number of days
+		// (c) duration includes a whole midnight to midnight period in the local timezone
 		boolean allDayEvent = start.isDate()
 						||	(start.isFloating() && event.getDuration().getTimeMillis() == 0
 																	&& event.getDuration().getDays() > 0)
-						|| (event.getEnd().after(event.getStart().clone().addDays(2).applyLocalTimeZone().setDaySecond(0)) );
+						|| (event.getEnd().after(event.getLocalStart().setDaySecond(0).addDays(2)) );
 
 		start.applyLocalTimeZone();
 		long finish = event.getEnd().applyLocalTimeZone().getEpoch();
 		return new SimpleAcalEvent(start.getEpoch(), finish, event.getResourceId(), event.getSummary(),
 					event.getLocation(), event.getColour(), 
 					event.hasAlarms(), event.getRepetition().length() > 0, allDayEvent, event.isPending,
-					event.getAlarmEnabled(), start.getTimeZoneId());
+					event.getAlarmEnabled(), zoneId);
 	}
 
 	
@@ -164,9 +167,8 @@ public class SimpleAcalEvent implements Parcelable, Comparable<SimpleAcalEvent> 
 		boolean allDayEvent = startDate.isDate();
 		boolean floating = startDate.isFloating();
 		timezoneId = startDate.getTimeZoneId();
-		startDate.applyLocalTimeZone();
+		start = startDate.applyLocalTimeZone().getEpoch();
 		startDateHash = getDateHash( startDate.getMonthDay(), startDate.getMonth(), startDate.getYear() );
-		start = startDate.getEpoch();
 		
 		long en = start - 1; // illegal value to test for...
 		if ( endDate != null )
@@ -185,8 +187,9 @@ public class SimpleAcalEvent implements Parcelable, Comparable<SimpleAcalEvent> 
 		}
 		end = en;
 		endDateHash = getDateHash(end);
+		long duration = end - start;
 
-		if ( floating && !allDayEvent && (en - start) > 0 && ((en - start) % AcalDateTime.SECONDS_IN_DAY ) == 0 ) 
+		if ( floating && !allDayEvent && duration > 0 && (duration % AcalDateTime.SECONDS_IN_DAY ) == 0 )
 			allDayEvent = true;
 
 		isAllDay = allDayEvent;
@@ -385,7 +388,21 @@ public class SimpleAcalEvent implements Parcelable, Comparable<SimpleAcalEvent> 
 	};
 
 	public AcalEvent getAcalEvent(Context c) {
-		AcalDateTime dtStart = new AcalDateTime().setTimeZone(timezoneId).setEpoch(start);
+		AcalDateTime dtStart = new AcalDateTime();
+		dtStart.setEpoch(start);
+		if ( timezoneId == null ) {
+			/**
+			 * When a SimpleAcalEvent is created, a floating time will get the epoch value for
+			 * the clock time at the current time zone.  This means that to reverse that we have
+			 * to set the epoch, keep that constant and shift to the local time zone, then keep
+			 * the clock time constant and strip the zone to make it floating again.
+			 */
+			dtStart.shiftTimeZone(TimeZone.getDefault().getID()); // Make it a local time
+			dtStart.setTimeZone(null);					          // Make it floating
+		}
+		else
+			dtStart.shiftTimeZone(timezoneId);
+
 		return AcalEvent.fromDatabase(c, resourceId, dtStart );
 	}
 	
