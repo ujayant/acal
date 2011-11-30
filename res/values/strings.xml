@@ -299,4 +299,5 @@
 	<string name="aCal_is_Free_Software">aCal is "Free Software" (that\'s "free" as in "freedom") which is licensed under the General Public License v3 or later.  You can download &lt;a href="http://gitorious.org/acal">the source code for aCal from Gitorious&lt;/a></string>
 	<string name="TaskMarkedComplete">Task marked as completed.</string>
 	<string name="TaskDeleted">Task was deleted.</string>
+	<string name="end">end</string>
 </resources>

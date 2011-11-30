@@ -3,6 +3,7 @@ package com.morphoss.acal.desktop;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.TimeZone;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -16,7 +17,6 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
-import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -37,7 +37,7 @@ public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 	
 	public static final String TAG = "acal ShowUpcomingWidgetProvider";
 	
-	public static final int NUMBER_OF_EVENTS_TO_SHOW = 3;
+	public static final int NUMBER_OF_EVENTS_TO_SHOW = 4;
 	public static final int NUM_DAYS_TO_LOOK_AHEAD = 7;
 	
 	public static final String TABLE = "show_upcoming_widget_data";
@@ -91,8 +91,8 @@ public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 			for (int  i = 0; i<NUMBER_OF_EVENTS_TO_SHOW; i++) {
 				if (cvs[i] != null) {
 					if (Constants.LOG_VERBOSE) Log.v(TAG, "Processing event "+i);
-					AcalDateTime dtstart = AcalDateTime.fromMillis(cvs[i].getAsLong(FIELD_DTSTART)).applyLocalTimeZone();
-					AcalDateTime dtend = AcalDateTime.fromMillis(cvs[i].getAsLong(FIELD_DTEND)).applyLocalTimeZone();
+					AcalDateTime dtstart = AcalDateTime.fromMillis(cvs[i].getAsLong(FIELD_DTSTART)).shiftTimeZone(TimeZone.getDefault().getID());
+					AcalDateTime dtend = AcalDateTime.fromMillis(cvs[i].getAsLong(FIELD_DTEND)).shiftTimeZone(TimeZone.getDefault().getID());
 					int rid = cvs[i].getAsInteger(FIELD_RESOURCE_ID);
 					
 					//set up on click intent
@@ -106,8 +106,12 @@ public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 
 					LayoutInflater lf = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 					ShowUpcomingRowLayout rowLayout = (ShowUpcomingRowLayout)lf.inflate(R.layout.show_upcoming_widget_custom_row, null);
-				
-					row.setImageViewBitmap(R.id.upcoming_row_image, rowLayout.setData(cvs[i], getNiceDate(context,dtstart), getNiceTime(context,dtstart,dtend,prefer24Hour)));
+
+					String dateTimeText = getNiceDate(context,dtstart);
+					if ( !dateTimeText.equals("") ) {
+						dateTimeText = getNiceTime(context,dtstart,dtend,prefer24Hour) + " ("+dateTimeText+")";
+					}
+					row.setImageViewBitmap(R.id.upcoming_row_image, rowLayout.setData(cvs[i], dateTimeText ));
 					row.setOnClickPendingIntent(R.id.upcoming_row, onClickIntent);
 					row.setOnClickPendingIntent(R.id.upcoming_row_image, onClickIntent);
 					
@@ -314,20 +318,20 @@ public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 	
 	public String getNiceDate(Context context, AcalDateTime dateTime) {
 		AcalDateTime now = new AcalDateTime().applyLocalTimeZone();
-		if (dateTime.getMillis() <= now.getMillis()) return context.getString(R.string.ends)+":"; ///Event is occuring now
+		if (dateTime.getMillis() <= now.getMillis()) return context.getString(R.string.end); ///Event is occuring now
 		if (now.getEpochDay() == dateTime.getEpochDay()) {
-			String today = context.getString(R.string.Today);
-			return today;
+//			String today = context.getString(R.string.Today);
+			return "";
 		}
 		int dow = dateTime.getWeekDay();
 		switch (dow) {
-			case AcalDateTime.MONDAY: return context.getString(R.string.Monday);
-			case AcalDateTime.TUESDAY: return context.getString(R.string.Tuesday);
-			case AcalDateTime.WEDNESDAY: return context.getString(R.string.Wednesday);
-			case AcalDateTime.THURSDAY: return context.getString(R.string.Thursday);
-			case AcalDateTime.FRIDAY: return context.getString(R.string.Friday);
-			case AcalDateTime.SATURDAY: return context.getString(R.string.Saturday);
-			case AcalDateTime.SUNDAY: return context.getString(R.string.Sunday);
+			case AcalDateTime.MONDAY: return context.getString(R.string.Mon);
+			case AcalDateTime.TUESDAY: return context.getString(R.string.Tue);
+			case AcalDateTime.WEDNESDAY: return context.getString(R.string.Wed);
+			case AcalDateTime.THURSDAY: return context.getString(R.string.Thu);
+			case AcalDateTime.FRIDAY: return context.getString(R.string.Fri);
+			case AcalDateTime.SATURDAY: return context.getString(R.string.Sat);
+			case AcalDateTime.SUNDAY: return context.getString(R.string.Sun);
 		}
 		
 		//Shouldn't really be able to get here - note localisation settings don't seem to work properly.
