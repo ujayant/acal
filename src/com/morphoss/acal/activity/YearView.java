@@ -31,6 +31,7 @@ import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.widget.Button;
 
+import com.morphoss.acal.AcalTheme;
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.views.CustomYearDrawable;
@@ -104,14 +105,15 @@ public class YearView extends AcalActivity implements OnGestureListener, OnTouch
 	 * </p>
 	 */
 	private void setupButton(int id, int val) {
-		Button today = (Button) this.findViewById(id);
-		if (today == null) {
+		Button myButton = (Button) this.findViewById(id);
+		if (myButton == null) {
 			Log.e(TAG, "Cannot find button '" + id + "' by ID, to set value '"
 					+ val + "'");
 			Log.i(TAG, Log.getStackTraceString(new Exception()));
 		} else {
-			today.setOnClickListener(this);
-			today.setTag(val);
+			myButton.setOnClickListener(this);
+			myButton.setTag(val);
+			AcalTheme.setContainerFromTheme(myButton, AcalTheme.BUTTON);
 		}
 	}
 	
