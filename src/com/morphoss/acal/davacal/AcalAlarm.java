@@ -27,6 +27,8 @@ import android.util.Log;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDuration;
+import com.morphoss.acal.dataservice.DUMMYEventInstance;
+import com.morphoss.acal.dataservice.EventInstance;
 
 public class AcalAlarm implements Serializable, Parcelable, Comparable<AcalAlarm> {
 	private static final long	serialVersionUID	= 1L;
@@ -40,7 +42,7 @@ public class AcalAlarm implements Serializable, Parcelable, Comparable<AcalAlarm
 	public boolean isSnooze = false;
 	public AcalDateTime snoozeTime = null;
 	public boolean hasEventAssociated = false;
-	public AcalEvent myEvent = null;
+	public EventInstance myEvent = null;
 
 	
 	public String toString() {
@@ -253,7 +255,8 @@ public class AcalAlarm implements Serializable, Parcelable, Comparable<AcalAlarm
 		}
 		hasEventAssociated = (in.readByte() == 'T');
 		if (hasEventAssociated) {
-			myEvent = new AcalEvent(in);
+			//myEvent = new AcalEvent(in);
+			myEvent = DUMMYEventInstance.getIntance(in);
 		}
 		actionType = ActionType.fromString(in.readString());
 	}
@@ -292,12 +295,12 @@ public class AcalAlarm implements Serializable, Parcelable, Comparable<AcalAlarm
 		this.snoozeTime = AcalDateTime.addDuration(new AcalDateTime(), howLong);
 	}
 	
-	public void setEvent(AcalEvent e) {
+	public void setEvent(EventInstance e) {
 		this.hasEventAssociated = true;
 		this.myEvent = e;
 	}
 	
-	public AcalEvent getEvent() {
+	public EventInstance getEvent() {
 		return this.myEvent;
 	}
 	

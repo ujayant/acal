@@ -48,10 +48,9 @@ import android.widget.TextView;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateTime;
-import com.morphoss.acal.dataservice.CalendarDataService;
-import com.morphoss.acal.dataservice.DataRequest;
+import com.morphoss.acal.dataservice.EventInstance;
+import com.morphoss.acal.dataservice.MethodsRequired;
 import com.morphoss.acal.davacal.AcalAlarm;
-import com.morphoss.acal.davacal.AcalEvent;
 
 /**
  * 
@@ -105,7 +104,7 @@ public class AlarmActivity extends AcalActivity implements OnClickListener  {
 	private SharedPreferences prefs;
 	private AcalAlarm currentAlarm;
 	private PowerManager.WakeLock wl;
-	private DataRequest dataRequest;
+	private MethodsRequired dataRequest = new MethodsRequired();
 
 	/** These values are not defined until Android 2.0 or later, so we have
 	 * to define them ourselves.  They won't work unless you're on a 2.x or
@@ -190,13 +189,6 @@ public class AlarmActivity extends AcalActivity implements OnClickListener  {
 	}
 
 	@Override
-	public void onResume() {
-		super.onResume();
-		if (!this.shortPausing)
-			connectToService();
-	}
-
-	@Override
 	public void onClick(View clickedThing) {
 		if ( clickedThing == mapButton ) {
 			if ( Constants.LOG_DEBUG ) Log.d(TAG, "Starting Map");
@@ -210,28 +202,13 @@ public class AlarmActivity extends AcalActivity implements OnClickListener  {
 		}
 		if ( clickedThing == snoozeButton ) {
 			if ( Constants.LOG_DEBUG ) Log.d(TAG, "Snoozing Alarm");
-			try {
-				if ( dataRequest == null ) connectToService();
 				this.dataRequest.snoozeAlarm(currentAlarm);
-			}
-			catch ( Exception e ) {
-				Log.e(TAG, "ERROR: Can't snooze alarm!", e);
-			}
 		}
 		if ( clickedThing == dismissButton ) {
 			if ( Constants.LOG_DEBUG ) Log.d(TAG, "Dismissing alarm.");
-			try {
-				if ( dataRequest == null ) connectToService();
 				this.dataRequest.dismissAlarm(currentAlarm);
-			}
-			catch ( Exception e ) {
-				Log.e(TAG, "ERROR: Can't dismiss alarm!" + e, e);
-			}
-
 		}
-		if ( dataRequest == null ) connectToService();
-		else
-			this.showNextAlarm();
+		this.showNextAlarm();
 	}
 
 	//We have been closed for some reason. Give up on any remaining alarms and notify cds of last triggered.
@@ -247,18 +224,8 @@ public class AlarmActivity extends AcalActivity implements OnClickListener  {
 		}
 		vibrator.cancel();
 
-		try {
-			if (!shortPausing)
-				this.unbindService(mConnection);
-			else
-				shortPausing = false;
-		}
-		catch (IllegalArgumentException e) { }
-		finally {
-			dataRequest = null;
-			
-		}
-
+		if (shortPausing)
+			shortPausing = false;
 		if (wl.isHeld()) wl.release();
 	}
 
@@ -272,20 +239,14 @@ public class AlarmActivity extends AcalActivity implements OnClickListener  {
 	 */
 	private void showNextAlarm() {
 		if (Constants.LOG_DEBUG) Log.d(TAG, "Showing next alarm....");
-		try {
-			this.currentAlarm = dataRequest.getCurrentAlarm();
-			if (this.currentAlarm == null) {
-				if (Constants.LOG_DEBUG)Log.d(TAG,"Next alarm is null. Finishing");
-				mNotificationManager.cancelAll();
-				finish();
-				return;
-			}
-			this.updateAlarmView();
+		this.currentAlarm = dataRequest.getCurrentAlarm();
+		if (this.currentAlarm == null) {
+			if (Constants.LOG_DEBUG)Log.d(TAG,"Next alarm is null. Finishing");
+			mNotificationManager.cancelAll();
+			finish();
+			return;
 		}
-		catch (RemoteException e) {
-			Log.e(TAG, " Error retrieving alarm data from dataRequest.", e);
-			this.finish();
-		}
+		this.updateAlarmView();
 	}
 
 	/**
@@ -301,7 +262,7 @@ public class AlarmActivity extends AcalActivity implements OnClickListener  {
 			header.setText((now.getHour())+":"+min);
 			title.setText(currentAlarm.description);
 			createNotification(currentAlarm.description);
-			AcalEvent event = currentAlarm.getEvent();
+			EventInstance event = currentAlarm.getEvent();
 			if (event == null)
 				throw new IllegalStateException("Alarms passed to AlarmActivity MUST have an associated event");
 			location.setText(event.getLocation());
@@ -502,28 +463,4 @@ public class AlarmActivity extends AcalActivity implements OnClickListener  {
 	private synchronized void serviceIsDisconnected() {
 		this.dataRequest = null;
 	}
-
-	private void connectToService() {
-		try {
-			Intent intent = new Intent(this, CalendarDataService.class);
-			this.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-		} catch (Exception e) {
-			Log.e(TAG, "Error connecting to service: "+e.getMessage(), e);
-		}
-	}
-
-	private ServiceConnection mConnection = new ServiceConnection() {
-		public void onServiceConnected(ComponentName className, IBinder service) {
-			// This is called when the connection with the service has been
-			// established, giving us the service object we can use to
-			// interact with the service.  We are communicating with our
-			// service through an IDL interface, so get a client-side
-			// representation of that from the raw service object.
-			dataRequest = DataRequest.Stub.asInterface(service);
-			serviceIsConnected();
-		}
-		public void onServiceDisconnected(ComponentName className) {
-			serviceIsDisconnected();
-		}
-	};
 }

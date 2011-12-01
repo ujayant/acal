@@ -30,8 +30,9 @@ import java.util.regex.Pattern;
 import android.util.Log;
 
 import com.morphoss.acal.Constants;
+import com.morphoss.acal.dataservice.DUMMYEventInstance;
+import com.morphoss.acal.dataservice.EventInstance;
 import com.morphoss.acal.davacal.AcalAlarm;
-import com.morphoss.acal.davacal.AcalEvent;
 import com.morphoss.acal.davacal.AcalProperty;
 import com.morphoss.acal.davacal.Masterable;
 import com.morphoss.acal.davacal.PropertyName;
@@ -57,7 +58,7 @@ public class AcalRepeatRule {
 	private int							exDatePos			= -1;
 
 	private List<AcalDateTime>			recurrences			= null;
-	private Map<Long, EventInstance>	eventTimes			= null;
+	private Map<Long, LocalEventInstance>	eventTimes			= null;
 	private int							lastCalc			= -1;
 	private int							currentPos			= -1;
 	private boolean						finished			= false;
@@ -86,7 +87,7 @@ public class AcalRepeatRule {
 		}
 		else
 			repeatRule = AcalRepeatRuleParser.parseRepeatRule(rRule);
-		eventTimes = new HashMap<Long,EventInstance>();
+		eventTimes = new HashMap<Long,LocalEventInstance>();
 	}
 
 	public AcalRepeatRule(AcalProperty dtStart, AcalProperty rRule) {
@@ -383,7 +384,7 @@ public class AcalRepeatRule {
 				sourceVCalendar.setPersistentOn();
 				RecurrenceId ourRecurrenceId = (RecurrenceId) AcalProperty.fromString(endDate.toPropertyString(PropertyName.RECURRENCE_ID));
 				Masterable vMaster = sourceVCalendar.getChildFromRecurrenceId(ourRecurrenceId);
-				EventInstance instance = getRecurrence(endDate,vMaster);
+				LocalEventInstance instance = getRecurrence(endDate,vMaster);
 				eventTimes.put(endDate.getEpoch(), instance );
 				endDate = instance.dtend;
 			}
@@ -402,10 +403,10 @@ public class AcalRepeatRule {
 
 	//TODO dirty hack to get alarms in range.
 	public void appendAlarmInstancesBetween(List<AcalAlarm> alarmList, AcalDateRange range) {
-		List<AcalEvent> events = new ArrayList<AcalEvent>();
+		List<EventInstance> events = new ArrayList<EventInstance>();
 		if ( this.sourceVCalendar.hasAlarm() && this.sourceVCalendar.appendEventInstancesBetween(events, range, false) ) {
 			if ( Constants.debugAlarms ) Log.v(TAG,"Event has alarms");
-			for( AcalEvent event : events ) {
+			for( EventInstance event : events ) {
 				for (AcalAlarm alarm : event.getAlarms()) {
 					alarm.setToLocalTime();
 					if ( Constants.debugAlarms && Constants.LOG_VERBOSE )
@@ -422,7 +423,7 @@ public class AcalRepeatRule {
 	}
 
 	
-	public void appendEventsInstancesBetween(List<AcalEvent> eventList, AcalDateRange range) {
+	public void appendEventsInstancesBetween(List<EventInstance> eventList, AcalDateRange range) {
 		if ( range.start == null || range.end == null || eventList == null ) return;
 
 		Masterable thisEvent = sourceVCalendar.getMasterChild();
@@ -446,7 +447,7 @@ public class AcalRepeatRule {
 		int found = 0;
 		long processingStarted = System.currentTimeMillis();
 		AcalDateTime thisDate = null;
-		EventInstance instance = null;
+		LocalEventInstance instance = null;
 		Masterable ourVEvent = null;
 		int possiblyInfinite = 0;
 		try {
@@ -513,7 +514,7 @@ public class AcalRepeatRule {
 			if ( found > 0 ) {
 				Log.d(TAG, "Found "+found+" instances in "+ range.toString());
 				for( int i=0; i<found; i++ ) {
-					AcalEvent thisOne = eventList.get(i);
+					EventInstance thisOne = eventList.get(i);
 					Log.v(TAG, "["+i+"] Start: " + thisOne.getStart().fmtIcal() + ", End: " + thisOne.getEnd().fmtIcal() );
 				}
 			}
@@ -525,7 +526,7 @@ public class AcalRepeatRule {
 		this.isPending = isPending;
 	}
 
-	private EventInstance getRecurrence(AcalDateTime thisDate, Masterable ourVEvent ) {
+	private LocalEventInstance getRecurrence(AcalDateTime thisDate, Masterable ourVEvent ) {
 		AcalDateTime instanceStart = thisDate.clone();
 
 		if ( lastDuration == null ) lastDuration = baseDuration;
@@ -558,19 +559,19 @@ public class AcalRepeatRule {
 
 		lastDuration = ourDuration;
 		
-		EventInstance ret = new EventInstance(ourVEvent, instanceStart, ourDuration, isPending); 
+		LocalEventInstance ret = new LocalEventInstance(ourVEvent, instanceStart, ourDuration, isPending); 
 
 		return ret;
 	}
 
-	private class EventInstance {
+	private class LocalEventInstance {
 		final Masterable VEvent;
 		final AcalDateTime dtstart;
 		final AcalDateTime dtend;
 		final AcalDuration duration;
 		final boolean isPending;
 		
-		EventInstance( Masterable VEvent, AcalDateTime dtstart, AcalDuration duration, boolean isPending ) {
+		LocalEventInstance( Masterable VEvent, AcalDateTime dtstart, AcalDuration duration, boolean isPending ) {
 			this.VEvent = VEvent;
 			this.dtstart = dtstart;
 			this.duration = duration;
@@ -583,8 +584,9 @@ public class AcalRepeatRule {
 			this.dtend = AcalDateTime.addDuration(dtstart, duration);
 		}
 
-		AcalEvent getAcalEvent() {
-			return new AcalEvent( (VEvent) VEvent, dtstart, duration, isPending );
+		EventInstance getAcalEvent() {
+			//return new AcalEvent( (VEvent) VEvent, dtstart, duration, isPending );
+			return DUMMYEventInstance.getIntance((VEvent) VEvent, dtstart, duration, isPending );
 		}
 	}
 /*

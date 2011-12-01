@@ -35,13 +35,13 @@ import android.os.Message;
 import android.os.RemoteException;
 import android.util.Log;
 import android.view.GestureDetector;
-import android.view.GestureDetector.OnGestureListener;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.GestureDetector.OnGestureListener;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.view.animation.Animation;
@@ -55,11 +55,7 @@ import com.morphoss.acal.AcalTheme;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateTime;
-import com.morphoss.acal.dataservice.CalendarDataService;
-import com.morphoss.acal.dataservice.DataRequest;
-import com.morphoss.acal.dataservice.DataRequestCallBack;
-import com.morphoss.acal.davacal.AcalEvent;
-import com.morphoss.acal.davacal.SimpleAcalEvent;
+import com.morphoss.acal.dataservice.EventInstance;
 import com.morphoss.acal.service.aCalService;
 import com.morphoss.acal.weekview.WeekViewActivity;
 import com.morphoss.acal.widget.AcalViewFlipper;
@@ -729,10 +725,10 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 	/**
 	 * Methods for managing event structure
 	 */
-	public ArrayList<SimpleAcalEvent> getEventsForDay(AcalDateTime day) {
+	public ArrayList<EventInstance> getEventsForDay(AcalDateTime day) {
 		if (dataRequest == null) {
 			Log.w(TAG,"DataService connection not available!");
-			return new ArrayList<SimpleAcalEvent>();
+			return new ArrayList<EventInstance>();
 		}
 		try {
 			return (ArrayList<SimpleAcalEvent>) dataRequest.getEventsForDay(day);

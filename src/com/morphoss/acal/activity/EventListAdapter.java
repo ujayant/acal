@@ -24,13 +24,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.ContextMenu;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View.OnClickListener;
 import android.view.View.OnCreateContextMenuListener;
-import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -39,8 +39,7 @@ import android.widget.TextView;
 
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateTime;
-import com.morphoss.acal.davacal.AcalEvent;
-import com.morphoss.acal.davacal.SimpleAcalEvent;
+import com.morphoss.acal.dataservice.EventInstance;
 
 /**
  * <p>
@@ -69,7 +68,7 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 	public static final int CONTEXT_DELETE_FROMNOW = 0x30000;
 	public static final int CONTEXT_COPY = 0x40000;
 
-	private ArrayList<SimpleAcalEvent> dayEvents = null;
+	private ArrayList<EventInstance> dayEvents = null;
 	
 //	private SharedPreferences prefs;	
 
@@ -142,28 +141,28 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 		
 		LinearLayout sideBar = (LinearLayout) rowLayout.findViewById(R.id.EventListItemColorBar);
 
-		SimpleAcalEvent event = dayEvents.get(position);
+		EventInstance event = dayEvents.get(position);
 		if ( event == null ) return rowLayout;
 		
-		final boolean isPending = event.isPending;
+		final boolean isPending = event.isPending();
 		if (isPending) {
-			sideBar.setBackgroundColor(event.colour|0xa0000000); title.setTextColor(event.colour|0xa0000000);
+			sideBar.setBackgroundColor(event.getCollection().getColour()|0xa0000000); title.setTextColor(event.getCollection().getColour()|0xa0000000);
 			((LinearLayout) rowLayout.findViewById(R.id.EventListItemText)).setBackgroundColor(0x44000000);
 		}
 		else {
-			rowLayout.findViewById(R.id.EventListItemIcons).setBackgroundColor(event.colour);
-			sideBar.setBackgroundColor(event.colour); 
-			title.setTextColor(event.colour);
+			rowLayout.findViewById(R.id.EventListItemIcons).setBackgroundColor(event.getCollection().getColour());
+			sideBar.setBackgroundColor(event.getCollection().getColour()); 
+			title.setTextColor(event.getCollection().getColour());
 		}
 
-		title.setText((event.summary == null  || event.summary.length() <= 0 ) ? "Untitled" : event.summary);
+		title.setText((event.getSummary() == null  || event.getSummary().length() <= 0 ) ? "Untitled" : event.getSummary());
 
-		if ( event.hasAlarm ) {
+		if ( !event.getAlarms().isEmpty() ) {
 			ImageView alarmed = (ImageView) rowLayout.findViewById(R.id.EventListItemAlarmBell);
 			alarmed.setVisibility(View.VISIBLE);
-			if ( ! event.alarmEnabled ) alarmed.setBackgroundColor(0xb0ffffff);
+			if ( ! event.getCollection().alarmsEnabled() ) alarmed.setBackgroundColor(0xb0ffffff);
 		}
-		if ( event.hasRepeat ) {
+		if ( !event.isSingleInstance() ) {
 			ImageView repeating = (ImageView) rowLayout.findViewById(R.id.EventListItemRepeating);
 			repeating.setVisibility(View.VISIBLE);
 		}
@@ -172,8 +171,8 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 					MonthView.prefs.getBoolean(context.getString(R.string.prefTwelveTwentyfour), false))
 					+ (isPending ? " (saving)" : "") );
 
-		if (event.location != null && event.location.length() > 0 )
-			location.setText(event.location);
+		if (event.getLocation() != null && event.getLocation().length() > 0 )
+			location.setText(event.getLocation());
 		else
 			location.setHeight(2);
 
@@ -182,7 +181,7 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 		rowLayout.setOnClickListener(this);
 
 		// 'final' so we can refer to it below
-		final boolean repeats = event.hasRepeat;
+		final boolean repeats = ! event.isSingleInstance();
 
 		//add context menu
 		this.context.registerForContextMenu(rowLayout);
@@ -216,10 +215,10 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 	public void onClick(View arg0) {
 		if (clickEnabled) {
 			Object tag = arg0.getTag();
-			if (tag instanceof SimpleAcalEvent) {
+			if (tag instanceof EventInstance) {
 				//start event activity
 				Bundle bundle = new Bundle();
-				bundle.putParcelable("SimpleAcalEvent", (SimpleAcalEvent)tag);
+				bundle.putParcelable("EventInstance", (EventInstance)tag);
 				Intent eventViewIntent = new Intent(context, EventView.class);
 				eventViewIntent.putExtras(bundle);
 				context.startActivityForResult(eventViewIntent, MonthView.PICK_TODAY_FROM_EVENT_VIEW);
@@ -236,30 +235,30 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 			int action = id & 0xf0000;
 			id = id & 0xffff;
 
-			SimpleAcalEvent sae = (SimpleAcalEvent)this.getItem(id);
-			sae.operation = SimpleAcalEvent.EVENT_OPERATION_EDIT;
+			EventInstance sae = (EventInstance)this.getItem(id);
+			sae.setOperation(EventInstance.EVENT_OPERATION_EDIT);
 			switch( action ) {
 				case CONTEXT_COPY:
-					sae.operation = SimpleAcalEvent.EVENT_OPERATION_COPY;
+					sae.setOperation(EventInstance.EVENT_OPERATION_COPY);
 				case CONTEXT_EDIT:
 					//start EventEdit activity
 					Bundle bundle = new Bundle();
-					bundle.putParcelable("SimpleAcalEvent", sae);
+					bundle.putParcelable("EventInstance", sae);
 					Intent eventViewIntent = new Intent(context, EventEdit.class);
 					eventViewIntent.putExtras(bundle);
 					context.startActivity(eventViewIntent);
 					return true;
 				
 				case CONTEXT_DELETE_ALL:
-					this.context.deleteEvent(viewDate,id,AcalEvent.ACTION_DELETE_ALL);
+					this.context.deleteEvent(viewDate,id,EventInstance.ACTION_DELETE_ALL);
 					return true;
 
 				case CONTEXT_DELETE_JUSTTHIS:
-					this.context.deleteEvent(viewDate,id,AcalEvent.ACTION_DELETE_SINGLE);
+					this.context.deleteEvent(viewDate,id,EventInstance.ACTION_DELETE_SINGLE);
 					return true;
 
 				case CONTEXT_DELETE_FROMNOW:
-					this.context.deleteEvent(viewDate,id,AcalEvent.ACTION_DELETE_ALL_FUTURE);
+					this.context.deleteEvent(viewDate,id,EventInstance.ACTION_DELETE_ALL_FUTURE);
 					return true;
 			}
 			return false;

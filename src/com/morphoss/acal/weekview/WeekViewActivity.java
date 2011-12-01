@@ -24,7 +24,6 @@ import java.util.List;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
@@ -38,17 +37,17 @@ import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.ContextMenu;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.view.GestureDetector;
-import android.view.GestureDetector.OnGestureListener;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.Window;
+import android.view.ContextMenu.ContextMenuInfo;
+import android.view.GestureDetector.OnGestureListener;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
-import android.view.Window;
 import android.widget.Button;
 
 import com.morphoss.acal.AcalTheme;
@@ -60,10 +59,8 @@ import com.morphoss.acal.activity.EventEdit;
 import com.morphoss.acal.activity.EventView;
 import com.morphoss.acal.activity.MonthView;
 import com.morphoss.acal.activity.YearView;
-import com.morphoss.acal.dataservice.CalendarDataService;
-import com.morphoss.acal.dataservice.DataRequest;
-import com.morphoss.acal.dataservice.DataRequestCallBack;
-import com.morphoss.acal.davacal.SimpleAcalEvent;
+import com.morphoss.acal.dataservice.EventInstance;
+import com.morphoss.acal.dataservice.MethodsRequired;
 import com.morphoss.acal.widget.NumberPickerDialog;
 import com.morphoss.acal.widget.NumberSelectedListener;
 
@@ -133,7 +130,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	private AcalDateTime selectedDate = new AcalDateTime();
 	
 	/* Fields relating to calendar data */
-	private DataRequest dataRequest = null;
+	private MethodsRequired dataRequest = null;
 	
 	//Fields relating to scrolling
 	private int scrollx = 0;
@@ -291,20 +288,6 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		selectedDate.addDays(-1);
 	}
 	
-	/** Connect to CDS - needed to get event information for views. */
-	private void connectToService() {
-		try {
-			Intent intent = new Intent(this, CalendarDataService.class);
-			Bundle b = new Bundle();
-			b.putInt(CalendarDataService.BIND_KEY,
-					CalendarDataService.BIND_DATA_REQUEST);
-			intent.putExtras(b);
-			this.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-		} catch (Exception e) {
-			Log.e(TAG, "Error connecting to service: " + e.getMessage());
-		}
-	}
-
 	private synchronized void serviceIsConnected() {
 		refresh();
 	}
@@ -320,19 +303,6 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		super.onPause();
 		prefs.edit().putLong(getString(R.string.prefSelectedDate), selectedDate.getMillis()).commit();
 		prefs.edit().putLong(getString(R.string.prefSavedSelectedDate), System.currentTimeMillis()).commit();
-		
-		try {
-			if (dataRequest != null) {
-				dataRequest.flushCache();
-				dataRequest.unregisterCallback(mCallback);
-			}
-			this.unbindService(mConnection);
-		}
-		catch (RemoteException re) { }
-		catch (IllegalArgumentException re) { }
-		finally {
-			dataRequest = null;
-		}
 	}
 	
 	@Override
@@ -341,7 +311,6 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		imageCache = new WeekViewImageCache(this);
 		loadPrefs();
 		days.dimensionsChanged();  // User may have been in the preferences screen, maybe indirectly.
-		connectToService(); // which will refresh when it's ready
 	}
 
 	
@@ -386,45 +355,28 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	 * Methods for managing event structure
 	 * @param typesToInclude 
 	 */
-	public List<SimpleAcalEvent> getEventsForDays(AcalDateRange range, int typesToInclude) {
-		if (dataRequest == null) return new ArrayList<SimpleAcalEvent>();
-		try {
-			List<SimpleAcalEvent> supplied = dataRequest.getEventsForDays(range);
+	public List<EventInstance> getEventsForDays(AcalDateRange range, int typesToInclude) {
+			List<EventInstance> supplied = dataRequest.getEventsForDays(range);
 			if ( typesToInclude == (INCLUDE_ALL_DAY_EVENTS | INCLUDE_IN_DAY_EVENTS) ) return supplied; 
-			List<SimpleAcalEvent> filtered = new ArrayList<SimpleAcalEvent>(supplied.size());
-			for( SimpleAcalEvent e : supplied ) {
+			List<EventInstance> filtered = new ArrayList<EventInstance>(supplied.size());
+			for( EventInstance e : supplied ) {
 				if ( (typesToInclude & INCLUDE_ALL_DAY_EVENTS) != 0 ) {
-					if ( e.isAllDay ) filtered.add(e);
+					if ( e.isAllDay() ) filtered.add(e);
 				}
 				else {
-					if ( !e.isAllDay ) filtered.add(e);
+					if ( !e.isAllDay() ) filtered.add(e);
 				}
 			}
 			return filtered;
-		} catch (RemoteException e) {
-			if (Constants.LOG_DEBUG) Log.d(TAG,"Remote Exception accessing eventcache: "+e);
-			return new ArrayList<SimpleAcalEvent>();
-		}
 	}
 
 	public int getNumberEventsForDay(AcalDateTime day) {
-		if (dataRequest == null) return 0;
-		try {
-			return dataRequest.getNumberEventsForDay(day);
-		} catch (RemoteException e) {
-			if (Constants.LOG_DEBUG) Log.d(TAG,"Remote Exception accessing eventcache: "+e);
-			return 0;
-		}
+		return dataRequest.getNumberEventsForDay(day);
 	}
 
-	public SimpleAcalEvent getNthEventForDay(AcalDateTime day, int n) {
-		if (dataRequest == null) return null;
-		try {
-			return dataRequest.getNthEventForDay(day, n);
-		} catch (RemoteException e) {
-			if (Constants.LOG_DEBUG) Log.d(TAG,"Remote Exception accessing eventcache: "+e);
-			return null;
-		}
+	public EventInstance getNthEventForDay(AcalDateTime day, int n) {
+		return dataRequest.getNthEventForDay(day, n);
+		
 	}
 	/**
 	 * <p>
@@ -461,48 +413,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 			return super.onOptionsItemSelected(item);
 		}
 	}
-	/************************************************************************
-	 * Service Connection management *
-	 ************************************************************************/
 
-	private ServiceConnection mConnection = new ServiceConnection() {
-		public void onServiceConnected(ComponentName className, IBinder service) {
-			// This is called when the connection with the service has been
-			// established, giving us the service object we can use to
-			// interact with the service. We are communicating with our
-			// service through an IDL interface, so get a client-side
-			// representation of that from the raw service object.
-			dataRequest = DataRequest.Stub.asInterface(service);
-			try {
-				dataRequest.registerCallback(mCallback);
-				
-			} catch (RemoteException re) {
-				Log.d(TAG,Log.getStackTraceString(re));
-			}
-			serviceIsConnected();
-		}
-
-		public void onServiceDisconnected(ComponentName className) {
-			serviceIsDisconnected();
-		}
-	};
-
-	/**
-	 * This implementation is used to receive callbacks from the remote service.
-	 */
-	private DataRequestCallBack mCallback = new DataRequestCallBack.Stub() {
-		/**
-		 * This is called by the remote service regularly to tell us about new
-		 * values. Note that IPC calls are dispatched through a thread pool
-		 * running in each process, so the code executing here will NOT be
-		 * running in our main thread like most other things -- so, to update
-		 * the UI, we need to use a Handler to hop over there.
-		 */
-		public void statusChanged(int type, boolean value) {
-			mHandler.sendMessage(mHandler.obtainMessage(BUMP_MSG, type,
-					(value ? 1 : 0)));
-		}
-	};
 
 	private static final int BUMP_MSG = 1;
 
@@ -607,7 +518,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
         }
 
         for( int i=2; i< underList.size(); i++) {
-        	menu.add(Menu.NONE, i | CONTEXT_ACTION_VIEW, Menu.NONE, ((SimpleAcalEvent) underList.get(i)).summary );  
+        	menu.add(Menu.NONE, i | CONTEXT_ACTION_VIEW, Menu.NONE, ((EventInstance) underList.get(i)).getSummary() );  
 //        	menu.add(Menu.NONE, i | CONTEXT_ACTION_EDIT, Menu.NONE,
 //        				getString(R.string.editSomeEvent, ((SimpleAcalEvent) underList.get(i)).summary ));  
 //        	menu.add(Menu.NONE, i | CONTEXT_ACTION_COPY, Menu.NONE,
@@ -648,7 +559,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
         		break;
         	}
         	default: {
-        		SimpleAcalEvent sae = (SimpleAcalEvent) underList.get(item.getItemId() & 0xFF);
+        		EventInstance sae = (EventInstance) underList.get(item.getItemId() & 0xFF);
         		int action = (item.getItemId() & 0xFF00);
         		if ( action == CONTEXT_ACTION_VIEW ) {
 	        		Bundle bundle = new Bundle();
@@ -661,10 +572,10 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
         		}
         		else {
 	        		if ( action == CONTEXT_ACTION_COPY ) {
-	        			sae.operation = SimpleAcalEvent.EVENT_OPERATION_COPY;
+	        			sae.setOperation(EventInstance.EVENT_OPERATION_COPY);
 	        		}
 	        		else if ( action == CONTEXT_ACTION_EDIT ) {
-	        			sae.operation = SimpleAcalEvent.EVENT_OPERATION_EDIT;
+	        			sae.setOperation(EventInstance.EVENT_OPERATION_EDIT);
 	        		}
 	        		Bundle bundle = new Bundle();
 	    			bundle.putParcelable("SimpleAcalEvent", sae);
@@ -728,8 +639,8 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 				if ( under.size() == 3 ) {
 					// There's only one event under the tap, so we'll view it directly
 					Bundle bundle = new Bundle();
-					SimpleAcalEvent sae = ((SimpleAcalEvent) under.get(2));
-					sae.operation = SimpleAcalEvent.EVENT_OPERATION_VIEW;
+					EventInstance sae = ((EventInstance) under.get(2));
+					sae.setOperation(EventInstance.EVENT_OPERATION_VIEW);
 					bundle.putParcelable("SimpleAcalEvent", sae);
 					Intent eventViewIntent = new Intent(this, EventView.class);
 					eventViewIntent.putExtras(bundle);

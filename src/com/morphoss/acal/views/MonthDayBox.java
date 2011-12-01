@@ -30,13 +30,13 @@ import android.widget.TextView;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateTime;
-import com.morphoss.acal.davacal.SimpleAcalEvent;
+import com.morphoss.acal.dataservice.EventInstance;
 
 public class MonthDayBox extends TextView {
 
 	private final static String TAG = "Acal MonthDayBox";
 
-	private List<SimpleAcalEvent> events;
+	private List<EventInstance> events;
 	private boolean isToday = false;
 	private boolean isSelectedDay = false;
 	private Context context;
@@ -94,11 +94,11 @@ public class MonthDayBox extends TextView {
 			int dayStart  = 8 * AcalDateTime.SECONDS_IN_HOUR;
 			int dayFinish = 20 * AcalDateTime.SECONDS_IN_HOUR;
 			int eStart, eFinish;
-			for (SimpleAcalEvent e : events) {
-				if ( e.isAllDay ) continue;
-				eStart = (int) (e.start - dayEpoch);
+			for (EventInstance e : events) {
+				if ( e.isAllDay() ) continue;
+				eStart = (int) (e.getStartMillis() - dayEpoch);
 				if ( eStart < 0 ) eStart = 0;
-				eFinish = (int) (e.end - dayEpoch);
+				eFinish = (int) (e.getEndMillis() - dayEpoch);
 				if ( eFinish > AcalDateTime.SECONDS_IN_DAY ) eFinish = AcalDateTime.SECONDS_IN_DAY;
 				if (eStart < dayStart) dayStart = eStart;
 				if (eFinish > dayFinish) dayFinish = eFinish;
@@ -108,25 +108,25 @@ public class MonthDayBox extends TextView {
 			
 			int barWidth = (int) (width/5f);
 			int secsPerPixel = (int) ((displaySecs / height) + 1);
-			for (SimpleAcalEvent e : events) {
-				if ( e.isAllDay ) {
+			for (EventInstance e : events) {
+				if ( e.isAllDay() ) {
 					eStart = 0;
 					eFinish = dayFinish - dayStart;
 				}
 				else {
-					eStart = (int) (e.start - dayEpoch) - dayStart;
+					eStart = (int) (e.getStartMillis() - dayEpoch) - dayStart;
 					if ( eStart < 0 ) eStart = 0;
-					eFinish = (int) (e.end - dayEpoch) - dayStart;
+					eFinish = (int) (e.getEndMillis() - dayEpoch) - dayStart;
 				}
 				if ( eFinish < (eStart + (secsPerPixel * minBarHeight)) )
 					eFinish = eStart + (minBarHeight * secsPerPixel);
 				//draw
-				p.setColor((e.colour|0xff000000)-0x77000000);
+				p.setColor((e.getColour()|0xff000000)-0x77000000);
 				arg0.drawRect(x,y+(eStart/secsPerPixel), x+barWidth, y+(eFinish/secsPerPixel), p);
 
 				if ( Constants.LOG_VERBOSE && Constants.debugMonthView )
 					Log.v(TAG, String.format("%d - %d: %s (%ds - %ds, %dspp, %dx,%dy, %dw,%dh, %d-%d)",
-								e.start, e.end, e.summary,
+								e.getStartMillis(), e.getEndMillis(), e.getSummary(),
 								eStart, eFinish, secsPerPixel, x, y, barWidth, (int) height,
 								(int) y+(eStart/secsPerPixel), (int) y+(eFinish/secsPerPixel)));
 			}
@@ -137,7 +137,7 @@ public class MonthDayBox extends TextView {
 		}
 	}
 
-	public void setEvents(List<SimpleAcalEvent> events) {
+	public void setEvents(List<EventInstance> events) {
 		this.events = events;
 	}
 	

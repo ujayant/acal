@@ -29,7 +29,7 @@ import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.activity.EventView;
 import com.morphoss.acal.database.AcalDBHelper;
-import com.morphoss.acal.davacal.AcalEvent;
+import com.morphoss.acal.dataservice.EventInstance;
 import com.morphoss.acal.providers.DavResources;
 import com.morphoss.acal.service.aCalService;
 
@@ -197,7 +197,7 @@ public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 		return cvs;
 	}
 
-	public synchronized static void checkIfUpdateRequired(Context context, List<AcalEvent> currentEvents) {
+	public synchronized static void checkIfUpdateRequired(Context context, List<EventInstance> currentEvents) {
 		if (Constants.LOG_DEBUG) Log.d(TAG, "Checking to see if widget update is required...");
 
 		//Turn events into content vals for easier processing
@@ -275,16 +275,16 @@ public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 		db.close(); 
 	}
 
-	public synchronized static ContentValues getCVFromEvent(Context context, AcalEvent event) {
+	public synchronized static ContentValues getCVFromEvent(Context context, EventInstance event) {
 		ContentValues cv = new ContentValues();
 
-		String etag = getEtag(context, event.resourceId);
+		String etag = getEtag(context, event.getResourceId());
 		if (etag == null) {
 			//etag fail
 			return null;
 		}
 		
-		cv.put(FIELD_RESOURCE_ID, event.resourceId);
+		cv.put(FIELD_RESOURCE_ID, event.getResourceId());
 		cv.put(FIELD_ETAG, etag);
 		cv.put(FIELD_COLOUR,event.getColour());
 		cv.put(FIELD_DTSTART, event.getStart().getMillis());
@@ -294,7 +294,7 @@ public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 		return cv;
 	}
 	
-	public synchronized static String getEtag(Context context, int resource_id) {
+	public synchronized static String getEtag(Context context, long resource_id) {
 		if (Constants.LOG_DEBUG) Log.d(TAG, "Getting Etag for resource "+resource_id);
 		ContentResolver cr = context.getContentResolver();
 		String ret = null;

@@ -19,9 +19,7 @@
 package com.morphoss.acal.activity;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -36,22 +34,22 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.text.format.DateFormat;
 import android.util.Log;
-import android.view.GestureDetector.OnGestureListener;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.GestureDetector.OnGestureListener;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CompoundButton;
-import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 
 import com.morphoss.acal.AcalTheme;
 import com.morphoss.acal.Constants;
@@ -60,15 +58,14 @@ import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDateTimeFormatter;
 import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
-import com.morphoss.acal.dataservice.CalendarDataService;
-import com.morphoss.acal.dataservice.DataRequest;
+import com.morphoss.acal.dataservice.DUMMYCollectionInstance;
+import com.morphoss.acal.dataservice.DUMMYEventInstance;
+import com.morphoss.acal.dataservice.EventInstance;
+import com.morphoss.acal.dataservice.MethodsRequired;
 import com.morphoss.acal.davacal.AcalAlarm;
-import com.morphoss.acal.davacal.AcalAlarm.ActionType;
-import com.morphoss.acal.davacal.AcalEvent;
-import com.morphoss.acal.davacal.AcalEvent.EVENT_FIELD;
 import com.morphoss.acal.davacal.PropertyName;
-import com.morphoss.acal.davacal.SimpleAcalEvent;
 import com.morphoss.acal.davacal.VComponent;
+import com.morphoss.acal.davacal.AcalAlarm.ActionType;
 import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.service.aCalService;
 import com.morphoss.acal.widget.AlarmDialog;
@@ -86,8 +83,7 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 	public static final String			resultAcalEvent					= "newAcalEvent";
 	public static final String			resultCollectionId			= "newCollectionId";
 	
-	private SimpleAcalEvent sae;
-	private AcalEvent event;
+	private EventInstance event;
 	private static final int START_DATE_DIALOG = 0;
 	private static final int END_DATE_DIALOG = 2;
 	private static final int SELECT_COLLECTION_DIALOG = 4;
@@ -114,7 +110,7 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 	
 	private String[] repeatRulesValues;
 	
-	private DataRequest dataRequest = null;
+	private MethodsRequired dataRequest = new MethodsRequired();
 
 	//GUI Components
 	private Button btnStartDate;
@@ -146,7 +142,6 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 
 		//Ensure service is actually running
 		startService(new Intent(this, aCalService.class));
-		connectToService();
 
 		// Get time display preference
 		prefer24hourFormat = prefs.getBoolean(getString(R.string.prefTwelveTwentyfour), DateFormat.is24HourFormat(this));
@@ -164,23 +159,16 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 	}
 
 	
-	private AcalEvent getEventAction(Bundle b) {
-		int operation = SimpleAcalEvent.EVENT_OPERATION_EDIT;
-		if ( b.containsKey("SimpleAcalEvent") ) {
-			SimpleAcalEvent sae = ((SimpleAcalEvent) b.getParcelable("SimpleAcalEvent"));
-			operation = sae.operation;
-			this.sae = (SimpleAcalEvent) b.getParcelable("SimpleAcalEvent");
-			try {
-				this.event = sae.getAcalEvent(this);
-			}
-			catch( Exception e ) {
-				Log.e(TAG,Log.getStackTraceString(e));
-			}
+	private EventInstance getEventAction(Bundle b) {
+		int operation = EventInstance.EVENT_OPERATION_EDIT;
+		if ( b.containsKey("EventInstance") ) {
+			this.event = b.getParcelable("EventInstance");
+			operation = event.getOperation();
 		}
 
 		//Get collection data
 		activeCollections = DavCollections.getCollections( getContentResolver(), DavCollections.INCLUDE_EVENTS );
-		int collectionId = -1;
+		long collectionId = -1;
 		if ( activeCollections.length > 0 )
 			collectionId = activeCollections[0].getAsInteger(DavCollections._ID);
 		else {
@@ -189,10 +177,10 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 			return null;
 		}
 		
-		if ( operation == SimpleAcalEvent.EVENT_OPERATION_EDIT ) {
+		if ( operation == EventInstance.EVENT_OPERATION_EDIT ) {
 			try {
-				collectionId = (Integer) this.event.getCollectionId();
-				this.event.setAction(AcalEvent.ACTION_MODIFY_ALL);
+				collectionId = this.event.getCollection().getCollectionId();
+				this.event.setAction(EventInstance.ACTION_MODIFY_ALL);
 				if ( event.isModifyAction() ) {
 					String rr = (String)  this.event.getRepetition();
 					if (rr != null && !rr.equals("") && !rr.equals(AcalRepeatRule.SINGLE_INSTANCE)) {
@@ -200,10 +188,10 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 						this.originalOccurence = rr;
 					}
 					if (this.originalHasOccurrence) {
-						this.event.setAction(AcalEvent.ACTION_MODIFY_SINGLE);
+						this.event.setAction(EventInstance.ACTION_MODIFY_SINGLE);
 					}
 					else {
-						this.event.setAction(AcalEvent.ACTION_MODIFY_ALL);
+						this.event.setAction(EventInstance.ACTION_MODIFY_ALL);
 					}
 				}
 			}
@@ -211,15 +199,15 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 				if (Constants.LOG_DEBUG)Log.d(TAG, "Error getting data from caller: "+e.getMessage());
 			}
 		}
-		else if ( operation == SimpleAcalEvent.EVENT_OPERATION_COPY ) {
+		else if ( operation == EventInstance.EVENT_OPERATION_COPY ) {
 			// Duplicate the event into a new one.
 			try {
-				collectionId = event.getCollectionId();
+				collectionId = event.getCollection().getCollectionId();
 			}
 			catch (Exception e) {
 				if (Constants.LOG_DEBUG)Log.d(TAG, "Error getting data from caller: "+e.getMessage());
 			}
-			this.event.setAction(AcalEvent.ACTION_CREATE);
+			this.event.setAction(EventInstance.ACTION_CREATE);
 		}
 
 		if ( this.event == null ) {
@@ -251,13 +239,9 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 				start.addSeconds(AcalDateTime.SECONDS_IN_HOUR);
 			}
 
-			Map<EVENT_FIELD,Object> defaults = new HashMap<EVENT_FIELD,Object>(10);
-
-			defaults.put( EVENT_FIELD.startDate, start );
-			defaults.put( EVENT_FIELD.endDate, start.clone().addDuration(duration) );
-			defaults.put( EVENT_FIELD.summary, getString(R.string.NewEventTitle) );
-			defaults.put( EVENT_FIELD.location, "" );
-			defaults.put( EVENT_FIELD.description, "" );
+			this.event = DUMMYEventInstance.getIntance();
+			this.event.setDates(start,duration);
+			this.event.setSummary(getString(R.string.NewEventTitle));
 			
 			ContentValues collectionData = DavCollections.getRow(collectionId, getContentResolver());
 			Integer preferredCollectionId = Integer.parseInt(prefs.getString(getString(R.string.DefaultCollection_PrefKey), "-1"));
@@ -270,20 +254,16 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 					}
 				}
 			}
-			defaults.put(EVENT_FIELD.collectionId, collectionId);
-			defaults.put(EVENT_FIELD.colour, Color.parseColor(collectionData.getAsString(DavCollections.COLOUR)));
+			this.event.setCollection(DUMMYCollectionInstance.getInstance(collectionId));
 
 			List<AcalAlarm> alarmList = new ArrayList<AcalAlarm>();
 			alarmList.add(defaultAlarm);
-			defaults.put(EVENT_FIELD.alarmList, alarmList );
-
-			this.event = new AcalEvent(defaults);
-			this.event.setAction(AcalEvent.ACTION_CREATE);
+			this.event.setAlarms(alarmList);
+			this.event.setAction(EventInstance.ACTION_CREATE);
 
 			if ( !event.getStart().isFloating() ) {
 				if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG, "Forcing start/end dates to floating on new event...");
-				event.setField(EVENT_FIELD.startDate, event.getStart().setTimeZone(null));
-				event.setField(EVENT_FIELD.endDate, event.getEnd().setTimeZone(null));
+				event.setDates(event.getStart().setTimeZone(null), event.getEnd().setTimeZone(null));
 			}
 		}
 		this.collectionsArray = new String[activeCollections.length];
@@ -303,9 +283,7 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 				this.currentCollection = cv; break;
 			}
 		}
-		this.event.setField(EVENT_FIELD.collectionId, this.currentCollection.getAsInteger(DavCollections._ID));
-		this.event.setField(EVENT_FIELD.colour, Color.parseColor(this.currentCollection.getAsString(DavCollections.COLOUR)));
-
+		this.event.setCollection(DUMMYCollectionInstance.getInstance(this.currentCollection.getAsInteger(DavCollections._ID)));
 		this.updateLayout();
 	}
 
@@ -322,7 +300,7 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 
 		//Title
 		this.eventName = (TextView) this.findViewById(R.id.EventName);
-		if ( event == null || event.getAction() == AcalEvent.ACTION_CREATE ) {
+		if ( event == null || event.getAction() == EventInstance.ACTION_CREATE ) {
 			eventName.setSelectAllOnFocus(true);
 		}
 
@@ -383,7 +361,7 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 		AcalDateTime end = event.getEnd();
 		end.setAsDate(start.isDate());
 
-		Integer colour = event.getColour();
+		Integer colour = event.getCollection().getColour();
 		sidebar.setBackgroundColor(colour);
 		sidebarBottom.setBackgroundColor(colour);
 		eventName.setTextColor(colour);
@@ -516,9 +494,9 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 		String oldDesc = event.getDescription();
 		String newDesc = this.notesView.getText().toString() ;
 		
-		if (!oldSum.equals(newSum)) event.setField(EVENT_FIELD.summary, newSum);
-		if (!oldLoc.equals(newLoc)) event.setField(EVENT_FIELD.location, newLoc);
-		if (!oldDesc.equals(newDesc)) event.setField(EVENT_FIELD.description, newDesc);
+		if (!oldSum.equals(newSum)) event.setSummary(newSum);
+		if (!oldLoc.equals(newLoc)) event.setLocation(newLoc);
+		if (!oldDesc.equals(newDesc)) event.setDescription(newDesc);
 		
 		AcalDateTime start = event.getStart();
 		AcalDuration duration = event.getDuration();
@@ -528,11 +506,11 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 			start = event.getStart();
 			AcalDateTime end = AcalDateTime.addDuration(start, duration);
 			while( end.before(start) ) end.addDays(1);
-			event.setField(EVENT_FIELD.endDate, end);
+			event.setEndDate(end);
 		}
 		
-		if (event.getAction() == AcalEvent.ACTION_CREATE ||
-				event.getAction() == AcalEvent.ACTION_MODIFY_ALL) {
+		if (event.getAction() == EventInstance.ACTION_CREATE ||
+				event.getAction() == EventInstance.ACTION_MODIFY_ALL) {
 			if ( !this.saveChanges() ){
 				Toast.makeText(this, "Save failed: retrying!", Toast.LENGTH_LONG).show();
 				this.saveChanges();
@@ -552,18 +530,17 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 			this.dataRequest.eventChanged(event);
 
 			if ( Constants.LOG_DEBUG ) Log.d(TAG,"Saving event with action " + event.getAction() );
-			if (event.getAction() == AcalEvent.ACTION_CREATE)
+			if (event.getAction() == EventInstance.ACTION_CREATE)
 				Toast.makeText(this, getString(R.string.EventSaved), Toast.LENGTH_LONG).show();
-			else if (event.getAction() == AcalEvent.ACTION_MODIFY_ALL)
+			else if (event.getAction() == EventInstance.ACTION_MODIFY_ALL)
 				Toast.makeText(this, getString(R.string.ModifiedAllInstances), Toast.LENGTH_LONG).show();
-			else if (event.getAction() == AcalEvent.ACTION_MODIFY_SINGLE)
+			else if (event.getAction() == EventInstance.ACTION_MODIFY_SINGLE)
 				Toast.makeText(this, getString(R.string.ModifiedOneInstance), Toast.LENGTH_LONG).show();
-			else if (event.getAction() == AcalEvent.ACTION_MODIFY_ALL_FUTURE)
+			else if (event.getAction() == EventInstance.ACTION_MODIFY_ALL_FUTURE)
 				Toast.makeText(this, getString(R.string.ModifiedThisAndFuture), Toast.LENGTH_LONG).show();
 
 			Intent ret = new Intent();
 			Bundle b = new Bundle();
-			b.putParcelable(resultSimpleAcalEvent, sae);
 			b.putParcelable(resultAcalEvent, event);
 			b.putLong(resultCollectionId, currentCollection.getAsInteger(DavCollections._ID));
 			ret.putExtras(b);
@@ -682,8 +659,7 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 							else {
 								if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,"The timezone did not change from "+oldTzId+" to "+newTzId+", EndTzId was "+endTzId);
 							}
-							event.setField(EVENT_FIELD.startDate, newDateTime);
-							event.setField(EVENT_FIELD.endDate, newEnd);
+							event.setDates(newDateTime, newEnd);
 							updateLayout();
 						}
 				});
@@ -700,7 +676,7 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 				return new DateTimeDialog( this, end, prefer24hourFormat, false, true,
 						new DateTimeSetListener() { public void onDateTimeSet(AcalDateTime newDateTime) {
 							if ( newDateTime.isDate() ) newDateTime.addDays(1);
-							event.setField(EVENT_FIELD.endDate, newDateTime);
+							event.setEndDate(newDateTime);
 							updateLayout();
 						}
 				});
@@ -728,7 +704,7 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 							alarmList.add(new AcalAlarm(AcalAlarm.RelateWith.START, event.getDescription(),
 									alarmValues[item], ActionType.AUDIO, event.getStart(), AcalDateTime.addDuration(
 											event.getStart(), alarmValues[item])));
-							event.setField(EVENT_FIELD.alarmList, alarmList);
+							event.setAlarms(alarmList);
 							updateLayout();
 						}
 					}
@@ -742,15 +718,15 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 					public void onClick(DialogInterface dialog, int item) {
 						switch ( item ) {
 							case 0:
-								event.setAction(AcalEvent.ACTION_MODIFY_SINGLE);
+								event.setAction(EventInstance.ACTION_MODIFY_SINGLE);
 								saveChanges();
 								return;
 							case 1:
-								event.setAction(AcalEvent.ACTION_MODIFY_ALL);
+								event.setAction(EventInstance.ACTION_MODIFY_ALL);
 								saveChanges();
 								return;
 							case 2:
-								event.setAction(AcalEvent.ACTION_MODIFY_ALL_FUTURE);
+								event.setAction(EventInstance.ACTION_MODIFY_ALL_FUTURE);
 								saveChanges();
 								return;
 						}
@@ -771,13 +747,13 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 						if ( event.isModifyAction() ) {
 							if ( EventEdit.this.originalHasOccurrence
 									&& !newRule.equals(EventEdit.this.originalOccurence) ) {
-								event.setAction(AcalEvent.ACTION_MODIFY_ALL);
+								event.setAction(EventInstance.ACTION_MODIFY_ALL);
 							}
 							else if ( EventEdit.this.originalHasOccurrence ) {
-								event.setAction(AcalEvent.ACTION_MODIFY_SINGLE);
+								event.setAction(EventInstance.ACTION_MODIFY_SINGLE);
 							}
 						}
-						event.setField(EVENT_FIELD.repeatRule, newRule);
+						event.setRepeatRule(newRule);
 						updateLayout();
 
 					}
@@ -789,46 +765,6 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 	}
 	
 
-	private void connectToService() {
-		try {
-			Intent intent = new Intent(this, CalendarDataService.class);
-			Bundle b  = new Bundle();
-			b.putInt(CalendarDataService.BIND_KEY, CalendarDataService.BIND_DATA_REQUEST);
-			intent.putExtras(b);
-			this.bindService(intent,mConnection,Context.BIND_AUTO_CREATE);
-		}
-		catch (Exception e) {
-			Log.e(TAG, "Error connecting to service: "+e.getMessage());
-		}
-	}
-
-	private synchronized void serviceIsConnected() {
-	}
-
-	private synchronized void serviceIsDisconnected() {
-		this.dataRequest = null;
-	}
-
-
-
-	@Override
-	public void onResume() {
-		super.onResume();
-		connectToService();
-	}
-
-	@Override
-	public void onPause() {
-		super.onPause();
-		try {
-			this.unbindService(mConnection);
-		}
-		catch (IllegalArgumentException re) { }
-		finally {
-			dataRequest = null;
-		}
-	}
-	
 	protected void customAlarmDialog() {
 
 		AlarmDialog.AlarmSetListener customAlarmListener = new AlarmDialog.AlarmSetListener() {
@@ -836,7 +772,7 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 			@Override
 			public void onAlarmSet(AcalAlarm alarmValue) {
 				alarmList.add( alarmValue );
-		    	event.setField(EVENT_FIELD.alarmList, alarmList);
+		    	event.setAlarms(alarmList);
 		    	updateLayout();
 			}
 			
@@ -868,26 +804,4 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 		});
 		return rowLayout;
 	}
-	
-	/************************************************************************
-	 * 					Service Connection management						*
-	 ************************************************************************/
-
-	
-	private ServiceConnection mConnection = new ServiceConnection() {
-        public void onServiceConnected(ComponentName className, IBinder service) {
-            // This is called when the connection with the service has been
-            // established, giving us the service object we can use to
-            // interact with the service.  We are communicating with our
-            // service through an IDL interface, so get a client-side
-            // representation of that from the raw service object.
-            dataRequest = DataRequest.Stub.asInterface(service);
-			serviceIsConnected();
-		}
-		public void onServiceDisconnected(ComponentName className) {
-			serviceIsDisconnected();
-		}
-	};
-
-
 }

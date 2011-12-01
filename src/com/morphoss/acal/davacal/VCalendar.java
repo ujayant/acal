@@ -34,6 +34,7 @@ import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
 import com.morphoss.acal.acaltime.AcalRepeatRuleParser;
+import com.morphoss.acal.dataservice.EventInstance;
 
 public class VCalendar extends VComponent {
 	public static final String TAG = "aCal VCalendar";
@@ -67,7 +68,7 @@ public class VCalendar extends VComponent {
 	}
 
 
-	public static VCalendar getGenericCalendar( AcalCollection collection, AcalEvent newEventData) {
+	public static VCalendar getGenericCalendar( AcalCollection collection, EventInstance newEventData) {
 		VCalendar vcal = new VCalendar(collection);
 		new VEvent(vcal);
 		return vcal;
@@ -84,7 +85,7 @@ public class VCalendar extends VComponent {
 		return new VCalendar(this.content, this.resourceId, this.earliestStart, this.latestEnd, this.collectionData, this.parent);
 	}
 
-	public String applyEventAction(AcalEvent action) {
+	public String applyEventAction(EventInstance action) {
 		try {
 			this.setEditable();
 
@@ -101,7 +102,7 @@ public class VCalendar extends VComponent {
 			vEvent.addProperty(AcalProperty.fromString(lastModified.toPropertyString(PropertyName.DTSTAMP)));
 			vEvent.addProperty(AcalProperty.fromString(lastModified.toPropertyString(PropertyName.LAST_MODIFIED)));
 
-			if ( action.getAction() == AcalEvent.ACTION_DELETE_SINGLE) {
+			if ( action.getAction() == EventInstance.ACTION_DELETE_SINGLE) {
 				AcalProperty exDate = vEvent.getProperty("EXDATE");
 				if ( exDate == null || exDate.getValue().equals("") ) 
 					exDate = AcalProperty.fromString(action.getStart().toPropertyString(PropertyName.EXDATE));
@@ -111,7 +112,7 @@ public class VCalendar extends VComponent {
 				}
 				vEvent.addProperty(exDate);
 			}
-			else if (action.getAction() == AcalEvent.ACTION_DELETE_ALL_FUTURE) {
+			else if (action.getAction() ==EventInstance.ACTION_DELETE_ALL_FUTURE) {
 				AcalRepeatRuleParser parsedRule = AcalRepeatRuleParser.parseRepeatRule(action.getRepetition());
 				AcalDateTime until = action.getStart().clone();
 				until.addSeconds(-1);
@@ -136,16 +137,16 @@ public class VCalendar extends VComponent {
 
 	}
 
-	private void applyModify(Masterable mast, AcalEvent action) {
+	private void applyModify(Masterable mast, EventInstance action) {
 		//there are 3 possible modify actions:
-		if (action.getAction() == AcalEvent.ACTION_MODIFY_SINGLE) {
+		if (action.getAction() == EventInstance.ACTION_MODIFY_SINGLE) {
 			// Only modify the single instance
 		}
-		else if (action.getAction() == AcalEvent.ACTION_MODIFY_ALL_FUTURE) {
+		else if (action.getAction() == EventInstance.ACTION_MODIFY_ALL_FUTURE) {
 			// Modify this instance, and all future instances.
 
 		}
-		else if (action.getAction() == AcalEvent.ACTION_MODIFY_ALL) {
+		else if (action.getAction() == EventInstance.ACTION_MODIFY_ALL) {
 			// Modify all instances
 
 			// First, strip any existing properties which we modify
@@ -261,7 +262,7 @@ public class VCalendar extends VComponent {
 		return true;
 	}
 
-	public boolean appendEventInstancesBetween(List<AcalEvent> eventList, AcalDateRange rangeRequested, boolean isPending) {
+	public boolean appendEventInstancesBetween(List<EventInstance> eventList, AcalDateRange rangeRequested, boolean isPending) {
 		if (isPending) {
 			this.isPending = true;
 			this.repeatRule = null;
