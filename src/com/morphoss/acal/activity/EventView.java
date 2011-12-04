@@ -26,9 +26,9 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.util.Log;
-import android.view.GestureDetector.OnGestureListener;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.GestureDetector.OnGestureListener;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.widget.Button;
@@ -41,9 +41,9 @@ import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
+import com.morphoss.acal.dataservice.DUMMYEventInstance;
+import com.morphoss.acal.dataservice.EventInstance;
 import com.morphoss.acal.davacal.AcalAlarm;
-import com.morphoss.acal.davacal.AcalEvent;
-import com.morphoss.acal.davacal.SimpleAcalEvent;
 import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.service.aCalService;
 
@@ -58,14 +58,11 @@ public class EventView extends AcalActivity implements OnGestureListener, OnTouc
 	public static final int EDIT_EVENT = 0;
 	public static final int EDIT_ADD = 0;
 	
-	
-	public static final String SIMPLE_ACAL_EVENT_KEY = "SimpleAcalEvent";
-	public static final String ACAL_EVENT_KEY = "AcalEvent";
+	public static final String EVENT_INSTANCE_KEY = "EventInstance";
 	public static final String RESOURCE_ID_KEY = "resourceid";
 	public static final String DTSTART_KEY = "start";
 	
-	private AcalEvent event = null;
-	private SimpleAcalEvent sae = null;
+	private EventInstance event = null;
 	
 	
 	public void onCreate(Bundle savedInstanceState) {
@@ -87,17 +84,13 @@ public class EventView extends AcalActivity implements OnGestureListener, OnTouc
 			long start = -1;
 			int rid = -1;
 			
-			if (b.containsKey(ACAL_EVENT_KEY)) this.event = b.getParcelable(ACAL_EVENT_KEY);
-			if (b.containsKey(SIMPLE_ACAL_EVENT_KEY)) this.sae = b.getParcelable(SIMPLE_ACAL_EVENT_KEY);
+			if (b.containsKey(EVENT_INSTANCE_KEY)) this.event = b.getParcelable(EVENT_INSTANCE_KEY);
 			if (b.containsKey(RESOURCE_ID_KEY)) rid = b.getInt(RESOURCE_ID_KEY);
 			if (b.containsKey(DTSTART_KEY)) start = b.getLong(DTSTART_KEY);
 			
-			if (this.event == null && this.sae == null && rid >= 0 && start >=0) {
-				this.event = AcalEvent.fromDatabase(this, rid, AcalDateTime.fromMillis(start));
-				this.sae = SimpleAcalEvent.getSimpleEvent(this.event);
+			if (this.event == null && rid >= 0 && start >=0) {
+				this.event = DUMMYEventInstance.getIntance(this, rid, AcalDateTime.fromMillis(start));
 			}
-			else if (this.event != null && this.sae == null) this.sae = SimpleAcalEvent.getSimpleEvent(this.event);
-			else if (this.sae != null && this.event == null) this.event = sae.getAcalEvent(this);
 			else {
 				if (Constants.LOG_DEBUG)Log.d(TAG, "Calling activity has not provided required data.");
 				this.finish();
@@ -139,7 +132,7 @@ public class EventView extends AcalActivity implements OnGestureListener, OnTouc
 		}
 		
 		String repetition = event.getRepetition();
-		int colour = event.getColour();
+		int colour = event.getCollection().getColour();
 		LinearLayout sidebar = (LinearLayout)this.findViewById(R.id.EventViewColourBar);
 		LinearLayout sidebarBottom = (LinearLayout)this.findViewById(R.id.EventViewColourBarBottom);;
 		sidebar.setBackgroundColor(colour);
@@ -176,7 +169,7 @@ public class EventView extends AcalActivity implements OnGestureListener, OnTouc
 		TextView alarmsView = (TextView) this.findViewById(R.id.EventAlarmsContent);
 		if ( alarms != null && ! alarms.equals("") ) {
 			alarmsView.setText(alarms);
-			if ( !event.getAlarmEnabled() ) {
+			if ( !event.getCollection().alarmsEnabled()) {
 				TextView alarmsWarning = (TextView) this.findViewById(R.id.CalendarAlarmsDisabled);
 				alarmsWarning.setVisibility(View.VISIBLE);
 			}
@@ -196,7 +189,7 @@ public class EventView extends AcalActivity implements OnGestureListener, OnTouc
 			TextView collectionText = (TextView) this.findViewById(R.id.EventCollectionContent);
 			collectionText.setTextColor(colour);
 			int i=0;
-			while( i<activeCollections.length && event.getCollectionId() != activeCollections[i].getAsInteger(DavCollections._ID)) i++;
+			while( i<activeCollections.length && event.getCollection().getCollectionId() != activeCollections[i].getAsInteger(DavCollections._ID)) i++;
 			if ( i<activeCollections.length )
 				collectionText.setText(activeCollections[i].getAsString(DavCollections.DISPLAYNAME));
 			else
@@ -269,8 +262,8 @@ public class EventView extends AcalActivity implements OnGestureListener, OnTouc
 			case EDIT: {
 				//start event activity
 				Bundle bundle = new Bundle();
-				sae.operation = SimpleAcalEvent.EVENT_OPERATION_EDIT;
-				bundle.putParcelable("SimpleAcalEvent", sae);
+				event.setOperation(EventInstance.EVENT_OPERATION_EDIT);
+				bundle.putParcelable("SimpleAcalEvent", event);
 				Intent eventEditIntent = new Intent(this, EventEdit.class);
 				eventEditIntent.putExtras(bundle);
 				this.startActivityForResult(eventEditIntent,EDIT_EVENT);
@@ -302,9 +295,7 @@ public class EventView extends AcalActivity implements OnGestureListener, OnTouc
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
     	if (requestCode == EDIT_EVENT && resultCode == RESULT_OK) {
 			Bundle b = data.getExtras();
-			SimpleAcalEvent tmpSae = (SimpleAcalEvent) b.getParcelable(EventEdit.resultSimpleAcalEvent);
-			if ( tmpSae != null ) sae = tmpSae;
-			this.event = (AcalEvent) b.getParcelable(EventEdit.resultAcalEvent);
+			this.event = (EventInstance) b.getParcelable(EventEdit.resultAcalEvent);
 			populateLayout();
     	}
     	else if (requestCode == EDIT_ADD && resultCode == RESULT_OK) {

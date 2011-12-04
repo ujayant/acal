@@ -55,7 +55,9 @@ import com.morphoss.acal.AcalTheme;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateTime;
+import com.morphoss.acal.dataservice.DUMMYEventInstance;
 import com.morphoss.acal.dataservice.EventInstance;
+import com.morphoss.acal.dataservice.MethodsRequired;
 import com.morphoss.acal.service.aCalService;
 import com.morphoss.acal.weekview.WeekViewActivity;
 import com.morphoss.acal.widget.AcalViewFlipper;
@@ -156,7 +158,7 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 	private static final int minDistance = 60;
 
 	/* Fields relating to calendar data */
-	private DataRequest dataRequest = null;
+	private MethodsRequired dataRequest = new MethodsRequired();
 
 	/* Fields relating to Intent Results */
 	public static final int PICK_MONTH_FROM_YEAR_VIEW = 0;
@@ -217,32 +219,6 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 
 	}
 
-	private void connectToService() {
-		try {
-			Log.v(TAG,TAG + " - Connecting to service with dataRequest ="+(dataRequest == null? "null" : "non-null"));
-			Intent intent = new Intent(this, CalendarDataService.class);
-			Bundle b = new Bundle();
-			b.putInt(CalendarDataService.BIND_KEY,
-					CalendarDataService.BIND_DATA_REQUEST);
-			intent.putExtras(b);
-			this.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-		}
-		catch (Exception e) {
-			Log.e(TAG, "Error connecting to service: " + e.getMessage());
-		}
-	}
-
-	
-	private synchronized void serviceIsConnected() {
-		if ( this.monthGrid == null ) createGridView(true);
-		changeSelectedDate(selectedDate);
-		changeDisplayedMonth(displayedMonth);
-	}
-
-	private synchronized void serviceIsDisconnected() {
-		this.dataRequest = null;
-	}
-
 	/**
 	 * <p>
 	 * Called when Activity regains focus. Try's to load the saved State.
@@ -265,8 +241,6 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 		}
 		selectedDate.setDaySecond(0);
 		displayedMonth.setDaySecond(0).setMonthDay(1);
-
-		connectToService();
 	}
 
 	/**
@@ -284,19 +258,8 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 		super.onPause();
 
 		rememberCurrentPosition();
-		eventList = null;
-		try {
-			if (dataRequest != null) {
-				dataRequest.flushCache();
-				dataRequest.unregisterCallback(mCallback);
-			}
-			this.unbindService(mConnection);
-		}
-		catch (RemoteException re) { }
-		catch (IllegalArgumentException e) { }
-		finally {
-			dataRequest = null;
-		}
+		eventList = null;		
+		dataRequest.flushCache();
 
 		// Save state
 		prefs.edit().putLong(getString(R.string.prefSavedSelectedDate), System.currentTimeMillis()).commit();
@@ -726,49 +689,22 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 	 * Methods for managing event structure
 	 */
 	public ArrayList<EventInstance> getEventsForDay(AcalDateTime day) {
-		if (dataRequest == null) {
-			Log.w(TAG,"DataService connection not available!");
-			return new ArrayList<EventInstance>();
-		}
-		try {
-			return (ArrayList<SimpleAcalEvent>) dataRequest.getEventsForDay(day);
-		}
-		catch (RemoteException e) {
-			if (Constants.LOG_DEBUG) Log.d(TAG,"Remote Exception accessing eventcache: "+e);
-			return new ArrayList<SimpleAcalEvent>();
-		}
+		return (ArrayList<EventInstance>) dataRequest.getEventsForDay(day);
 	}
 
 	public int getNumberEventsForDay(AcalDateTime day) {
-		if (dataRequest == null) return 0;
-		try {
 			return dataRequest.getNumberEventsForDay(day);
-		} catch (RemoteException e) {
-			if (Constants.LOG_DEBUG) Log.d(TAG,"Remote Exception accessing eventcache: "+e);
-			return 0;
-		}
 	}
 
-	public SimpleAcalEvent getNthEventForDay(AcalDateTime day, int n) {
-		if (dataRequest == null) return null;
-		try {
+	public EventInstance getNthEventForDay(AcalDateTime day, int n) {
 			return dataRequest.getNthEventForDay(day, n);
-		} catch (RemoteException e) {
-			if (Constants.LOG_DEBUG) Log.d(TAG,"Remote Exception accessing eventcache: "+e);
-			return null;
-		}
 	}
 
 	public void deleteEvent(AcalDateTime day, int n, int action ) {
-		if (dataRequest == null) return;
-		try {
-			SimpleAcalEvent sae = dataRequest.getNthEventForDay(day, n);
-			AcalEvent ae = AcalEvent.fromDatabase(this, sae.resourceId, new AcalDateTime().setEpoch(sae.start));
+			EventInstance sae = dataRequest.getNthEventForDay(day, n);
+			EventInstance ae = DUMMYEventInstance.fromDatabase(this, sae.getResource().getResourceId(), new AcalDateTime().setEpoch(sae.getStartMillis()));
 			ae.setAction(action);
 			dataRequest.eventChanged(ae);
-		} catch (RemoteException e) {
-			Log.e(TAG,"Error deleting event: "+e);
-		}
 		this.changeSelectedDate(this.selectedDate);
 	}
 
@@ -1024,66 +960,6 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 		}
 	}
 
-	/************************************************************************
-	 * Service Connection management *
-	 ************************************************************************/
-
-	private ServiceConnection mConnection = new ServiceConnection() {
-		public void onServiceConnected(ComponentName className, IBinder service) {
-			// This is called when the connection with the service has been
-			// established, giving us the service object we can use to
-			// interact with the service. We are communicating with our
-			// service through an IDL interface, so get a client-side
-			// representation of that from the raw service object.
-			dataRequest = DataRequest.Stub.asInterface(service);
-			try {
-				dataRequest.registerCallback(mCallback);
-				
-			} catch (RemoteException re) {
-				Log.d(TAG,Log.getStackTraceString(re));
-			}
-			serviceIsConnected();
-		}
-
-		public void onServiceDisconnected(ComponentName className) {
-			serviceIsDisconnected();
-		}
-	};
-
-	/**
-	 * This implementation is used to receive callbacks from the remote service.
-	 */
-	private DataRequestCallBack mCallback = new DataRequestCallBack.Stub() {
-		/**
-		 * This is called by the remote service regularly to tell us about new
-		 * values. Note that IPC calls are dispatched through a thread pool
-		 * running in each process, so the code executing here will NOT be
-		 * running in our main thread like most other things -- so, to update
-		 * the UI, we need to use a Handler to hop over there.
-		 */
-		public void statusChanged(int type, boolean value) {
-			mHandler.sendMessage(mHandler.obtainMessage(BUMP_MSG, type,
-					(value ? 1 : 0)));
-		}
-	};
-
-	private static final int BUMP_MSG = 1;
-
-	private Handler mHandler = new Handler() {
-		@Override
-		public void handleMessage(Message msg) {
-			int type = msg.arg1;
-			switch ( type ) {
-				case CalendarDataService.UPDATE:
-					if ( Constants.LOG_DEBUG )
-						Log.i(TAG, "Received update notification from CalendarDataService.");
-					changeSelectedDate(selectedDate);
-					break;
-			}
-
-		}
-
-	};
 
 	@Override
 	public boolean onContextItemSelected(MenuItem item) {

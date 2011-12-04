@@ -6,6 +6,7 @@ import android.os.Parcel;
 
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDuration;
+import com.morphoss.acal.activity.MonthView;
 import com.morphoss.acal.davacal.AcalAlarm;
 import com.morphoss.acal.weekview.WeekViewActivity;
 
@@ -241,6 +242,31 @@ public class DUMMYEventInstance implements EventInstance {
 
 	@Override
 	public Resource getResource() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getTimeText(MonthView context, long epoch, long epoch2,
+			boolean boolean1) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean isPending() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean isSingleInstance() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	public static EventInstance fromDatabase(MonthView monthView,
+			long resourceId, AcalDateTime setEpoch) {
 		// TODO Auto-generated method stub
 		return null;
 	}

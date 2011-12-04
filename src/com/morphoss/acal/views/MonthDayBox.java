@@ -121,7 +121,7 @@ public class MonthDayBox extends TextView {
 				if ( eFinish < (eStart + (secsPerPixel * minBarHeight)) )
 					eFinish = eStart + (minBarHeight * secsPerPixel);
 				//draw
-				p.setColor((e.getColour()|0xff000000)-0x77000000);
+				p.setColor((e.getCollection().getColour()|0xff000000)-0x77000000);
 				arg0.drawRect(x,y+(eStart/secsPerPixel), x+barWidth, y+(eFinish/secsPerPixel), p);
 
 				if ( Constants.LOG_VERBOSE && Constants.debugMonthView )

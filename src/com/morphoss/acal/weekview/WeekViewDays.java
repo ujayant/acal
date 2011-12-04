@@ -438,7 +438,7 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 						" ("+maxWidth+","+maxHeight+")"+
 						" - "+event.getStartMillis()+","+event.getEndMillis());
 
-		canvas.drawBitmap(context.getImageCache().getEventBitmap(event.getResourceId(),event.getSummary(),event.getColour(),
+		canvas.drawBitmap(context.getImageCache().getEventBitmap(event.getResource().getResourceId(),event.getSummary(),event.getCollection().getColour(),
 						width, height, maxWidth, maxHeight), x, top, new Paint());
 		
 		eventsDisplayed.add( new Rectangle( x, top, x+width, top+height, event) );
@@ -459,7 +459,7 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 		int y = HIH*depth;
 		int actualWidth = (int)Math.min(Math.min(event.getActualWidth(), viewWidth-x),(event.getEndMillis()-HST)/HSPP); 
 		if ( actualWidth<=0 ) return;
-		c.drawBitmap(context.getImageCache().getEventBitmap(event.getResourceId(),event.getSummary(),event.getColour(),
+		c.drawBitmap(context.getImageCache().getEventBitmap(event.getResource().getResourceId(),event.getSummary(),event.getCollection().getColour(),
 					actualWidth, HIH, maxWidth, HIH), x,y, new Paint());
 		eventsDisplayed.add( new Rectangle( x, y, x+actualWidth, y+HIH, event) );
 	}

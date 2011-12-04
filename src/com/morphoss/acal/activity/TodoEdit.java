@@ -33,20 +33,20 @@ import android.os.IBinder;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.CompoundButton;
-import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
-import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.SeekBar.OnSeekBarChangeListener;
 
 import com.morphoss.acal.AcalTheme;
 import com.morphoss.acal.Constants;
@@ -55,16 +55,15 @@ import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDateTimeFormatter;
 import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
-import com.morphoss.acal.dataservice.CalendarDataService;
-import com.morphoss.acal.dataservice.DataRequest;
+import com.morphoss.acal.dataservice.MethodsRequired;
 import com.morphoss.acal.davacal.AcalAlarm;
-import com.morphoss.acal.davacal.AcalAlarm.ActionType;
-import com.morphoss.acal.davacal.AcalAlarm.RelateWith;
 import com.morphoss.acal.davacal.AcalCollection;
 import com.morphoss.acal.davacal.SimpleAcalTodo;
 import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VComponent;
 import com.morphoss.acal.davacal.VTodo;
+import com.morphoss.acal.davacal.AcalAlarm.ActionType;
+import com.morphoss.acal.davacal.AcalAlarm.RelateWith;
 import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.service.aCalService;
 import com.morphoss.acal.widget.AlarmDialog;
@@ -124,7 +123,7 @@ public class TodoEdit extends AcalActivity
 
 	private String[] repeatRulesValues;
 	
-	private DataRequest dataRequest = null;
+	private MethodsRequired dataRequest = new MethodsRequired();
 
 	//GUI Components
 	private Button btnStartDate;
@@ -168,7 +167,6 @@ public class TodoEdit extends AcalActivity
 
 		//Ensure service is actually running
 		startService(new Intent(this, aCalService.class));
-		connectToService();
 
 		// Get time display preference
 		prefer24hourFormat = prefs.getBoolean(getString(R.string.prefTwelveTwentyfour), false);
@@ -774,46 +772,6 @@ public class TodoEdit extends AcalActivity
 				todo.getStart(), todo.getDue(), VComponent.VTODO);
 		customAlarm.show();
 	}
-
-	private void connectToService() {
-		try {
-			Intent intent = new Intent(this, CalendarDataService.class);
-			Bundle b  = new Bundle();
-			b.putInt(CalendarDataService.BIND_KEY, CalendarDataService.BIND_DATA_REQUEST);
-			intent.putExtras(b);
-			this.bindService(intent,mConnection,Context.BIND_AUTO_CREATE);
-		}
-		catch (Exception e) {
-			Log.e(TAG, "Error connecting to service: "+e.getMessage());
-		}
-	}
-
-	private synchronized void serviceIsConnected() {
-	}
-
-	private synchronized void serviceIsDisconnected() {
-		this.dataRequest = null;
-	}
-
-
-
-	@Override
-	public void onResume() {
-		super.onResume();
-		connectToService();
-	}
-
-	@Override
-	public void onPause() {
-		super.onPause();
-		try {
-			this.unbindService(mConnection);
-		}
-		catch (IllegalArgumentException re) { }
-		finally {
-			dataRequest = null;
-		}
-	}
 	
 	public View getAlarmItem(final AcalAlarm alarm, ViewGroup parent) {
 		LinearLayout rowLayout;
@@ -837,26 +795,6 @@ public class TodoEdit extends AcalActivity
 		return rowLayout;
 	}
 	
-	/************************************************************************
-	 * 					Service Connection management						*
-	 ************************************************************************/
-
-	
-	private ServiceConnection mConnection = new ServiceConnection() {
-        public void onServiceConnected(ComponentName className, IBinder service) {
-            // This is called when the connection with the service has been
-            // established, giving us the service object we can use to
-            // interact with the service.  We are communicating with our
-            // service through an IDL interface, so get a client-side
-            // representation of that from the raw service object.
-            dataRequest = DataRequest.Stub.asInterface(service);
-			serviceIsConnected();
-		}
-		public void onServiceDisconnected(ComponentName className) {
-			serviceIsDisconnected();
-		}
-	};
-
 
 	public boolean isModifyAction() {
 		return (action >= ACTION_CREATE && action <= ACTION_MODIFY_ALL_FUTURE);

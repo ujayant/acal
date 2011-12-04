@@ -42,9 +42,7 @@ import android.widget.TextView;
 import com.morphoss.acal.AcalTheme;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
-import com.morphoss.acal.dataservice.CalendarDataService;
-import com.morphoss.acal.dataservice.DataRequest;
-import com.morphoss.acal.dataservice.DataRequestCallBack;
+import com.morphoss.acal.dataservice.MethodsRequired;
 import com.morphoss.acal.davacal.SimpleAcalTodo;
 import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VComponent;
@@ -92,7 +90,7 @@ public class TodoListView extends AcalActivity implements OnClickListener {
 	public static final String TAG = "aCal TodoListView";
 
 	private boolean invokedFromView = false;
-	
+
 	private ListView todoList;
 	private TodoListAdapter todoListAdapter;
 
@@ -106,7 +104,7 @@ public class TodoListView extends AcalActivity implements OnClickListener {
 	public static final int ADD = 3;
 
 	/* Fields relating to calendar data */
-	private DataRequest dataRequest = null;
+	private MethodsRequired dataRequest = new MethodsRequired();
 
 	private int	todoListTop;
 
@@ -144,22 +142,8 @@ public class TodoListView extends AcalActivity implements OnClickListener {
 
 	}
 
-	private void connectToService() {
-		try {
-			Log.v(TAG,TAG + " - Connecting to service with dataRequest ="+(dataRequest == null? "null" : "non-null"));
-			Intent intent = new Intent(this, CalendarDataService.class);
-			Bundle b = new Bundle();
-			b.putInt(CalendarDataService.BIND_KEY,
-					CalendarDataService.BIND_DATA_REQUEST);
-			intent.putExtras(b);
-			this.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-		}
-		catch (Exception e) {
-			Log.e(TAG, "Error connecting to service: " + e.getMessage());
-		}
-	}
 
-	
+
 	private synchronized void serviceIsConnected() {
 		if ( this.todoList == null ) createListView(true);
 		this.todoListAdapter = new TodoListAdapter(this, showCompleted, showFuture );
@@ -167,78 +151,28 @@ public class TodoListView extends AcalActivity implements OnClickListener {
 		restoreCurrentPosition();
 	}
 
-	private synchronized void serviceIsDisconnected() {
-		this.dataRequest = null;
-	}
-
-	/**
-	 * <p>
-	 * Called when Activity regains focus. Try's to load the saved State.
-	 * </p>
-	 * 
-	 * (non-Javadoc)
-	 * 
-	 * @see android.app.Activity#onResume()
-	 */
-	@Override
-	public void onResume() {
-		super.onResume();
-		if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD,TAG,"Resuming activity");
-
-		connectToService();
-	}
-
-	/**
-	 * <p>
-	 * Called when activity loses focus or is closed. Try's to save the current
-	 * State
-	 * </p>
-	 * 
-	 * (non-Javadoc)
-	 * 
-	 * @see android.app.Activity#onPause()
-	 */
-	@Override
-	public void onPause() {
-		super.onPause();
-		rememberCurrentPosition();
-
-		try {
-			if (dataRequest != null) {
-				dataRequest.unregisterCallback(mCallback);
-			}
-			this.unbindService(mConnection);
-		}
-		catch (RemoteException re) { }
-		catch (IllegalArgumentException e) { }
-		finally {
-			dataRequest = null;
-		}
-		if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD,TAG,"Pausing activity");
-
-	}
 
 	private void rememberCurrentPosition() {
-    	// save index and top position
-    	if ( todoList != null ) {
-    		todoListIndex = todoList.getFirstVisiblePosition();
-        	View v = todoList.getChildAt(0);
-        	todoListTop = (v == null) ? 0 : v.getTop();
-        	if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,
-    				"Saved list view position of "+todoListIndex+", "+todoListTop);
-    	}
+		// save index and top position
+		if ( todoList != null ) {
+			todoListIndex = todoList.getFirstVisiblePosition();
+			View v = todoList.getChildAt(0);
+			todoListTop = (v == null) ? 0 : v.getTop();
+			if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,
+					"Saved list view position of "+todoListIndex+", "+todoListTop);
+		}
 	}
 
-    
-    private void restoreCurrentPosition() {
-    	if ( todoList != null ) {
-    		todoList.setSelectionFromTop(todoListIndex, todoListTop);
-    	}
-    	if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,
-    				"Set list view to position "+todoListIndex+", "+todoListTop);
+
+	private void restoreCurrentPosition() {
+		if ( todoList != null ) {
+			todoList.setSelectionFromTop(todoListIndex, todoListTop);
+		}
+		if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,
+				"Set list view to position "+todoListIndex+", "+todoListTop);
 	}
 
-	
+
 	/****************************************************
 	 * Private Methods *
 	 ****************************************************/
@@ -270,18 +204,17 @@ public class TodoListView extends AcalActivity implements OnClickListener {
 
 		TextView title = (TextView) this.findViewById(R.id.todo_list_title);
 		title.setText( showFuture && showCompleted ? R.string.allTasksTitle
-													: ( showFuture ? R.string.incompleteTasksTitle 
-																	: (showCompleted ? R.string.dueTasksTitle
-																					: R.string.incompleteTasksDue)
-														)
-					);
+				: ( showFuture ? R.string.incompleteTasksTitle 
+						: (showCompleted ? R.string.dueTasksTitle
+								: R.string.incompleteTasksDue)
+				)
+		);
 
 		this.todoListAdapter = null;
-		if ( dataRequest == null ) connectToService();
-		else serviceIsConnected();
+		serviceIsConnected();
 	}
 
-	
+
 	/**
 	 * <p>
 	 * Creates a new ListView object based on this Activities current state. The
@@ -316,11 +249,11 @@ public class TodoListView extends AcalActivity implements OnClickListener {
 	private void startSettings() {
 		Intent settingsIntent = new Intent();
 		settingsIntent.setClassName("com.morphoss.acal",
-				"com.morphoss.acal.activity.Settings");
+		"com.morphoss.acal.activity.Settings");
 		this.startActivity(settingsIntent);
 	}
 
-	
+
 	/**
 	 * <p>
 	 * Called when user has selected 'Events' from menu. Starts MonthView
@@ -336,7 +269,7 @@ public class TodoListView extends AcalActivity implements OnClickListener {
 			bundle.putInt("InvokedFromView",1);
 			monthViewIntent.putExtras(bundle);
 			monthViewIntent.setClassName("com.morphoss.acal",
-					"com.morphoss.acal.activity.MonthView");
+			"com.morphoss.acal.activity.MonthView");
 			this.startActivity(monthViewIntent);
 		}
 	}
@@ -354,70 +287,45 @@ public class TodoListView extends AcalActivity implements OnClickListener {
 			Log.w(TAG,"DataService connection not available!");
 			return new ArrayList<SimpleAcalTodo>();
 		}
-		try {
-			if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG, 
-					"Requesting TodoList where isCompleted="+listCompleted+", isFuture="+listFuture);
-			ArrayList<SimpleAcalTodo> result = (ArrayList<SimpleAcalTodo>) dataRequest.getTodos(listCompleted,listFuture);
-			if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,
-					"Got "+result.size()+" tasks");
-			return result;
-		}
-		catch (RemoteException e) {
-			if (Constants.LOG_DEBUG) Log.d(TAG,"Remote Exception accessing eventcache: "+e);
-			return new ArrayList<SimpleAcalTodo>();
-		}
+		if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG, 
+				"Requesting TodoList where isCompleted="+listCompleted+", isFuture="+listFuture);
+		ArrayList<SimpleAcalTodo> result = (ArrayList<SimpleAcalTodo>) dataRequest.getTodos(listCompleted,listFuture);
+		if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,
+				"Got "+result.size()+" tasks");
+		return result;
+
 	}
 
 	public int getNumberTodos() {
-		if (dataRequest == null) return 0;
-		try {
-			return dataRequest.getNumberTodos();
-		} catch (RemoteException e) {
-			if (Constants.LOG_DEBUG) Log.d(TAG,"Remote Exception accessing eventcache: "+e);
-			return 0;
-		}
+		return dataRequest.getNumberTodos();
 	}
 
 	public SimpleAcalTodo getNthTodo(int n) {
-		if (dataRequest == null) return null;
-		try {
-			return dataRequest.getNthTodo(n);
-		} catch (RemoteException e) {
-			if (Constants.LOG_DEBUG) Log.d(TAG,"Remote Exception accessing todolist from dataservice: "+e);
-			return null;
-		}
+		return dataRequest.getNthTodo(n);
 	}
 
 	public void deleteTodo( int n, int action ) {
-		if (dataRequest == null) return;
+		SimpleAcalTodo sat = dataRequest.getNthTodo(n);
 		try {
-			SimpleAcalTodo sat = dataRequest.getNthTodo(n);
 			this.dataRequest.todoChanged((VCalendar) VComponent.fromDatabase(this, sat.resourceId), action);
-		}
-		catch (RemoteException e) {
-			Log.e(TAG,"Error deleting task: "+e);
-		}
-		catch (VComponentCreationException e) {
-			Log.e(TAG,"Error reading task from database: "+e);
+		} catch (VComponentCreationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 
 	public void completeTodo( int n, int action ) {
-		if (dataRequest == null) return;
 		try {
 			SimpleAcalTodo sat = dataRequest.getNthTodo(n);
 			this.dataRequest.todoChanged((VCalendar) VComponent.fromDatabase(this, sat.resourceId), action);
-		}
-		catch (RemoteException e) {
-			Log.e(TAG,"Error marking task completed: "+e);
 		}
 		catch (VComponentCreationException e) {
 			Log.e(TAG,"Error reading task from database: "+e);
 		}
 	}
 
-	
-	
+
+
 	/********************************************************************
 	 * Implemented Interface Overrides *
 	 ********************************************************************/
@@ -448,12 +356,12 @@ public class TodoListView extends AcalActivity implements OnClickListener {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// Handle item selection
 		switch (item.getItemId()) {
-			case R.id.settingsMenuItem:
-				startSettings();
-				return true;
-			case R.id.eventsMenuItem:
-				startMonthView();
-				return true;
+		case R.id.settingsMenuItem:
+			startSettings();
+			return true;
+		case R.id.eventsMenuItem:
+			startMonthView();
+			return true;
 		default:
 			return super.onOptionsItemSelected(item);
 		}
@@ -469,84 +377,23 @@ public class TodoListView extends AcalActivity implements OnClickListener {
 	public void onClick(View clickedView) {
 		int button = (int) ((Integer) clickedView.getTag());
 		switch (button) {
-			case DUE:
-				this.showFuture = !this.showFuture;
-				this.setSelections();
-				break;
-			case TODO:
-				this.showCompleted = !this.showCompleted;
-				this.setSelections();
-				break;
-			case ADD:
-				Intent todoEditIntent = new Intent(this, TodoEdit.class);
-				this.startActivity(todoEditIntent);
-				break;
-			default:
-				Log.w(TAG, "Unrecognised button was pushed in TodoListView.");
+		case DUE:
+			this.showFuture = !this.showFuture;
+			this.setSelections();
+			break;
+		case TODO:
+			this.showCompleted = !this.showCompleted;
+			this.setSelections();
+			break;
+		case ADD:
+			Intent todoEditIntent = new Intent(this, TodoEdit.class);
+			this.startActivity(todoEditIntent);
+			break;
+		default:
+			Log.w(TAG, "Unrecognised button was pushed in TodoListView.");
 		}
 	}
 
-
-	/************************************************************************
-	 * Service Connection management *
-	 ************************************************************************/
-
-	private ServiceConnection mConnection = new ServiceConnection() {
-		public void onServiceConnected(ComponentName className, IBinder service) {
-			// This is called when the connection with the service has been
-			// established, giving us the service object we can use to
-			// interact with the service. We are communicating with our
-			// service through an IDL interface, so get a client-side
-			// representation of that from the raw service object.
-			dataRequest = DataRequest.Stub.asInterface(service);
-			try {
-				dataRequest.registerCallback(mCallback);
-				
-			} catch (RemoteException re) {
-				Log.d(TAG,Log.getStackTraceString(re));
-			}
-			serviceIsConnected();
-		}
-
-		public void onServiceDisconnected(ComponentName className) {
-			serviceIsDisconnected();
-		}
-	};
-
-	/**
-	 * This implementation is used to receive callbacks from the remote service.
-	 */
-	private DataRequestCallBack mCallback = new DataRequestCallBack.Stub() {
-		/**
-		 * This is called by the remote service regularly to tell us about new
-		 * values. Note that IPC calls are dispatched through a thread pool
-		 * running in each process, so the code executing here will NOT be
-		 * running in our main thread like most other things -- so, to update
-		 * the UI, we need to use a Handler to hop over there.
-		 */
-		public void statusChanged(int type, boolean value) {
-			mHandler.sendMessage(mHandler.obtainMessage(BUMP_MSG, type,
-					(value ? 1 : 0)));
-		}
-	};
-
-	private static final int BUMP_MSG = 1;
-
-	private Handler mHandler = new Handler() {
-		@Override
-		public void handleMessage(Message msg) {
-			int type = msg.arg1;
-			switch (type) {
-			case CalendarDataService.UPDATE:
-				if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD,TAG,
-						"Received update notification from CalendarDataService.");
-				setSelections();
-				break;
-			}
-
-		}
-
-	};
 
 	@Override
 	public boolean onContextItemSelected(MenuItem item) {

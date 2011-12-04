@@ -29,9 +29,9 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.ViewParent;
+import android.view.View.OnClickListener;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
@@ -39,7 +39,7 @@ import com.morphoss.acal.AcalTheme;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateTime;
-import com.morphoss.acal.davacal.SimpleAcalEvent;
+import com.morphoss.acal.dataservice.EventInstance;
 import com.morphoss.acal.views.MonthDayBox;
 
 /**
@@ -214,10 +214,10 @@ public class MonthAdapter extends BaseAdapter {
 				textScaleFactor = 0.55f;
 			}
 			if ( Constants.LOG_VERBOSE && Constants.debugMonthView ) {
-				List<SimpleAcalEvent> saeList = context.getEventsForDay(bDate);
+				List<EventInstance> eventList = context.getEventsForDay(bDate);
 				Log.v(TAG,"MonthAdapter for "+bDate.fmtIcal());
-				for( SimpleAcalEvent sae : saeList ) {
-					Log.v(TAG, String.format("%d - %d: %s", sae.start, sae.end, sae.summary));
+				for( EventInstance event : eventList ) {
+					Log.v(TAG, String.format("%d - %d: %s", event.getStartMillis(), event.getEndMillis(), event.getSummary()));
 				}
 			}
 			mDayBox.setEvents(context.getEventsForDay(bDate));

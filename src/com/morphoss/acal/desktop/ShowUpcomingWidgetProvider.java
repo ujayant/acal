@@ -278,15 +278,15 @@ public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 	public synchronized static ContentValues getCVFromEvent(Context context, EventInstance event) {
 		ContentValues cv = new ContentValues();
 
-		String etag = getEtag(context, event.getResourceId());
+		String etag = getEtag(context, event.getResource().getResourceId());
 		if (etag == null) {
 			//etag fail
 			return null;
 		}
 		
-		cv.put(FIELD_RESOURCE_ID, event.getResourceId());
+		cv.put(FIELD_RESOURCE_ID, event.getResource().getResourceId());
 		cv.put(FIELD_ETAG, etag);
-		cv.put(FIELD_COLOUR,event.getColour());
+		cv.put(FIELD_COLOUR,event.getCollection().getColour());
 		cv.put(FIELD_DTSTART, event.getStart().getMillis());
 		cv.put(FIELD_DTEND, event.getEnd().getMillis());
 		cv.put(FIELD_SUMMARY, event.getSummary());
@@ -318,7 +318,7 @@ public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 	
 	public String getNiceDate(Context context, AcalDateTime dateTime) {
 		AcalDateTime now = new AcalDateTime().applyLocalTimeZone();
-		if (dateTime.getMillis() <= now.getMillis()) return context.getString(R.string.end); ///Event is occuring now
+		if (dateTime.getMillis() <= now.getMillis()) return context.getString(R.string.ends); ///Event is occuring now
 		if (now.getEpochDay() == dateTime.getEpochDay()) {
 //			String today = context.getString(R.string.Today);
 			return "";

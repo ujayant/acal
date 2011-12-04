@@ -25,84 +25,53 @@ public interface EventInstance extends Parcelable, Comparable<EventInstance> {
 	int EVENT_OPERATION_VIEW = 9;
 
 	
-
-	Collection getCollection();
-	
-	Resource getResource();
-	
-	List<AcalAlarm> getAlarms();
-
-	AcalDateTime getStart();
-
-	AcalDateTime getEnd();
-
-	int getAction();
-
-	String getRepetition();
-
-	void setRepetition(String rrule);
-
-	boolean isModifyAction();
-
-	AcalDuration getDuration();
-
-	String getSummary();
-
-	String getLocation();
-
-	String getDescription();
-
-	boolean isAllDay();
-
-	long getStartMillis();
-
-	long getEndMillis();
-
-	void setOperation(int eventOperationCopy);
-
-	int getLastWidth();
-
-	void setLastWidth(int singleWidth);
-
-	boolean overlaps(EventInstance eventInstance);
-
-	String getTimeText(WeekViewActivity context, long currentEpoch,
+	//Getters that are always needed
+	public long getStartMillis();
+	public long getEndMillis();
+	public Collection getCollection();
+	public Resource getResource();
+	public List<AcalAlarm> getAlarms();
+	public AcalDateTime getStart();
+	public 	AcalDateTime getEnd();
+	public AcalDuration getDuration();
+	public String getRepetition();
+	public String getSummary();
+	public String getLocation();
+	public String getDescription();
+	public boolean overlaps(EventInstance eventInstance);
+	public String getTimeText(WeekViewActivity context, long currentEpoch,
 			long currentEpoch2, boolean b);
-
-	int calulateMaxWidth(int viewWidth, int hSPP);
-
-	int getActualWidth();
-
-	CharSequence getTimeText(AcalDateTime viewDate, AcalDateTime addDays,
+	public CharSequence getTimeText(AcalDateTime viewDate, AcalDateTime addDays,
 			boolean boolean1);
-
-	int getOperation();
-
+	public boolean isPending();
+	public boolean isSingleInstance();
+	public String getTimeText(MonthView context, long epoch, long epoch2,
+			boolean boolean1);
+	public boolean isAllDay();
+	
+	//Special methods that are sometimes needed - should be refactored out
+	public int getLastWidth();
+	public void setLastWidth(int singleWidth);
+	public int calulateMaxWidth(int viewWidth, int hSPP);
+	public int getActualWidth();
+	
+	//Methods for writeable instance
+	public void setRepetition(String rrule);
+	public void setOperation(int eventOperationCopy);
+	public void setDates(AcalDateTime start, AcalDuration duration);
+	public void setSummary(String string);
+	public void setCollection(DUMMYCollectionInstance instance);
+	public void setAlarms(List<AcalAlarm> alarmList);
+	public void setDates(AcalDateTime setTimeZone, AcalDateTime setTimeZone2);
+	public void setLocation(String newLoc);
+	public void setDescription(String newDesc);
+	public void setEndDate(AcalDateTime end);
+	public void setRepeatRule(String newRule);
+	public int getAction();
+	public boolean isModifyAction();
+	public int getOperation();
 	void setAction(int actionModifyAll);
 
-	void setDates(AcalDateTime start, AcalDuration duration);
-
-	void setSummary(String string);
-
-	void setCollection(DUMMYCollectionInstance instance);
-
-	void setAlarms(List<AcalAlarm> alarmList);
-
-	void setDates(AcalDateTime setTimeZone, AcalDateTime setTimeZone2);
-
-	void setLocation(String newLoc);
-
-	void setDescription(String newDesc);
-
-	void setEndDate(AcalDateTime end);
-
-	void setRepeatRule(String newRule);
-
-	boolean isPending();
-
-	boolean isSingleInstance();
-
-	String getTimeText(MonthView context, long epoch, long epoch2,
-			boolean boolean1);
+	
 
 }
