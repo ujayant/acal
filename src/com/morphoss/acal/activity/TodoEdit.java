@@ -192,7 +192,7 @@ public class TodoEdit extends AcalActivity
 			try {
 				if (Constants.LOG_DEBUG)
 					Log.d(TAG, "Loading Todo: "+sat.summary );
-				VCalendar vc = (VCalendar) VComponent.fromDatabase(this, sat.resourceId);
+				VCalendar vc = (VCalendar) VComponent.fromDatabase(this, sat.resource.getResourceId());
 				vc.setEditable();
 				this.todo = (VTodo) ((VCalendar) vc).getMasterChild();
 			}

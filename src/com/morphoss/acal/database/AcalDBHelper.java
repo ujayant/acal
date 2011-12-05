@@ -48,7 +48,7 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 	/**
 	 * The version of this database. Used to determine if an upgrade is required.
 	 */
-	public static final int DB_VERSION = 15;
+	public static final int DB_VERSION = 16;
 	
 	/**
 	 * <p>The dav_server Table as stated in the specification.</p>
@@ -200,6 +200,31 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 		+");";
 
 	
+	/**
+	 * Used for caching event data
+	 */
+	public static final String EVENT_CACHE_TABLE_SQL = 
+		"CREATE TABLE event_cache ("
+	        +"_id INTEGER PRIMARY KEY AUTOINCREMENT"
+			+",resource_id INTEGER REFERENCES dav_resource(_id)"
+			+",summary TEXT"
+			+",dtstart NUMERIC"
+			+",dtend NUMERIC"
+			+",has_alarm BOOLEAN"
+			+",recurs BOOLEAN"
+			+",colour INTEGER"
+			+",dirty BOOLEAN"
+		+");";
+	
+	public static final String EVENT_CACHE_META_TABLE_SQL = 
+		"CREATE TABLE event_cache_meta ("
+	        +"_id INTEGER PRIMARY KEY AUTOINCREMENT"
+			+",dtstart NUMERIC"
+			+",dtend NUMERIC"
+			+",count INTEGER"
+			+",closed BOOLEAN"
+		+");";
+
 	
 	/**
 	 * Visible single argument constructor. Calls super with default values.
@@ -290,6 +315,12 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 		if (oldVersion == 14) {
 			db.execSQL("DROP TABLE show_upcoming_widget_data");
 			db.execSQL(SHOW_UPCOMING_WIDGET_TABLE_SQL);
+			oldVersion++;
+		}
+		
+		if (oldVersion == 15) {
+			db.execSQL(EVENT_CACHE_TABLE_SQL);
+			db.execSQL(EVENT_CACHE_META_TABLE_SQL);
 			oldVersion++;
 		}
 		

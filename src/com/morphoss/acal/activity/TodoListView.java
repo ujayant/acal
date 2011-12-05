@@ -307,7 +307,7 @@ public class TodoListView extends AcalActivity implements OnClickListener {
 	public void deleteTodo( int n, int action ) {
 		SimpleAcalTodo sat = dataRequest.getNthTodo(n);
 		try {
-			this.dataRequest.todoChanged((VCalendar) VComponent.fromDatabase(this, sat.resourceId), action);
+			this.dataRequest.todoChanged((VCalendar) VComponent.fromDatabase(this, sat.resource.getResourceId()), action);
 		} catch (VComponentCreationException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -317,7 +317,7 @@ public class TodoListView extends AcalActivity implements OnClickListener {
 	public void completeTodo( int n, int action ) {
 		try {
 			SimpleAcalTodo sat = dataRequest.getNthTodo(n);
-			this.dataRequest.todoChanged((VCalendar) VComponent.fromDatabase(this, sat.resourceId), action);
+			this.dataRequest.todoChanged((VCalendar) VComponent.fromDatabase(this, sat.resource.getResourceId()), action);
 		}
 		catch (VComponentCreationException e) {
 			Log.e(TAG,"Error reading task from database: "+e);

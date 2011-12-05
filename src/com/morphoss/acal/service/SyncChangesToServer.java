@@ -234,7 +234,7 @@ public class SyncChangesToServer extends ServiceJob {
 				contentExtension = ".txt";
 			
 			try {
-				VComponent vc = VComponent.createComponentFromBlob(newData, -1, null);
+				VComponent vc = VComponent.createComponentFromBlob(newData, -1L, null);
 				if ( vc instanceof VCard )
 					resourcePath = StaticHelpers.rTrim(vc.getProperty("UID").getValue()) + ".vcf";
 				else if ( vc instanceof VCalendar )

@@ -30,7 +30,7 @@ import java.util.regex.Pattern;
 import android.util.Log;
 
 import com.morphoss.acal.Constants;
-import com.morphoss.acal.dataservice.DUMMYEventInstance;
+import com.morphoss.acal.dataservice.DefaultEventInstance;
 import com.morphoss.acal.dataservice.EventInstance;
 import com.morphoss.acal.davacal.AcalAlarm;
 import com.morphoss.acal.davacal.AcalProperty;
@@ -487,7 +487,7 @@ public class AcalRepeatRule {
 				}
 				if( ! instance.dtstart.before(range.end) ) break;
 
-				eventList.add(instance.getAcalEvent());
+				eventList.add(instance.getEventInstance());
 				
 				if ( Constants.debugRepeatRule && Constants.LOG_DEBUG ) {
 					Log.d(TAG, "Adding Instance: "+thisDate.fmtIcal()+" of " +repeatRule.toString() );
@@ -584,9 +584,9 @@ public class AcalRepeatRule {
 			this.dtend = AcalDateTime.addDuration(dtstart, duration);
 		}
 
-		EventInstance getAcalEvent() {
-			//return new AcalEvent( (VEvent) VEvent, dtstart, duration, isPending );
-			return DUMMYEventInstance.getIntance((VEvent) VEvent, dtstart, duration, isPending );
+		EventInstance getEventInstance() {
+			return new DefaultEventInstance( (VEvent) VEvent, dtstart, duration);
+			//return DefaultEventInstance.getInstance((VEvent) VEvent, dtstart, duration, isPending );
 		}
 	}
 /*

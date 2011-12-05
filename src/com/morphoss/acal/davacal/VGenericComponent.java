@@ -22,8 +22,8 @@ package com.morphoss.acal.davacal;
 public class VGenericComponent extends VComponent {
 	public static final String TAG = "aCal VGeneric";
 	
-	public VGenericComponent(ComponentParts splitter, Integer resourceId, AcalCollection collectionObject,VComponent parent) {
-		super(splitter, resourceId, collectionObject,parent);
+	public VGenericComponent(ComponentParts splitter, long l, AcalCollection collectionObject,VComponent parent) {
+		super(splitter, l, collectionObject,parent);
 	}
 
 }

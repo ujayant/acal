@@ -22,7 +22,7 @@ package com.morphoss.acal.davacal;
 public class VJournal extends Masterable {
 	public static final String TAG = "aCal VJournal";
 	
-	public VJournal(ComponentParts splitter, Integer resourceId, AcalCollection collectionObject,VComponent parent) {
-		super(splitter, resourceId, collectionObject,parent);
+	public VJournal(ComponentParts splitter, long l, AcalCollection collectionObject,VComponent parent) {
+		super(splitter, l, collectionObject,parent);
 	}
 }

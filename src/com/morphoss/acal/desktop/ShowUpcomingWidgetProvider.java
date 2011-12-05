@@ -29,6 +29,7 @@ import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.activity.EventView;
 import com.morphoss.acal.database.AcalDBHelper;
+import com.morphoss.acal.dataservice.DefaultEventInstance;
 import com.morphoss.acal.dataservice.EventInstance;
 import com.morphoss.acal.providers.DavResources;
 import com.morphoss.acal.service.aCalService;
@@ -97,8 +98,7 @@ public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 					
 					//set up on click intent
 					Intent viewEvent = new Intent(context, EventView.class);
-					viewEvent.putExtra(EventView.RESOURCE_ID_KEY, rid);
-					viewEvent.putExtra(EventView.DTSTART_KEY,cvs[i].getAsLong(FIELD_DTSTART));
+					viewEvent.putExtra(EventView.EVENT_INSTANCE_KEY, DefaultEventInstance.fromDB(rid, cvs[i].getAsLong(FIELD_DTSTART)));
 					PendingIntent onClickIntent = PendingIntent.getActivity(context, i, viewEvent, PendingIntent.FLAG_UPDATE_CURRENT);
 					
 					//inflate row

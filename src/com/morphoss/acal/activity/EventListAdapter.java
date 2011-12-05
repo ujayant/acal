@@ -40,6 +40,7 @@ import android.widget.TextView;
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.dataservice.EventInstance;
+import com.morphoss.acal.dataservice.WriteableEventInstance;
 
 /**
  * <p>
@@ -250,15 +251,15 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 					return true;
 				
 				case CONTEXT_DELETE_ALL:
-					this.context.deleteEvent(viewDate,id,EventInstance.ACTION_DELETE_ALL);
+					this.context.deleteEvent(viewDate,id,WriteableEventInstance.ACTION_DELETE_ALL);
 					return true;
 
 				case CONTEXT_DELETE_JUSTTHIS:
-					this.context.deleteEvent(viewDate,id,EventInstance.ACTION_DELETE_SINGLE);
+					this.context.deleteEvent(viewDate,id,WriteableEventInstance.ACTION_DELETE_SINGLE);
 					return true;
 
 				case CONTEXT_DELETE_FROMNOW:
-					this.context.deleteEvent(viewDate,id,EventInstance.ACTION_DELETE_ALL_FUTURE);
+					this.context.deleteEvent(viewDate,id,WriteableEventInstance.ACTION_DELETE_ALL_FUTURE);
 					return true;
 			}
 			return false;

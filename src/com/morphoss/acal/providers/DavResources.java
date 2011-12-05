@@ -381,19 +381,19 @@ CREATE TABLE dav_resource (
 
 	/**
 	 * Static method to retrieve a particular database row for a given resource ID.
-	 * @param resourceId
+	 * @param l
 	 * @param contentResolver
 	 * @return A ContentValues which is the dav_resource row, or null
 	 */
-	public static ContentValues getRow(Integer resourceId, ContentResolver contentResolver) {
+	public static ContentValues getRow(long l, ContentResolver contentResolver) {
 		ContentValues resourceData = null;
 		Cursor c = null;
 		try {
-			c = contentResolver.query(Uri.withAppendedPath(CONTENT_URI,Long.toString(resourceId)),
+			c = contentResolver.query(Uri.withAppendedPath(CONTENT_URI,Long.toString(l)),
 						null, null, null, null);
 			if ( !c.moveToFirst() ) {
 				if ( Constants.LOG_DEBUG )
-					Log.d(TAG, "No dav_resource row for collection " + Long.toString(resourceId));
+					Log.d(TAG, "No dav_resource row for collection " + Long.toString(l));
 				c.close();
 				return null;
 			}

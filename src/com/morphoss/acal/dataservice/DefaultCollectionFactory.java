@@ -2,6 +2,8 @@ package com.morphoss.acal.dataservice;
 
 import java.util.HashMap;
 
+import com.morphoss.acal.davacal.AcalCollection;
+
 public class DefaultCollectionFactory implements CollectionFactory {
 
 	private static final HashMap<Long,Collection> collections = new HashMap<Long,Collection>();
@@ -11,7 +13,7 @@ public class DefaultCollectionFactory implements CollectionFactory {
 		if (collections.containsKey(id)) 
 			return collections.get(id);
 		//TODO get from DB
-		Collection instance = new DUMMYCollectionInstance(id, 0, false);
+		Collection instance = AcalCollection.fromDatabase(null, id);
 		collections.put(id, instance);
 		return instance;
 	}

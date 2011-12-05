@@ -41,7 +41,7 @@ import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
-import com.morphoss.acal.dataservice.DUMMYEventInstance;
+import com.morphoss.acal.dataservice.DefaultEventInstance;
 import com.morphoss.acal.dataservice.EventInstance;
 import com.morphoss.acal.davacal.AcalAlarm;
 import com.morphoss.acal.providers.DavCollections;
@@ -59,8 +59,8 @@ public class EventView extends AcalActivity implements OnGestureListener, OnTouc
 	public static final int EDIT_ADD = 0;
 	
 	public static final String EVENT_INSTANCE_KEY = "EventInstance";
-	public static final String RESOURCE_ID_KEY = "resourceid";
-	public static final String DTSTART_KEY = "start";
+	//public static final String RESOURCE_ID_KEY = "resourceid";
+	//public static final String DTSTART_KEY = "start";
 	
 	private EventInstance event = null;
 	
@@ -85,12 +85,12 @@ public class EventView extends AcalActivity implements OnGestureListener, OnTouc
 			int rid = -1;
 			
 			if (b.containsKey(EVENT_INSTANCE_KEY)) this.event = b.getParcelable(EVENT_INSTANCE_KEY);
-			if (b.containsKey(RESOURCE_ID_KEY)) rid = b.getInt(RESOURCE_ID_KEY);
-			if (b.containsKey(DTSTART_KEY)) start = b.getLong(DTSTART_KEY);
+			//if (b.containsKey(RESOURCE_ID_KEY)) rid = b.getInt(RESOURCE_ID_KEY);
+			//if (b.containsKey(DTSTART_KEY)) start = b.getLong(DTSTART_KEY);
 			
-			if (this.event == null && rid >= 0 && start >=0) {
-				this.event = DUMMYEventInstance.getIntance(this, rid, AcalDateTime.fromMillis(start));
-			}
+			//if (this.event == null && rid >= 0 && start >=0) {
+			//	this.event = new DefaultEventInstance(rid, AcalDateTime.fromMillis(start));
+			//}
 			else {
 				if (Constants.LOG_DEBUG)Log.d(TAG, "Calling activity has not provided required data.");
 				this.finish();

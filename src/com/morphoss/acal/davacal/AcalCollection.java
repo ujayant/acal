@@ -21,12 +21,15 @@ package com.morphoss.acal.davacal;
 import android.content.ContentValues;
 import android.content.Context;
 import android.graphics.Color;
+import android.os.Parcel;
 import android.util.Log;
 
 import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.providers.DavCollections;
 
-public class AcalCollection {
+import com.morphoss.acal.dataservice.Collection;
+
+public class AcalCollection extends Collection {
 	final private static String TAG = "AcalCollection";
 	private ContentValues cv;
 	private int collectionColour;
@@ -93,11 +96,29 @@ public class AcalCollection {
 		return cv;
 	}
 
-	public int getCollectionId() {
+	public long getCollectionId() {
 		return collectionId;
 	}
 
 	public CharSequence getDisplayName() {
 		return cv.getAsString(DavCollections.DISPLAYNAME);
+	}
+
+	@Override
+	public boolean alarmsEnabled() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public int describeContents() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public void writeToParcel(Parcel dest, int flags) {
+		// TODO Auto-generated method stub
+		
 	}
 }

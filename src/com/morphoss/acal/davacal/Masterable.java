@@ -34,8 +34,8 @@ import com.morphoss.acal.acaltime.AcalRepeatRule;
 
 public abstract class Masterable extends VComponent {
 
-	protected Masterable(ComponentParts splitter, Integer resourceId, AcalCollection collectionObject, VComponent parent) {
-		super(splitter,resourceId,collectionObject,parent);
+	protected Masterable(ComponentParts splitter, long l, AcalCollection collectionObject, VComponent parent) {
+		super(splitter,l,collectionObject,parent);
 	}
 
 	protected Masterable(String typeName, VComponent parent) {

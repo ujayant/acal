@@ -75,7 +75,7 @@ public class TodoView extends AcalActivity implements OnGestureListener, OnTouch
 			this.sat = (SimpleAcalTodo) b.getParcelable("SimpleAcalTodo");
 			if (Constants.LOG_DEBUG)
 				Log.d(TAG, "Loading Todo: "+sat.summary );
-			this.vc = (VCalendar) VComponent.fromDatabase(this, sat.resourceId);
+			this.vc = (VCalendar) VComponent.fromDatabase(this, sat.resource.getResourceId());
 			this.todo = (VTodo) ((VCalendar) vc).getMasterChild();
 					
 			this.populateLayout();
@@ -267,7 +267,7 @@ public class TodoView extends AcalActivity implements OnGestureListener, OnTouch
 				if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG, "Received blob is:\n"+blob);
 				long collectionId = b.getLong(TodoEdit.resultCollectionId);
 				AcalCollection collection = AcalCollection.fromDatabase(this, collectionId);
-				this.vc = (VCalendar) VComponent.createComponentFromBlob(blob, sat.resourceId, collection);
+				this.vc = (VCalendar) VComponent.createComponentFromBlob(blob, sat.resource.getResourceId(), collection);
 				this.todo = (VTodo) vc.getMasterChild();
 			}
 			catch (Exception e) {

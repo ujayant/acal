@@ -35,6 +35,7 @@ import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
 import com.morphoss.acal.acaltime.AcalRepeatRuleParser;
 import com.morphoss.acal.dataservice.EventInstance;
+import com.morphoss.acal.dataservice.WriteableEventInstance;
 
 public class VCalendar extends VComponent {
 	public static final String TAG = "aCal VCalendar";
@@ -48,8 +49,8 @@ public class VCalendar extends VComponent {
 	private boolean isPending = false;
 
 
-	public VCalendar(ComponentParts splitter, Integer resourceId, Long earliestStart, Long latestEnd, AcalCollection collectionObject,VComponent parent) {
-		super(splitter, resourceId, collectionObject,parent);
+	public VCalendar(ComponentParts splitter, long l, Long earliestStart, Long latestEnd, AcalCollection collectionObject,VComponent parent) {
+		super(splitter, l, collectionObject,parent);
 		this.earliestStart = earliestStart;
 		this.latestEnd = latestEnd;
 		if ( earliestStart != null ) {
@@ -82,10 +83,10 @@ public class VCalendar extends VComponent {
 	}
 	
 	public VCalendar clone() {
-		return new VCalendar(this.content, this.resourceId, this.earliestStart, this.latestEnd, this.collectionData, this.parent);
+		return new VCalendar(this.content, this.getResourceId(), this.earliestStart, this.latestEnd, this.collectionData, this.parent);
 	}
 
-	public String applyEventAction(EventInstance action) {
+	public String applyEventAction(WriteableEventInstance action) {
 		try {
 			this.setEditable();
 
@@ -102,7 +103,7 @@ public class VCalendar extends VComponent {
 			vEvent.addProperty(AcalProperty.fromString(lastModified.toPropertyString(PropertyName.DTSTAMP)));
 			vEvent.addProperty(AcalProperty.fromString(lastModified.toPropertyString(PropertyName.LAST_MODIFIED)));
 
-			if ( action.getAction() == EventInstance.ACTION_DELETE_SINGLE) {
+			if ( action.getAction() == WriteableEventInstance.ACTION_DELETE_SINGLE) {
 				AcalProperty exDate = vEvent.getProperty("EXDATE");
 				if ( exDate == null || exDate.getValue().equals("") ) 
 					exDate = AcalProperty.fromString(action.getStart().toPropertyString(PropertyName.EXDATE));
@@ -112,7 +113,7 @@ public class VCalendar extends VComponent {
 				}
 				vEvent.addProperty(exDate);
 			}
-			else if (action.getAction() ==EventInstance.ACTION_DELETE_ALL_FUTURE) {
+			else if (action.getAction() ==WriteableEventInstance.ACTION_DELETE_ALL_FUTURE) {
 				AcalRepeatRuleParser parsedRule = AcalRepeatRuleParser.parseRepeatRule(action.getRepetition());
 				AcalDateTime until = action.getStart().clone();
 				until.addSeconds(-1);
@@ -137,16 +138,16 @@ public class VCalendar extends VComponent {
 
 	}
 
-	private void applyModify(Masterable mast, EventInstance action) {
+	private void applyModify(Masterable mast, WriteableEventInstance action) {
 		//there are 3 possible modify actions:
-		if (action.getAction() == EventInstance.ACTION_MODIFY_SINGLE) {
+		if (action.getAction() == WriteableEventInstance.ACTION_MODIFY_SINGLE) {
 			// Only modify the single instance
 		}
-		else if (action.getAction() == EventInstance.ACTION_MODIFY_ALL_FUTURE) {
+		else if (action.getAction() == WriteableEventInstance.ACTION_MODIFY_ALL_FUTURE) {
 			// Modify this instance, and all future instances.
 
 		}
-		else if (action.getAction() == EventInstance.ACTION_MODIFY_ALL) {
+		else if (action.getAction() == WriteableEventInstance.ACTION_MODIFY_ALL) {
 			// Modify all instances
 
 			// First, strip any existing properties which we modify
@@ -305,11 +306,11 @@ public class VCalendar extends VComponent {
 		for( PartInfo childInfo : content.partInfo ) {
 			if ( childInfo.type.equals(VEVENT) ) {
 				return new VEvent(new ComponentParts(childInfo.getComponent(content.componentString)),
-						resourceId, collectionData,this);
+						resource.getResourceId(), collectionData,this);
 			}
 			else if ( childInfo.type.equals(VTODO) ) {
 				return new VTodo(new ComponentParts(childInfo.getComponent(content.componentString)),
-						resourceId, collectionData,this);
+						resource.getResourceId(), collectionData,this);
 			}
 		}
 		return null;
@@ -476,7 +477,7 @@ public class VCalendar extends VComponent {
 		for( PartInfo childInfo : content.partInfo ) {
 			if ( childInfo.type.equals(VEVENT) ) {
 				VEvent vc = new VEvent(new ComponentParts(childInfo.getComponent(content.componentString)),
-						resourceId, collectionData,this);
+						resource.getResourceId(), collectionData,this);
 				for( PartInfo childChildInfo : vc.content.partInfo ) {
 					if ( childChildInfo.type.equals(VALARM)) {
 						this.hasAlarms = true;
@@ -486,7 +487,7 @@ public class VCalendar extends VComponent {
 			}
 			else if ( childInfo.type.equals(VTODO) ) {
 				VTodo vc = new VTodo(new ComponentParts(childInfo.getComponent(content.componentString)),
-						resourceId, collectionData,this);
+						resource.getResourceId(), collectionData,this);
 				for( PartInfo childChildInfo : vc.content.partInfo ) {
 					if ( childChildInfo.type.equals(VALARM))  {
 						this.hasAlarms = true;

@@ -24,15 +24,9 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.IBinder;
-import android.os.Message;
-import android.os.RemoteException;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
@@ -55,9 +49,10 @@ import com.morphoss.acal.AcalTheme;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateTime;
-import com.morphoss.acal.dataservice.DUMMYEventInstance;
+import com.morphoss.acal.dataservice.DefaultEventInstance;
 import com.morphoss.acal.dataservice.EventInstance;
 import com.morphoss.acal.dataservice.MethodsRequired;
+import com.morphoss.acal.dataservice.WriteableEventInstance;
 import com.morphoss.acal.service.aCalService;
 import com.morphoss.acal.weekview.WeekViewActivity;
 import com.morphoss.acal.widget.AcalViewFlipper;
@@ -701,8 +696,7 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 	}
 
 	public void deleteEvent(AcalDateTime day, int n, int action ) {
-			EventInstance sae = dataRequest.getNthEventForDay(day, n);
-			EventInstance ae = DUMMYEventInstance.fromDatabase(this, sae.getResource().getResourceId(), new AcalDateTime().setEpoch(sae.getStartMillis()));
+			WriteableEventInstance ae = dataRequest.getNthEventForDay(day, n).getWriteable();
 			ae.setAction(action);
 			dataRequest.eventChanged(ae);
 		this.changeSelectedDate(this.selectedDate);

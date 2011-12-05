@@ -22,8 +22,8 @@ package com.morphoss.acal.davacal;
 public class VAlarm extends VComponent {
 	public static final String TAG = "aCal VAlarm";
 	
-	public VAlarm(ComponentParts splitter, Integer resourceId, AcalCollection collectionObject,VComponent parent) {
-		super(splitter, resourceId, collectionObject,parent);
+	public VAlarm(ComponentParts splitter, long l, AcalCollection collectionObject,VComponent parent) {
+		super(splitter, l, collectionObject,parent);
 	}
 
 	public VAlarm( VComponent parent ) {

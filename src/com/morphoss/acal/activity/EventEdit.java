@@ -18,20 +18,15 @@
 
 package com.morphoss.acal.activity;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.ServiceConnection;
-import android.graphics.Color;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -58,10 +53,12 @@ import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDateTimeFormatter;
 import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
-import com.morphoss.acal.dataservice.DUMMYCollectionInstance;
-import com.morphoss.acal.dataservice.DUMMYEventInstance;
+import com.morphoss.acal.dataservice.DefaultCollectionFactory;
 import com.morphoss.acal.dataservice.EventInstance;
 import com.morphoss.acal.dataservice.MethodsRequired;
+import com.morphoss.acal.dataservice.WriteableEventInstance;
+import com.morphoss.acal.dataservice.DefaultWriteableEventInstance.BadlyConstructedEventException;
+import com.morphoss.acal.dataservice.DefaultWriteableEventInstance.EVENT_BUILDER;
 import com.morphoss.acal.davacal.AcalAlarm;
 import com.morphoss.acal.davacal.PropertyName;
 import com.morphoss.acal.davacal.VComponent;
@@ -83,7 +80,7 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 	public static final String			resultAcalEvent					= "newAcalEvent";
 	public static final String			resultCollectionId			= "newCollectionId";
 	
-	private EventInstance event;
+	private WriteableEventInstance event;
 	private static final int START_DATE_DIALOG = 0;
 	private static final int END_DATE_DIALOG = 2;
 	private static final int SELECT_COLLECTION_DIALOG = 4;
@@ -180,7 +177,7 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 		if ( operation == EventInstance.EVENT_OPERATION_EDIT ) {
 			try {
 				collectionId = this.event.getCollection().getCollectionId();
-				this.event.setAction(EventInstance.ACTION_MODIFY_ALL);
+				this.event.setAction(WriteableEventInstance.ACTION_MODIFY_ALL);
 				if ( event.isModifyAction() ) {
 					String rr = (String)  this.event.getRepetition();
 					if (rr != null && !rr.equals("") && !rr.equals(AcalRepeatRule.SINGLE_INSTANCE)) {
@@ -188,10 +185,10 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 						this.originalOccurence = rr;
 					}
 					if (this.originalHasOccurrence) {
-						this.event.setAction(EventInstance.ACTION_MODIFY_SINGLE);
+						this.event.setAction(WriteableEventInstance.ACTION_MODIFY_SINGLE);
 					}
 					else {
-						this.event.setAction(EventInstance.ACTION_MODIFY_ALL);
+						this.event.setAction(WriteableEventInstance.ACTION_MODIFY_ALL);
 					}
 				}
 			}
@@ -207,7 +204,7 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 			catch (Exception e) {
 				if (Constants.LOG_DEBUG)Log.d(TAG, "Error getting data from caller: "+e.getMessage());
 			}
-			this.event.setAction(EventInstance.ACTION_CREATE);
+			this.event.setAction(WriteableEventInstance.ACTION_CREATE);
 		}
 
 		if ( this.event == null ) {
@@ -239,10 +236,6 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 				start.addSeconds(AcalDateTime.SECONDS_IN_HOUR);
 			}
 
-			this.event = DUMMYEventInstance.getIntance();
-			this.event.setDates(start,duration);
-			this.event.setSummary(getString(R.string.NewEventTitle));
-			
 			ContentValues collectionData = DavCollections.getRow(collectionId, getContentResolver());
 			Integer preferredCollectionId = Integer.parseInt(prefs.getString(getString(R.string.DefaultCollection_PrefKey), "-1"));
 			if ( preferredCollectionId != -1 ) {
@@ -254,18 +247,30 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 					}
 				}
 			}
-			this.event.setCollection(DUMMYCollectionInstance.getInstance(collectionId));
-
-			List<AcalAlarm> alarmList = new ArrayList<AcalAlarm>();
-			alarmList.add(defaultAlarm);
-			this.event.setAlarms(alarmList);
-			this.event.setAction(EventInstance.ACTION_CREATE);
-
-			if ( !event.getStart().isFloating() ) {
+			
+			
+			
+			EVENT_BUILDER ev = new EVENT_BUILDER();
+			
+			if ( !start.isFloating() ) {
 				if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG, "Forcing start/end dates to floating on new event...");
-				event.setDates(event.getStart().setTimeZone(null), event.getEnd().setTimeZone(null));
+				start = start.setTimeZone(null);
+			}
+			
+			ev.setStart(start)
+				.setDuration(duration)
+				.setSummary(getString(R.string.NewEventTitle))
+				.setCollection(collectionId)
+				.addAlarm(defaultAlarm)
+				.setAction(WriteableEventInstance.ACTION_CREATE);
+		
+			try {
+				this.event = ev.build();
+			} catch (BadlyConstructedEventException bcee) {
+				if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG, "Error creating default event");
 			}
 		}
+		
 		this.collectionsArray = new String[activeCollections.length];
 		int count = 0;
 		for (ContentValues cv : activeCollections) {
@@ -283,7 +288,7 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 				this.currentCollection = cv; break;
 			}
 		}
-		this.event.setCollection(DUMMYCollectionInstance.getInstance(this.currentCollection.getAsInteger(DavCollections._ID)));
+		this.event.setCollection(new DefaultCollectionFactory().getInstance(this.currentCollection.getAsInteger(DavCollections._ID)));
 		this.updateLayout();
 	}
 
@@ -300,7 +305,7 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 
 		//Title
 		this.eventName = (TextView) this.findViewById(R.id.EventName);
-		if ( event == null || event.getAction() == EventInstance.ACTION_CREATE ) {
+		if ( event == null || event.getAction() == WriteableEventInstance.ACTION_CREATE ) {
 			eventName.setSelectAllOnFocus(true);
 		}
 
@@ -509,8 +514,8 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 			event.setEndDate(end);
 		}
 		
-		if (event.getAction() == EventInstance.ACTION_CREATE ||
-				event.getAction() == EventInstance.ACTION_MODIFY_ALL) {
+		if (event.getAction() == WriteableEventInstance.ACTION_CREATE ||
+				event.getAction() == WriteableEventInstance.ACTION_MODIFY_ALL) {
 			if ( !this.saveChanges() ){
 				Toast.makeText(this, "Save failed: retrying!", Toast.LENGTH_LONG).show();
 				this.saveChanges();
@@ -530,13 +535,13 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 			this.dataRequest.eventChanged(event);
 
 			if ( Constants.LOG_DEBUG ) Log.d(TAG,"Saving event with action " + event.getAction() );
-			if (event.getAction() == EventInstance.ACTION_CREATE)
+			if (event.getAction() == WriteableEventInstance.ACTION_CREATE)
 				Toast.makeText(this, getString(R.string.EventSaved), Toast.LENGTH_LONG).show();
-			else if (event.getAction() == EventInstance.ACTION_MODIFY_ALL)
+			else if (event.getAction() == WriteableEventInstance.ACTION_MODIFY_ALL)
 				Toast.makeText(this, getString(R.string.ModifiedAllInstances), Toast.LENGTH_LONG).show();
-			else if (event.getAction() == EventInstance.ACTION_MODIFY_SINGLE)
+			else if (event.getAction() == WriteableEventInstance.ACTION_MODIFY_SINGLE)
 				Toast.makeText(this, getString(R.string.ModifiedOneInstance), Toast.LENGTH_LONG).show();
-			else if (event.getAction() == EventInstance.ACTION_MODIFY_ALL_FUTURE)
+			else if (event.getAction() == WriteableEventInstance.ACTION_MODIFY_ALL_FUTURE)
 				Toast.makeText(this, getString(R.string.ModifiedThisAndFuture), Toast.LENGTH_LONG).show();
 
 			Intent ret = new Intent();
@@ -718,15 +723,15 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 					public void onClick(DialogInterface dialog, int item) {
 						switch ( item ) {
 							case 0:
-								event.setAction(EventInstance.ACTION_MODIFY_SINGLE);
+								event.setAction(WriteableEventInstance.ACTION_MODIFY_SINGLE);
 								saveChanges();
 								return;
 							case 1:
-								event.setAction(EventInstance.ACTION_MODIFY_ALL);
+								event.setAction(WriteableEventInstance.ACTION_MODIFY_ALL);
 								saveChanges();
 								return;
 							case 2:
-								event.setAction(EventInstance.ACTION_MODIFY_ALL_FUTURE);
+								event.setAction(WriteableEventInstance.ACTION_MODIFY_ALL_FUTURE);
 								saveChanges();
 								return;
 						}
@@ -747,10 +752,10 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 						if ( event.isModifyAction() ) {
 							if ( EventEdit.this.originalHasOccurrence
 									&& !newRule.equals(EventEdit.this.originalOccurence) ) {
-								event.setAction(EventInstance.ACTION_MODIFY_ALL);
+								event.setAction(WriteableEventInstance.ACTION_MODIFY_ALL);
 							}
 							else if ( EventEdit.this.originalHasOccurrence ) {
-								event.setAction(EventInstance.ACTION_MODIFY_SINGLE);
+								event.setAction(WriteableEventInstance.ACTION_MODIFY_SINGLE);
 							}
 						}
 						event.setRepeatRule(newRule);

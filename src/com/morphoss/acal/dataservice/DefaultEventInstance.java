@@ -8,12 +8,36 @@ import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.activity.MonthView;
 import com.morphoss.acal.davacal.AcalAlarm;
+import com.morphoss.acal.davacal.VCalendar;
+import com.morphoss.acal.davacal.VEvent;
 import com.morphoss.acal.weekview.WeekViewActivity;
 
-public class DUMMYEventInstance implements EventInstance {
+public class DefaultEventInstance implements EventInstance {
 	
-	public static EventInstance getIntance(Object ... params) {
-		return new DUMMYEventInstance();
+
+	public DefaultEventInstance(VEvent vEvent, AcalDateTime dtstart,
+			AcalDuration duration) {
+		// TODO Auto-generated constructor stub
+	}
+
+	//private constructor for subclasses only
+	protected DefaultEventInstance() {
+		
+	}
+	
+	public static EventInstance fromDB(long rid, long dtstart) {
+		//TODO fix this
+		return new DefaultEventInstance();
+	}
+	
+	/** Required Constructors */
+	
+	
+	
+	@Override
+	public void setOperation(int eventOperationCopy) {
+		// TODO Auto-generated method stub
+		
 	}
 
 	@Override
@@ -46,11 +70,7 @@ public class DUMMYEventInstance implements EventInstance {
 		
 	}
 
-	@Override
-	public int getAction() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+	
 
 	@Override
 	public String getRepetition() {
@@ -58,17 +78,7 @@ public class DUMMYEventInstance implements EventInstance {
 		return null;
 	}
 
-	@Override
-	public void setRepetition(String rrule) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public boolean isModifyAction() {
-		// TODO Auto-generated method stub
-		return false;
-	}
+	
 
 	@Override
 	public String getDescription() {
@@ -112,11 +122,7 @@ public class DUMMYEventInstance implements EventInstance {
 		return false;
 	}
 
-	@Override
-	public void setOperation(int eventOperationCopy) {
-		// TODO Auto-generated method stub
-		
-	}
+	
 
 	@Override
 	public int calulateMaxWidth(int viewWidth, int hSPP) {
@@ -161,11 +167,7 @@ public class DUMMYEventInstance implements EventInstance {
 		return 0;
 	}
 
-	@Override
-	public int getOperation() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+	
 
 	@Override
 	public CharSequence getTimeText(AcalDateTime viewDate,
@@ -174,77 +176,7 @@ public class DUMMYEventInstance implements EventInstance {
 		return null;
 	}
 
-	@Override
-	public void setAction(int actionModifyAll) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void setAlarms(List<AcalAlarm> alarmList) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void setCollection(DUMMYCollectionInstance instance) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void setDates(AcalDateTime start, AcalDuration duration) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void setDates(AcalDateTime setTimeZone, AcalDateTime setTimeZone2) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void setSummary(String string) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void setDescription(String newDesc) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void setEndDate(AcalDateTime end) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void setLocation(String newLoc) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void setRepeatRule(String newRule) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public Collection getCollection() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Resource getResource() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	
 
 	@Override
 	public String getTimeText(MonthView context, long epoch, long epoch2,
@@ -265,8 +197,29 @@ public class DUMMYEventInstance implements EventInstance {
 		return false;
 	}
 
-	public static EventInstance fromDatabase(MonthView monthView,
-			long resourceId, AcalDateTime setEpoch) {
+	@Override
+	public WriteableEventInstance getWriteable() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Collection getCollection() {
+		return this.getMaster().getCollection();
+	}
+
+	@Override
+	public Resource getResource() {
+		return this.getMaster().getResource();
+	}
+
+	@Override
+	public VEvent getMaster() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public static EventInstance getInstance(Parcel in) {
 		// TODO Auto-generated method stub
 		return null;
 	}

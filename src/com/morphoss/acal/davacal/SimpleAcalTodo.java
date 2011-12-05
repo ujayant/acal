@@ -32,6 +32,8 @@ import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.activity.TodoEdit;
+import com.morphoss.acal.dataservice.DefaultResourceFactory;
+import com.morphoss.acal.dataservice.Resource;
 
 
 /**
@@ -44,7 +46,7 @@ public class SimpleAcalTodo implements Parcelable, Comparable<SimpleAcalTodo> {
 	private static final String TAG = "SimpleAcalTodo"; 
 
 	//Start and end times are in UTC
-	public final int resourceId;
+	public final Resource resource;
 	public final String summary;
 	public final int colour;
 	public final String location;
@@ -81,14 +83,14 @@ public class SimpleAcalTodo implements Parcelable, Comparable<SimpleAcalTodo> {
 	 * @param allDayEvent
 	 * @param isPending
 	 */
-	public SimpleAcalTodo(Long dtstart, Long due, Long duration, int resourceId, String summary, String location, int colour,
+	public SimpleAcalTodo(Long dtstart, Long due, Long duration, Resource resource, String summary, String location, int colour,
 				boolean isAlarming, boolean isRepetitive, boolean allDayEvent, boolean isPending,
 				boolean alarmEnabled, int priority, int percentComplete, Long completed, int status ) {
 		this.dtstart = dtstart;
 		this.due = due;
 		this.duration = duration;
 		this.completed = completed;
-		this.resourceId = resourceId;
+		this.resource = resource;
 		this.summary = summary;
 		this.location = location;
 		this.colour = colour;
@@ -114,7 +116,7 @@ public class SimpleAcalTodo implements Parcelable, Comparable<SimpleAcalTodo> {
 	 * @param duration To override the duration or end date in the event 
 	 */
 	public SimpleAcalTodo(VComponent task, boolean isPending ) {
-		this.resourceId = task.getResourceId();
+		this.resource = task.getResource();
 		
 		this.isPending = isPending;
 
@@ -232,8 +234,8 @@ public class SimpleAcalTodo implements Parcelable, Comparable<SimpleAcalTodo> {
 	@Override
 	public boolean equals( Object another ) {
 		return (this == another
-					|| (another instanceof SimpleAcalTodo && this.resourceId > 0
-								&& this.resourceId == ((SimpleAcalTodo) another).resourceId ) );
+					|| (another instanceof SimpleAcalTodo && this.resource.getResourceId() > 0
+								&& this.resource.getResourceId() == ((SimpleAcalTodo) another).resource.getResourceId() ) );
 	}
 
 	
@@ -266,7 +268,7 @@ public class SimpleAcalTodo implements Parcelable, Comparable<SimpleAcalTodo> {
 		StaticHelpers.writeNullableLong(dest,due);
 		StaticHelpers.writeNullableLong(dest,duration);
 		StaticHelpers.writeNullableLong(dest,completed);
-		dest.writeInt(resourceId);
+		dest.writeLong(resource.getResourceId());
 		dest.writeString(summary);
 		dest.writeString(location);
 		dest.writeInt(colour);
@@ -282,7 +284,7 @@ public class SimpleAcalTodo implements Parcelable, Comparable<SimpleAcalTodo> {
 		due = StaticHelpers.readNullableLong(src);
 		duration = StaticHelpers.readNullableLong(src);
 		completed = StaticHelpers.readNullableLong(src);
-		resourceId = src.readInt();
+		resource = Resource.getInstance(new DefaultResourceFactory(), src.readLong());
 		summary = src.readString();
 		location = src.readString();
 		colour = src.readInt();

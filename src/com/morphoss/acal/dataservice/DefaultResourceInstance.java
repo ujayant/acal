@@ -4,12 +4,12 @@ import java.util.HashMap;
 
 import android.os.Parcel;
 
-public class DUMMYResourceInstance extends Resource {
+public class DefaultResourceInstance extends Resource {
 	
 	private final long collectionId;
 	private final long resourceId;
 
-	public DUMMYResourceInstance (long cid, long rid) {
+	public DefaultResourceInstance (long cid, long rid) {
 		this.collectionId = cid;
 		this.resourceId = rid;
 	}

@@ -22,8 +22,8 @@ package com.morphoss.acal.davacal;
 public class VEvent extends Masterable {
 	public static final String TAG = "aCal VEvent";
 
-	public VEvent(ComponentParts splitter, Integer resourceId, AcalCollection collectionObject,VComponent parent) {
-		super(splitter, resourceId, collectionObject,parent);
+	public VEvent(ComponentParts splitter, long l, AcalCollection collectionObject,VComponent parent) {
+		super(splitter, l, collectionObject,parent);
 	}
 
 	public VEvent( VCalendar parent ) {
@@ -32,6 +32,6 @@ public class VEvent extends Masterable {
 
 	public VEvent fromMasterEvent( VEvent master ) {
 		return (VEvent) VComponent.createComponentFromBlob(master.getCurrentBlob(),
-															master.resourceId, master.collectionData);
+															master.getResourceId(), master.collectionData);
 	}
 }

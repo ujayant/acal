@@ -11,7 +11,7 @@ public class DefaultResourceFactory implements ResourceFactory {
 	@Override
 	public Resource getInstance(long id) {
 		if (resources.containsKey(id)) return resources.get(id);
-		Resource instance = new DUMMYResourceInstance(0,id);
+		Resource instance = new DefaultResourceInstance(0,id);
 		resources.put(id, instance);
 		return instance;
 	}
