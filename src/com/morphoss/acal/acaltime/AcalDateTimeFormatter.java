@@ -5,6 +5,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
+import android.content.Context;
+
+import com.morphoss.acal.R;
 import com.morphoss.acal.StaticHelpers;
 
 public class AcalDateTimeFormatter {
@@ -13,9 +16,9 @@ public class AcalDateTimeFormatter {
 	public static DateFormat shortDate = DateFormat.getDateInstance(DateFormat.SHORT);
 	public static DateFormat timeAmPm = new SimpleDateFormat("hh:mmaa");
 	public static DateFormat time24Hr = new SimpleDateFormat("HH:mm");
-	
+
 	public static DateFormat longDateTime = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.SHORT);
-	
+
 	public static String fmtFull( AcalDateTime dateTime, boolean prefer24hourFormat) {
 		if ( dateTime == null ) return "- - - - - -";
 
@@ -34,22 +37,22 @@ public class AcalDateTimeFormatter {
 		}
 		return b.toString();
 	}
-	
-/**
- * TODO - Localisation doesn't work properly See http://code.google.com/p/android/issues/detail?id=12679
- * 
- * 
- * Format an AcalDateTime into a short localised date/time of the format DATE, TIME where Date is a Short date
- * specified by devices localisation settings and time is  hh:mmaa or HH:mm depending on the prefer24hourformat parameter.
- * 
- * If showDateIfToday is false AND if the dateTime passed is todays date, DATE = stringIfToday.
- *  
- * @param dateTime
- * @param prefer24hourFormat
- * @param showDateIfToday
- * @param stringIfToday
- * @return
- */
+
+	/**
+	 * TODO - Localisation doesn't work properly See http://code.google.com/p/android/issues/detail?id=12679
+	 * 
+	 * 
+	 * Format an AcalDateTime into a short localised date/time of the format DATE, TIME where Date is a Short date
+	 * specified by devices localisation settings and time is  hh:mmaa or HH:mm depending on the prefer24hourformat parameter.
+	 * 
+	 * If showDateIfToday is false AND if the dateTime passed is todays date, DATE = stringIfToday.
+	 *  
+	 * @param dateTime
+	 * @param prefer24hourFormat
+	 * @param showDateIfToday
+	 * @param stringIfToday
+	 * @return
+	 */
 	public static String fmtShort(AcalDateTime dateTime, boolean prefer24hourFormat, boolean showDateIfToday, String stringIfToday) {
 		if ( dateTime == null ) return "- - - - - -";
 		Date javaDate = dateTime.toJavaDate();
@@ -58,17 +61,17 @@ public class AcalDateTimeFormatter {
 			AcalDateTime now = new AcalDateTime().applyLocalTimeZone();
 			if (now.applyLocalTimeZone().getEpochDay() == dateTime.clone().applyLocalTimeZone().getEpochDay()) showDate = false;
 		}
-		
-		
+
+
 		StringBuilder b = new StringBuilder();
 		if (showDate) b.append(shortDate.format(javaDate));
 		else b.append(stringIfToday);
 		b.append(", ");
 		if ( !dateTime.isDate() ) {
 			b.append((prefer24hourFormat?time24Hr:timeAmPm).format(javaDate).toLowerCase());
-		
+
 		}
-		
+
 		if ( !dateTime.isDate() && !dateTime.isFloating() ) {
 			if ( ! TimeZone.getDefault().getID().equalsIgnoreCase( dateTime.getTimeZoneId() ) ) {
 				b.append(dateTime.getTimeZoneId());
@@ -76,4 +79,82 @@ public class AcalDateTimeFormatter {
 		}
 		return b.toString();
 	}
+
+	public static String getDisplayTimeTextFull(AcalDateRange viewRange,  AcalDateTime start, AcalDateTime finish, boolean as24HourTime ) {
+		AcalDateTime viewDateStart = viewRange.start;
+		AcalDateTime viewDateEnd = viewRange.end;
+		String timeText = "";
+		String timeFormatString = (as24HourTime ? "HH:mm" : "hh:mmaa");
+		SimpleDateFormat timeFormatter = new SimpleDateFormat(timeFormatString);
+
+		if ( start.before(viewDateStart) || (finish != null && finish.after(viewDateEnd)) ){
+			if ( start.isDate() ) {
+				timeText = AcalDateTime.fmtDayMonthYear(start)+ ", all day";
+			}
+			else {
+				SimpleDateFormat startFormatter = timeFormatter;
+				SimpleDateFormat finishFormatter = timeFormatter;
+
+				if ( start.before(viewDateStart) || start.after(viewDateEnd) ) {
+					startFormatter  = new SimpleDateFormat("MMM d, "+timeFormatString);
+					if ( (finish.getYear() > start.getYear()) || (finish.getYearDay() > start.getYearDay()) )
+						finishFormatter = new SimpleDateFormat("MMM d, "+timeFormatString);
+				}
+
+				timeText = (startFormatter.format(start.toJavaDate())+" - "
+						+ (finish == null ? "null" : finishFormatter.format(finish.toJavaDate())));
+			}
+		}
+		else if ( start.isDate()) {
+			timeText = "All Day";
+		}
+		else {
+			timeText = (timeFormatter.format(start.toJavaDate())+" - "
+					+ (finish == null ? "null" : timeFormatter.format(finish.toJavaDate())));
+		}
+		return timeText;
+	}
+	
+	/**
+	-	 * Return a pretty string indicating the time period of the event.  If the start or end
+	-	 * are on a different date to the view start/end then we also include the date on that
+	-	 * element.  If it is an all day event, we say so. 
+	-	 * @param viewDateStart - the start of the viewed range
+	-	 * @param viewDateEnd - the end of the viewed range
+	-	 * @param as24HourTime - from the pref
+	-	 * @return A nicely formatted string explaining the start/end of the event.
+	-	 */
+		public static String getDisplayTimeText(Context c, long viewDateStart, long viewDateEnd, long start, long end, boolean as24HourTime, boolean isAllDay ) {
+			String timeText = "";
+			String timeFormatString = (as24HourTime ? "HH:mm" : "hh:mmaa");
+			SimpleDateFormat timeFormatter = new SimpleDateFormat(timeFormatString);
+	
+			Date st = new Date(start*1000);
+			Date en = new Date(end*1000);
+			if ( start < viewDateStart || end  > viewDateEnd ){
+				if ( isAllDay ) {
+					timeFormatter = new SimpleDateFormat("MMM d");
+					timeText = c.getString(R.string.AllDaysInPeriod, timeFormatter.format(st), timeFormatter.format(en));
+				}
+				else {
+					SimpleDateFormat startFormatter = timeFormatter;
+					SimpleDateFormat finishFormatter = timeFormatter;
+					
+					if ( start < viewDateStart )
+						startFormatter  = new SimpleDateFormat("MMM d, "+timeFormatString);
+					if ( end >= viewDateEnd )
+						finishFormatter = new SimpleDateFormat("MMM d, "+timeFormatString);
+			
+					timeText = startFormatter.format(st)+" - " + finishFormatter.format(en);
+				}
+			}
+			else if ( isAllDay ) {
+				timeText = c.getString(R.string.ForTheWholeDay);
+			}
+			else {
+				timeText = timeFormatter.format(st) + " - " + timeFormatter.format(en);
+			}
+			return timeText;
+		}
+	
 }

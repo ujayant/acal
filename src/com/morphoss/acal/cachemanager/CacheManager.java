@@ -63,7 +63,13 @@ public class CacheManager implements Runnable {
 	//Comms
 	private final CopyOnWriteArraySet<CacheChangedListener> listeners = new CopyOnWriteArraySet<CacheChangedListener>();
 	
+	//Cache Ops
 	private EventCacheDbOps cache = new EventCacheDbOps();
+	
+	//Settings
+	private static final int DEF_MONTHS_BEFORE = 1;		//these 2 represent the default window size
+	private static final int DEF_MONTHS_AFTER = 2;		//relative to todays date
+	
 	
 	/**
 	 * CacheManager needs a context to manage the DB. Should run under AcalService.
@@ -173,10 +179,10 @@ public class CacheManager implements Runnable {
 				final CacheRequest request = queue.poll();
 				try {
 					switch (request.getCode()) {
-					case CacheRequest.REQUEST_OBEJECT_FOR_DATARANGE:
+					case CacheRequest.REQUEST_OBJECTS_FOR_DATARANGE:
 						AcalDateRange range = (AcalDateRange) request.getData();
 						//get data
-						final ArrayList<CacheObject> data = cache.getEventsForDateRange(range);
+						final ArrayList<CacheObject> data = cache.getObjectsForDateRange(range);
 						//Send response to callback
 						if (request.getCallBack() != null) {
 							new Thread(new Runnable() {
@@ -204,6 +210,12 @@ public class CacheManager implements Runnable {
 		queue.offer(request);
 		threadHolder.open();
 	}
+	
+	//Request events that start within the range provided. Expand window on result.
+	private void retrieveRange(long start, long end) {
+		//should be done asynchronously
+		//TODO
+	}
 
 	/**
 	 * Static class to encapsulate all database operations 
@@ -214,13 +226,14 @@ public class CacheManager implements Runnable {
 		public static final String TABLE = "event_cache";
 		public static final String FIELD_ID = "_id";
 		public static final String FIELD_RESOURCE_ID = "resource_id";
+		public static final String FIELD_CID ="collection_id";
 		public static final String FIELD_SUMMARY ="summary";
+		public static final String FIELD_LOCATION ="location";
 		public static final String FIELD_DTSTART = "dtstart";
 		public static final String FIELD_DT_END = "dtend";
-		public static final String FIELD_HAS_ALARM = "has_alarm";
-		public static final String FIELD_RECURS = "recurs";
-		public static final String FIELD_COLOUR ="colour";
-		public static final String FIELD_DIRTY = "dirty";
+		public static final String FIELD_FLAGS ="flags";
+		
+	
 
 		private AcalDBHelper dbHelper;
 		private SQLiteDatabase db;
@@ -251,9 +264,69 @@ public class CacheManager implements Runnable {
 			db=null; dbHelper=null;
 
 		}
+		
+		//Checks that the window has been populated with the requested range
+		//range can be NULL in which case the default range is used.
+		//If the range is NOT covered, an asynchronous request is made to resource
+		//manager to get the required data.
+		//Returns weather or not the cache fully covers a specified (or default) range
+		private boolean checkWindow(AcalDateRange requestedRange) {
+			long start;
+			long end;
+			if (requestedRange != null) {
+				start = requestedRange.start.getMillis();
+				end = requestedRange.start.getMillis();
+			} else {
+				AcalDateTime st = new AcalDateTime();
+				AcalDateTime en = new AcalDateTime();
+				st.addMonths(-DEF_MONTHS_BEFORE);
+				en.addMonths(DEF_MONTHS_AFTER);
+				start =st.getMillis();
+				end = en.getMillis();
+			}
+			long wStart = CacheManager.this.start.getMillis();
+			long wEnd = CacheManager.this.end.getMillis();
+			//start & end should fall between this.start and this.end
+			//check start >= this.strt && <= this.end && end <= this.end
+			if (start >= wStart && start <= wEnd && end <= wEnd) return true;
+			
+			//we now need to work out what range we need to request
+			//3 Options - 
+					//start -> wStart
+					//wEnd -> wEnd
+					//or both
+			if (start < wStart) retrieveRange(start, wStart);
+			if (end > wEnd) retrieveRange(wEnd,end);
+			return false;
+		}
 
-		public ArrayList<CacheObject> getEventsForDateRange(AcalDateRange range) {
-			return new ArrayList<CacheObject>();
+		public ArrayList<CacheObject> getObjectsForDateRange(AcalDateRange range) {
+			ArrayList<CacheObject> result = new ArrayList<CacheObject>();
+			checkWindow(range);
+			openReadDB();
+			Cursor cr = db.query(TABLE, null, FIELD_DTSTART+" > ? AND "+FIELD_DTSTART+" < ?", 
+					new String[]{range.start.getMillis()+"",range.end.getMillis()+""}, null, null, FIELD_DTSTART);
+			if (cr.getCount() > 0) {
+				for (cr.moveToFirst(); cr.isAfterLast(); cr.moveToNext()) 
+					result.add(fromCursorRow(cr));
+			}
+			cr.close();
+			closeDB();
+			return result;
+		}
+		
+		private CacheObject fromCursorRow(Cursor cursor) {
+			ContentValues row = new ContentValues();
+			DatabaseUtils.cursorRowToContentValues(cursor,row);
+			return new CacheObject(
+						row.getAsLong(FIELD_RESOURCE_ID), 
+						row.getAsInteger(FIELD_CID),
+						row.getAsString(FIELD_SUMMARY),
+						row.getAsString(FIELD_LOCATION),
+						row.getAsLong(FIELD_DTSTART),
+						row.getAsLong(FIELD_DT_END),
+						row.getAsInteger(FIELD_FLAGS)
+					);
 		}
 
 		public void clear() {

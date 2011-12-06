@@ -49,6 +49,10 @@ import com.morphoss.acal.AcalTheme;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateTime;
+import com.morphoss.acal.cachemanager.CacheChangedEvent;
+import com.morphoss.acal.cachemanager.CacheChangedListener;
+import com.morphoss.acal.cachemanager.CacheObject;
+import com.morphoss.acal.cachemanager.CacheResponseListener;
 import com.morphoss.acal.dataservice.DefaultEventInstance;
 import com.morphoss.acal.dataservice.EventInstance;
 import com.morphoss.acal.dataservice.MethodsRequired;
@@ -99,7 +103,7 @@ import com.morphoss.acal.widget.AcalViewFlipper;
  * 
  */
 public class MonthView extends AcalActivity implements OnGestureListener,
-		OnTouchListener, OnClickListener {
+		OnTouchListener, OnClickListener, CacheChangedListener, CacheResponseListener {
 
 	public static final String TAG = "aCal MonthView";
 
@@ -254,7 +258,6 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 
 		rememberCurrentPosition();
 		eventList = null;		
-		dataRequest.flushCache();
 
 		// Save state
 		prefs.edit().putLong(getString(R.string.prefSavedSelectedDate), System.currentTimeMillis()).commit();
@@ -680,25 +683,10 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 	}
 
 
-	/**
-	 * Methods for managing event structure
-	 */
-	public ArrayList<EventInstance> getEventsForDay(AcalDateTime day) {
-		return (ArrayList<EventInstance>) dataRequest.getEventsForDay(day);
-	}
-
-	public int getNumberEventsForDay(AcalDateTime day) {
-			return dataRequest.getNumberEventsForDay(day);
-	}
-
-	public EventInstance getNthEventForDay(AcalDateTime day, int n) {
-			return dataRequest.getNthEventForDay(day, n);
-	}
+	
 
 	public void deleteEvent(AcalDateTime day, int n, int action ) {
-			WriteableEventInstance ae = dataRequest.getNthEventForDay(day, n).getWriteable();
-			ae.setAction(action);
-			dataRequest.eventChanged(ae);
+		//TODO	
 		this.changeSelectedDate(this.selectedDate);
 	}
 
@@ -1051,5 +1039,17 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 	@Override
 	public boolean onSingleTapUp(MotionEvent upEvent) {
 		return false;
+	}
+
+	@Override
+	public void cacheChanged(CacheChangedEvent event) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void cacheResponse(ArrayList<CacheObject> data) {
+		// TODO Auto-generated method stub
+		
 	}
 }

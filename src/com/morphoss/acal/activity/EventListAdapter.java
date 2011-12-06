@@ -38,7 +38,15 @@ import android.widget.ListAdapter;
 import android.widget.TextView;
 
 import com.morphoss.acal.R;
+import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
+import com.morphoss.acal.acaltime.AcalDateTimeFormatter;
+import com.morphoss.acal.cachemanager.CacheChangedEvent;
+import com.morphoss.acal.cachemanager.CacheChangedListener;
+import com.morphoss.acal.cachemanager.CacheManager;
+import com.morphoss.acal.cachemanager.CacheObject;
+import com.morphoss.acal.cachemanager.CacheRequest;
+import com.morphoss.acal.cachemanager.CacheResponseListener;
 import com.morphoss.acal.dataservice.EventInstance;
 import com.morphoss.acal.dataservice.WriteableEventInstance;
 
@@ -50,7 +58,7 @@ import com.morphoss.acal.dataservice.WriteableEventInstance;
  * @author Morphoss Ltd
  * 
  */
-public class EventListAdapter extends BaseAdapter implements OnClickListener, ListAdapter {
+public class EventListAdapter extends BaseAdapter implements OnClickListener, ListAdapter, CacheChangedListener, CacheResponseListener {
 
 	/**
 	 * <p>
@@ -69,7 +77,8 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 	public static final int CONTEXT_DELETE_FROMNOW = 0x30000;
 	public static final int CONTEXT_COPY = 0x40000;
 
-	private ArrayList<EventInstance> dayEvents = null;
+	private ArrayList<CacheObject> dayEvents = null;
+	private CacheManager cacheManager;
 	
 //	private SharedPreferences prefs;	
 
@@ -84,10 +93,14 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 		viewDate.applyLocalTimeZone();
 		viewDate.setDaySecond(0);
 		viewDateEnd = AcalDateTime.addDays(viewDate, 1);
-
-		dayEvents = context.getEventsForDay(viewDate);
+		cacheManager = CacheManager.getInstance(context, this);
+		cacheManager.sendRequest(getCacheRequest());
 	}
 
+	private CacheRequest getCacheRequest() {
+		return CacheRequest.requestObjectsForDateRange(new AcalDateRange(viewDate,viewDate.clone().addDays(1)), this);
+	}
+	
 	/**
 	 * <p>Returns the number of elements in this adapter.</p>
 	 * 
@@ -96,7 +109,9 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 	 */
 	@Override
 	public int getCount() {
-		return dayEvents.size();
+		synchronized (dayEvents) {
+			return dayEvents.size();
+		}
 	}
 
 	/**
@@ -107,7 +122,9 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 	 */
 	@Override
 	public Object getItem(int position) {
-		return dayEvents.get(position);
+		synchronized (dayEvents) {
+			return dayEvents.get(position);
+		}
 	}
 
 	/**
@@ -141,8 +158,10 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 		TextView location = (TextView) rowLayout.findViewById(R.id.EventListItemLocation);
 		
 		LinearLayout sideBar = (LinearLayout) rowLayout.findViewById(R.id.EventListItemColorBar);
-
-		EventInstance event = dayEvents.get(position);
+		CacheObject event = null;
+		synchronized(dayEvents) {
+			event = dayEvents.get(position);
+		}
 		if ( event == null ) return rowLayout;
 		
 		final boolean isPending = event.isPending();
@@ -158,18 +177,18 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 
 		title.setText((event.getSummary() == null  || event.getSummary().length() <= 0 ) ? "Untitled" : event.getSummary());
 
-		if ( !event.getAlarms().isEmpty() ) {
+		if ( event.hasAlarms() ) {
 			ImageView alarmed = (ImageView) rowLayout.findViewById(R.id.EventListItemAlarmBell);
 			alarmed.setVisibility(View.VISIBLE);
 			if ( ! event.getCollection().alarmsEnabled() ) alarmed.setBackgroundColor(0xb0ffffff);
 		}
-		if ( !event.isSingleInstance() ) {
+		if ( event.isRecuring() ) {
 			ImageView repeating = (ImageView) rowLayout.findViewById(R.id.EventListItemRepeating);
 			repeating.setVisibility(View.VISIBLE);
 		}
 		
-		time.setText(event.getTimeText(context, viewDate.getEpoch(), viewDateEnd.getEpoch(),
-					MonthView.prefs.getBoolean(context.getString(R.string.prefTwelveTwentyfour), false))
+		time.setText(AcalDateTimeFormatter.getDisplayTimeText(context, viewDate.getEpoch(), viewDateEnd.getEpoch(),
+					event.getStart(), event.getEnd(),MonthView.prefs.getBoolean(context.getString(R.string.prefTwelveTwentyfour), false), event.isAllDay())
 					+ (isPending ? " (saving)" : "") );
 
 		if (event.getLocation() != null && event.getLocation().length() > 0 )
@@ -182,7 +201,7 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 		rowLayout.setOnClickListener(this);
 
 		// 'final' so we can refer to it below
-		final boolean repeats = ! event.isSingleInstance();
+		final boolean repeats = event.isRecuring();
 
 		//add context menu
 		this.context.registerForContextMenu(rowLayout);
@@ -267,6 +286,23 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 		catch (ClassCastException e) {
 			return false;
 		}
+		
+	}
+
+	@Override
+	public void cacheChanged(CacheChangedEvent event) {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	/** 
+	 * Warning - this runs under a different thread! 
+	 */
+	public void cacheResponse(ArrayList<CacheObject> data) {
+		synchronized (dayEvents) {
+			dayEvents = data;
+		}
+		this.notifyDataSetChanged();
 		
 	}
 

@@ -207,13 +207,12 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 		"CREATE TABLE event_cache ("
 	        +"_id INTEGER PRIMARY KEY AUTOINCREMENT"
 			+",resource_id INTEGER REFERENCES dav_resource(_id)"
+			+",collection_id NUMERIC"
 			+",summary TEXT"
+			+",location TEXT"
 			+",dtstart NUMERIC"
 			+",dtend NUMERIC"
-			+",has_alarm BOOLEAN"
-			+",recurs BOOLEAN"
-			+",colour INTEGER"
-			+",dirty BOOLEAN"
+			+",flags INTGER"
 		+");";
 	
 	public static final String EVENT_CACHE_META_TABLE_SQL = 
