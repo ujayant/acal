@@ -14,7 +14,7 @@ import com.morphoss.acal.davacal.Masterable;
 import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VCard;
 import com.morphoss.acal.davacal.VComponent;
-import com.morphoss.acal.providers.DavResources;
+import com.morphoss.acal.providers.OldDavResources;
 import com.morphoss.acal.providers.PendingChanges;
 import com.morphoss.acal.service.SynchronisationJobs.WriteActions;
 import com.morphoss.acal.service.aCalService;
@@ -45,11 +45,11 @@ public class ResourceModification {
 							try {
 								AcalDateRange instancesRange = rRule.getInstancesRange();
 							
-								inResourceValues.put(DavResources.EARLIEST_START, instancesRange.start.getMillis());
+								inResourceValues.put(OldDavResources.EARLIEST_START, instancesRange.start.getMillis());
 								if ( instancesRange.end == null )
-									inResourceValues.putNull(DavResources.LATEST_END);
+									inResourceValues.putNull(OldDavResources.LATEST_END);
 								else
-									inResourceValues.put(DavResources.LATEST_END, instancesRange.end.getMillis());
+									inResourceValues.put(OldDavResources.LATEST_END, instancesRange.end.getMillis());
 							}
 							catch ( Exception e ) {
 								Log.e(TAG,"Failed to get earliest_start / latest_end from resource of type: "+effectiveType, e );
@@ -63,10 +63,10 @@ public class ResourceModification {
 					}
 				}
 				if ( effectiveType != null )
-					inResourceValues.put(DavResources.EFFECTIVE_TYPE, effectiveType);
+					inResourceValues.put(OldDavResources.EFFECTIVE_TYPE, effectiveType);
 			}
 			catch (Exception e) {
-				Log.w(TAG,"Type of resource is just plain weird!\n"+inResourceValues.getAsString(DavResources.RESOURCE_DATA));
+				Log.w(TAG,"Type of resource is just plain weird!\n"+inResourceValues.getAsString(OldDavResources.RESOURCE_DATA));
 				Log.w(TAG,Log.getStackTraceString(e));
 			}
 		}
@@ -74,7 +74,7 @@ public class ResourceModification {
 		this.modificationAction = action;
 		this.resourceValues = inResourceValues;
 		this.pendingId = pendingId;
-		this.resourceId = resourceValues.getAsInteger(DavResources._ID);
+		this.resourceId = resourceValues.getAsInteger(OldDavResources._ID);
 	}
 
 
@@ -86,32 +86,32 @@ public class ResourceModification {
 		getResourceId();
 
 		if ( Constants.LOG_DEBUG )
-			Log.d(TAG, "Writing '"+resourceValues.getAsString(DavResources.EFFECTIVE_TYPE)
+			Log.d(TAG, "Writing '"+resourceValues.getAsString(OldDavResources.EFFECTIVE_TYPE)
 						+ "' resource with " + modificationAction + " on resource ID "
 						+ (resourceId == null ? "new" : Integer.toString(resourceId)));
 
 		switch (modificationAction) {
 			case UPDATE:
-				db.update(DavResources.DATABASE_TABLE, resourceValues, DavResources._ID + " = ?",
+				db.update(OldDavResources.DATABASE_TABLE, resourceValues, OldDavResources._ID + " = ?",
 							new String[] { Integer.toString(resourceId) });
-				if (resourceValues.getAsString(DavResources.RESOURCE_DATA) != null)
+				if (resourceValues.getAsString(OldDavResources.RESOURCE_DATA) != null)
 					dbChangeNotification = new DatabaseChangedEvent( DatabaseChangedEvent.DATABASE_RECORD_UPDATED,
-								DavResources.class, resourceValues);
+								OldDavResources.class, resourceValues);
 				break;
 			case INSERT:
-				resourceId = (int) db.insert(DavResources.DATABASE_TABLE, null, resourceValues);
-				resourceValues.put(DavResources._ID, resourceId);
-				if (resourceValues.getAsString(DavResources.RESOURCE_DATA) != null)
+				resourceId = (int) db.insert(OldDavResources.DATABASE_TABLE, null, resourceValues);
+				resourceValues.put(OldDavResources._ID, resourceId);
+				if (resourceValues.getAsString(OldDavResources.RESOURCE_DATA) != null)
 					dbChangeNotification = new DatabaseChangedEvent( DatabaseChangedEvent.DATABASE_RECORD_INSERTED,
-								DavResources.class, resourceValues);
+								OldDavResources.class, resourceValues);
 				break;
 			case DELETE:
 				if (Constants.LOG_DEBUG)
 					Log.d(TAG,"Deleting resources with ResourceId = " + Integer.toString(resourceId) );
-				db.delete(DavResources.DATABASE_TABLE, DavResources._ID + " = ?",
+				db.delete(OldDavResources.DATABASE_TABLE, OldDavResources._ID + " = ?",
 							new String[] { Integer.toString(resourceId) });
 				dbChangeNotification = new DatabaseChangedEvent( DatabaseChangedEvent.DATABASE_RECORD_DELETED,
-								DavResources.class, resourceValues);
+								OldDavResources.class, resourceValues);
 				break;
 		}
 

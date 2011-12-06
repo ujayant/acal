@@ -230,7 +230,7 @@
 			android:name="com.morphoss.acal.providers.DavCollections" />
 		<provider
 			android:authorities="resources"
-			android:name="com.morphoss.acal.providers.DavResources" />
+			android:name=".providers.OldDavResources" />
 		<provider
 			android:authorities="pendingchanges"
 			android:name="com.morphoss.acal.providers.PendingChanges" />

@@ -1,6 +1,8 @@
 package com.morphoss.acal.cachemanager;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -13,6 +15,7 @@ import android.os.ConditionVariable;
 
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
+import com.morphoss.acal.cachemanager.CacheResponseListener.CacheResponse;
 import com.morphoss.acal.database.AcalDBHelper;
 
 public class CacheManager implements Runnable {
@@ -26,14 +29,14 @@ public class CacheManager implements Runnable {
 	private static CacheManager instance = null;
 
 	//Get an instance
-	public static CacheManager getInstance(Context context) {
+	public synchronized static CacheManager getInstance(Context context) {
 		if (instance == null) instance = new CacheManager(context);
 		return instance;
 	}
 
 	//get and instance and add a callback handler to receive notfications of change
 	//It is vital that classes remove their handlers when terminating
-	public static CacheManager getInstance(Context context, CacheChangedListener listener) {
+	public synchronized static CacheManager getInstance(Context context, CacheChangedListener listener) {
 		if (instance == null) instance = new CacheManager(context);
 		instance.addListener(listener);
 		return instance;
@@ -189,11 +192,29 @@ public class CacheManager implements Runnable {
 
 								@Override
 								public void run() {
-									request.getCallBack().cacheResponse(data);
+									request.getCallBack().cacheResponse(new CacheResponse(data,CacheRequest.REQUEST_OBJECTS_FOR_DATARANGE));
 								}
 
 							}).start();
 						}
+					break;
+					case CacheRequest.REQUEST_OBJECTS_FOR_DATARANGE_BY_DAY:
+						range = (AcalDateRange) request.getData();
+						//get data
+						final Map<Integer,ArrayList<CacheObject>> data2 = cache.getObjectsForDateRangeByDay(range);
+						//Send response to callback
+						if (request.getCallBack() != null) {
+							new Thread(new Runnable() {
+
+								@Override
+								public void run() {
+									request.getCallBack().cacheResponse(new CacheResponse(data2,CacheRequest.REQUEST_OBJECTS_FOR_DATARANGE_BY_DAY));
+								}
+
+							}).start();
+						}
+					break;
+					
 					}
 				} catch (Exception e) {
 					//log message
@@ -211,7 +232,7 @@ public class CacheManager implements Runnable {
 		threadHolder.open();
 	}
 	
-	//Request events that start within the range provided. Expand window on result.
+	//Request events (FROM RESOURCES) that start within the range provided. Expand window on result.
 	private void retrieveRange(long start, long end) {
 		//should be done asynchronously
 		//TODO
@@ -247,6 +268,8 @@ public class CacheManager implements Runnable {
 			dbHelper = new AcalDBHelper(CacheManager.this.context);
 			db = dbHelper.getReadableDatabase();
 		}
+
+	
 
 		private void openWriteDB() {
 			if (db!= null && db.isOpen()) {
@@ -313,6 +336,12 @@ public class CacheManager implements Runnable {
 			cr.close();
 			closeDB();
 			return result;
+		}
+		
+		public Map<Integer, ArrayList<CacheObject>> getObjectsForDateRangeByDay(
+				AcalDateRange range) {
+			// TODO Auto-generated method stub
+			return new HashMap<Integer,ArrayList<CacheObject>>();
 		}
 		
 		private CacheObject fromCursorRow(Cursor cursor) {

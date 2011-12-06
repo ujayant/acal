@@ -17,6 +17,7 @@ public class CacheRequest {
 	private final CacheResponseListener callBack;
 
 	public final static int REQUEST_OBJECTS_FOR_DATARANGE = 0;
+	public final static int REQUEST_OBJECTS_FOR_DATARANGE_BY_DAY = 1;
 
 	private CacheRequest(int code, Parcelable data, CacheResponseListener callBack) {
 		this.code = code;
@@ -26,6 +27,10 @@ public class CacheRequest {
 	
 	public static CacheRequest requestObjectsForDateRange(AcalDateRange range, CacheResponseListener callback) {
 		return new CacheRequest(REQUEST_OBJECTS_FOR_DATARANGE, range, callback);
+	}
+	
+	public static CacheRequest requestObjectsForDateRangeByDay(AcalDateRange range, CacheResponseListener callback) {
+		return new CacheRequest(REQUEST_OBJECTS_FOR_DATARANGE_BY_DAY, range, callback);
 	}
 	
 	public int getCode() {

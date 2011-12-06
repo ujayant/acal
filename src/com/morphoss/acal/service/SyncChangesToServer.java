@@ -50,7 +50,7 @@ import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VCard;
 import com.morphoss.acal.davacal.VComponent;
 import com.morphoss.acal.providers.DavCollections;
-import com.morphoss.acal.providers.DavResources;
+import com.morphoss.acal.providers.OldDavResources;
 import com.morphoss.acal.providers.PendingChanges;
 import com.morphoss.acal.providers.Servers;
 import com.morphoss.acal.service.SynchronisationJobs.WriteActions;
@@ -250,19 +250,19 @@ public class SyncChangesToServer extends ServiceJob {
 					resourcePath = UUID.randomUUID().toString() + ".ics";
 			}
 			resourceData = new ContentValues();
-			resourceData.put(DavResources.RESOURCE_NAME, resourcePath);
-			resourceData.put(DavResources.COLLECTION_ID, collectionId);
+			resourceData.put(OldDavResources.RESOURCE_NAME, resourcePath);
+			resourceData.put(OldDavResources.COLLECTION_ID, collectionId);
 		}
 		else {
-			resourceData = DavResources.getRow(resourceId, cr);
+			resourceData = OldDavResources.getRow(resourceId, cr);
 			if (resourceData == null) {
 				invalidPendingChange(pendingId, 
 							"Error getting resource data from DB - deleting invalid pending change record." );				
 				return;
 			}
-			latestDbData = resourceData.getAsString(DavResources.RESOURCE_DATA);
-			eTag = resourceData.getAsString(DavResources.ETAG);
-			resourcePath = resourceData.getAsString(DavResources.RESOURCE_NAME);
+			latestDbData = resourceData.getAsString(OldDavResources.RESOURCE_DATA);
+			eTag = resourceData.getAsString(OldDavResources.ETAG);
+			resourcePath = resourceData.getAsString(OldDavResources.RESOURCE_NAME);
 			eTagHeader = new BasicHeader("If-Match", eTag );
 
 			if ( newData == null ) {
@@ -307,9 +307,9 @@ public class SyncChangesToServer extends ServiceJob {
 			case 204: // Status No Content (normal for DELETE).
 			case 200: // Status OK. (normal for UPDATE)
 				if (Constants.debugSyncChangesToServer) Log.println(Constants.LOGD,TAG, "Response "+status+" against "+path);
-				resourceData.put(DavResources.RESOURCE_DATA, newData);
-				resourceData.put(DavResources.NEEDS_SYNC, true);
-				resourceData.put(DavResources.ETAG, "unknown etag after PUT before sync");
+				resourceData.put(OldDavResources.RESOURCE_DATA, newData);
+				resourceData.put(OldDavResources.NEEDS_SYNC, true);
+				resourceData.put(OldDavResources.ETAG, "unknown etag after PUT before sync");
 /**
  * This is sadly unreliable.  Some servers will return an ETag and yet
  * still change the event server-side, without consequently changing the ETag

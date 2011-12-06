@@ -43,7 +43,7 @@ import com.morphoss.acal.ResourceModification;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.database.AcalDBHelper;
 import com.morphoss.acal.providers.DavCollections;
-import com.morphoss.acal.providers.DavResources;
+import com.morphoss.acal.providers.OldDavResources;
 import com.morphoss.acal.providers.Servers;
 import com.morphoss.acal.service.SynchronisationJobs.WriteActions;
 import com.morphoss.acal.service.connector.AcalRequestor;
@@ -235,12 +235,12 @@ public class InitialCollectionSync extends ServiceJob {
 			if (Constants.LOG_VERBOSE) Log.v(TAG, "DavResources DB Transaction started.");
 
 			// Get a map of all existing records where Name is the key.
-			resourceCursor = db.query(DavResources.DATABASE_TABLE,
+			resourceCursor = db.query(OldDavResources.DATABASE_TABLE,
 						null,
-						DavResources.COLLECTION_ID+"=?", new String[] { Integer.toString(collectionId) },
+						OldDavResources.COLLECTION_ID+"=?", new String[] { Integer.toString(collectionId) },
 						null, null, null);
 			resourceCursor.moveToFirst();
-			ContentQueryMap cqm = new ContentQueryMap(resourceCursor, DavResources.RESOURCE_NAME, false, null);
+			ContentQueryMap cqm = new ContentQueryMap(resourceCursor, OldDavResources.RESOURCE_NAME, false, null);
 			cqm.requery();
 			Map<String, ContentValues> databaseList = cqm.getRows();
 			cqm.close();			
@@ -273,9 +273,9 @@ public class InitialCollectionSync extends ServiceJob {
 				if ( name == null || prop == null ) continue;
 
 				ContentValues cv = new ContentValues();
-				cv.put(DavResources.COLLECTION_ID, collectionId);
-				cv.put(DavResources.RESOURCE_NAME, name);
-				cv.put(DavResources.NEEDS_SYNC, 1);
+				cv.put(OldDavResources.COLLECTION_ID, collectionId);
+				cv.put(OldDavResources.RESOURCE_NAME, name);
+				cv.put(OldDavResources.NEEDS_SYNC, 1);
 
 				serverList.put(name, cv);
 
@@ -293,7 +293,7 @@ public class InitialCollectionSync extends ServiceJob {
 			ContentValues cv;
 			for ( Entry<String,ContentValues> e : serverList.entrySet() ) {
 				cv = e.getValue();
-				id = cv.getAsString(DavResources._ID);
+				id = cv.getAsString(OldDavResources._ID);
 				changeList.add(new ResourceModification((id == null || id.equals("")
 															? WriteActions.INSERT
 															: WriteActions.UPDATE),
@@ -360,8 +360,8 @@ public class InitialCollectionSync extends ServiceJob {
 		for (DavNode response : responses) {
 			String name = response.segmentFromFirstHref("href");
 			ContentValues cv = null;
-			Cursor c = db.query(DavResources.DATABASE_TABLE, null,
-						DavResources.COLLECTION_ID+"=? AND "+DavResources.RESOURCE_NAME+"=?",
+			Cursor c = db.query(OldDavResources.DATABASE_TABLE, null,
+						OldDavResources.COLLECTION_ID+"=? AND "+OldDavResources.RESOURCE_NAME+"=?",
 						new String[] {Integer.toString(collectionId), name}, null, null, null);
 			if ( c.moveToFirst() ) {
 				cv = new ContentValues();
@@ -372,9 +372,9 @@ public class InitialCollectionSync extends ServiceJob {
 			WriteActions action = WriteActions.UPDATE;
 			if ( cv == null ) {
 				cv = new ContentValues();
-				cv.put(DavResources.COLLECTION_ID, collectionId);
-				cv.put(DavResources.RESOURCE_NAME, name);
-				cv.put(DavResources.NEEDS_SYNC, 1);
+				cv.put(OldDavResources.COLLECTION_ID, collectionId);
+				cv.put(OldDavResources.RESOURCE_NAME, name);
+				cv.put(OldDavResources.NEEDS_SYNC, 1);
 				action = WriteActions.INSERT;
 			}
 			if ( !parseResponseNode(response, cv) ) continue;
@@ -412,25 +412,25 @@ public class InitialCollectionSync extends ServiceJob {
 			String content_type = prop.getFirstNodeText("getcontenttype");
 			if ( etag == null || data == null ) return false;
 			
-			String oldEtag = cv.getAsString(DavResources.ETAG);
+			String oldEtag = cv.getAsString(OldDavResources.ETAG);
 			
 			if ( oldEtag != null && oldEtag.equals(etag) ) {
 				if ( Constants.LOG_VERBOSE ) Log.v(TAG,"ETag matches existing record, so no need to sync.");
-				cv.put(DavResources.NEEDS_SYNC, 0 );
+				cv.put(OldDavResources.NEEDS_SYNC, 0 );
 				return false;
 			}
 
-			if ( last_modified != null ) cv.put(DavResources.LAST_MODIFIED, last_modified);
-			if ( content_type != null ) cv.put(DavResources.CONTENT_TYPE, content_type);
+			if ( last_modified != null ) cv.put(OldDavResources.LAST_MODIFIED, last_modified);
+			if ( content_type != null ) cv.put(OldDavResources.CONTENT_TYPE, content_type);
 			if ( data != null ) {
-				cv.put(DavResources.RESOURCE_DATA, data); 
-				cv.put(DavResources.ETAG, etag);
-				cv.put(DavResources.NEEDS_SYNC, 0 );
+				cv.put(OldDavResources.RESOURCE_DATA, data); 
+				cv.put(OldDavResources.ETAG, etag);
+				cv.put(OldDavResources.NEEDS_SYNC, 0 );
 				if ( Constants.LOG_VERBOSE ) Log.v(TAG,"Got data now, so no need to sync later.");
 				return true;
 			}
-			if ( Constants.LOG_VERBOSE ) Log.v(TAG,"Need to sync "+cv.getAsString(DavResources.RESOURCE_NAME));
-			cv.put(DavResources.NEEDS_SYNC, 1 );
+			if ( Constants.LOG_VERBOSE ) Log.v(TAG,"Need to sync "+cv.getAsString(OldDavResources.RESOURCE_NAME));
+			cv.put(OldDavResources.NEEDS_SYNC, 1 );
 		}
 
 		// We remove our references to this now, since we've finished with it.
@@ -465,13 +465,13 @@ public class InitialCollectionSync extends ServiceJob {
 		server.keySet().toArray(names);
 		for (String name : names) {
 			if (!db.containsKey(name)) continue;	//New value from server
-			if ( db.get(name).getAsString(DavResources.ETAG) != null && server.get(name).getAsString(DavResources.ETAG) != null
-					&& db.get(name).getAsString(DavResources.ETAG).equals(server.get(name).getAsString(DavResources.ETAG)))  {
+			if ( db.get(name).getAsString(OldDavResources.ETAG) != null && server.get(name).getAsString(OldDavResources.ETAG) != null
+					&& db.get(name).getAsString(OldDavResources.ETAG).equals(server.get(name).getAsString(OldDavResources.ETAG)))  {
 				//records match, remove from both
 				server.remove(name);
 			}
 			else {
-				server.get(name).put(DavResources._ID, db.get(name).getAsString(DavResources._ID));	//record to be updated. Insert ID
+				server.get(name).put(OldDavResources._ID, db.get(name).getAsString(OldDavResources._ID));	//record to be updated. Insert ID
 			}
 			db.remove(name);
 		}
@@ -486,16 +486,16 @@ public class InitialCollectionSync extends ServiceJob {
 		for (String name : names) {
 			if (sep)delIds+=",";
 			else sep=true;
-			delIds+=toDelete.get(name).getAsInteger(DavResources._ID);
+			delIds+=toDelete.get(name).getAsInteger(OldDavResources._ID);
 
 			aCalService.databaseDispatcher.dispatchEvent(new DatabaseChangedEvent(
-						DatabaseChangedEvent.DATABASE_RECORD_DELETED, DavResources.class, toDelete.get(name)));
+						DatabaseChangedEvent.DATABASE_RECORD_DELETED, OldDavResources.class, toDelete.get(name)));
 		}
 		
 		if (delIds == null || delIds.equals("")) return 0;
 		
 		//remove from db
-		return db.delete( DavResources.DATABASE_TABLE, DavResources._ID+" IN ("+delIds+")", new String[] {  });
+		return db.delete( OldDavResources.DATABASE_TABLE, OldDavResources._ID+" IN ("+delIds+")", new String[] {  });
 	}
 	
 /*

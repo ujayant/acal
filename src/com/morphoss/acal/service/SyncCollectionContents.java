@@ -51,7 +51,7 @@ import com.morphoss.acal.ResourceModification;
 import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.providers.DavCollections;
-import com.morphoss.acal.providers.DavResources;
+import com.morphoss.acal.providers.OldDavResources;
 import com.morphoss.acal.providers.Servers;
 import com.morphoss.acal.service.SynchronisationJobs.WriteActions;
 import com.morphoss.acal.service.connector.AcalRequestor;
@@ -387,12 +387,12 @@ public class SyncCollectionContents extends ServiceJob {
 					Log.println(Constants.LOGV,TAG, "Processing response for "+responseHref);
 				WriteActions action = WriteActions.UPDATE;
 	
-				ContentValues cv = DavResources.getResourceInCollection( collectionId, responseHref, cr);
+				ContentValues cv = OldDavResources.getResourceInCollection( collectionId, responseHref, cr);
 				if ( cv == null ) {
 					cv = new ContentValues();
-					cv.put(DavResources.COLLECTION_ID, collectionId);
-					cv.put(DavResources.RESOURCE_NAME, responseHref);
-					cv.put(DavResources.NEEDS_SYNC, 1 );
+					cv.put(OldDavResources.COLLECTION_ID, collectionId);
+					cv.put(OldDavResources.RESOURCE_NAME, responseHref);
+					cv.put(OldDavResources.NEEDS_SYNC, 1 );
 					action = WriteActions.INSERT;
 				}
 				
@@ -405,7 +405,7 @@ public class SyncCollectionContents extends ServiceJob {
 						Log.println(Constants.LOGD,TAG,"Updating node "+responseHref+" with "+action.toString() );
 					// We are dealing with an update or insert
 					if ( !parseResponseNode(response, cv) ) continue;
-					if ( cv.getAsInteger(DavResources.NEEDS_SYNC) == 1 ) needSyncAfterwards = true; 
+					if ( cv.getAsInteger(OldDavResources.NEEDS_SYNC) == 1 ) needSyncAfterwards = true; 
 	
 				}
 				else if ( action == WriteActions.INSERT ) {
@@ -502,14 +502,14 @@ public class SyncCollectionContents extends ServiceJob {
 				}
 				else {
 					cv = new ContentValues();
-					cv.put(DavResources.COLLECTION_ID, collectionId);
-					cv.put(DavResources.RESOURCE_NAME, responseHref);
-					cv.put(DavResources.NEEDS_SYNC, 1);
+					cv.put(OldDavResources.COLLECTION_ID, collectionId);
+					cv.put(OldDavResources.RESOURCE_NAME, responseHref);
+					cv.put(OldDavResources.NEEDS_SYNC, 1);
 					action = WriteActions.INSERT;
 				}
 				
 				if ( !parseResponseNode(response, cv) ) continue;
-				if ( cv.getAsInteger(DavResources.NEEDS_SYNC) == 1 ) needSyncAfterwards = true; 
+				if ( cv.getAsInteger(OldDavResources.NEEDS_SYNC) == 1 ) needSyncAfterwards = true; 
 
 				needSyncAfterwards = true; 
 
@@ -544,13 +544,13 @@ public class SyncCollectionContents extends ServiceJob {
 	 * @return
 	 */
 	private Map<String,ContentValues> getCurrentResourceMap() {
-		Cursor resourceCursor = cr.query(Uri.parse(DavResources.CONTENT_URI.toString() + "/collection/" + this.collectionId),
-					new String[] { DavResources._ID, DavResources.RESOURCE_NAME, DavResources.ETAG }, null, null, null);
+		Cursor resourceCursor = cr.query(Uri.parse(OldDavResources.CONTENT_URI.toString() + "/collection/" + this.collectionId),
+					new String[] { OldDavResources._ID, OldDavResources.RESOURCE_NAME, OldDavResources.ETAG }, null, null, null);
 		if ( !resourceCursor.moveToFirst()) {
 			resourceCursor.close();
 			return new HashMap<String,ContentValues>();
 		}
-		ContentQueryMap cqm = new ContentQueryMap(resourceCursor, DavResources.RESOURCE_NAME, false, null);
+		ContentQueryMap cqm = new ContentQueryMap(resourceCursor, OldDavResources.RESOURCE_NAME, false, null);
 		cqm.requery();
 		Map<String, ContentValues> databaseList = cqm.getRows();
 		cqm.close();
@@ -723,15 +723,15 @@ public class SyncCollectionContents extends ServiceJob {
 				WriteActions action = WriteActions.UPDATE;
 				if ( cv == null ) {
 					cv = new ContentValues();
-					cv.put(DavResources.COLLECTION_ID, collectionId);
-					cv.put(DavResources.RESOURCE_NAME, name);
+					cv.put(OldDavResources.COLLECTION_ID, collectionId);
+					cv.put(OldDavResources.RESOURCE_NAME, name);
 					action = WriteActions.INSERT;
 				}
 				if ( !parseResponseNode(response, cv) ) continue;
 				if ( cv.getAsString("COLLECTION") != null ) continue;
 
 				if (Constants.LOG_DEBUG)
-					Log.println(Constants.LOGD,TAG, "Multiget response needs sync="+cv.getAsString(DavResources.NEEDS_SYNC)+" for "+name );
+					Log.println(Constants.LOGD,TAG, "Multiget response needs sync="+cv.getAsString(OldDavResources.NEEDS_SYNC)+" for "+name );
 				
 				changeList.add( new ResourceModification(action, cv, null) );
 			}
@@ -767,11 +767,11 @@ public class SyncCollectionContents extends ServiceJob {
 		start = System.currentTimeMillis();
 
 		Cursor mCursor = this.cr.query(
-					Uri.parse(DavResources.CONTENT_URI.toString() + "/collection/" + this.collectionId),
+					Uri.parse(OldDavResources.CONTENT_URI.toString() + "/collection/" + this.collectionId),
 					null,
-					DavResources.NEEDS_SYNC + " = 1 OR "+DavResources.RESOURCE_DATA+" IS NULL",
+					OldDavResources.NEEDS_SYNC + " = 1 OR "+OldDavResources.RESOURCE_DATA+" IS NULL",
 					null, null);
-		ContentQueryMap cqm = new ContentQueryMap(mCursor, DavResources.RESOURCE_NAME, false, null);
+		ContentQueryMap cqm = new ContentQueryMap(mCursor, OldDavResources.RESOURCE_NAME, false, null);
 		cqm.requery();
 		originalData = cqm.getRows();
 		mCursor.close();
@@ -813,10 +813,10 @@ public class SyncCollectionContents extends ServiceJob {
 				String etag = prop.getFirstNodeText("getetag");
 				
 				if ( etag != null ) {
-					String oldEtag = cv.getAsString(DavResources.ETAG);
+					String oldEtag = cv.getAsString(OldDavResources.ETAG);
 					
 					if ( etag.equals(oldEtag) ) {
-						cv.put(DavResources.NEEDS_SYNC, 0);
+						cv.put(OldDavResources.NEEDS_SYNC, 0);
 						if ( Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents ) Log.println(Constants.LOGD,TAG,
 								"Found etag "+etag+" in response.  Old etag was "+oldEtag+".  No sync needed.");
 						return true;
@@ -824,7 +824,7 @@ public class SyncCollectionContents extends ServiceJob {
 					else {
 						if ( Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents ) Log.println(Constants.LOGD,TAG,
 								"Found etag "+etag+" in response.  Old etags was "+oldEtag+".  Sync will be needed.");
-						cv.put(DavResources.NEEDS_SYNC, 1);
+						cv.put(OldDavResources.NEEDS_SYNC, 1);
 					}
 				}
 
@@ -835,9 +835,9 @@ public class SyncCollectionContents extends ServiceJob {
 						Log.println(Constants.LOGV,TAG,data);
 						Log.println(Constants.LOGV,TAG,StaticHelpers.toHexString(data.substring(0,40).getBytes()));
 					}
-					cv.put(DavResources.RESOURCE_DATA, data);
-					cv.put(DavResources.ETAG, etag);
-					cv.put(DavResources.NEEDS_SYNC, 0);
+					cv.put(OldDavResources.RESOURCE_DATA, data);
+					cv.put(OldDavResources.ETAG, etag);
+					cv.put(OldDavResources.NEEDS_SYNC, 0);
 					if ( Constants.LOG_DEBUG && Constants.debugSyncCollectionContents ) Log.println(Constants.LOGD,TAG,
 							"Found data for etag '"+etag+"' in response.  Sync not needed.");
 				}
@@ -846,10 +846,10 @@ public class SyncCollectionContents extends ServiceJob {
 					
 
 				s = prop.getFirstNodeText("getlastmodified");
-				if ( s != null ) cv.put(DavResources.LAST_MODIFIED, s);
+				if ( s != null ) cv.put(OldDavResources.LAST_MODIFIED, s);
 
 				s = prop.getFirstNodeText("getcontenttype");
-				if ( s != null ) cv.put(DavResources.CONTENT_TYPE, s);
+				if ( s != null ) cv.put(OldDavResources.CONTENT_TYPE, s);
 			}
 		}
 
@@ -919,14 +919,14 @@ public class SyncCollectionContents extends ServiceJob {
 							Log.i(TAG,Log.getStackTraceString(e));
 						}
 						ContentValues cv = originalData.get(hrefs[hrefIndex]);
-						cv.put(DavResources.RESOURCE_DATA, resourceData.toString() );
+						cv.put(OldDavResources.RESOURCE_DATA, resourceData.toString() );
 						for (Header hdr : requestor.getResponseHeaders()) {
 							if (hdr.getName().equalsIgnoreCase("ETag")) {
-								cv.put(DavResources.ETAG, hdr.getValue());
+								cv.put(OldDavResources.ETAG, hdr.getValue());
 								break;
 							}
 						}
-						cv.put(DavResources.NEEDS_SYNC, 0);
+						cv.put(OldDavResources.NEEDS_SYNC, 0);
 						changeList.add( new ResourceModification(WriteActions.UPDATE, cv, null) );
 						if (Constants.LOG_DEBUG)
 							Log.println(Constants.LOGD,TAG, "Get response for "+hrefs[hrefIndex] );

@@ -30,13 +30,14 @@ import android.widget.TextView;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateTime;
+import com.morphoss.acal.cachemanager.CacheObject;
 import com.morphoss.acal.dataservice.EventInstance;
 
 public class MonthDayBox extends TextView {
 
 	private final static String TAG = "Acal MonthDayBox";
 
-	private List<EventInstance> events;
+	private List<CacheObject> events;
 	private boolean isToday = false;
 	private boolean isSelectedDay = false;
 	private Context context;
@@ -94,11 +95,11 @@ public class MonthDayBox extends TextView {
 			int dayStart  = 8 * AcalDateTime.SECONDS_IN_HOUR;
 			int dayFinish = 20 * AcalDateTime.SECONDS_IN_HOUR;
 			int eStart, eFinish;
-			for (EventInstance e : events) {
+			for (CacheObject e : events) {
 				if ( e.isAllDay() ) continue;
-				eStart = (int) (e.getStartMillis() - dayEpoch);
+				eStart = (int) (e.getStart() - dayEpoch);
 				if ( eStart < 0 ) eStart = 0;
-				eFinish = (int) (e.getEndMillis() - dayEpoch);
+				eFinish = (int) (e.getEnd() - dayEpoch);
 				if ( eFinish > AcalDateTime.SECONDS_IN_DAY ) eFinish = AcalDateTime.SECONDS_IN_DAY;
 				if (eStart < dayStart) dayStart = eStart;
 				if (eFinish > dayFinish) dayFinish = eFinish;
@@ -108,15 +109,15 @@ public class MonthDayBox extends TextView {
 			
 			int barWidth = (int) (width/5f);
 			int secsPerPixel = (int) ((displaySecs / height) + 1);
-			for (EventInstance e : events) {
+			for (CacheObject e : events) {
 				if ( e.isAllDay() ) {
 					eStart = 0;
 					eFinish = dayFinish - dayStart;
 				}
 				else {
-					eStart = (int) (e.getStartMillis() - dayEpoch) - dayStart;
+					eStart = (int) (e.getStart() - dayEpoch) - dayStart;
 					if ( eStart < 0 ) eStart = 0;
-					eFinish = (int) (e.getEndMillis() - dayEpoch) - dayStart;
+					eFinish = (int) (e.getEnd() - dayEpoch) - dayStart;
 				}
 				if ( eFinish < (eStart + (secsPerPixel * minBarHeight)) )
 					eFinish = eStart + (minBarHeight * secsPerPixel);
@@ -126,7 +127,7 @@ public class MonthDayBox extends TextView {
 
 				if ( Constants.LOG_VERBOSE && Constants.debugMonthView )
 					Log.v(TAG, String.format("%d - %d: %s (%ds - %ds, %dspp, %dx,%dy, %dw,%dh, %d-%d)",
-								e.getStartMillis(), e.getEndMillis(), e.getSummary(),
+								e.getStart(), e.getEnd(), e.getSummary(),
 								eStart, eFinish, secsPerPixel, x, y, barWidth, (int) height,
 								(int) y+(eStart/secsPerPixel), (int) y+(eFinish/secsPerPixel)));
 			}
@@ -137,7 +138,7 @@ public class MonthDayBox extends TextView {
 		}
 	}
 
-	public void setEvents(List<EventInstance> events) {
+	public void setEvents(List<CacheObject> events) {
 		this.events = events;
 	}
 	

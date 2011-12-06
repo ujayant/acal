@@ -31,7 +31,7 @@ import com.morphoss.acal.activity.EventView;
 import com.morphoss.acal.database.AcalDBHelper;
 import com.morphoss.acal.dataservice.DefaultEventInstance;
 import com.morphoss.acal.dataservice.EventInstance;
-import com.morphoss.acal.providers.DavResources;
+import com.morphoss.acal.providers.OldDavResources;
 import com.morphoss.acal.service.aCalService;
 
 public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
@@ -300,7 +300,7 @@ public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 		String ret = null;
 		Cursor c = null;
 		try {
-			c = cr.query(DavResources.CONTENT_URI, new String[]{DavResources.ETAG}, DavResources._ID+" = ?", new String[]{resource_id+""}, null);
+			c = cr.query(OldDavResources.CONTENT_URI, new String[]{OldDavResources.ETAG}, OldDavResources._ID+" = ?", new String[]{resource_id+""}, null);
 			if (c.getCount() < 1) {
 				if (Constants.LOG_DEBUG) Log.d(TAG, "Could not find value in DB");
 				c.close();

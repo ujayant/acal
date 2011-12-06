@@ -20,7 +20,7 @@ package com.morphoss.acal;
 
 import android.content.ContentValues;
 
-import com.morphoss.acal.providers.DavResources;
+import com.morphoss.acal.providers.OldDavResources;
 import com.morphoss.acal.service.aCalService;
 
 public class DatabaseChangedEvent {
@@ -57,10 +57,10 @@ public class DatabaseChangedEvent {
 	}
 
 	public static void beginResourceChanges() {
-		aCalService.databaseDispatcher.dispatchEvent(new DatabaseChangedEvent(DatabaseChangedEvent.DATABASE_BEGIN_RESOURCE_CHANGES, DavResources.class, null));
+		aCalService.databaseDispatcher.dispatchEvent(new DatabaseChangedEvent(DatabaseChangedEvent.DATABASE_BEGIN_RESOURCE_CHANGES, OldDavResources.class, null));
 	}
 
 	public static void endResourceChanges() {
-		aCalService.databaseDispatcher.dispatchEvent(new DatabaseChangedEvent(DatabaseChangedEvent.DATABASE_END_RESOURCE_CHANGES, DavResources.class, null));
+		aCalService.databaseDispatcher.dispatchEvent(new DatabaseChangedEvent(DatabaseChangedEvent.DATABASE_END_RESOURCE_CHANGES, OldDavResources.class, null));
 	}
 }

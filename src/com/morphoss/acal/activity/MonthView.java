@@ -103,7 +103,7 @@ import com.morphoss.acal.widget.AcalViewFlipper;
  * 
  */
 public class MonthView extends AcalActivity implements OnGestureListener,
-		OnTouchListener, OnClickListener, CacheChangedListener, CacheResponseListener {
+		OnTouchListener, OnClickListener {
 
 	public static final String TAG = "aCal MonthView";
 
@@ -683,7 +683,12 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 	}
 
 
-	
+	/**
+	 * Methods for managing event structure
+	 */
+	public void requestEventsForDay(AcalDateTime day) {
+		//TODO Request events for day
+	}
 
 	public void deleteEvent(AcalDateTime day, int n, int action ) {
 		//TODO	
@@ -1039,17 +1044,5 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 	@Override
 	public boolean onSingleTapUp(MotionEvent upEvent) {
 		return false;
-	}
-
-	@Override
-	public void cacheChanged(CacheChangedEvent event) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void cacheResponse(ArrayList<CacheObject> data) {
-		// TODO Auto-generated method stub
-		
 	}
 }

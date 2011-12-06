@@ -19,7 +19,10 @@
 package com.morphoss.acal.activity;
 
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -38,15 +41,21 @@ import android.widget.TextView;
 import com.morphoss.acal.AcalTheme;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
+import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
-import com.morphoss.acal.dataservice.EventInstance;
+import com.morphoss.acal.cachemanager.CacheChangedEvent;
+import com.morphoss.acal.cachemanager.CacheChangedListener;
+import com.morphoss.acal.cachemanager.CacheManager;
+import com.morphoss.acal.cachemanager.CacheObject;
+import com.morphoss.acal.cachemanager.CacheRequest;
+import com.morphoss.acal.cachemanager.CacheResponseListener;
 import com.morphoss.acal.views.MonthDayBox;
 
 /**
  * @author Morphoss Ltd
  *
  */
-public class MonthAdapter extends BaseAdapter {
+public class MonthAdapter extends BaseAdapter implements CacheChangedListener, CacheResponseListener {
 
 	private final static String TAG = "aCal MonthAdapter";
 	private MonthView context;
@@ -54,16 +63,22 @@ public class MonthAdapter extends BaseAdapter {
 	private AcalDateTime nextMonth;
 	private AcalDateTime displayDate;
 	private AcalDateTime selectedDate;
+	private AcalDateTime startOfThisMonth;
+	private AcalDateTime endOfThisMonth;
 	private int daysInLastMonth;
 	private int daysInThisMonth;
 	private int firstOffset;
 	private int firstCol;
 
+	private ConcurrentHashMap<Integer,ArrayList<CacheObject>> eventsByDay = new ConcurrentHashMap<Integer,ArrayList<CacheObject>>();
+	private CacheManager cacheManager;
+	
 	public MonthAdapter(MonthView monthview, AcalDateTime displayDate, AcalDateTime selectedDate) {
 		this.displayDate = displayDate;
 		this.selectedDate = selectedDate;
 		this.context = monthview;
-		
+		this.cacheManager = CacheManager.getInstance(monthview, this);
+		for (int i = 0; i<=31; i++) eventsByDay.put(i, new ArrayList<CacheObject>());
 		getFirstDay(monthview);
 
 		//Get next and previous months
@@ -96,6 +111,16 @@ public class MonthAdapter extends BaseAdapter {
 		displayDate.setMonthDay(1);
 		this.firstOffset = displayDate.get(AcalDateTime.DAY_OF_WEEK);
 		displayDate.set(AcalDateTime.DAY_OF_MONTH, curDay);
+		
+		startOfThisMonth = selectedDate.clone().setDaySecond(0);
+		startOfThisMonth.setMonthDay(0);
+		
+		endOfThisMonth = selectedDate.clone().setDaySecond(0);
+		endOfThisMonth.setMonthDay(0);
+		endOfThisMonth.addMonths(1);
+		
+		//request data
+		cacheManager.sendRequest(CacheRequest.requestObjectsForDateRange(new AcalDateRange(startOfThisMonth, endOfThisMonth), this));
 	}
 
 
@@ -210,17 +235,17 @@ public class MonthAdapter extends BaseAdapter {
 			}
 			else {
 				mDayBox = (MonthDayBox) v.findViewById(R.id.DayBoxInMonth);
-				mDayBox.setEvents(context.getEventsForDay(bDate));
+				mDayBox.setEvents(eventsByDay.get(bDate.getMonthDay()));
 				textScaleFactor = 0.55f;
 			}
 			if ( Constants.LOG_VERBOSE && Constants.debugMonthView ) {
-				List<EventInstance> eventList = context.getEventsForDay(bDate);
+				List<CacheObject> eventList = eventsByDay.get(bDate.getMonthDay());
 				Log.v(TAG,"MonthAdapter for "+bDate.fmtIcal());
-				for( EventInstance event : eventList ) {
-					Log.v(TAG, String.format("%d - %d: %s", event.getStartMillis(), event.getEndMillis(), event.getSummary()));
+				for( CacheObject event : eventList ) {
+					Log.v(TAG, String.format("%d - %d: %s", event.getStart(), event.getEnd(), event.getSummary()));
 				}
 			}
-			mDayBox.setEvents(context.getEventsForDay(bDate));
+			mDayBox.setEvents(eventsByDay.get(bDate.getMonthDay()));
 		}
 		else if ( bDate.getYearDay() == selectedDate.getYearDay() && bDate.getYear() == selectedDate.getYear() ) {
 			mDayBox = (MonthDayBox) v.findViewById(R.id.DayBoxOutMonthHighlighted);
@@ -265,6 +290,28 @@ public class MonthAdapter extends BaseAdapter {
 	public void updateSelectedDay(AcalDateTime selectedDate) {
 		this.selectedDate = selectedDate;
 		this.notifyDataSetChanged();
+	}
+
+
+	@Override
+	public void cacheChanged(CacheChangedEvent event) {
+		// TODO Adjust to deal with changes more specifically
+		//request data
+		cacheManager.sendRequest(CacheRequest.requestObjectsForDateRange(new AcalDateRange(startOfThisMonth, endOfThisMonth), this));
+		
+	}
+
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public void cacheResponse(CacheResponse response) {
+		if (response.requestType == CacheRequest.REQUEST_OBJECTS_FOR_DATARANGE_BY_DAY) {
+			Map<Integer,ArrayList<CacheObject>> data = (Map<Integer,ArrayList<CacheObject>>)response.data;
+			for (int i = 0; i<= 31; i++) {
+				if (data.containsKey(i)) eventsByDay.put(i, data.get(i));
+			}
+			this.notifyDataSetChanged();
+		}
 	}
 
 }

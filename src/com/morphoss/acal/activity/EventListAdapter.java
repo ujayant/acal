@@ -291,19 +291,22 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 
 	@Override
 	public void cacheChanged(CacheChangedEvent event) {
-		// TODO Auto-generated method stub
+		// TODO Adjust to deal with more specific changes
+		cacheManager.sendRequest(getCacheRequest());
 	}
 
-	@Override
 	/** 
 	 * Warning - this runs under a different thread! 
 	 */
-	public void cacheResponse(ArrayList<CacheObject> data) {
-		synchronized (dayEvents) {
-			dayEvents = data;
+	@SuppressWarnings("unchecked")
+	@Override
+	public void cacheResponse(CacheResponse response) {
+		if (response.requestType == CacheRequest.REQUEST_OBJECTS_FOR_DATARANGE) {
+			synchronized (dayEvents) {
+				dayEvents = (ArrayList<CacheObject>)response.data;
+			}
+			this.notifyDataSetChanged();
 		}
-		this.notifyDataSetChanged();
-		
 	}
 
 }

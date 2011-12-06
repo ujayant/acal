@@ -37,7 +37,7 @@ import com.morphoss.acal.Constants;
 import com.morphoss.acal.dataservice.Collection;
 import com.morphoss.acal.dataservice.DefaultResourceFactory;
 import com.morphoss.acal.dataservice.Resource;
-import com.morphoss.acal.providers.DavResources;
+import com.morphoss.acal.providers.OldDavResources;
 
 /**
  * <p>
@@ -130,9 +130,9 @@ public abstract class VComponent implements Parcelable {
 
 	
 	public synchronized static VComponent createComponentFromResource(ContentValues resourceRow, AcalCollection collectionObject) throws VComponentCreationException {
-		String blob = resourceRow.getAsString(DavResources.RESOURCE_DATA);
+		String blob = resourceRow.getAsString(OldDavResources.RESOURCE_DATA);
 		if ( blob == null ) return null;
-		long rid = resourceRow.getAsLong(DavResources._ID); // May be null
+		long rid = resourceRow.getAsLong(OldDavResources._ID); // May be null
 		return createComponentFromBlob(blob,rid,collectionObject);
 	}
 
@@ -672,8 +672,8 @@ public abstract class VComponent implements Parcelable {
 
 
 	public static VComponent fromDatabase(Context context, long l) throws VComponentCreationException {
-		ContentValues res = DavResources.getRow(l, context.getContentResolver());
-		AcalCollection collection = AcalCollection.fromDatabase(context, res.getAsInteger(DavResources.COLLECTION_ID));
+		ContentValues res = OldDavResources.getRow(l, context.getContentResolver());
+		AcalCollection collection = AcalCollection.fromDatabase(context, res.getAsInteger(OldDavResources.COLLECTION_ID));
 		return createComponentFromResource(res, collection);
 	}
 

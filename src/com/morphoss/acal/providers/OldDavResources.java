@@ -54,7 +54,7 @@ import com.morphoss.acal.database.AcalDBHelper;
  * @author Morphoss Ltd
  *
  */
-public class DavResources extends ContentProvider {
+public class OldDavResources extends ContentProvider {
 
 	public static final String TAG = "aCal DavResources";
 

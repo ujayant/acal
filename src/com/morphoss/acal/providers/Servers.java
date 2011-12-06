@@ -244,8 +244,8 @@ public class Servers extends ContentProvider {
 		db.beginTransaction();
 		try {
 			db.delete(PathSets.DATABASE_TABLE, PathSets.SERVER_ID+"=?", params );
-			db.delete(DavResources.DATABASE_TABLE,
-						DavResources.COLLECTION_ID
+			db.delete(OldDavResources.DATABASE_TABLE,
+						OldDavResources.COLLECTION_ID
 						+" IN (SELECT "+DavCollections._ID+" FROM "+DavCollections.DATABASE_TABLE
 															+" WHERE "+DavCollections.SERVER_ID+"=?)",
 						params );
