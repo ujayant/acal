@@ -1,5 +1,6 @@
 package com.morphoss.acal.dataservice;
 
+import android.content.Context;
 import android.os.Parcelable;
 
 public abstract class Collection implements Parcelable {

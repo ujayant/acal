@@ -335,6 +335,14 @@ public class CacheManager implements Runnable {
 			}
 			cr.close();
 			closeDB();
+			result.add(new CacheObject(
+					-1,
+					1,
+					"test",
+					"test",
+					System.currentTimeMillis(),
+					System.currentTimeMillis()+3600000L,
+					CacheObject.EVENT_FLAG));
 			return result;
 		}
 		

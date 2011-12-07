@@ -78,7 +78,7 @@ public class MonthAdapter extends BaseAdapter implements CacheChangedListener, C
 		this.selectedDate = selectedDate;
 		this.context = monthview;
 		this.cacheManager = CacheManager.getInstance(monthview, this);
-		for (int i = 0; i<=31; i++) eventsByDay.put(i, new ArrayList<CacheObject>());
+		for (int i = 1; i<=31; i++) eventsByDay.put(i, new ArrayList<CacheObject>());
 		getFirstDay(monthview);
 
 		//Get next and previous months
@@ -113,10 +113,10 @@ public class MonthAdapter extends BaseAdapter implements CacheChangedListener, C
 		displayDate.set(AcalDateTime.DAY_OF_MONTH, curDay);
 		
 		startOfThisMonth = selectedDate.clone().setDaySecond(0);
-		startOfThisMonth.setMonthDay(0);
+		startOfThisMonth.setMonthDay(1);
 		
 		endOfThisMonth = selectedDate.clone().setDaySecond(0);
-		endOfThisMonth.setMonthDay(0);
+		endOfThisMonth.setMonthDay(1);
 		endOfThisMonth.addMonths(1);
 		
 		//request data
@@ -239,7 +239,8 @@ public class MonthAdapter extends BaseAdapter implements CacheChangedListener, C
 				textScaleFactor = 0.55f;
 			}
 			if ( Constants.LOG_VERBOSE && Constants.debugMonthView ) {
-				List<CacheObject> eventList = eventsByDay.get(bDate.getMonthDay());
+				int mDay = bDate.getMonthDay();
+				List<CacheObject> eventList = eventsByDay.get(new Integer(bDate.getMonthDay()));
 				Log.v(TAG,"MonthAdapter for "+bDate.fmtIcal());
 				for( CacheObject event : eventList ) {
 					Log.v(TAG, String.format("%d - %d: %s", event.getStart(), event.getEnd(), event.getSummary()));
@@ -308,6 +309,7 @@ public class MonthAdapter extends BaseAdapter implements CacheChangedListener, C
 		if (response.requestType == CacheRequest.REQUEST_OBJECTS_FOR_DATARANGE_BY_DAY) {
 			Map<Integer,ArrayList<CacheObject>> data = (Map<Integer,ArrayList<CacheObject>>)response.data;
 			for (int i = 0; i<= 31; i++) {
+				List<CacheObject> cur = data.get(i);
 				if (data.containsKey(i)) eventsByDay.put(i, data.get(i));
 			}
 			this.notifyDataSetChanged();

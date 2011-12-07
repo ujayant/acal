@@ -31,7 +31,6 @@ import com.morphoss.acal.activity.EventView;
 import com.morphoss.acal.database.AcalDBHelper;
 import com.morphoss.acal.dataservice.DefaultEventInstance;
 import com.morphoss.acal.dataservice.EventInstance;
-import com.morphoss.acal.providers.OldDavResources;
 import com.morphoss.acal.service.aCalService;
 
 public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
@@ -277,15 +276,8 @@ public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 
 	public synchronized static ContentValues getCVFromEvent(Context context, EventInstance event) {
 		ContentValues cv = new ContentValues();
-
-		String etag = getEtag(context, event.getResource().getResourceId());
-		if (etag == null) {
-			//etag fail
-			return null;
-		}
-		
 		cv.put(FIELD_RESOURCE_ID, event.getResource().getResourceId());
-		cv.put(FIELD_ETAG, etag);
+		cv.put(FIELD_ETAG, event.getResource().getEtag());
 		cv.put(FIELD_COLOUR,event.getCollection().getColour());
 		cv.put(FIELD_DTSTART, event.getStart().getMillis());
 		cv.put(FIELD_DTEND, event.getEnd().getMillis());
@@ -294,27 +286,7 @@ public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 		return cv;
 	}
 	
-	public synchronized static String getEtag(Context context, long resource_id) {
-		if (Constants.LOG_DEBUG) Log.d(TAG, "Getting Etag for resource "+resource_id);
-		ContentResolver cr = context.getContentResolver();
-		String ret = null;
-		Cursor c = null;
-		try {
-			c = cr.query(OldDavResources.CONTENT_URI, new String[]{OldDavResources.ETAG}, OldDavResources._ID+" = ?", new String[]{resource_id+""}, null);
-			if (c.getCount() < 1) {
-				if (Constants.LOG_DEBUG) Log.d(TAG, "Could not find value in DB");
-				c.close();
-				return null;
-			}
-			c.moveToFirst();
-			ret = c.getString(0);
-		} catch (Exception e) {
-			if (Constants.LOG_DEBUG) Log.d(TAG, "Exception occured: "+e);
-		}
-		if (c != null) c.close();
-		return ret;
-		
-	}
+	
 	
 	public String getNiceDate(Context context, AcalDateTime dateTime) {
 		AcalDateTime now = new AcalDateTime().applyLocalTimeZone();

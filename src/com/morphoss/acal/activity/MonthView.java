@@ -22,7 +22,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.util.ArrayList;
 
 import android.content.Context;
 import android.content.Intent;
@@ -49,14 +48,7 @@ import com.morphoss.acal.AcalTheme;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateTime;
-import com.morphoss.acal.cachemanager.CacheChangedEvent;
-import com.morphoss.acal.cachemanager.CacheChangedListener;
-import com.morphoss.acal.cachemanager.CacheObject;
-import com.morphoss.acal.cachemanager.CacheResponseListener;
-import com.morphoss.acal.dataservice.DefaultEventInstance;
-import com.morphoss.acal.dataservice.EventInstance;
 import com.morphoss.acal.dataservice.MethodsRequired;
-import com.morphoss.acal.dataservice.WriteableEventInstance;
 import com.morphoss.acal.service.aCalService;
 import com.morphoss.acal.weekview.WeekViewActivity;
 import com.morphoss.acal.widget.AcalViewFlipper;
@@ -215,6 +207,10 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 		leftOut = AnimationUtils.loadAnimation(this, R.anim.push_left_out);
 		rightIn = AnimationUtils.loadAnimation(this, R.anim.push_right_in);
 		rightOut = AnimationUtils.loadAnimation(this, R.anim.push_right_out);
+		
+		createGridView(true);
+		changeSelectedDate(selectedDate);
+		changeDisplayedMonth(displayedMonth);
 
 	}
 

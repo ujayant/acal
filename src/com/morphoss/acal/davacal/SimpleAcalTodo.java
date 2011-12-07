@@ -32,7 +32,7 @@ import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.activity.TodoEdit;
-import com.morphoss.acal.dataservice.DefaultResourceFactory;
+import com.morphoss.acal.dataservice.DefaultResourceInstance;
 import com.morphoss.acal.dataservice.Resource;
 
 
@@ -268,6 +268,7 @@ public class SimpleAcalTodo implements Parcelable, Comparable<SimpleAcalTodo> {
 		StaticHelpers.writeNullableLong(dest,due);
 		StaticHelpers.writeNullableLong(dest,duration);
 		StaticHelpers.writeNullableLong(dest,completed);
+		resource.writeToParcel(dest, flags);
 		dest.writeLong(resource.getResourceId());
 		dest.writeString(summary);
 		dest.writeString(location);
@@ -284,7 +285,7 @@ public class SimpleAcalTodo implements Parcelable, Comparable<SimpleAcalTodo> {
 		due = StaticHelpers.readNullableLong(src);
 		duration = StaticHelpers.readNullableLong(src);
 		completed = StaticHelpers.readNullableLong(src);
-		resource = Resource.getInstance(new DefaultResourceFactory(), src.readLong());
+		resource = new DefaultResourceInstance(src);
 		summary = src.readString();
 		location = src.readString();
 		colour = src.readInt();

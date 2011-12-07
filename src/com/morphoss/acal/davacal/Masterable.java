@@ -31,11 +31,12 @@ import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
+import com.morphoss.acal.dataservice.Resource;
 
 public abstract class Masterable extends VComponent {
 
-	protected Masterable(ComponentParts splitter, long l, AcalCollection collectionObject, VComponent parent) {
-		super(splitter,l,collectionObject,parent);
+	protected Masterable(ComponentParts splitter, Resource r, AcalCollection collectionObject, VComponent parent) {
+		super(splitter,r,collectionObject,parent);
 	}
 
 	protected Masterable(String typeName, VComponent parent) {

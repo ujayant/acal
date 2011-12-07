@@ -2,15 +2,13 @@ package com.morphoss.acal.dataservice;
 
 import java.util.List;
 
+import android.content.Context;
 import android.os.Parcelable;
 
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.activity.MonthView;
 import com.morphoss.acal.davacal.AcalAlarm;
-import com.morphoss.acal.davacal.AcalCollection;
-import com.morphoss.acal.davacal.VCalendar;
-import com.morphoss.acal.davacal.VComponent;
 import com.morphoss.acal.davacal.VEvent;
 import com.morphoss.acal.weekview.WeekViewActivity;
 

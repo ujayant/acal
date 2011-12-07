@@ -18,6 +18,8 @@
 
 package com.morphoss.acal.providers;
 
+import java.util.ArrayList;
+
 import android.content.ContentProvider;
 import android.content.ContentResolver;
 import android.content.ContentUris;
@@ -36,6 +38,8 @@ import android.util.Log;
 import com.morphoss.acal.DatabaseChangedEvent;
 import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.database.AcalDBHelper;
+import com.morphoss.acal.resources.RRDeleteByCollectionId;
+import com.morphoss.acal.resources.ResourcesManager;
 import com.morphoss.acal.service.aCalService;
 
 /**
@@ -241,14 +245,26 @@ public class Servers extends ContentProvider {
 		SQLiteDatabase db = dbHelper.getWritableDatabase();
 
 		String[] params = new String[] { Integer.toString(serverId) };
+		
+		ArrayList<Integer> collectionIds = null;
+		
+		Cursor c = db.query(DavCollections.DATABASE_TABLE, 
+				new String[]{DavCollections._ID},
+				DavCollections.SERVER_ID+" = ? ", 
+				params, null,null,null);
+		
+		if (c.getCount() > 0) {
+			collectionIds = new ArrayList<Integer>();
+			for (c.moveToFirst(); c.isAfterLast(); c.moveToNext())
+				collectionIds.add(c.getInt(0));
+		}
+		c.close();
+		
+		
+		
 		db.beginTransaction();
 		try {
 			db.delete(PathSets.DATABASE_TABLE, PathSets.SERVER_ID+"=?", params );
-			db.delete(OldDavResources.DATABASE_TABLE,
-						OldDavResources.COLLECTION_ID
-						+" IN (SELECT "+DavCollections._ID+" FROM "+DavCollections.DATABASE_TABLE
-															+" WHERE "+DavCollections.SERVER_ID+"=?)",
-						params );
 			db.delete(PendingChanges.DATABASE_TABLE,
 						PendingChanges.COLLECTION_ID
 						+" IN (SELECT "+DavCollections._ID+" FROM "+DavCollections.DATABASE_TABLE
@@ -267,6 +283,11 @@ public class Servers extends ContentProvider {
 
 			//FINALLY DISPATCH CHANGE
 			aCalService.databaseDispatcher.dispatchEvent(new DatabaseChangedEvent(DatabaseChangedEvent.DATABASE_INVALIDATED,null,null));
+		}
+		
+		if (!collectionIds.isEmpty()) {
+			//Ask resource manager to delete resources
+			ResourcesManager.getInstance(context).sendRequest(new RRDeleteByCollectionId(collectionIds));
 		}
 
 	}

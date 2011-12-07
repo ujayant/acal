@@ -35,6 +35,7 @@ import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
 import com.morphoss.acal.acaltime.AcalRepeatRuleParser;
 import com.morphoss.acal.dataservice.EventInstance;
+import com.morphoss.acal.dataservice.Resource;
 import com.morphoss.acal.dataservice.WriteableEventInstance;
 
 public class VCalendar extends VComponent {
@@ -49,8 +50,8 @@ public class VCalendar extends VComponent {
 	private boolean isPending = false;
 
 
-	public VCalendar(ComponentParts splitter, long l, Long earliestStart, Long latestEnd, AcalCollection collectionObject,VComponent parent) {
-		super(splitter, l, collectionObject,parent);
+	public VCalendar(ComponentParts splitter, Resource r, Long earliestStart, Long latestEnd, AcalCollection collectionObject,VComponent parent) {
+		super(splitter, r, collectionObject,parent);
 		this.earliestStart = earliestStart;
 		this.latestEnd = latestEnd;
 		if ( earliestStart != null ) {
@@ -83,7 +84,7 @@ public class VCalendar extends VComponent {
 	}
 	
 	public VCalendar clone() {
-		return new VCalendar(this.content, this.getResourceId(), this.earliestStart, this.latestEnd, this.collectionData, this.parent);
+		return new VCalendar(this.content, this.getResource(), this.earliestStart, this.latestEnd, this.collectionData, this.parent);
 	}
 
 	public String applyEventAction(WriteableEventInstance action) {
@@ -306,11 +307,11 @@ public class VCalendar extends VComponent {
 		for( PartInfo childInfo : content.partInfo ) {
 			if ( childInfo.type.equals(VEVENT) ) {
 				return new VEvent(new ComponentParts(childInfo.getComponent(content.componentString)),
-						resource.getResourceId(), collectionData,this);
+						resource, collectionData,this);
 			}
 			else if ( childInfo.type.equals(VTODO) ) {
 				return new VTodo(new ComponentParts(childInfo.getComponent(content.componentString)),
-						resource.getResourceId(), collectionData,this);
+						resource, collectionData,this);
 			}
 		}
 		return null;
@@ -477,7 +478,7 @@ public class VCalendar extends VComponent {
 		for( PartInfo childInfo : content.partInfo ) {
 			if ( childInfo.type.equals(VEVENT) ) {
 				VEvent vc = new VEvent(new ComponentParts(childInfo.getComponent(content.componentString)),
-						resource.getResourceId(), collectionData,this);
+						resource, collectionData,this);
 				for( PartInfo childChildInfo : vc.content.partInfo ) {
 					if ( childChildInfo.type.equals(VALARM)) {
 						this.hasAlarms = true;
@@ -487,7 +488,7 @@ public class VCalendar extends VComponent {
 			}
 			else if ( childInfo.type.equals(VTODO) ) {
 				VTodo vc = new VTodo(new ComponentParts(childInfo.getComponent(content.componentString)),
-						resource.getResourceId(), collectionData,this);
+						resource, collectionData,this);
 				for( PartInfo childChildInfo : vc.content.partInfo ) {
 					if ( childChildInfo.type.equals(VALARM))  {
 						this.hasAlarms = true;

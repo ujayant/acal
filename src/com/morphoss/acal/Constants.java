@@ -47,7 +47,7 @@ public class Constants {
 	public static final Pattern	matchSegmentName	= Pattern.compile("([^/]+)$");
 
 	/** Set this to false and all debug logging is turned off */
-	public static final boolean DEBUG_MODE = false;
+	public static final boolean DEBUG_MODE = true;
 
 	/** How much stuff to spit out into the logs */
 	public static final boolean LOG_VERBOSE = true && DEBUG_MODE;		//Very verbose play by play execution information
@@ -72,8 +72,7 @@ public class Constants {
 	public static final boolean		debugCalendar					= false && DEBUG_MODE;
 	public static final boolean		debugSyncChangesToServer		= false && DEBUG_MODE;
 	public static final boolean		debugSyncCollectionContents		= false && DEBUG_MODE;
-	public static final boolean		debugCalendarDataService		= false && DEBUG_MODE;
-	public static final boolean		debugMonthView					= false && DEBUG_MODE;
+	public static final boolean		debugMonthView					= true && DEBUG_MODE;
 	public static final boolean		debugWeekView					= false && DEBUG_MODE;
 	public static final boolean		debugVComponent					= false && DEBUG_MODE;
 	public static final boolean		debugDateTime					= false && DEBUG_MODE;

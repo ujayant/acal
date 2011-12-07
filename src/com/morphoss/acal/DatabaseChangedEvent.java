@@ -20,9 +20,6 @@ package com.morphoss.acal;
 
 import android.content.ContentValues;
 
-import com.morphoss.acal.providers.OldDavResources;
-import com.morphoss.acal.service.aCalService;
-
 public class DatabaseChangedEvent {
 
 	public static final int DATABASE_RECORD_DELETED = 1;
@@ -54,13 +51,5 @@ public class DatabaseChangedEvent {
 		this.eventType = eventType;
 		this.table = table;
 		this.data = data;
-	}
-
-	public static void beginResourceChanges() {
-		aCalService.databaseDispatcher.dispatchEvent(new DatabaseChangedEvent(DatabaseChangedEvent.DATABASE_BEGIN_RESOURCE_CHANGES, OldDavResources.class, null));
-	}
-
-	public static void endResourceChanges() {
-		aCalService.databaseDispatcher.dispatchEvent(new DatabaseChangedEvent(DatabaseChangedEvent.DATABASE_END_RESOURCE_CHANGES, OldDavResources.class, null));
 	}
 }

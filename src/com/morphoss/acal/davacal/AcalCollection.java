@@ -19,15 +19,14 @@
 package com.morphoss.acal.davacal;
 
 import android.content.ContentValues;
-import android.content.Context;
 import android.graphics.Color;
 import android.os.Parcel;
 import android.util.Log;
 
+import com.morphoss.acal.service.aCalService;
 import com.morphoss.acal.StaticHelpers;
-import com.morphoss.acal.providers.DavCollections;
-
 import com.morphoss.acal.dataservice.Collection;
+import com.morphoss.acal.providers.DavCollections;
 
 public class AcalCollection extends Collection {
 	final private static String TAG = "AcalCollection";
@@ -51,8 +50,8 @@ public class AcalCollection extends Collection {
 		useForAddressbook = (cv.getAsInteger(DavCollections.ACTIVE_ADDRESSBOOK) == 1);
 	}
 
-	public static AcalCollection fromDatabase( Context context, long collectionId ) {
-		ContentValues collectionRow = DavCollections.getRow(collectionId, context.getContentResolver());
+	public static AcalCollection fromDatabase(long collectionId ) {
+		ContentValues collectionRow = DavCollections.getRow(collectionId, aCalService.context.getContentResolver());
 		if ( collectionRow == null ) return null;
 		return new AcalCollection(collectionRow);
 	}

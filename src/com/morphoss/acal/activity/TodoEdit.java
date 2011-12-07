@@ -187,7 +187,11 @@ public class TodoEdit extends AcalActivity
 	private VTodo getTodoAction(Bundle b) {
 		currentOperation = ACTION_EDIT;
 		if ( b != null && b.containsKey("SimpleAcalTodo") ) {
-			this.sat = (SimpleAcalTodo) b.getParcelable("SimpleAcalTodo");
+			
+			//TODO Fix this code to the new system
+			
+			return null;
+			/**this.sat = (SimpleAcalTodo) b.getParcelable("SimpleAcalTodo");
 			currentOperation = sat.operation;
 			try {
 				if (Constants.LOG_DEBUG)
@@ -198,7 +202,7 @@ public class TodoEdit extends AcalActivity
 			}
 			catch( Exception e ) {
 				Log.e(TAG,Log.getStackTraceString(e));
-			}
+			} */
 		}
 
 		//Get collection data
@@ -258,7 +262,7 @@ public class TodoEdit extends AcalActivity
 					}
 				}
 			}
-			this.todo = new VTodo(AcalCollection.fromDatabase(this, collectionId));
+			this.todo = new VTodo(AcalCollection.fromDatabase(collectionId));
 			this.todo.setSummary(getString(R.string.NewTaskTitle));
 			this.action = ACTION_CREATE;
 

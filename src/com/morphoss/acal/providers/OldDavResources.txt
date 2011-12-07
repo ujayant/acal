@@ -1,41 +1,3 @@
-/*
- * Copyright (C) 2011 Morphoss Ltd
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- */
-
-package com.morphoss.acal.providers;
-
-import android.content.ContentProvider;
-import android.content.ContentResolver;
-import android.content.ContentUris;
-import android.content.ContentValues;
-import android.content.Context;
-import android.content.UriMatcher;
-import android.database.Cursor;
-import android.database.DatabaseUtils;
-import android.database.SQLException;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteQueryBuilder;
-import android.net.Uri;
-import android.text.TextUtils;
-import android.util.Log;
-
-import com.morphoss.acal.Constants;
-import com.morphoss.acal.database.AcalDBHelper;
-
 /**
  * <p>
  * This ContentProvider interfaces with the dav_resource table in the database. DavResources
@@ -53,7 +15,7 @@ import com.morphoss.acal.database.AcalDBHelper;
  * 
  * @author Morphoss Ltd
  *
- */
+ *
 public class OldDavResources extends ContentProvider {
 
 	public static final String TAG = "aCal DavResources";
@@ -105,7 +67,7 @@ CREATE TABLE dav_resource (
   effective_type TEXT,
   UNIQUE(collection_id,name)
 );
-     */
+     
 	public static final String		_ID					= "_id";
 	public static final String		COLLECTION_ID		= "collection_id";
 	public static final String		RESOURCE_NAME		= "name";
@@ -132,7 +94,7 @@ CREATE TABLE dav_resource (
 	 * <p>Delete matching rows from the dav_resource table</p>
 	 * 
 	 * @author Morphoss Ltd
-	 */
+	 *
 	@Override
 	public int delete(Uri uri, String selection, String[] selectionArgs) {
 		
@@ -184,7 +146,7 @@ CREATE TABLE dav_resource (
 	/*
 	 * (non-Javadoc)
 	 * @see android.content.ContentProvider#getType(android.net.Uri)
-	 */
+	 *
 	@Override
 	public String getType(Uri uri) {
 		// TODO Auto-generated method stub
@@ -205,7 +167,7 @@ CREATE TABLE dav_resource (
 	/*
 	 * (non-Javadoc)
 	 * @see android.content.ContentProvider#insert(android.net.Uri, android.content.ContentValues)
-	 */
+	 *
 	@Override
 	public Uri insert(Uri uri, ContentValues values) {
 		//---add a new server---
@@ -225,7 +187,7 @@ CREATE TABLE dav_resource (
 	/*
 	 * (non-Javadoc)
 	 * @see android.content.ContentProvider#onCreate()
-	 */
+	 *
 	@Override
 	public boolean onCreate() {
 		Context context = getContext();
@@ -237,7 +199,7 @@ CREATE TABLE dav_resource (
 	/*
 	 * (non-Javadoc)
 	 * @see android.content.ContentProvider#query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String)
-	 */
+	 *
 	@Override
 	public Cursor query(Uri uri, String[] projection, String selection,
 			String[] selectionArgs, String sortOrder) {
@@ -277,7 +239,7 @@ CREATE TABLE dav_resource (
 	/*
 	 * (non-Javadoc)
 	 * @see android.content.ContentProvider#update(android.net.Uri, android.content.ContentValues, java.lang.String, java.lang.String[])
-	 */
+	 *
 	@Override
 	public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
 		int count = 0;
@@ -350,7 +312,7 @@ CREATE TABLE dav_resource (
 	 * @param name
 	 * @param contentResolver
 	 * @return A ContentValues which is the dav_resource row, or null
-	 */
+	 *
 	public static ContentValues getResourceInCollection(long collectionId, String name, ContentResolver contentResolver) {
 		ContentValues resourceData = null;
 		Cursor c = null;
@@ -384,7 +346,7 @@ CREATE TABLE dav_resource (
 	 * @param l
 	 * @param contentResolver
 	 * @return A ContentValues which is the dav_resource row, or null
-	 */
+	 *
 	public static ContentValues getRow(long l, ContentResolver contentResolver) {
 		ContentValues resourceData = null;
 		Cursor c = null;

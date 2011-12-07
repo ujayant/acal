@@ -77,7 +77,7 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 	public static final int CONTEXT_DELETE_FROMNOW = 0x30000;
 	public static final int CONTEXT_COPY = 0x40000;
 
-	private ArrayList<CacheObject> dayEvents = null;
+	private ArrayList<CacheObject> dayEvents = new ArrayList<CacheObject>();
 	private CacheManager cacheManager;
 	
 //	private SharedPreferences prefs;	

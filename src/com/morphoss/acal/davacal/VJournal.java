@@ -18,11 +18,13 @@
 
 package com.morphoss.acal.davacal;
 
+import com.morphoss.acal.dataservice.Resource;
+
 
 public class VJournal extends Masterable {
 	public static final String TAG = "aCal VJournal";
 	
-	public VJournal(ComponentParts splitter, long l, AcalCollection collectionObject,VComponent parent) {
-		super(splitter, l, collectionObject,parent);
+	public VJournal(ComponentParts splitter, Resource r, AcalCollection collectionObject,VComponent parent) {
+		super(splitter, r, collectionObject,parent);
 	}
 }

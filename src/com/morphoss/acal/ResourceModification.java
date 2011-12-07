@@ -10,14 +10,17 @@ import android.util.Log;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
 import com.morphoss.acal.database.AcalDBHelper;
+import com.morphoss.acal.dataservice.DefaultResourceInstance;
 import com.morphoss.acal.davacal.Masterable;
 import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VCard;
 import com.morphoss.acal.davacal.VComponent;
-import com.morphoss.acal.providers.OldDavResources;
 import com.morphoss.acal.providers.PendingChanges;
-import com.morphoss.acal.service.SynchronisationJobs.WriteActions;
+import com.morphoss.acal.resources.ResourceProccessingException;
+import com.morphoss.acal.resources.ResourcesRequest;
+import com.morphoss.acal.resources.ResourcesManager.RequestProcessor;
 import com.morphoss.acal.service.aCalService;
+import com.morphoss.acal.service.SynchronisationJobs.WriteActions;
 
 public class ResourceModification {
 
@@ -32,7 +35,8 @@ public class ResourceModification {
 		if ( action == WriteActions.UPDATE || action == WriteActions.INSERT ) {
 			VComponent vCal = null;
 			try {
-				vCal = VCalendar.createComponentFromResource(inResourceValues, null);
+				vCal = VCalendar.createComponentFromResource(
+						DefaultResourceInstance.fromContentValues(inResourceValues), null);
 				String effectiveType = null;
 				if ( vCal instanceof VCard )
 					effectiveType = "VCARD";
@@ -45,11 +49,11 @@ public class ResourceModification {
 							try {
 								AcalDateRange instancesRange = rRule.getInstancesRange();
 							
-								inResourceValues.put(OldDavResources.EARLIEST_START, instancesRange.start.getMillis());
+								inResourceValues.put(RequestProcessor.EARLIEST_START, instancesRange.start.getMillis());
 								if ( instancesRange.end == null )
-									inResourceValues.putNull(OldDavResources.LATEST_END);
+									inResourceValues.putNull(RequestProcessor.LATEST_END);
 								else
-									inResourceValues.put(OldDavResources.LATEST_END, instancesRange.end.getMillis());
+									inResourceValues.put(RequestProcessor.LATEST_END, instancesRange.end.getMillis());
 							}
 							catch ( Exception e ) {
 								Log.e(TAG,"Failed to get earliest_start / latest_end from resource of type: "+effectiveType, e );
@@ -63,10 +67,10 @@ public class ResourceModification {
 					}
 				}
 				if ( effectiveType != null )
-					inResourceValues.put(OldDavResources.EFFECTIVE_TYPE, effectiveType);
+					inResourceValues.put(RequestProcessor.EFFECTIVE_TYPE, effectiveType);
 			}
 			catch (Exception e) {
-				Log.w(TAG,"Type of resource is just plain weird!\n"+inResourceValues.getAsString(OldDavResources.RESOURCE_DATA));
+				Log.w(TAG,"Type of resource is just plain weird!\n"+inResourceValues.getAsString(RequestProcessor.RESOURCE_DATA));
 				Log.w(TAG,Log.getStackTraceString(e));
 			}
 		}
@@ -74,7 +78,7 @@ public class ResourceModification {
 		this.modificationAction = action;
 		this.resourceValues = inResourceValues;
 		this.pendingId = pendingId;
-		this.resourceId = resourceValues.getAsInteger(OldDavResources._ID);
+		this.resourceId = resourceValues.getAsInteger(RequestProcessor._ID);
 	}
 
 
@@ -82,36 +86,36 @@ public class ResourceModification {
 	 * Commit this change to the dav_resource table.
 	 * @param db The database handle to use for the commit
 	 */
-	public void commit( SQLiteDatabase db ) {
+	public void commit(SQLiteDatabase db, String tablename) {
 		getResourceId();
 
 		if ( Constants.LOG_DEBUG )
-			Log.d(TAG, "Writing '"+resourceValues.getAsString(OldDavResources.EFFECTIVE_TYPE)
+			Log.d(TAG, "Writing '"+resourceValues.getAsString(RequestProcessor.EFFECTIVE_TYPE)
 						+ "' resource with " + modificationAction + " on resource ID "
 						+ (resourceId == null ? "new" : Integer.toString(resourceId)));
 
 		switch (modificationAction) {
 			case UPDATE:
-				db.update(OldDavResources.DATABASE_TABLE, resourceValues, OldDavResources._ID + " = ?",
+				db.update(tablename, resourceValues, RequestProcessor._ID + " = ?",
 							new String[] { Integer.toString(resourceId) });
-				if (resourceValues.getAsString(OldDavResources.RESOURCE_DATA) != null)
+				if (resourceValues.getAsString(RequestProcessor.RESOURCE_DATA) != null)
 					dbChangeNotification = new DatabaseChangedEvent( DatabaseChangedEvent.DATABASE_RECORD_UPDATED,
-								OldDavResources.class, resourceValues);
+							RequestProcessor.class, resourceValues);
 				break;
 			case INSERT:
-				resourceId = (int) db.insert(OldDavResources.DATABASE_TABLE, null, resourceValues);
-				resourceValues.put(OldDavResources._ID, resourceId);
-				if (resourceValues.getAsString(OldDavResources.RESOURCE_DATA) != null)
+				resourceId = (int) db.insert(tablename, null, resourceValues);
+				resourceValues.put(RequestProcessor._ID, resourceId);
+				if (resourceValues.getAsString(RequestProcessor.RESOURCE_DATA) != null)
 					dbChangeNotification = new DatabaseChangedEvent( DatabaseChangedEvent.DATABASE_RECORD_INSERTED,
-								OldDavResources.class, resourceValues);
+							RequestProcessor.class, resourceValues);
 				break;
 			case DELETE:
 				if (Constants.LOG_DEBUG)
 					Log.d(TAG,"Deleting resources with ResourceId = " + Integer.toString(resourceId) );
-				db.delete(OldDavResources.DATABASE_TABLE, OldDavResources._ID + " = ?",
+				db.delete(tablename, RequestProcessor._ID + " = ?",
 							new String[] { Integer.toString(resourceId) });
 				dbChangeNotification = new DatabaseChangedEvent( DatabaseChangedEvent.DATABASE_RECORD_DELETED,
-								OldDavResources.class, resourceValues);
+						RequestProcessor.class, resourceValues);
 				break;
 		}
 
@@ -160,12 +164,12 @@ public class ResourceModification {
 	 * will need to commit the database transaction afterwards
 	 * @param changeList The List of ResourceModification objects to be applied
 	 */
-	public static boolean applyChangeList(SQLiteDatabase db, List<ResourceModification> changeList) {
+	public static boolean applyChangeList(SQLiteDatabase db, List<ResourceModification> changeList, String tablename) {
 		boolean completed =false;
 		try {
 
 			for ( ResourceModification changeUnit : changeList ) {
-				changeUnit.commit(db);
+				changeUnit.commit(db, tablename);
 				db.yieldIfContendedSafely();
 			}
 			completed = true;
@@ -182,23 +186,20 @@ public class ResourceModification {
 	 * Use this to actually commit our resource modifications to the database.
 	 * @param changeList The List of ResourceModification objects to be committed
 	 */
-	public static void commitChangeList(Context c, List<ResourceModification> changeList) {
+	public static void commitChangeList(Context c, List<ResourceModification> changeList, String tablename) {
 		AcalDBHelper dbHelper = new AcalDBHelper(c);
 		SQLiteDatabase db = dbHelper.getWritableDatabase();
 		db.beginTransaction();
 
-		boolean successful = applyChangeList(db,changeList); 
+		boolean successful = applyChangeList(db,changeList, tablename); 
 		if ( successful ) db.setTransactionSuccessful();
 
 		db.endTransaction();
 		db.close();
 		if ( successful ) {
-			DatabaseChangedEvent.beginResourceChanges();
 			for ( ResourceModification changeUnit : changeList ) {
 				changeUnit.notifyChange();
 			}
-			DatabaseChangedEvent.endResourceChanges();
 		}
 	}
-	
 }

@@ -7,7 +7,7 @@
 		android:minSdkVersion="4"
 		android:targetSdkVersion="7" />
 	<application
-		android:debuggable="false"
+		android:debuggable="true"
 		android:description="@string/appDescription"
 		android:icon="@drawable/icon"
 		android:label="@string/appName"
@@ -229,19 +229,11 @@
 			android:authorities="collections"
 			android:name="com.morphoss.acal.providers.DavCollections" />
 		<provider
-			android:authorities="resources"
-			android:name=".providers.OldDavResources" />
-		<provider
 			android:authorities="pendingchanges"
 			android:name="com.morphoss.acal.providers.PendingChanges" />
 		<service android:name="com.morphoss.acal.service.aCalService" >
 			<intent-filter >
 				<action android:name="com.morphoss.acal.service.aCalService" />
-			</intent-filter>
-		</service>
-		<service android:name="com.morphoss.acal.dataservice.CalendarDataService" >
-			<intent-filter >
-				<action android:name="com.morphoss.acal.dataservice.CalendarDataService" />
 			</intent-filter>
 		</service>
 		<receiver android:name="com.morphoss.acal.receivers.StartUpIntentReceiver" >

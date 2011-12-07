@@ -1,10 +1,7 @@
 package com.morphoss.acal.resources;
 
-public class ResourcesRequest {
+public interface ResourcesRequest {
 
-	public int getCode() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+	public void process(ResourcesManager.RequestProcessor processor) throws ResourceProccessingException;
 
 }
