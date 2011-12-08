@@ -208,10 +208,6 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 		rightIn = AnimationUtils.loadAnimation(this, R.anim.push_right_in);
 		rightOut = AnimationUtils.loadAnimation(this, R.anim.push_right_out);
 		
-		createGridView(true);
-		changeSelectedDate(selectedDate);
-		changeDisplayedMonth(displayedMonth);
-
 	}
 
 	/**
@@ -236,6 +232,9 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 		}
 		selectedDate.setDaySecond(0);
 		displayedMonth.setDaySecond(0).setMonthDay(1);
+		if ( this.monthGrid == null ) createGridView(true);
+		changeSelectedDate(selectedDate);
+		changeDisplayedMonth(displayedMonth);
 	}
 
 	/**
@@ -339,6 +338,7 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 					.findViewById(R.id.month_default_gridview);
 			monthGrid.setSelector(R.drawable.no_border);
 			monthGrid.setOnTouchListener(this);
+			monthGrid.setEnabled(false);
 		} catch (Exception e) {
 			Log.e(TAG, "Error occured creating gridview: " + e.getMessage());
 		}

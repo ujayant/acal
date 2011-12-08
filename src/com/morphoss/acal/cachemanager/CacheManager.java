@@ -1,8 +1,6 @@
 package com.morphoss.acal.cachemanager;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -12,10 +10,11 @@ import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.ConditionVariable;
+import android.util.Log;
 
+import com.morphoss.acal.DatabaseManager;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
-import com.morphoss.acal.cachemanager.CacheResponseListener.CacheResponse;
 import com.morphoss.acal.database.AcalDBHelper;
 
 public class CacheManager implements Runnable {
@@ -66,8 +65,14 @@ public class CacheManager implements Runnable {
 	//Comms
 	private final CopyOnWriteArraySet<CacheChangedListener> listeners = new CopyOnWriteArraySet<CacheChangedListener>();
 	
-	//Cache Ops
-	private EventCacheDbOps cache = new EventCacheDbOps();
+	//Request Processor Instance
+	private EventCacheProcessor ECPinstance;
+
+
+	private EventCacheProcessor getECPInstance() {
+		if (instance == null) ECPinstance = new EventCacheProcessor();
+		return ECPinstance;
+	}
 	
 	//Settings
 	private static final int DEF_MONTHS_BEFORE = 1;		//these 2 represent the default window size
@@ -81,8 +86,8 @@ public class CacheManager implements Runnable {
 	 */
 	private CacheManager(Context context) {
 		this.context = context;
+		this.ECPinstance = this.getECPInstance();
 		loadState();
-		threadHolder.close();
 		workerThread = new Thread(this);
 		workerThread.start();
 	}
@@ -152,7 +157,7 @@ public class CacheManager implements Runnable {
 		}
 		cr.close();
 		if (!data.getAsBoolean(FIELD_CLOSED)) {
-			cache.clear();
+			this.ECPinstance.clearCache();
 			data.put(FIELD_COUNT, 0);
 			data.put(FIELD_START, 0);
 			data.put(FIELD_END, 0);
@@ -179,46 +184,8 @@ public class CacheManager implements Runnable {
 		while (running) {
 			//do stuff
 			while (!queue.isEmpty()) {
-				final CacheRequest request = queue.poll();
-				try {
-					switch (request.getCode()) {
-					case CacheRequest.REQUEST_OBJECTS_FOR_DATARANGE:
-						AcalDateRange range = (AcalDateRange) request.getData();
-						//get data
-						final ArrayList<CacheObject> data = cache.getObjectsForDateRange(range);
-						//Send response to callback
-						if (request.getCallBack() != null) {
-							new Thread(new Runnable() {
-
-								@Override
-								public void run() {
-									request.getCallBack().cacheResponse(new CacheResponse(data,CacheRequest.REQUEST_OBJECTS_FOR_DATARANGE));
-								}
-
-							}).start();
-						}
-					break;
-					case CacheRequest.REQUEST_OBJECTS_FOR_DATARANGE_BY_DAY:
-						range = (AcalDateRange) request.getData();
-						//get data
-						final Map<Integer,ArrayList<CacheObject>> data2 = cache.getObjectsForDateRangeByDay(range);
-						//Send response to callback
-						if (request.getCallBack() != null) {
-							new Thread(new Runnable() {
-
-								@Override
-								public void run() {
-									request.getCallBack().cacheResponse(new CacheResponse(data2,CacheRequest.REQUEST_OBJECTS_FOR_DATARANGE_BY_DAY));
-								}
-
-							}).start();
-						}
-					break;
-					
-					}
-				} catch (Exception e) {
-					//log message
-				}
+				CacheRequest request = queue.poll();
+				ECPinstance.process(request);
 			}
 			//Wait till next time
 			threadHolder.close();
@@ -243,8 +210,11 @@ public class CacheManager implements Runnable {
 	 * @author Chris Noldus
 	 *
 	 */
-	private class EventCacheDbOps {
-		public static final String TABLE = "event_cache";
+	public final class EventCacheProcessor extends DatabaseManager {
+		
+		public static final String TAG = "acal EventCacheProcessor";
+		
+		private static final String TABLE = "event_cache";
 		public static final String FIELD_ID = "_id";
 		public static final String FIELD_RESOURCE_ID = "resource_id";
 		public static final String FIELD_CID ="collection_id";
@@ -254,46 +224,51 @@ public class CacheManager implements Runnable {
 		public static final String FIELD_DT_END = "dtend";
 		public static final String FIELD_FLAGS ="flags";
 		
-	
+		private CacheRequest currentRequest;
 
-		private AcalDBHelper dbHelper;
-		private SQLiteDatabase db;
+		private EventCacheProcessor() {
+			super(CacheManager.this.context);
+		}
+		
+		@Override
+		protected String getTableName() {
+			return TABLE;
+		}
 
-		private void openReadDB() {
-			if (db!= null && db.isOpen()) {
-				//Log - db not closed?
-				db.close();
+		public void process(CacheRequest r) { 
+			currentRequest = r;
+			try {
+				r.process(this);
+				if (this.inTx) {
+					this.endTransaction();
+					throw new CacheProcessingException("Process started a transaction without ending it!");
+				}
+			} catch (CacheProcessingException e) {
+				Log.e(TAG, "Error Procssing Resource Request: "+Log.getStackTraceString(e));
+			} catch (Exception e) {
+				Log.e(TAG, "INVALID TERMINATION while processing Resource Request: "+Log.getStackTraceString(e));
+			} finally {
+				//make sure db was closed properly
+				if (this.db != null)
+				try { endQuery(); } catch (Exception e) { }
 			}
-			if (dbHelper != null) dbHelper.close();
-			dbHelper = new AcalDBHelper(CacheManager.this.context);
-			db = dbHelper.getReadableDatabase();
+			currentRequest = null;
 		}
 
-	
-
-		private void openWriteDB() {
-			if (db!= null && db.isOpen()) {
-				//Log - db not closed?
-				db.close();
-			}
-			if (dbHelper != null) dbHelper.close();
-			dbHelper = new AcalDBHelper(CacheManager.this.context);
-			db = dbHelper.getWritableDatabase();
+		private void clearCache() {
+			this.beginTransaction();
+			db.delete(EventCacheProcessor.TABLE, null, null);
+			this.setTxSuccessful();
+			this.endTransaction();
 		}
-
-		public void closeDB() {
-			if (db != null && db.isOpen()) db.close();
-			if (dbHelper != null) dbHelper.close();
-			db=null; dbHelper=null;
-
-		}
+		
 		
 		//Checks that the window has been populated with the requested range
 		//range can be NULL in which case the default range is used.
 		//If the range is NOT covered, an asynchronous request is made to resource
 		//manager to get the required data.
 		//Returns weather or not the cache fully covers a specified (or default) range
-		private boolean checkWindow(AcalDateRange requestedRange) {
+		public boolean checkWindow(AcalDateRange requestedRange) {
 			long start;
 			long end;
 			if (requestedRange != null) {
@@ -321,55 +296,27 @@ public class CacheManager implements Runnable {
 			if (start < wStart) retrieveRange(start, wStart);
 			if (end > wEnd) retrieveRange(wEnd,end);
 			return false;
-		}
-
-		public ArrayList<CacheObject> getObjectsForDateRange(AcalDateRange range) {
-			ArrayList<CacheObject> result = new ArrayList<CacheObject>();
-			checkWindow(range);
-			openReadDB();
-			Cursor cr = db.query(TABLE, null, FIELD_DTSTART+" > ? AND "+FIELD_DTSTART+" < ?", 
-					new String[]{range.start.getMillis()+"",range.end.getMillis()+""}, null, null, FIELD_DTSTART);
-			if (cr.getCount() > 0) {
-				for (cr.moveToFirst(); cr.isAfterLast(); cr.moveToNext()) 
-					result.add(fromCursorRow(cr));
-			}
-			cr.close();
-			closeDB();
-			result.add(new CacheObject(
-					-1,
-					1,
-					"test",
-					"test",
-					System.currentTimeMillis(),
-					System.currentTimeMillis()+3600000L,
-					CacheObject.EVENT_FLAG));
-			return result;
-		}
+		}		
 		
-		public Map<Integer, ArrayList<CacheObject>> getObjectsForDateRangeByDay(
-				AcalDateRange range) {
-			// TODO Auto-generated method stub
-			return new HashMap<Integer,ArrayList<CacheObject>>();
-		}
+		/**
+		 * Begin std DB Operations
+		 * 
+		 * ALL db operations need to start with a beginQuery call and end with an endQuery call.
+		 * DO NOT Open/Close DB directly as db my be in a Transaction. The parent class is responsible for maintaining state.
+		 */
 		
-		private CacheObject fromCursorRow(Cursor cursor) {
-			ContentValues row = new ContentValues();
-			DatabaseUtils.cursorRowToContentValues(cursor,row);
-			return new CacheObject(
-						row.getAsLong(FIELD_RESOURCE_ID), 
-						row.getAsInteger(FIELD_CID),
-						row.getAsString(FIELD_SUMMARY),
-						row.getAsString(FIELD_LOCATION),
-						row.getAsLong(FIELD_DTSTART),
-						row.getAsLong(FIELD_DT_END),
-						row.getAsInteger(FIELD_FLAGS)
-					);
-		}
-
-		public void clear() {
-			openWriteDB();
-			db.delete(TABLE, null, null);
-			closeDB();
-		}
+		
+	}
+	
+	public static CacheObject fromContentValues(ContentValues row) {
+		return new CacheObject(
+					row.getAsLong(EventCacheProcessor.FIELD_RESOURCE_ID), 
+					row.getAsInteger(EventCacheProcessor.FIELD_CID),
+					row.getAsString(EventCacheProcessor.FIELD_SUMMARY),
+					row.getAsString(EventCacheProcessor.FIELD_LOCATION),
+					row.getAsLong(EventCacheProcessor.FIELD_DTSTART),
+					row.getAsLong(EventCacheProcessor.FIELD_DT_END),
+					row.getAsInteger(EventCacheProcessor.FIELD_FLAGS)
+				);
 	}
 }

@@ -23,6 +23,8 @@ import java.util.ArrayList;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -41,11 +43,13 @@ import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDateTimeFormatter;
+import com.morphoss.acal.cachemanager.CREventsInRange;
 import com.morphoss.acal.cachemanager.CacheChangedEvent;
 import com.morphoss.acal.cachemanager.CacheChangedListener;
 import com.morphoss.acal.cachemanager.CacheManager;
 import com.morphoss.acal.cachemanager.CacheObject;
 import com.morphoss.acal.cachemanager.CacheRequest;
+import com.morphoss.acal.cachemanager.CacheResponse;
 import com.morphoss.acal.cachemanager.CacheResponseListener;
 import com.morphoss.acal.dataservice.EventInstance;
 import com.morphoss.acal.dataservice.WriteableEventInstance;
@@ -58,7 +62,7 @@ import com.morphoss.acal.dataservice.WriteableEventInstance;
  * @author Morphoss Ltd
  * 
  */
-public class EventListAdapter extends BaseAdapter implements OnClickListener, ListAdapter, CacheChangedListener, CacheResponseListener {
+public class EventListAdapter extends BaseAdapter implements OnClickListener, ListAdapter, CacheChangedListener, CacheResponseListener<ArrayList<CacheObject>> {
 
 	/**
 	 * <p>
@@ -80,6 +84,28 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 	private ArrayList<CacheObject> dayEvents = new ArrayList<CacheObject>();
 	private CacheManager cacheManager;
 	
+	private static final int HANDLER_NEW_LIST = 0;
+	private static final String HANDLER_NEW_LIST_KEY = "newlist";
+	
+	private static final int HANDLER_CACHE_CHANGED = 1;
+	
+	private Handler mHandler = new Handler() {
+		
+		@Override
+		public void handleMessage(Message msg) {
+			switch (msg.what) {
+				case HANDLER_NEW_LIST:
+					dayEvents = (ArrayList<CacheObject>)msg.obj;
+					EventListAdapter.this.notifyDataSetChanged();
+					
+					break;
+				case HANDLER_CACHE_CHANGED:
+					
+					break;
+			}
+		}
+	};
+	
 //	private SharedPreferences prefs;	
 
 	/**
@@ -98,7 +124,7 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 	}
 
 	private CacheRequest getCacheRequest() {
-		return CacheRequest.requestObjectsForDateRange(new AcalDateRange(viewDate,viewDate.clone().addDays(1)), this);
+		return new CREventsInRange(new AcalDateRange(viewDate,viewDate.clone().addDays(1)), this);
 	}
 	
 	/**
@@ -187,7 +213,7 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 			repeating.setVisibility(View.VISIBLE);
 		}
 		
-		time.setText(AcalDateTimeFormatter.getDisplayTimeText(context, viewDate.getEpoch(), viewDateEnd.getEpoch(),
+		time.setText(AcalDateTimeFormatter.getDisplayTimeText(context, viewDate.getMillis(), viewDateEnd.getMillis(),
 					event.getStart(), event.getEnd(),MonthView.prefs.getBoolean(context.getString(R.string.prefTwelveTwentyfour), false), event.isAllDay())
 					+ (isPending ? " (saving)" : "") );
 
@@ -296,17 +322,13 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 	}
 
 	/** 
-	 * Warning - this runs under a different thread! 
+	 * Warning - this runs under a different thread - need to use Handler to ensure calls are made by GUI Thread
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
-	public void cacheResponse(CacheResponse response) {
-		if (response.requestType == CacheRequest.REQUEST_OBJECTS_FOR_DATARANGE) {
-			synchronized (dayEvents) {
-				dayEvents = (ArrayList<CacheObject>)response.data;
-			}
-			this.notifyDataSetChanged();
-		}
+	public void cacheResponse(CacheResponse<ArrayList<CacheObject>> response) {
+		mHandler.sendMessage(
+				mHandler.obtainMessage(HANDLER_NEW_LIST, response.result())
+		);
 	}
 
 }

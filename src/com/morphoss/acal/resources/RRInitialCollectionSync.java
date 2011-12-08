@@ -1,6 +1,7 @@
 package com.morphoss.acal.resources;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -9,7 +10,6 @@ import java.util.Map.Entry;
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
 
-import android.content.ContentQueryMap;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.database.Cursor;
@@ -20,7 +20,12 @@ import android.util.Log;
 
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.ResourceModification;
+import com.morphoss.acal.DatabaseManager.DMDeleteQuery;
+import com.morphoss.acal.DatabaseManager.DMInsertQuery;
+import com.morphoss.acal.DatabaseManager.DMQueryList;
+import com.morphoss.acal.DatabaseManager.DMUpdateQuery;
 import com.morphoss.acal.acaltime.AcalDateTime;
+import com.morphoss.acal.database.AcalDBHelper;
 import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.providers.Servers;
 import com.morphoss.acal.resources.ResourcesManager.RequestProcessor;
@@ -220,25 +225,13 @@ public class RRInitialCollectionSync implements ResourcesRequest {
 	}
 
 	public void processSyncToDatabase( DavNode root ) {
-		SQLiteDatabase db = processor.getWriteableDB();
-		Cursor resourceCursor;
 		try {
 
 			// begin transaction
 			if (Constants.LOG_VERBOSE) Log.v(TAG, "DavResources DB Transaction started.");
 
-			// Get a map of all existing records where Name is the key.
-			resourceCursor = db.query(processor.getTableName(this),
-					null,
-					RequestProcessor.COLLECTION_ID+"=?", new String[] { Integer.toString(collectionId) },
-					null, null, null);
-			resourceCursor.moveToFirst();
-			ContentQueryMap cqm = new ContentQueryMap(resourceCursor, RequestProcessor.RESOURCE_NAME, false, null);
-			cqm.requery();
-			Map<String, ContentValues> databaseList = cqm.getRows();
-			cqm.close();			
-			resourceCursor.close();
-
+			Map<String, ContentValues>  databaseMap = processor.getCurrentResourceMap(collectionId);
+			Collection<ContentValues> databaseList = databaseMap.values();
 			Map<String, ContentValues> serverList = new HashMap<String,ContentValues>();
 			List<DavNode> responseList = root.getNodesFromPath("multistatus/response");
 
@@ -276,39 +269,45 @@ public class RRInitialCollectionSync implements ResourcesRequest {
 				root.removeSubTree(response);
 			}
 			//Remove all duplicates
-			removeDuplicates(databaseList, serverList);
+			removeDuplicates(databaseMap, serverList);
 
 			List<ResourceModification> changeList = new ArrayList<ResourceModification>(databaseList.size());
-			for ( Entry<String,ContentValues> e : databaseList.entrySet() ) {
-				changeList.add(new ResourceModification(WriteActions.DELETE, e.getValue(), null));
+			DMQueryList newChangeList = processor.new DMQueryList();
+			
+			for ( ContentValues cv : databaseList ) {
+				newChangeList.addAction(processor.new DMDeleteQuery(RequestProcessor._ID+" = ?", new String[] {cv.getAsString(RequestProcessor._ID)}));
+				//changeList.add(new ResourceModification(WriteActions.DELETE, e.getValue(), null));
 			}
 			String id;
 			ContentValues cv;
 			for ( Entry<String,ContentValues> e : serverList.entrySet() ) {
 				cv = e.getValue();
 				id = cv.getAsString(RequestProcessor._ID);
-				changeList.add(new ResourceModification((id == null || id.equals("")
-						? WriteActions.INSERT
-								: WriteActions.UPDATE),
-								cv, null));
+				//WriteActions action = (id == null || id.equals("") ? WriteActions.INSERT : WriteActions.UPDATE);
+				//changeList.add(	new ResourceModification(action,cv, null));
+				if (id == null || id.equals("")) {
+					newChangeList.addAction(processor.new DMInsertQuery(null, cv));
+				} else {
+					newChangeList.addAction(processor.new DMUpdateQuery(cv, RequestProcessor._ID+" = ?", new String[] { cv.getAsString(RequestProcessor._ID)}));
+				}
 			}
 
-			db.beginTransaction();
+			//db.beginTransaction();
 
-			boolean successful = ResourceModification.applyChangeList(db,changeList, processor.getTableName(this)); 
+			boolean successful = newChangeList.process(processor); 
+				//ResourceModification.applyChangeList(db,changeList, processor.getTableName(this)); 
 
-			if ( root != null ) {
+			if ( root != null && successful ) {
 				//Update sync token
 				cv = new ContentValues();
 				String syncToken = root.getFirstNodeText("multistatus/sync-token");
 				cv.put(DavCollections.SYNC_TOKEN, syncToken);
+				//TODO - need to fix this a bit.
+				SQLiteDatabase db = new AcalDBHelper(acalService).getWritableDatabase();
 				db.update(DavCollections.DATABASE_TABLE, cv,
 						DavCollections._ID+"=?", new String[] {Integer.toString(collectionId)});
-			}
-
-			// Finish the transaction, as soon as possible
-			if ( successful ) db.setTransactionSuccessful();
-			db.endTransaction();
+				db.close();
+				}
 
 			if (Constants.LOG_VERBOSE)
 				Log.v(TAG, databaseList.size() + " records deleted, " + serverList.size() + " updated");			
@@ -322,9 +321,7 @@ public class RRInitialCollectionSync implements ResourcesRequest {
 		catch (Exception e) {
 			Log.w(TAG, "Initial Sync transaction failed. Data not will not be saved.");
 			Log.e(TAG,Log.getStackTraceString(e));
-			if ( db.inTransaction() ) db.endTransaction();
 		}
-		processor.closeDB();
 
 		//lastly, create new regular sync
 		acalService.addWorkerJob(new SyncCollectionContents(this.collectionId)); 
@@ -349,18 +346,13 @@ public class RRInitialCollectionSync implements ResourcesRequest {
 
 		List<DavNode> responses = root.getNodesFromPath("multistatus/response");
 
-		SQLiteDatabase db = processor.getReadableDB();
 		for (DavNode response : responses) {
 			String name = response.segmentFromFirstHref("href");
 			ContentValues cv = null;
-			Cursor c = db.query(processor.getTableName(this), null,
-					RequestProcessor.COLLECTION_ID+"=? AND "+RequestProcessor.RESOURCE_NAME+"=?",
-					new String[] {Integer.toString(collectionId), name}, null, null, null);
-			if ( c.moveToFirst() ) {
-				cv = new ContentValues();
-				DatabaseUtils.cursorRowToContentValues(c, cv);
-			}
-			c.close();
+			ArrayList<ContentValues> cvList = processor.query(null,
+										RequestProcessor.COLLECTION_ID+"=? AND "+RequestProcessor.RESOURCE_NAME+"=?",
+										new String[] {Integer.toString(collectionId), name}, null, null, null);
+			if (!cvList.isEmpty()) cv = cvList.get(0);
 
 			WriteActions action = WriteActions.UPDATE;
 			if ( cv == null ) {
@@ -374,9 +366,8 @@ public class RRInitialCollectionSync implements ResourcesRequest {
 
 			changeList.add( new ResourceModification(action,cv,null));
 		}
-		processor.closeDB();
 
-		ResourceModification.commitChangeList(acalService, changeList, processor.getTableName(this));
+		ResourceModification.commitChangeList(acalService, changeList, processor.getTableName());
 
 	}
 

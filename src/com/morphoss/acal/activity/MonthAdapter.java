@@ -20,12 +20,15 @@ package com.morphoss.acal.activity;
 
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.ConditionVariable;
+import android.os.Handler;
+import android.os.Message;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.util.TypedValue;
@@ -43,11 +46,12 @@ import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
+import com.morphoss.acal.cachemanager.CREventsInRangeByDay;
 import com.morphoss.acal.cachemanager.CacheChangedEvent;
 import com.morphoss.acal.cachemanager.CacheChangedListener;
 import com.morphoss.acal.cachemanager.CacheManager;
 import com.morphoss.acal.cachemanager.CacheObject;
-import com.morphoss.acal.cachemanager.CacheRequest;
+import com.morphoss.acal.cachemanager.CacheResponse;
 import com.morphoss.acal.cachemanager.CacheResponseListener;
 import com.morphoss.acal.views.MonthDayBox;
 
@@ -55,7 +59,7 @@ import com.morphoss.acal.views.MonthDayBox;
  * @author Morphoss Ltd
  *
  */
-public class MonthAdapter extends BaseAdapter implements CacheChangedListener, CacheResponseListener {
+public class MonthAdapter extends BaseAdapter implements CacheChangedListener, CacheResponseListener<HashMap<Integer,ArrayList<CacheObject>>> {
 
 	private final static String TAG = "aCal MonthAdapter";
 	private MonthView context;
@@ -72,6 +76,28 @@ public class MonthAdapter extends BaseAdapter implements CacheChangedListener, C
 
 	private ConcurrentHashMap<Integer,ArrayList<CacheObject>> eventsByDay = new ConcurrentHashMap<Integer,ArrayList<CacheObject>>();
 	private CacheManager cacheManager;
+	
+	private ConditionVariable waitForInitialData = new ConditionVariable();
+	private boolean waiting = false;
+	private static final int HANDLER_NEW_DATA = 0;
+	private Handler mHandler = new Handler() {
+			
+		@SuppressWarnings("unchecked")
+		@Override
+		public void handleMessage(Message msg) {
+			switch (msg.what) {
+				case HANDLER_NEW_DATA:
+					HashMap<Integer,ArrayList<CacheObject>> data = (HashMap<Integer,ArrayList<CacheObject>>)msg.obj;
+					for (int i = 1; i<= 31; i++) {
+						if (data.containsKey(i)) eventsByDay.put(i, data.get(i));
+					}
+					MonthAdapter.this.notifyDataSetChanged();
+					break;
+				default: break;
+			}
+		}
+	};
+	
 	
 	public MonthAdapter(MonthView monthview, AcalDateTime displayDate, AcalDateTime selectedDate) {
 		this.displayDate = displayDate;
@@ -112,15 +138,16 @@ public class MonthAdapter extends BaseAdapter implements CacheChangedListener, C
 		this.firstOffset = displayDate.get(AcalDateTime.DAY_OF_WEEK);
 		displayDate.set(AcalDateTime.DAY_OF_MONTH, curDay);
 		
-		startOfThisMonth = selectedDate.clone().setDaySecond(0);
+		startOfThisMonth = displayDate.clone().applyLocalTimeZone().setDaySecond(0);
 		startOfThisMonth.setMonthDay(1);
 		
-		endOfThisMonth = selectedDate.clone().setDaySecond(0);
-		endOfThisMonth.setMonthDay(1);
-		endOfThisMonth.addMonths(1);
+		endOfThisMonth = startOfThisMonth.clone().addMonths(1);
 		
 		//request data
-		cacheManager.sendRequest(CacheRequest.requestObjectsForDateRange(new AcalDateRange(startOfThisMonth, endOfThisMonth), this));
+		waitForInitialData.close();
+		waiting = true;
+		cacheManager.sendRequest(new CREventsInRangeByDay(new AcalDateRange(startOfThisMonth, endOfThisMonth), this));
+		waitForInitialData.block();
 	}
 
 
@@ -226,7 +253,7 @@ public class MonthAdapter extends BaseAdapter implements CacheChangedListener, C
 		
 		MonthDayBox mDayBox = null; 
 		float textScaleFactor = 0.0f;
-	
+		int mDay = bDate.getMonthDay();
 		if ( inMonth ) {
 			if ( bDate.getYearDay() == selectedDate.getYearDay() && bDate.getYear() == selectedDate.getYear() ) {
 				mDayBox = (MonthDayBox) v.findViewById(R.id.DayBoxHighlightDay);
@@ -235,18 +262,18 @@ public class MonthAdapter extends BaseAdapter implements CacheChangedListener, C
 			}
 			else {
 				mDayBox = (MonthDayBox) v.findViewById(R.id.DayBoxInMonth);
-				mDayBox.setEvents(eventsByDay.get(bDate.getMonthDay()));
+				List<CacheObject> events = eventsByDay.get(mDay);
+				mDayBox.setEvents(events);
 				textScaleFactor = 0.55f;
 			}
 			if ( Constants.LOG_VERBOSE && Constants.debugMonthView ) {
-				int mDay = bDate.getMonthDay();
-				List<CacheObject> eventList = eventsByDay.get(new Integer(bDate.getMonthDay()));
+				List<CacheObject> eventList = eventsByDay.get(mDay);
 				Log.v(TAG,"MonthAdapter for "+bDate.fmtIcal());
 				for( CacheObject event : eventList ) {
 					Log.v(TAG, String.format("%d - %d: %s", event.getStart(), event.getEnd(), event.getSummary()));
 				}
 			}
-			mDayBox.setEvents(eventsByDay.get(bDate.getMonthDay()));
+			mDayBox.setEvents(eventsByDay.get(mDay));
 		}
 		else if ( bDate.getYearDay() == selectedDate.getYearDay() && bDate.getYear() == selectedDate.getYear() ) {
 			mDayBox = (MonthDayBox) v.findViewById(R.id.DayBoxOutMonthHighlighted);
@@ -297,23 +324,23 @@ public class MonthAdapter extends BaseAdapter implements CacheChangedListener, C
 	@Override
 	public void cacheChanged(CacheChangedEvent event) {
 		// TODO Adjust to deal with changes more specifically
-		//request data
-		cacheManager.sendRequest(CacheRequest.requestObjectsForDateRange(new AcalDateRange(startOfThisMonth, endOfThisMonth), this));
 		
 	}
 
 
-	@SuppressWarnings("unchecked")
 	@Override
-	public void cacheResponse(CacheResponse response) {
-		if (response.requestType == CacheRequest.REQUEST_OBJECTS_FOR_DATARANGE_BY_DAY) {
-			Map<Integer,ArrayList<CacheObject>> data = (Map<Integer,ArrayList<CacheObject>>)response.data;
-			for (int i = 0; i<= 31; i++) {
-				List<CacheObject> cur = data.get(i);
+	public void cacheResponse(CacheResponse<HashMap<Integer,ArrayList<CacheObject>>> response) {
+		if (waiting) {
+			HashMap<Integer,ArrayList<CacheObject>> data = response.result();
+			for (int i = 1; i<= 31; i++) {
 				if (data.containsKey(i)) eventsByDay.put(i, data.get(i));
 			}
-			this.notifyDataSetChanged();
+			waiting = false;
+			waitForInitialData.open();	
+		} else {
+			mHandler.sendMessage(mHandler.obtainMessage(HANDLER_NEW_DATA, response.result()));
 		}
+		
 	}
 
 }

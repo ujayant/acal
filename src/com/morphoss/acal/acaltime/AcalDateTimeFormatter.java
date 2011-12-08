@@ -129,8 +129,8 @@ public class AcalDateTimeFormatter {
 			String timeFormatString = (as24HourTime ? "HH:mm" : "hh:mmaa");
 			SimpleDateFormat timeFormatter = new SimpleDateFormat(timeFormatString);
 	
-			Date st = new Date(start*1000);
-			Date en = new Date(end*1000);
+			Date st = new Date(start);
+			Date en = new Date(end);
 			if ( start < viewDateStart || end  > viewDateEnd ){
 				if ( isAllDay ) {
 					timeFormatter = new SimpleDateFormat("MMM d");
