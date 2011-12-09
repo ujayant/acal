@@ -233,8 +233,9 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 		selectedDate.setDaySecond(0);
 		displayedMonth.setDaySecond(0).setMonthDay(1);
 		if ( this.monthGrid == null ) createGridView(true);
-		changeSelectedDate(selectedDate);
 		changeDisplayedMonth(displayedMonth);
+		changeSelectedDate(selectedDate);
+		
 	}
 
 	/**
@@ -667,14 +668,19 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 		eventListTitle.setText(AcalDateTime.fmtDayMonthYear(c));
 
 		if (AcalDateTime.isWithinMonth(selectedDate, displayedMonth)) {
-			this.monthGrid.setAdapter(new MonthAdapter(this, displayedMonth.clone(), selectedDate.clone()));
-			this.monthGrid.refreshDrawableState();
+			MonthAdapter ma = ((MonthAdapter) this.monthGrid.getAdapter());
+			if ( ma == null )  
+				this.monthGrid.setAdapter(new MonthAdapter(this, displayedMonth.clone(), selectedDate.clone()));
+			else {
+				ma.updateSelectedDay(selectedDate);
+				ma.notifyDataSetChanged();
+			}
 		} else {
 			MonthAdapter ma = ((MonthAdapter) this.monthGrid.getAdapter());
 			if ( ma == null )
-				ma = new MonthAdapter(this, displayedMonth.clone(), selectedDate.clone());
+				this.monthGrid.setAdapter(new MonthAdapter(this, displayedMonth.clone(), selectedDate.clone()));
 			ma.updateSelectedDay(selectedDate);
-			this.monthGrid.refreshDrawableState();
+			ma.notifyDataSetChanged();
 		}
 	}
 

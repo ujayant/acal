@@ -38,8 +38,8 @@ import android.util.Log;
 import com.morphoss.acal.DatabaseChangedEvent;
 import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.database.AcalDBHelper;
-import com.morphoss.acal.resources.RRDeleteByCollectionId;
-import com.morphoss.acal.resources.ResourcesManager;
+import com.morphoss.acal.database.resourcesmanager.RRDeleteByCollectionId;
+import com.morphoss.acal.database.resourcesmanager.ResourceManager;
 import com.morphoss.acal.service.aCalService;
 
 /**
@@ -265,11 +265,6 @@ public class Servers extends ContentProvider {
 		db.beginTransaction();
 		try {
 			db.delete(PathSets.DATABASE_TABLE, PathSets.SERVER_ID+"=?", params );
-			db.delete(PendingChanges.DATABASE_TABLE,
-						PendingChanges.COLLECTION_ID
-						+" IN (SELECT "+DavCollections._ID+" FROM "+DavCollections.DATABASE_TABLE
-															+" WHERE "+DavCollections.SERVER_ID+"=?)",
-						params );
 			db.delete(DavCollections.DATABASE_TABLE, DavCollections.SERVER_ID+"=?", params );
 			db.delete(Servers.DATABASE_TABLE, Servers._ID+"=?", params );
 			db.setTransactionSuccessful();
@@ -287,7 +282,7 @@ public class Servers extends ContentProvider {
 		
 		if (!collectionIds.isEmpty()) {
 			//Ask resource manager to delete resources
-			ResourcesManager.getInstance(context).sendRequest(new RRDeleteByCollectionId(collectionIds));
+			ResourceManager.getInstance(context).sendRequest(new RRDeleteByCollectionId(collectionIds));
 		}
 
 	}

@@ -43,14 +43,14 @@ import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDateTimeFormatter;
-import com.morphoss.acal.cachemanager.CREventsInRange;
-import com.morphoss.acal.cachemanager.CacheChangedEvent;
-import com.morphoss.acal.cachemanager.CacheChangedListener;
-import com.morphoss.acal.cachemanager.CacheManager;
-import com.morphoss.acal.cachemanager.CacheObject;
-import com.morphoss.acal.cachemanager.CacheRequest;
-import com.morphoss.acal.cachemanager.CacheResponse;
-import com.morphoss.acal.cachemanager.CacheResponseListener;
+import com.morphoss.acal.database.cachemanager.CRPObjectsInRange;
+import com.morphoss.acal.database.cachemanager.CacheChangedEvent;
+import com.morphoss.acal.database.cachemanager.CacheChangedListener;
+import com.morphoss.acal.database.cachemanager.CacheManager;
+import com.morphoss.acal.database.cachemanager.CacheObject;
+import com.morphoss.acal.database.cachemanager.CacheRequest;
+import com.morphoss.acal.database.cachemanager.CacheResponse;
+import com.morphoss.acal.database.cachemanager.CacheResponseListener;
 import com.morphoss.acal.dataservice.EventInstance;
 import com.morphoss.acal.dataservice.WriteableEventInstance;
 
@@ -124,7 +124,7 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 	}
 
 	private CacheRequest getCacheRequest() {
-		return new CREventsInRange(new AcalDateRange(viewDate,viewDate.clone().addDays(1)), this);
+		return new CRPObjectsInRange(new AcalDateRange(viewDate,viewDate.clone().addDays(1)), this);
 	}
 	
 	/**

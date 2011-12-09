@@ -18,46 +18,9 @@
 
 package com.morphoss.acal.service;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Matcher;
-
-import javax.net.ssl.SSLException;
-
-import org.apache.http.Header;
-
-import android.content.ContentQueryMap;
-import android.content.ContentValues;
-import android.content.Context;
-import android.database.Cursor;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.net.Uri;
-import android.util.Log;
-
-import com.morphoss.acal.AcalDebug;
-import com.morphoss.acal.Constants;
-import com.morphoss.acal.DatabaseChangedEvent;
 import com.morphoss.acal.HashCodeUtil;
-import com.morphoss.acal.ResourceModification;
-import com.morphoss.acal.StaticHelpers;
-import com.morphoss.acal.acaltime.AcalDateTime;
-import com.morphoss.acal.providers.DavCollections;
-import com.morphoss.acal.providers.Servers;
-import com.morphoss.acal.resources.RRSyncCollectionContents;
-import com.morphoss.acal.resources.ResourcesManager;
-import com.morphoss.acal.service.SynchronisationJobs.WriteActions;
-import com.morphoss.acal.service.connector.AcalRequestor;
-import com.morphoss.acal.service.connector.ConnectionFailedException;
-import com.morphoss.acal.service.connector.SendRequestFailedException;
-import com.morphoss.acal.xml.DavNode;
+import com.morphoss.acal.database.resourcesmanager.RRSyncCollectionContents;
+import com.morphoss.acal.database.resourcesmanager.ResourceManager;
 
 public class SyncCollectionContents extends ServiceJob {
 
@@ -105,7 +68,7 @@ public class SyncCollectionContents extends ServiceJob {
 	public void run(aCalService context) {
 		
 		request.setService(context);
-		ResourcesManager rm = ResourcesManager.getInstance(context);
+		ResourceManager rm = ResourceManager.getInstance(context);
 		//send request
 		rm.sendRequest(request);
 		//block until response completed

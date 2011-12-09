@@ -18,35 +18,12 @@
 
 package com.morphoss.acal.service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import org.apache.http.Header;
-import org.apache.http.message.BasicHeader;
-
-import android.content.ContentQueryMap;
 import android.content.ContentResolver;
 import android.content.ContentValues;
-import android.database.Cursor;
-import android.database.DatabaseUtils;
-import android.database.sqlite.SQLiteDatabase;
-import android.util.Log;
 
-import com.morphoss.acal.Constants;
-import com.morphoss.acal.DatabaseChangedEvent;
 import com.morphoss.acal.HashCodeUtil;
-import com.morphoss.acal.ResourceModification;
-import com.morphoss.acal.acaltime.AcalDateTime;
-import com.morphoss.acal.database.AcalDBHelper;
-import com.morphoss.acal.providers.DavCollections;
-import com.morphoss.acal.resources.RRInitialCollectionSync;
-import com.morphoss.acal.resources.ResourcesManager;
-import com.morphoss.acal.service.SynchronisationJobs.WriteActions;
-import com.morphoss.acal.service.connector.AcalRequestor;
-import com.morphoss.acal.xml.DavNode;
+import com.morphoss.acal.database.resourcesmanager.RRInitialCollectionSync;
+import com.morphoss.acal.database.resourcesmanager.ResourceManager;
 
 public class InitialCollectionSync extends ServiceJob {
 
@@ -85,7 +62,7 @@ public class InitialCollectionSync extends ServiceJob {
 	@Override
 	public void run(aCalService context) {
 		request.setService(context);
-		ResourcesManager rm = ResourcesManager.getInstance(context);
+		ResourceManager rm = ResourceManager.getInstance(context);
 		//send request
 		rm.sendRequest(request);
 		//block until response completed

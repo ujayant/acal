@@ -18,8 +18,8 @@
 
 package com.morphoss.acal.service;
 
-import com.morphoss.acal.resources.RRSyncChangesToServer;
-import com.morphoss.acal.resources.ResourcesManager;
+import com.morphoss.acal.database.resourcesmanager.RRSyncChangesToServer;
+import com.morphoss.acal.database.resourcesmanager.ResourceManager;
 
 public class SyncChangesToServer extends ServiceJob {
 
@@ -35,7 +35,7 @@ public class SyncChangesToServer extends ServiceJob {
 	@Override
 	public void run(aCalService context) {
 		request.setService(context);
-		ResourcesManager rm = ResourcesManager.getInstance(context);
+		ResourceManager rm = ResourceManager.getInstance(context);
 		//send request
 		rm.sendRequest(request);
 		//block until response completed

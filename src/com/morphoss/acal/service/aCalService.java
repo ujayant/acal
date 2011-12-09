@@ -33,8 +33,8 @@ import com.morphoss.acal.Constants;
 import com.morphoss.acal.DatabaseChangedEvent;
 import com.morphoss.acal.DatabaseEventDispatcher;
 import com.morphoss.acal.R;
-import com.morphoss.acal.cachemanager.CacheManager;
-import com.morphoss.acal.resources.ResourcesManager;
+import com.morphoss.acal.database.cachemanager.CacheManager;
+import com.morphoss.acal.database.resourcesmanager.ResourceManager;
 
 public class aCalService extends Service {
 
@@ -46,7 +46,7 @@ public class aCalService extends Service {
 	public static final DatabaseEventDispatcher databaseDispatcher = new DatabaseEventDispatcher();
 	
 	private final static long serviceStartedAt = System.currentTimeMillis();
-	private ResourcesManager rm;
+	private ResourceManager rm;
 	private CacheManager cm;
 	
 	//TODO remove this line
@@ -62,7 +62,7 @@ public class aCalService extends Service {
 	
 	private synchronized void startService() {
 
-		rm = ResourcesManager.getInstance(this);
+		rm = ResourceManager.getInstance(this);
 		cm = CacheManager.getInstance(this);
 		
 		worker = WorkerClass.getInstance(this);

@@ -30,7 +30,7 @@ import android.widget.TextView;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateTime;
-import com.morphoss.acal.cachemanager.CacheObject;
+import com.morphoss.acal.database.cachemanager.CacheObject;
 import com.morphoss.acal.dataservice.EventInstance;
 
 public class MonthDayBox extends TextView {
@@ -123,7 +123,10 @@ public class MonthDayBox extends TextView {
 					eFinish = eStart + (minBarHeight * secsPerPixel);
 				//draw
 				p.setColor((e.getCollection().getColour()|0xff000000)-0x77000000);
-				arg0.drawRect(x,y+(eStart/secsPerPixel), x+barWidth, y+(eFinish/secsPerPixel), p);
+				Log.e(TAG, "Color: "+p.getColor());
+				arg0.drawRect(x,(y+eStart/secsPerPixel), x+barWidth, y+(eFinish/secsPerPixel), p);
+				
+				Log.e(TAG,"Draw rect: "+x+","+(y+(eStart/secsPerPixel))+","+(x+barWidth)+","+(y+(eFinish/secsPerPixel)));
 
 				if ( Constants.LOG_VERBOSE && Constants.debugMonthView )
 					Log.v(TAG, String.format("%d - %d: %s (%ds - %ds, %dspp, %dx,%dy, %dw,%dh, %d-%d)",

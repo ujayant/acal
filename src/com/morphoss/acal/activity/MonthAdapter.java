@@ -46,13 +46,13 @@ import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
-import com.morphoss.acal.cachemanager.CREventsInRangeByDay;
-import com.morphoss.acal.cachemanager.CacheChangedEvent;
-import com.morphoss.acal.cachemanager.CacheChangedListener;
-import com.morphoss.acal.cachemanager.CacheManager;
-import com.morphoss.acal.cachemanager.CacheObject;
-import com.morphoss.acal.cachemanager.CacheResponse;
-import com.morphoss.acal.cachemanager.CacheResponseListener;
+import com.morphoss.acal.database.cachemanager.CRObjectsInMonthByDay;
+import com.morphoss.acal.database.cachemanager.CacheChangedEvent;
+import com.morphoss.acal.database.cachemanager.CacheChangedListener;
+import com.morphoss.acal.database.cachemanager.CacheManager;
+import com.morphoss.acal.database.cachemanager.CacheObject;
+import com.morphoss.acal.database.cachemanager.CacheResponse;
+import com.morphoss.acal.database.cachemanager.CacheResponseListener;
 import com.morphoss.acal.views.MonthDayBox;
 
 /**
@@ -67,8 +67,7 @@ public class MonthAdapter extends BaseAdapter implements CacheChangedListener, C
 	private AcalDateTime nextMonth;
 	private AcalDateTime displayDate;
 	private AcalDateTime selectedDate;
-	private AcalDateTime startOfThisMonth;
-	private AcalDateTime endOfThisMonth;
+	private AcalDateTime displayMonthLocalized;
 	private int daysInLastMonth;
 	private int daysInThisMonth;
 	private int firstOffset;
@@ -85,8 +84,10 @@ public class MonthAdapter extends BaseAdapter implements CacheChangedListener, C
 		@SuppressWarnings("unchecked")
 		@Override
 		public void handleMessage(Message msg) {
+			if (Constants.debugMonthView && Constants.LOG_DEBUG) Log.d(TAG, "Handler has received messsge.");
 			switch (msg.what) {
 				case HANDLER_NEW_DATA:
+					if (Constants.debugMonthView && Constants.LOG_DEBUG) Log.d(TAG, "New data for display.");
 					HashMap<Integer,ArrayList<CacheObject>> data = (HashMap<Integer,ArrayList<CacheObject>>)msg.obj;
 					for (int i = 1; i<= 31; i++) {
 						if (data.containsKey(i)) eventsByDay.put(i, data.get(i));
@@ -138,16 +139,15 @@ public class MonthAdapter extends BaseAdapter implements CacheChangedListener, C
 		this.firstOffset = displayDate.get(AcalDateTime.DAY_OF_WEEK);
 		displayDate.set(AcalDateTime.DAY_OF_MONTH, curDay);
 		
-		startOfThisMonth = displayDate.clone().applyLocalTimeZone().setDaySecond(0);
-		startOfThisMonth.setMonthDay(1);
-		
-		endOfThisMonth = startOfThisMonth.clone().addMonths(1);
+		displayMonthLocalized = displayDate.clone().applyLocalTimeZone();
 		
 		//request data
 		waitForInitialData.close();
 		waiting = true;
-		cacheManager.sendRequest(new CREventsInRangeByDay(new AcalDateRange(startOfThisMonth, endOfThisMonth), this));
+		if (Constants.debugMonthView && Constants.LOG_DEBUG) Log.d(TAG, "Sending CacheRequest and waiting");
+		cacheManager.sendRequest(new CRObjectsInMonthByDay(displayMonthLocalized.getMonth(), displayMonthLocalized.getYear(), this));
 		waitForInitialData.block();
+		if (Constants.debugMonthView && Constants.LOG_DEBUG) Log.d(TAG, "Data received - resuming.");
 	}
 
 
@@ -330,14 +330,22 @@ public class MonthAdapter extends BaseAdapter implements CacheChangedListener, C
 
 	@Override
 	public void cacheResponse(CacheResponse<HashMap<Integer,ArrayList<CacheObject>>> response) {
+		if (Constants.debugMonthView && Constants.LOG_DEBUG) Log.d(TAG, "Cache Response Received.");
 		if (waiting) {
+			if (Constants.debugMonthView && Constants.LOG_DEBUG) Log.d(TAG, "In waiting mode - populating data");
 			HashMap<Integer,ArrayList<CacheObject>> data = response.result();
+			int count = 0;
 			for (int i = 1; i<= 31; i++) {
-				if (data.containsKey(i)) eventsByDay.put(i, data.get(i));
+				if (data.containsKey(i)) {
+					eventsByDay.put(i, data.get(i));
+					count+=data.get(i).size();
+				}
 			}
+			if (Constants.debugMonthView && Constants.LOG_DEBUG) Log.d(TAG, count+" objects added to data set.");
 			waiting = false;
 			waitForInitialData.open();	
 		} else {
+			if (Constants.debugMonthView && Constants.LOG_DEBUG) Log.d(TAG, "Not in waitingmode, sending Handler msg.");
 			mHandler.sendMessage(mHandler.obtainMessage(HANDLER_NEW_DATA, response.result()));
 		}
 		
