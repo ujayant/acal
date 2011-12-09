@@ -1,0 +1,327 @@
+package com.morphoss.acal.database;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.DatabaseUtils;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteMisuseException;
+import android.util.Log;
+
+
+/**
+ * Some useful code for DB managers. Extend this and database state can be maintained.
+ * call beginQuery before starting any internal queries and end query when finished any internal querys.
+ * transactions are exposed and maintained.
+ * 
+ * @author Chris Noldus
+ *
+ */
+public abstract class DatabaseTableManager {
+
+	protected SQLiteDatabase db;
+	protected AcalDBHelper dbHelper;
+	protected Context context;
+
+	protected boolean inTx = false;
+	private boolean sucTx = false;
+
+	public static final int OPEN_READ = 1;
+	public static final int OPEN_WRITE = 2;
+	public static final int OPEN_WRITETX = 3;
+
+	public static final int CLOSE = 4;
+	public static final int CLOSE_TX = 5;
+	
+	private ArrayList<DataChange> changes;
+
+	protected DatabaseTableManager(Context context) {
+		this.context = context;
+	}
+
+
+	public enum QUERY_ACTION { INSERT, UPDATE, DELETE };
+	
+	public static final String TAG = "aCal DatabaseManager";
+
+	public abstract void dataChanged(List<DataChange> changes);
+
+
+	private void openDB(final int type) {
+		if (inTx || sucTx || db != null) throw new SQLiteMisuseException("Tried to open DB when already open");
+		dbHelper = new AcalDBHelper(context);
+		changes = new ArrayList<DataChange>();
+		switch (type) {
+		case OPEN_READ:
+			db = dbHelper.getReadableDatabase();
+			break;
+		case OPEN_WRITE:
+			db = dbHelper.getWritableDatabase();
+			break;
+		case OPEN_WRITETX:
+			inTx = true;
+			db = dbHelper.getWritableDatabase();
+			db.beginTransaction();
+			break;
+		default:
+			dbHelper.close();
+			dbHelper = null;
+			changes = null;
+			throw new IllegalArgumentException("Invalid argument provided for openDB");		
+		}
+	}
+
+	private void closeDB(final int type) {
+		if (db == null) throw new SQLiteMisuseException("Tried to close a DB that wasn't opened");
+		db.close();
+		dbHelper.close();
+		db = null;
+		dbHelper = null;
+		switch (type) {
+		case CLOSE:
+			break;
+		case CLOSE_TX:
+			if (!inTx) throw new IllegalStateException("Tried to close a db transaction when not in one!");
+			inTx = false;
+			sucTx = false;
+			break;
+		default:
+			throw new IllegalArgumentException("Invalid argument provided for openDB");
+		}
+		changes = null;
+		this.dataChanged(Collections.unmodifiableList(changes));
+	}
+
+	protected void beginReadQuery() {
+		if (!inTx) openDB(OPEN_READ);
+	}
+
+	protected void endQuery() {
+		if (!inTx) closeDB(CLOSE);
+	}
+
+	protected void beginWriteQuery() {
+		if (!inTx) openDB(OPEN_WRITE);
+	}
+
+
+	public void beginTransaction() {
+		openDB(OPEN_WRITETX);
+	}
+
+	public void setTxSuccessful() {
+		if (!inTx || db == null || !db.isOpen()) throw new IllegalStateException("Tried to set Tx Successful when not in TX");
+		db.setTransactionSuccessful();
+		this.sucTx = true;
+	}
+
+	public void endTransaction() {
+		closeDB(CLOSE_TX);
+	}
+
+	protected abstract String getTableName();
+
+	//Some useful generic methods
+
+	public int delete(String whereClause, String[] whereArgs) {
+		beginWriteQuery();
+		//First select or the row i'ds
+		ArrayList<ContentValues> rows = this.query(null, whereClause, whereArgs, null,null,null);
+		int count = db.delete(getTableName(), whereClause, whereArgs);
+		if (count != rows.size()) {
+			Log.w(TAG, "Inconsistant number of rows deleted!");
+		}
+		for (ContentValues cv : rows) {
+			changes.add(new DataDeletedEvent(cv));
+		}
+		endQuery();
+		return count;
+	}
+
+	public int update(ContentValues values, String whereClause,
+			String[] whereArgs) {
+		beginWriteQuery();
+		int count = db.update(getTableName(), values, whereClause,
+				whereArgs);
+		endQuery();
+		changes.add(new DataInsertUpdateEvent(QUERY_ACTION.UPDATE, new ContentValues(values)));
+		return count;
+	}
+
+	public long insert(String nullColumnHack, ContentValues values) {
+		beginWriteQuery();
+		long count = db.insert(getTableName(), nullColumnHack, values);
+		endQuery();
+		changes.add(new DataInsertUpdateEvent(QUERY_ACTION.INSERT, new ContentValues(values)));
+		return count;
+	}
+
+	public ArrayList<ContentValues> query(String[] columns, String selection, String[] selectionArgs, String groupBy, String having, String orderBy) {
+		beginReadQuery();
+		ArrayList<ContentValues> result = new ArrayList<ContentValues>();
+		int count = 0;
+		Cursor c = db.query(getTableName(), columns, selection, selectionArgs, groupBy, having, orderBy);
+		if (c.getCount() > 0) {
+			for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
+				result.add(new ContentValues());
+				DatabaseUtils.cursorRowToContentValues(c, result.get(count++));
+			}
+		}
+		c.close();
+		endQuery();
+		return result;
+	}
+
+	public class DMQueryList {
+		private ArrayList<DMAction> actions = new ArrayList<DMAction>();
+		public void addAction(DMAction action) { actions.add(action); }
+		public boolean process(DatabaseTableManager dm) {
+			boolean res = false;
+			try {
+				//Queries are always done as in a transaction - we need to see if we are already in one or not.
+				if (!DatabaseTableManager.this.inTx) {
+					for (DMAction action : actions) action.process(dm);
+				} else {
+					dm.beginTransaction();
+					for (DMAction action : actions) action.process(dm);
+					dm.setTxSuccessful();
+					dm.endTransaction();
+				}
+				res = true;
+			} catch (Exception e) {
+			} finally { dm.endTransaction();}
+			return res;
+		}
+	}
+
+
+	public interface DMAction {
+		public void process(DatabaseTableManager dm);
+	}
+
+	public final class DMInsertQuery implements DMAction {
+
+		private final String nullColumnHack;
+		private final ContentValues values;
+
+		public DMInsertQuery(String nullColumnHack, ContentValues values) {
+			this.nullColumnHack = nullColumnHack;
+			this.values = values;
+		}
+
+		public void process(DatabaseTableManager dm) {
+			dm.insert(nullColumnHack, values);
+		}
+	}
+
+	public final class DMUpdateQuery implements DMAction {
+
+		private final ContentValues values;
+		private final String whereClause;
+		private final String[] whereArgs;
+
+		public DMUpdateQuery(ContentValues values, String whereClause, String[] whereArgs) {
+			this.values = values;
+			this.whereClause = whereClause;
+			this.whereArgs = whereArgs;
+		}
+
+		@Override
+		public void process(DatabaseTableManager dm) {
+			dm.update(values, whereClause, whereArgs);
+		}
+	}
+
+	public final class DMDeleteQuery implements DMAction {
+
+		private final String whereClause;
+		private final String[] whereArgs;
+
+		public DMDeleteQuery(String whereClause, String[] whereArgs) {
+			this.whereClause = whereClause;
+			this.whereArgs = whereArgs;
+		}
+
+		@Override
+		public void process(DatabaseTableManager dm) {
+			dm.delete(whereClause, whereArgs);			
+		}
+	}
+
+	public final class DMQueryBuilder {
+		private QUERY_ACTION action = null;
+		private String nullColumnHack = null;
+		private ContentValues values = null;
+		private String whereClause = null;
+		private String[] whereArgs = null;
+
+		public DMQueryBuilder setAction(QUERY_ACTION action) {
+			this.action = action;
+			return this;
+		}
+
+		public QUERY_ACTION getAction() {
+			return this.action;
+		}
+
+		public DMQueryBuilder setNullColumnHack(String nullColumnHack) {
+			this.nullColumnHack = nullColumnHack;
+			return this;
+		}
+
+		public DMQueryBuilder setValues(ContentValues values) {
+			this.values = values;
+			return this;
+		}
+
+		public DMQueryBuilder setWhereClause(String whereClause) {
+			this.whereClause = whereClause;
+			return this;
+		}
+
+		public DMQueryBuilder setwhereArgs(String whereArgs[]) {
+			this.whereArgs = whereArgs;
+			return this;
+		}
+
+		public DMAction build() throws IllegalArgumentException {
+			if (action == null) throw new IllegalArgumentException("Can not build query without action set.");
+			switch (action) {
+			case INSERT:
+				if (values == null) throw new IllegalArgumentException("Can not build INSERT query without content values");
+				return new DMInsertQuery(nullColumnHack,values);
+			case UPDATE:
+				if (values == null) throw new IllegalArgumentException("Can not build UPDATE query without content values");
+				return new DMUpdateQuery(values, whereClause, whereArgs);
+			case DELETE:
+				return new DMDeleteQuery(whereClause, whereArgs);
+			default:
+				throw new IllegalStateException("Invalid action specified!");
+			}
+		}
+	}
+	public abstract class DataChange {
+		public final QUERY_ACTION action;
+		public DataChange(QUERY_ACTION action) { this.action = action; }
+	}
+
+	public class DataInsertUpdateEvent extends DataChange {
+		public final ContentValues values;
+		public DataInsertUpdateEvent(QUERY_ACTION action, ContentValues values) {
+			super(action);
+			this.values = values;
+		}
+	}
+
+	public class DataDeletedEvent extends DataChange {
+		public final ContentValues oldRow;
+		public DataDeletedEvent(ContentValues oldRow) {
+			super(QUERY_ACTION.DELETE);
+			this.oldRow = oldRow;
+		}
+	}
+}
