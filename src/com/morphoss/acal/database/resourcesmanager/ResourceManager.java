@@ -18,7 +18,12 @@ import android.os.ConditionVariable;
 import android.util.Log;
 
 import com.morphoss.acal.Constants;
+import com.morphoss.acal.acaltime.AcalDateRange;
+import com.morphoss.acal.acaltime.AcalRepeatRule;
 import com.morphoss.acal.database.DatabaseTableManager;
+import com.morphoss.acal.dataservice.DefaultResourceInstance;
+import com.morphoss.acal.davacal.VCalendar;
+import com.morphoss.acal.davacal.VComponent;
 import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.providers.Servers;
 
@@ -33,6 +38,8 @@ public class ResourceManager implements Runnable {
 		return instance;
 	}
 
+	public static final String TAG = "aCal ResourceManager";
+	
 	// get and instance and add a callback handler to receive notfications of
 	// change
 	// It is vital that classes remove their handlers when terminating
@@ -49,7 +56,7 @@ public class ResourceManager implements Runnable {
 	private ResourceTableManager RPinstance;
 
 	private ResourceTableManager getRPInstance() {
-		if (instance == null)
+		if (RPinstance == null)
 			RPinstance = new ResourceTableManager();
 		return RPinstance;
 	}
@@ -88,12 +95,15 @@ public class ResourceManager implements Runnable {
 	public void run() {
 		while (running) {
 			// do stuff
+			Log.d(TAG,"Thread Opened...");
 			while (!queue.isEmpty()) {
+				Log.d(TAG,queue.size()+" items in queue.");
 				final ResourceRequest request = queue.poll();
+				Log.d(TAG,"Processing Request: "+request.getClass());
 				try {
 					getRPInstance().process(request);
 				} catch (Exception e) {
-					// log message
+					Log.e(TAG, "Error processing request: "+Log.getStackTraceString(e));
 				}
 			}
 			// Wait till next time
@@ -123,6 +133,7 @@ public class ResourceManager implements Runnable {
 
 	// Request handlers
 	public void sendRequest(ResourceRequest request) {
+		Log.d(TAG, "Received Request: "+request.getClass());
 		queue.offer(request);
 		threadHolder.open();
 	}
@@ -183,6 +194,7 @@ public class ResourceManager implements Runnable {
 		}
 
 		public void process(ResourceRequest r) {
+			Log.d(TAG,"Begin Processing");
 			try {
 				r.process(this);
 				if (this.inTx) {
@@ -205,6 +217,7 @@ public class ResourceManager implements Runnable {
 					} catch (Exception e) {
 					}
 			}
+			Log.d(TAG,"End Processing");
 		}
 
 		public ConnectivityManager getConectivityService() {
@@ -223,6 +236,31 @@ public class ResourceManager implements Runnable {
 
 		public Context getContext() {
 			return context;
+		}
+		
+		/**
+		 * This override is important to ensure earliest start and latest end are always set
+		 */
+		@Override
+		public long insert(String nullColumnHack, ContentValues values) {
+			Log.d(TAG, "Resource Insert Begin");
+			try {
+
+				VComponent comp = VComponent.createComponentFromResource(DefaultResourceInstance.fromContentValues(values));
+				
+				//TODO Check effective type here
+			
+				if (comp instanceof VCalendar) {
+					VCalendar vCal = (VCalendar)comp;
+					AcalRepeatRule rrule = AcalRepeatRule.fromVCalendar(vCal);
+					AcalDateRange range = rrule.getInstancesRange();
+					values.put(EARLIEST_START, range.start.getMillis());
+					if (range.end != null) values.put(LATEST_END, range.end.getMillis());
+				}
+			} catch (Exception e) {
+				Log.e(TAG, "Error creating VComponent from resource: "+Log.getStackTraceString(e));
+			}
+			return super.insert(nullColumnHack, values);
 		}
 
 		/**
@@ -257,7 +295,7 @@ public class ResourceManager implements Runnable {
 			start = System.currentTimeMillis();
 
 			Cursor mCursor = db.query(RESOURCE_DATABASE_TABLE, null, COLLECTION_ID
-					+ " = ? " + NEEDS_SYNC + " = 1 OR " + RESOURCE_DATA
+					+ " = ? AND " + NEEDS_SYNC + " = 1 OR " + RESOURCE_DATA
 					+ " IS NULL", new String[] { collectionId + "" }, null,
 					null, null);
 			ContentQueryMap cqm = new ContentQueryMap(mCursor,
@@ -285,6 +323,7 @@ public class ResourceManager implements Runnable {
 			Cursor resourceCursor = db.query(RESOURCE_DATABASE_TABLE,null, COLLECTION_ID + " = ? ", new String[] { collectionId + "" }, null, null, null);
 			if (!resourceCursor.moveToFirst()) {
 				resourceCursor.close();
+				endQuery();
 				return new HashMap<String, ContentValues>();
 			}
 			ContentQueryMap cqm = new ContentQueryMap(resourceCursor,
@@ -343,7 +382,7 @@ public class ResourceManager implements Runnable {
 		}
 
 		@Override
-		public void dataChanged(List<DataChange> changes) {
+		public void dataChanged(List<DataChangeEvent> changes) {
 			ResourceChangedEvent rce = new ResourceChangedEvent(changes);
 			synchronized (listeners) {
 				for (ResourceChangedListener listener : listeners) {

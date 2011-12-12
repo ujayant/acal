@@ -21,8 +21,6 @@ public interface EventInstance extends Parcelable, Comparable<EventInstance> {
 	int EVENT_OPERATION_VIEW = 9;
 	
 	//Getters that are always needed
-	public abstract long getStartMillis();
-	public abstract long getEndMillis();
 	public abstract List<AcalAlarm> getAlarms();
 	public abstract AcalDateTime getStart();
 	public abstract AcalDateTime getEnd();
@@ -42,7 +40,7 @@ public interface EventInstance extends Parcelable, Comparable<EventInstance> {
 			boolean boolean1);
 	public abstract boolean isAllDay();
 	public abstract WriteableEventInstance getWriteable();
-	public Collection getCollection();
+	public long getCollectionId();
 	public Resource getResource();
 	public VEvent getMaster();
 	

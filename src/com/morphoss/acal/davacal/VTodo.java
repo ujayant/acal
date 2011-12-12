@@ -19,6 +19,7 @@
 package com.morphoss.acal.davacal;
 
 import com.morphoss.acal.acaltime.AcalDateTime;
+import com.morphoss.acal.dataservice.Collection;
 import com.morphoss.acal.dataservice.Resource;
 
 
@@ -40,16 +41,16 @@ public class VTodo extends Masterable {
 	}
 
 	
-	public VTodo(ComponentParts splitter, Resource r, AcalCollection collectionObject,VComponent parent) {
-		super(splitter, r, collectionObject,parent);
+	public VTodo(ComponentParts splitter, Resource r, VComponent parent) {
+		super(splitter, r, parent);
 	}
 
 	public VTodo( VCalendar parent ) {
 		super(VComponent.VTODO, parent );
 	}
 
-	public VTodo( AcalCollection collection ) {
-		this( new VCalendar(collection) );
+	public VTodo( long collectionId ) {
+		this( new VCalendar(collectionId) );
 	}
 
 	public AcalDateTime getDue() {

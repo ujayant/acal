@@ -197,8 +197,9 @@ public class SimpleAcalTodo implements Parcelable, Comparable<SimpleAcalTodo> {
 		int aColor = Color.BLUE;
 		boolean alarmsForCollection = true;
 		try {
-			aColor = task.getCollectionColour();
-			alarmsForCollection = task.getAlarmEnabled();
+			//TODO refactor mods dont enable this approach anymore
+			aColor = 0xffff0000; //task.getCollectionColour();
+			alarmsForCollection = false; //task.getAlarmEnabled();
 		} catch (Exception e) {
 			Log.e(TAG,"Error Creating SimpleAcalTodo - "+e.getMessage());
 			Log.e(TAG,Log.getStackTraceString(e));

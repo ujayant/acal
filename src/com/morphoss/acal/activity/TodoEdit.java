@@ -22,14 +22,11 @@ import java.util.List;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -55,9 +52,11 @@ import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDateTimeFormatter;
 import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
+import com.morphoss.acal.dataservice.Collection;
+import com.morphoss.acal.dataservice.DefaultCollectionFactory;
+import com.morphoss.acal.dataservice.DefaultCollectionInstance;
 import com.morphoss.acal.dataservice.MethodsRequired;
 import com.morphoss.acal.davacal.AcalAlarm;
-import com.morphoss.acal.davacal.AcalCollection;
 import com.morphoss.acal.davacal.SimpleAcalTodo;
 import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VComponent;
@@ -208,7 +207,7 @@ public class TodoEdit extends AcalActivity
 		//Get collection data
 		currentCollection = null;
 		activeCollections = DavCollections.getCollections( getContentResolver(), DavCollections.INCLUDE_TASKS );
-		int collectionId = -1;
+		long collectionId = -1;
 		if ( activeCollections.length > 0 )
 			collectionId = activeCollections[0].getAsInteger(DavCollections._ID);
 		else {
@@ -220,7 +219,7 @@ public class TodoEdit extends AcalActivity
 		
 		if ( currentOperation == ACTION_EDIT ) {
 			try {
-				collectionId = (Integer) todo.getCollectionId();
+				collectionId = todo.getCollectionId();
 				this.action = ACTION_MODIFY_ALL;
 				if ( isModifyAction() ) {
 					String rr = (String)  this.todo.getRepetition();
@@ -262,7 +261,7 @@ public class TodoEdit extends AcalActivity
 					}
 				}
 			}
-			this.todo = new VTodo(AcalCollection.fromDatabase(collectionId));
+			this.todo = new VTodo(collectionId);
 			this.todo.setSummary(getString(R.string.NewTaskTitle));
 			this.action = ACTION_CREATE;
 
@@ -379,15 +378,17 @@ public class TodoEdit extends AcalActivity
 		AcalDateTime start = todo.getStart();
 		AcalDateTime due = todo.getDue();
 		AcalDateTime completed = todo.getCompleted();
+		
+		Collection todoCollection = new DefaultCollectionFactory().getInstance(todo.getTopParent().getCollectionId(), this);
 
-		Integer colour = todo.getTopParent().getCollectionColour();
+		Integer colour = todoCollection.getColour();
 		if ( colour == null ) colour = 0x70a0a0a0;
 		sidebar.setBackgroundColor(colour);
 		sidebarBottom.setBackgroundColor(colour);
 		AcalTheme.setContainerColour(btnCollection,colour);
 		btnCollection.setTextColor(AcalTheme.pickForegroundForBackground(colour));
 		todoName.setTextColor(colour);
-		btnCollection.setText(todo.getTopParent().getCollectionName());
+		btnCollection.setText(todoCollection.getDisplayName());
 		
 		btnStartDate.setText( AcalDateTimeFormatter.fmtFull( start, prefer24hourFormat) );
 		btnDueDate.setText( AcalDateTimeFormatter.fmtFull( due, prefer24hourFormat) );
@@ -514,7 +515,7 @@ public class TodoEdit extends AcalActivity
 			}
 		}
 		VCalendar vc = (VCalendar) this.todo.getTopParent();
-		vc.setCollection(new AcalCollection(currentCollection));
+		vc.setCollection(this.currentCollection.getAsLong(DavCollections._ID));
 
 		this.updateLayout();
 	}

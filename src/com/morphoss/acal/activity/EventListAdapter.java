@@ -51,6 +51,8 @@ import com.morphoss.acal.database.cachemanager.CacheObject;
 import com.morphoss.acal.database.cachemanager.CacheRequest;
 import com.morphoss.acal.database.cachemanager.CacheResponse;
 import com.morphoss.acal.database.cachemanager.CacheResponseListener;
+import com.morphoss.acal.dataservice.Collection;
+import com.morphoss.acal.dataservice.DefaultCollectionFactory;
 import com.morphoss.acal.dataservice.EventInstance;
 import com.morphoss.acal.dataservice.WriteableEventInstance;
 
@@ -190,15 +192,17 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 		}
 		if ( event == null ) return rowLayout;
 		
+		Collection eventCollection = new DefaultCollectionFactory().getInstance(event.getCollectionId(), this.context);
+		
 		final boolean isPending = event.isPending();
 		if (isPending) {
-			sideBar.setBackgroundColor(event.getCollection().getColour()|0xa0000000); title.setTextColor(event.getCollection().getColour()|0xa0000000);
+			sideBar.setBackgroundColor(eventCollection.getColour()|0xa0000000); title.setTextColor(eventCollection.getColour()|0xa0000000);
 			((LinearLayout) rowLayout.findViewById(R.id.EventListItemText)).setBackgroundColor(0x44000000);
 		}
 		else {
-			rowLayout.findViewById(R.id.EventListItemIcons).setBackgroundColor(event.getCollection().getColour());
-			sideBar.setBackgroundColor(event.getCollection().getColour()); 
-			title.setTextColor(event.getCollection().getColour());
+			rowLayout.findViewById(R.id.EventListItemIcons).setBackgroundColor(eventCollection.getColour());
+			sideBar.setBackgroundColor(eventCollection.getColour()); 
+			title.setTextColor(eventCollection.getColour());
 		}
 
 		title.setText((event.getSummary() == null  || event.getSummary().length() <= 0 ) ? "Untitled" : event.getSummary());
@@ -206,7 +210,7 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 		if ( event.hasAlarms() ) {
 			ImageView alarmed = (ImageView) rowLayout.findViewById(R.id.EventListItemAlarmBell);
 			alarmed.setVisibility(View.VISIBLE);
-			if ( ! event.getCollection().alarmsEnabled() ) alarmed.setBackgroundColor(0xb0ffffff);
+			if ( ! eventCollection.alarmsEnabled() ) alarmed.setBackgroundColor(0xb0ffffff);
 		}
 		if ( event.isRecuring() ) {
 			ImageView repeating = (ImageView) rowLayout.findViewById(R.id.EventListItemRepeating);

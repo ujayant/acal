@@ -79,14 +79,13 @@ public class RRSyncCollectionContents implements ResourceRequest {
 	
 	private ResourceTableManager processor;
 	private volatile boolean running = true;
-	private aCalService acalService;
 	
 	public boolean isRunning() {
 		return this.running;
 	}
 	
 	public void setService(aCalService svc) {
-		this.acalService = svc;
+		this.context = svc;
 	}
 	
 	/**
@@ -124,7 +123,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 	
 	@Override
 	public void process(ResourceTableManager processor)	throws ResourceProcessingException {
-	
+	this.processor = processor;
 		if ( Constants.debugHeap ) AcalDebug.heapDebug(TAG, "SyncCollectionContents start");
 		if ( collectionId < 0 || !getCollectionInfo()) {
 			Log.w(TAG, "Could not read collection " + collectionId + " for server " + serverId
@@ -425,6 +424,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 				root.removeSubTree(response);
 	
 				//changeList.add( new ResourceModification(action, cv, null) );
+				builder.setValues(cv);
 				queryList.addAction(builder.build());
 				
 				
@@ -521,6 +521,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 				needSyncAfterwards = true; 
 
 				//changeList.add( new ResourceModification(action, cv, null) );
+				builder.setValues(cv);
 				queryList.addAction(builder.build());
 			}
 			
@@ -735,6 +736,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 					Log.println(Constants.LOGD,TAG, "Multiget response needs sync="+cv.getAsString(ResourceTableManager.NEEDS_SYNC)+" for "+name );
 				
 				//changeList.add( new ResourceModification(action, cv, null) );
+				builder.setValues(cv);
 				queryList.addAction(builder.build());
 			}
 

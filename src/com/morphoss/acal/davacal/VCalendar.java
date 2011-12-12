@@ -34,6 +34,7 @@ import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
 import com.morphoss.acal.acaltime.AcalRepeatRuleParser;
+import com.morphoss.acal.dataservice.Collection;
 import com.morphoss.acal.dataservice.EventInstance;
 import com.morphoss.acal.dataservice.Resource;
 import com.morphoss.acal.dataservice.WriteableEventInstance;
@@ -50,8 +51,8 @@ public class VCalendar extends VComponent {
 	private boolean isPending = false;
 
 
-	public VCalendar(ComponentParts splitter, Resource r, Long earliestStart, Long latestEnd, AcalCollection collectionObject,VComponent parent) {
-		super(splitter, r, collectionObject,parent);
+	public VCalendar(ComponentParts splitter, Resource r, Long earliestStart, Long latestEnd,VComponent parent) {
+		super(splitter, r,parent);
 		this.earliestStart = earliestStart;
 		this.latestEnd = latestEnd;
 		if ( earliestStart != null ) {
@@ -61,8 +62,8 @@ public class VCalendar extends VComponent {
 	}
 
 
-	protected VCalendar(AcalCollection collection) {
-		super( VComponent.VCALENDAR, collection, null );
+	protected VCalendar(long collectionId) {
+		super( VComponent.VCALENDAR, collectionId, null );
 		try { setPersistentOn(); } catch (YouMustSurroundThisMethodInTryCatchOrIllEatYouException e) { }
 		addProperty(new AcalProperty("CALSCALE","GREGORIAN"));
 		addProperty(new AcalProperty("PRODID","-//morphoss.com//aCal 1.0//EN"));
@@ -70,8 +71,8 @@ public class VCalendar extends VComponent {
 	}
 
 
-	public static VCalendar getGenericCalendar( AcalCollection collection, EventInstance newEventData) {
-		VCalendar vcal = new VCalendar(collection);
+	public static VCalendar getGenericCalendar( long collectionId, EventInstance newEventData) {
+		VCalendar vcal = new VCalendar(collectionId);
 		new VEvent(vcal);
 		return vcal;
 	}
@@ -84,7 +85,7 @@ public class VCalendar extends VComponent {
 	}
 	
 	public VCalendar clone() {
-		return new VCalendar(this.content, this.getResource(), this.earliestStart, this.latestEnd, this.collectionData, this.parent);
+		return new VCalendar(this.content, this.getResource(), this.earliestStart, this.latestEnd, this.parent);
 	}
 
 	public String applyEventAction(WriteableEventInstance action) {
@@ -235,7 +236,7 @@ public class VCalendar extends VComponent {
 					Log.println(Constants.LOGD,TAG,"New timezone for '"+tzId+"'");
 					Log.println(Constants.LOGD,TAG,tzBlob);
 				}
-				vtz = (VTimezone) VComponent.createComponentFromBlob(tzBlob, null, collectionData);
+				vtz = (VTimezone) VComponent.createComponentFromBlob(tzBlob, null);
 				vtz.setEditable();
 				this.addChild(vtz);
 			}
@@ -307,11 +308,11 @@ public class VCalendar extends VComponent {
 		for( PartInfo childInfo : content.partInfo ) {
 			if ( childInfo.type.equals(VEVENT) ) {
 				return new VEvent(new ComponentParts(childInfo.getComponent(content.componentString)),
-						resource, collectionData,this);
+						resource, this);
 			}
 			else if ( childInfo.type.equals(VTODO) ) {
 				return new VTodo(new ComponentParts(childInfo.getComponent(content.componentString)),
-						resource, collectionData,this);
+						resource, this);
 			}
 		}
 		return null;
@@ -478,7 +479,7 @@ public class VCalendar extends VComponent {
 		for( PartInfo childInfo : content.partInfo ) {
 			if ( childInfo.type.equals(VEVENT) ) {
 				VEvent vc = new VEvent(new ComponentParts(childInfo.getComponent(content.componentString)),
-						resource, collectionData,this);
+						resource, this);
 				for( PartInfo childChildInfo : vc.content.partInfo ) {
 					if ( childChildInfo.type.equals(VALARM)) {
 						this.hasAlarms = true;
@@ -488,7 +489,7 @@ public class VCalendar extends VComponent {
 			}
 			else if ( childInfo.type.equals(VTODO) ) {
 				VTodo vc = new VTodo(new ComponentParts(childInfo.getComponent(content.componentString)),
-						resource, collectionData,this);
+						resource, this);
 				for( PartInfo childChildInfo : vc.content.partInfo ) {
 					if ( childChildInfo.type.equals(VALARM))  {
 						this.hasAlarms = true;

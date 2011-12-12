@@ -41,6 +41,8 @@ import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
+import com.morphoss.acal.dataservice.Collection;
+import com.morphoss.acal.dataservice.DefaultCollectionFactory;
 import com.morphoss.acal.dataservice.DefaultEventInstance;
 import com.morphoss.acal.dataservice.EventInstance;
 import com.morphoss.acal.davacal.AcalAlarm;
@@ -132,7 +134,8 @@ public class EventView extends AcalActivity implements OnGestureListener, OnTouc
 		}
 		
 		String repetition = event.getRepetition();
-		int colour = event.getCollection().getColour();
+		Collection collection = new DefaultCollectionFactory().getInstance(event.getCollectionId(),this);
+		int colour = collection.getColour();
 		LinearLayout sidebar = (LinearLayout)this.findViewById(R.id.EventViewColourBar);
 		LinearLayout sidebarBottom = (LinearLayout)this.findViewById(R.id.EventViewColourBarBottom);;
 		sidebar.setBackgroundColor(colour);
@@ -169,7 +172,7 @@ public class EventView extends AcalActivity implements OnGestureListener, OnTouc
 		TextView alarmsView = (TextView) this.findViewById(R.id.EventAlarmsContent);
 		if ( alarms != null && ! alarms.equals("") ) {
 			alarmsView.setText(alarms);
-			if ( !event.getCollection().alarmsEnabled()) {
+			if ( !collection.alarmsEnabled()) {
 				TextView alarmsWarning = (TextView) this.findViewById(R.id.CalendarAlarmsDisabled);
 				alarmsWarning.setVisibility(View.VISIBLE);
 			}
@@ -189,7 +192,7 @@ public class EventView extends AcalActivity implements OnGestureListener, OnTouc
 			TextView collectionText = (TextView) this.findViewById(R.id.EventCollectionContent);
 			collectionText.setTextColor(colour);
 			int i=0;
-			while( i<activeCollections.length && event.getCollection().getCollectionId() != activeCollections[i].getAsInteger(DavCollections._ID)) i++;
+			while( i<activeCollections.length && event.getCollectionId() != activeCollections[i].getAsInteger(DavCollections._ID)) i++;
 			if ( i<activeCollections.length )
 				collectionText.setText(activeCollections[i].getAsString(DavCollections.DISPLAYNAME));
 			else

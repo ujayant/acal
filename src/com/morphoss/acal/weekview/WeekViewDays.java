@@ -41,7 +41,8 @@ import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
-import com.morphoss.acal.dataservice.DefaultEventInstance;
+import com.morphoss.acal.dataservice.Collection;
+import com.morphoss.acal.dataservice.DefaultCollectionFactory;
 import com.morphoss.acal.dataservice.EventInstance;
 
 public class WeekViewDays extends ImageView implements OnTouchListener {
@@ -389,9 +390,9 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 		if ( Constants.LOG_VERBOSE && Constants.debugWeekView ) {
 			Log.v(TAG,"Drawing event "+event.getTimeText(context, dayStart, dayStart, true)+
 						": '"+event.getSummary()+"' at "+x+" for "+width+" ~ "+
-						event.getStartMillis()+","+event.getEndMillis()+" ~ "+dayStart+", topSec: "+topSec);
-			Log.v(TAG,"Top="+(event.getStartMillis() - topStart)+
-						", Bottom="+(event.getEndMillis() - topStart) );
+						event.getStart().getMillis()+","+event.getEnd().getMillis()+" ~ "+dayStart+", topSec: "+topSec);
+			Log.v(TAG,"Top="+(event.getStart().getMillis() - topStart)+
+						", Bottom="+(event.getEnd().getMillis() - topStart) );
 		}
 		
 		int maxWidth = width;
@@ -405,13 +406,13 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 			return;
 		}
 		
-		int bottom = (int) ((event.getEndMillis() - topStart)/WeekViewActivity.SECONDS_PER_PIXEL);
+		int bottom = (int) ((event.getEnd().getMillis() - topStart)/WeekViewActivity.SECONDS_PER_PIXEL);
 		if ( bottom < PxH )  {  // Event is off top
 			if ( Constants.LOG_VERBOSE && Constants.debugWeekView ) Log.v(TAG,"Event is off top by "+ bottom + " vs. " + PxH);
 			return;
 		}
 
-		int top = (int) ((event.getStartMillis() - topStart)/WeekViewActivity.SECONDS_PER_PIXEL);
+		int top = (int) ((event.getStart().getMillis() - topStart)/WeekViewActivity.SECONDS_PER_PIXEL);
 		if ( top > TpX ) { // Event is off bottom
 			if ( Constants.LOG_VERBOSE && Constants.debugWeekView ) Log.v(TAG,"Event is off bottom by "+ top + " vs. " + TpX);
 			return;
@@ -436,9 +437,10 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 			Log.v(TAG,"Drawing event "+event.getTimeText(context, dayStart, dayStart, true)+
 						": '"+event.getSummary()+"' at "+x+","+top+" for "+width+","+height+
 						" ("+maxWidth+","+maxHeight+")"+
-						" - "+event.getStartMillis()+","+event.getEndMillis());
+						" - "+event.getStart().getMillis()+","+event.getEnd().getMillis());
 
-		canvas.drawBitmap(context.getImageCache().getEventBitmap(event.getResource().getResourceId(),event.getSummary(),event.getCollection().getColour(),
+		Collection collection = new DefaultCollectionFactory().getInstance(event.getCollectionId(),this.context);
+		canvas.drawBitmap(context.getImageCache().getEventBitmap(event.getResource().getResourceId(),event.getSummary(),collection.getColour(),
 						width, height, maxWidth, maxHeight), x, top, new Paint());
 		
 		eventsDisplayed.add( new Rectangle( x, top, x+width, top+height, event) );
@@ -454,12 +456,13 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 	public void drawHorizontal(EventInstance event, Canvas c, int depth) {
 		int maxWidth = event.calulateMaxWidth(viewWidth, HSPP);
 		if ( maxWidth < 0 ) return;
-		int x = (int)(event.getStartMillis()-HST)/HSPP;
+		int x = (int)(event.getStart().getMillis()-HST)/HSPP;
 		if ( x < 0 ) x = 0;
 		int y = HIH*depth;
-		int actualWidth = (int)Math.min(Math.min(event.getActualWidth(), viewWidth-x),(event.getEndMillis()-HST)/HSPP); 
+		int actualWidth = (int)Math.min(Math.min(event.getActualWidth(), viewWidth-x),(event.getEnd().getMillis()-HST)/HSPP); 
 		if ( actualWidth<=0 ) return;
-		c.drawBitmap(context.getImageCache().getEventBitmap(event.getResource().getResourceId(),event.getSummary(),event.getCollection().getColour(),
+		Collection collection = new DefaultCollectionFactory().getInstance(event.getCollectionId(),this.context);
+		c.drawBitmap(context.getImageCache().getEventBitmap(event.getResource().getResourceId(),event.getSummary(),collection.getColour(),
 					actualWidth, HIH, maxWidth, HIH), x,y, new Paint());
 		eventsDisplayed.add( new Rectangle( x, y, x+actualWidth, y+HIH, event) );
 	}
@@ -481,7 +484,7 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 		int depth = 0;
 		for (int x = 0; x < HSimpleList.size(); x++) {
 			EventInstance ev = HSimpleList.get(x);
-			if ( ev.getStartMillis() >= this.HET || ev.getEndMillis() <= this.HST ) continue;  // Discard any events out of range.
+			if ( ev.getStart().getMillis() >= this.HET || ev.getEnd().getMillis() <= this.HST ) continue;  // Discard any events out of range.
 			int i = 0;
 			boolean go = true;
 			while(go) {
@@ -489,7 +492,7 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 				int j=0;
 				while(true) {
 					if (row[j] == null) { row[j] = ev; go=false; break; }
-					else if (!(row[j].getEndMillis() > (ev.getStartMillis()))) {j++; continue; }
+					else if (!(row[j].getEnd().getMillis() > (ev.getStart().getMillis()))) {j++; continue; }
 					else break;
 				}
 				i++;
@@ -519,7 +522,7 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 				if (seo.overlaps(timetable[y][x])) {
 					
 					//if our end time is before [y][x]'s, we need to extend[y][x]'s range
-					if (seo.getEndMillis() < (timetable[y][x].getEndMillis())) timetable[y+1][x] = timetable[y][x];
+					if (seo.getEnd().getMillis() < (timetable[y][x].getEnd().getMillis())) timetable[y+1][x] = timetable[y][x];
 					x++;
 				} else {
 					y++;

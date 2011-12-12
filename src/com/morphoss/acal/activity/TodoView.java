@@ -24,9 +24,9 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.GestureDetector.OnGestureListener;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.GestureDetector.OnGestureListener;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.widget.Button;
@@ -37,8 +37,9 @@ import android.widget.TextView;
 import com.morphoss.acal.AcalTheme;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
+import com.morphoss.acal.dataservice.Collection;
+import com.morphoss.acal.dataservice.DefaultCollectionFactory;
 import com.morphoss.acal.davacal.AcalAlarm;
-import com.morphoss.acal.davacal.AcalCollection;
 import com.morphoss.acal.davacal.SimpleAcalTodo;
 import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VComponent;
@@ -153,12 +154,12 @@ public class TodoView extends AcalActivity implements OnGestureListener, OnTouch
 		else {
 			((RelativeLayout) this.findViewById(R.id.TodoNotesLayout)).setVisibility(View.GONE);
 		}
-		
+		Collection todoCollection = new DefaultCollectionFactory().getInstance(todo.getCollectionId(),this);
 		TextView alarmsView = (TextView) this.findViewById(R.id.TodoAlarmsContent);
 		if ( alarms != null && alarms.length() > 0 ) {
 			((RelativeLayout) this.findViewById(R.id.TodoAlarmsLayout)).setVisibility(View.VISIBLE);
 			alarmsView.setText(alarms);
-			if ( !todo.getAlarmEnabled() ) {
+			if ( !todoCollection.alarmsEnabled() ) {
 				TextView alarmsWarning = (TextView) this.findViewById(R.id.CalendarAlarmsDisabled);
 				alarmsWarning.setVisibility(View.VISIBLE);
 			}
@@ -267,9 +268,7 @@ public class TodoView extends AcalActivity implements OnGestureListener, OnTouch
 				if ( tmpSat != null ) sat = tmpSat;
 				String blob = b.getString(TodoEdit.resultVCalendar);
 				if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG, "Received blob is:\n"+blob);
-				long collectionId = b.getLong(TodoEdit.resultCollectionId);
-				AcalCollection collection = AcalCollection.fromDatabase(collectionId);
-				this.vc = (VCalendar) VComponent.createComponentFromBlob(blob, sat.resource, collection);
+				this.vc = (VCalendar) VComponent.createComponentFromBlob(blob, sat.resource);
 				this.todo = (VTodo) vc.getMasterChild();
 			}
 			catch (Exception e) {

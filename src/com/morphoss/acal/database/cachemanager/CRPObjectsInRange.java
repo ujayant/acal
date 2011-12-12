@@ -33,21 +33,27 @@ public class CRPObjectsInRange extends CacheRequestWithResponse<ArrayList<CacheO
 	@Override
 	public void process(CacheTableManager processor)  throws CacheProcessingException{
 		final ArrayList<CacheObject> result = new ArrayList<CacheObject>();
-		processor.checkWindow(range);
+		if (!processor.checkWindow(range)) {
+			//Wait give up - caller can decide to rerequest or waitf for cachechanged notification
+			this.postResponse(new CRObjectsInRangeResponse<ArrayList<CacheObject>>(result));
+			return;
+		}
 
-		ArrayList<ContentValues> data = processor.query(null, CacheTableManager.FIELD_DTSTART+" > ? AND "+CacheTableManager.FIELD_DTSTART+" < ?", 
-				new String[]{range.start.getMillis()+"",range.end.getMillis()+""}, null, null, CacheTableManager.FIELD_DTSTART);
+		ArrayList<ContentValues> data = processor.query(null, CacheTableManager.FIELD_DTSTART+ " >= ? AND "+CacheTableManager.FIELD_DT_END+" <= ?", 
+				new String[] {range.start.getMillis()+"" , range.start.getMillis()+""},
+				null,null,null);
+		
 		for (ContentValues cv : data) 
 				result.add(CacheManager.fromContentValues(cv));
 
-		result.add(new CacheObject(
+		/**result.add(new CacheObject(
 				-1,
 				1,
 				"Test Event",
 				"Test Location",
 				range.start.clone().setHour(12).getMillis(),
 				range.start.clone().setHour(13).getMillis(),
-				CacheObject.EVENT_FLAG));
+				CacheObject.EVENT_FLAG)); */
 		
 		this.postResponse(new CRObjectsInRangeResponse<ArrayList<CacheObject>>(result));
 	}

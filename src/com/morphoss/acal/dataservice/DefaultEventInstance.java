@@ -1,6 +1,6 @@
 package com.morphoss.acal.dataservice;
 
-import java.util.List;
+import java.util.ArrayList;
 
 import android.os.Parcel;
 
@@ -8,16 +8,21 @@ import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.activity.MonthView;
 import com.morphoss.acal.davacal.AcalAlarm;
-import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VEvent;
 import com.morphoss.acal.weekview.WeekViewActivity;
 
 public class DefaultEventInstance implements EventInstance {
 	
+	private VEvent baseEvent;
+	private AcalDateTime dtstart;
+	private AcalDuration duration;
 
 	public DefaultEventInstance(VEvent vEvent, AcalDateTime dtstart,
 			AcalDuration duration) {
-		// TODO Auto-generated constructor stub
+
+		this.baseEvent = vEvent;
+		this.dtstart = dtstart;
+		this.duration = duration;
 	}
 
 	//private constructor for subclasses only
@@ -41,21 +46,19 @@ public class DefaultEventInstance implements EventInstance {
 	}
 
 	@Override
-	public List<AcalAlarm> getAlarms() {
-		// TODO Auto-generated method stub
-		return null;
+	public ArrayList<AcalAlarm> getAlarms() {
+		//TODO
+		return new ArrayList<AcalAlarm>();
 	}
 
 	@Override
 	public AcalDateTime getEnd() {
-		// TODO Auto-generated method stub
-		return null;
+		return duration.getEndDate(dtstart);
 	}
 
 	@Override
 	public AcalDateTime getStart() {
-		// TODO Auto-generated method stub
-		return null;
+		return this.dtstart.clone();
 	}
 
 	@Override
@@ -74,52 +77,35 @@ public class DefaultEventInstance implements EventInstance {
 
 	@Override
 	public String getRepetition() {
-		// TODO Auto-generated method stub
-		return null;
+		return this.baseEvent.getRepetition();
 	}
 
 	
 
 	@Override
 	public String getDescription() {
-		// TODO Auto-generated method stub
-		return null;
+		return this.baseEvent.getDescription();
 	}
 
 	@Override
 	public AcalDuration getDuration() {
-		// TODO Auto-generated method stub
-		return null;
+		//TODO should clone.
+		return this.duration;
 	}
 
 	@Override
 	public String getLocation() {
-		// TODO Auto-generated method stub
-		return null;
+		return this.baseEvent.getLocation();
 	}
 
 	@Override
 	public String getSummary() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public long getEndMillis() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public long getStartMillis() {
-		// TODO Auto-generated method stub
-		return 0;
+		return this.baseEvent.getSummary();
 	}
 
 	@Override
 	public boolean isAllDay() {
-		// TODO Auto-generated method stub
-		return false;
+		return dtstart.isDate();
 	}
 
 	
@@ -172,8 +158,9 @@ public class DefaultEventInstance implements EventInstance {
 	@Override
 	public CharSequence getTimeText(AcalDateTime viewDate,
 			AcalDateTime addDays, boolean boolean1) {
+		//AcalDateTimeFormatter.getDisplayTimeText(c, viewDate, addDays, this.dtstart.getMillis(), duration.getEndDate(dtstart).getMillis(), true, this.isAllDay());
 		// TODO Auto-generated method stub
-		return null;
+		return "TODO";
 	}
 
 	
@@ -182,7 +169,7 @@ public class DefaultEventInstance implements EventInstance {
 	public String getTimeText(MonthView context, long epoch, long epoch2,
 			boolean boolean1) {
 		// TODO Auto-generated method stub
-		return null;
+		return "TODO";
 	}
 
 	@Override
@@ -204,8 +191,8 @@ public class DefaultEventInstance implements EventInstance {
 	}
 
 	@Override
-	public Collection getCollection() {
-		return this.getMaster().getCollection();
+	public long getCollectionId() {
+		return this.getMaster().getCollectionId();
 	}
 
 	@Override
@@ -215,13 +202,13 @@ public class DefaultEventInstance implements EventInstance {
 
 	@Override
 	public VEvent getMaster() {
-		// TODO Auto-generated method stub
-		return null;
+		return this.baseEvent;
 	}
 
 	public static EventInstance getInstance(Parcel in) {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
 	
 }

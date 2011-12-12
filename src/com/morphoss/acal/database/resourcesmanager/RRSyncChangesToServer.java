@@ -211,7 +211,7 @@ public class RRSyncChangesToServer implements ResourceRequest {
 				contentExtension = ".txt";
 			
 			try {
-				VComponent vc = VComponent.createComponentFromBlob(newData, null, null);
+				VComponent vc = VComponent.createComponentFromBlob(newData,null);
 				if ( vc instanceof VCard )
 					resourcePath = StaticHelpers.rTrim(vc.getProperty("UID").getValue()) + ".vcf";
 				else if ( vc instanceof VCalendar )

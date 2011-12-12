@@ -228,9 +228,6 @@
 		<provider
 			android:authorities="collections"
 			android:name="com.morphoss.acal.providers.DavCollections" />
-		<provider
-			android:authorities="pendingchanges"
-			android:name="com.morphoss.acal.providers.PendingChanges" />
 		<service android:name="com.morphoss.acal.service.aCalService" >
 			<intent-filter >
 				<action android:name="com.morphoss.acal.service.aCalService" />

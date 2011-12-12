@@ -1,5 +1,6 @@
 package com.morphoss.acal.database.cachemanager;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -16,12 +17,18 @@ import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.database.AcalDBHelper;
 import com.morphoss.acal.database.DatabaseTableManager;
-import com.morphoss.acal.database.DatabaseTableManager.DataChange;
-import com.morphoss.acal.database.DatabaseTableManager.DataDeletedEvent;
-import com.morphoss.acal.database.DatabaseTableManager.DataInsertUpdateEvent;
+import com.morphoss.acal.database.DatabaseTableManager.DataChangeEvent;
+import com.morphoss.acal.database.resourcesmanager.RRGetEventsInRange;
 import com.morphoss.acal.database.resourcesmanager.ResourceChangedEvent;
 import com.morphoss.acal.database.resourcesmanager.ResourceChangedListener;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager;
+import com.morphoss.acal.database.resourcesmanager.ResourceResponse;
+import com.morphoss.acal.database.resourcesmanager.ResourceResponseListener;
+import com.morphoss.acal.database.resourcesmanager.RRGetEventsInRange.RREventsInRangeResponse;
+import com.morphoss.acal.dataservice.EventInstance;
+import com.morphoss.acal.dataservice.Resource;
+import com.morphoss.acal.davacal.VComponent;
+import com.morphoss.acal.davacal.VComponentCreationException;
 
 /**
  * 	
@@ -34,13 +41,14 @@ import com.morphoss.acal.database.resourcesmanager.ResourceManager;
  * @author Chris Noldus
  *
  */
-public class CacheManager implements Runnable, ResourceChangedListener {
+public class CacheManager implements Runnable, ResourceChangedListener,  ResourceResponseListener<ArrayList<EventInstance>> {
 
 
 
 
 	//The current instance
 	private static CacheManager instance = null;
+	public static final String TAG = "aCal CacheManager";
 
 	//Get an instance
 	public synchronized static CacheManager getInstance(Context context) {
@@ -64,6 +72,8 @@ public class CacheManager implements Runnable, ResourceChangedListener {
 
 	//ThreadManagement
 	private ConditionVariable threadHolder = new ConditionVariable();
+	private ConditionVariable DBBlocker = new ConditionVariable();
+	private boolean pauseQueue = false;
 	private Thread workerThread;
 	private boolean running = true;
 	private final ConcurrentLinkedQueue<CacheRequest> queue = new ConcurrentLinkedQueue<CacheRequest>();
@@ -105,8 +115,10 @@ public class CacheManager implements Runnable, ResourceChangedListener {
 		this.CTMinstance = this.getECPInstance();
 		rm = ResourceManager.getInstance(context);
 		loadState();
+		DBBlocker.open();
 		workerThread = new Thread(this);
 		workerThread.start();
+		
 	}
 
 
@@ -182,21 +194,24 @@ public class CacheManager implements Runnable, ResourceChangedListener {
 		SQLiteDatabase db = dbHelper.getWritableDatabase();
 		//load start/end range from meta table
 		Cursor cr = db.query(META_TABLE, null, null, null, null, null, null);
+		AcalDateTime defaultWindow = new AcalDateTime();
 		if (cr.getCount() < 1) {
+			Log.d(TAG, "Initializing cache for first use.");
 			data.put(FIELD_CLOSED, true);
 			data.put(FIELD_COUNT, 0);
-			data.put(FIELD_START, 0);
-			data.put(FIELD_END, 0);
+			data.put(FIELD_START,  defaultWindow.getMillis());
+			data.put(FIELD_END,  defaultWindow.getMillis());
 		} else  {
 			cr.moveToFirst();
 			DatabaseUtils.cursorRowToContentValues(cr, data);
 		}
 		cr.close();
 		if (!data.getAsBoolean(FIELD_CLOSED)) {
+			Log.d(TAG, "Application not closed correctly last time. Resetting cache.");
 			this.CTMinstance.clearCache();
 			data.put(FIELD_COUNT, 0);
-			data.put(FIELD_START, 0);
-			data.put(FIELD_END, 0);
+			data.put(FIELD_START,  defaultWindow.getMillis());
+			data.put(FIELD_END,  defaultWindow.getMillis());
 		}
 		else data.put(FIELD_CLOSED, false);
 
@@ -222,6 +237,10 @@ public class CacheManager implements Runnable, ResourceChangedListener {
 		while (running) {
 			//do stuff
 			while (!queue.isEmpty()) {
+				if (pauseQueue) {
+					try { Thread.sleep(100); } catch (Exception e) { }
+					continue;
+				}
 				CacheRequest request = queue.poll();
 				CTMinstance.process(request);
 			}
@@ -246,8 +265,46 @@ public class CacheManager implements Runnable, ResourceChangedListener {
 	
 	//Request events (FROM RESOURCES) that start within the range provided. Expand window on result.
 	private void retrieveRange(long start, long end) {
-		//should be done asynchronously
-		//TODO
+		AcalDateRange range = new AcalDateRange(AcalDateTime.fromMillis(start), AcalDateTime.fromMillis(end));
+		Log.d(TAG,"Retreiving events in range "+range.start+"-->"+range.end);
+		ResourceManager.getInstance(context).sendRequest(new RRGetEventsInRange(range, this));
+	}
+	
+	@Override
+	public void resourceResponse(ResourceResponse<ArrayList<EventInstance>> response) {
+		if (response instanceof RREventsInRangeResponse<?>) {
+			RREventsInRangeResponse<ArrayList<EventInstance>> res = (RREventsInRangeResponse<ArrayList<EventInstance>>) response;
+			//put new data on the process queue
+			synchronized(CTMinstance) {
+				pauseQueue = true;
+				DBBlocker.block();
+			}
+			
+			Log.d(TAG, "Have response from Resource manager for range request.");
+			//We should have exclusive DB access at this point
+			AcalDateRange range = res.requestedRange();
+			ArrayList<EventInstance> events = res.result();
+			CTMinstance.beginTransaction();
+			Log.d(TAG, "Deleteing Existing records...");
+			int count = CTMinstance.delete(FIELD_START+" >= ? AND "+FIELD_START+" <= ?", new String[]{range.start.getMillis()+"", range.end.getMillis()+""});
+			Log.d(TAG, count + "Records Deleted. Inserting new records...");
+			count = 0;
+			for (EventInstance ei : events) {
+				CTMinstance.insert(null, CacheObject.fromEventInstance(ei).getCacheCVs());
+				count++;
+			}
+			Log.d(TAG,count+" Records Inserted.");
+			
+			
+			
+			CTMinstance.setTxSuccessful();
+			CTMinstance.endTransaction();
+			if (range.start.before(this.start)) this.start = range.start.clone();
+			if (range.end.after(this.end)) this.end = range.end.clone();
+			Log.d(TAG, "Cache Window: "+start+" -> "+end);
+			pauseQueue = false;
+			
+		}
 	}
 
 	/**
@@ -294,8 +351,10 @@ public class CacheManager implements Runnable, ResourceChangedListener {
 		 * consistant.
 		 * @param r
 		 */
-		public void process(CacheRequest r) { 
+		public synchronized void process(CacheRequest r) { 
 			//currentRequest = r;
+
+			DBBlocker.close();
 			try {
 				r.process(this);
 				if (this.inTx) {
@@ -312,6 +371,7 @@ public class CacheManager implements Runnable, ResourceChangedListener {
 				try { endQuery(); } catch (Exception e) { }
 			}
 			//currentRequest = null;
+			DBBlocker.open();
 		}
 
 		
@@ -320,7 +380,7 @@ public class CacheManager implements Runnable, ResourceChangedListener {
 		 */
 		private void clearCache() {
 			this.beginTransaction();
-			db.delete(CacheTableManager.TABLE, null, null);
+			this.delete(null, null);
 			this.setTxSuccessful();
 			this.endTransaction();
 		}
@@ -328,11 +388,13 @@ public class CacheManager implements Runnable, ResourceChangedListener {
 		
 		/**Checks that the window has been populated with the requested range
 		 * range can be NULL in which case the default range is used.
-		 * If the range is NOT covered, an asynchronous request is made to resource
+		 * If the range is NOT covered, a request is made to resource
 		 * manager to get the required data.
 		 * Returns weather or not the cache fully covers a specified (or default) range
 		 */
 		public boolean checkWindow(AcalDateRange requestedRange) {
+			Log.d(TAG,"Checking Cache Window: Request "+requestedRange.start.getMillis()+" --> "+requestedRange.end.getMillis());
+			Log.d(TAG,"Checking Cache Window: Current Window:"+ CacheManager.this.start.getMillis()+" --> "+CacheManager.this.end.getMillis());
 			long start;
 			long end;
 			if (requestedRange != null) {
@@ -348,22 +410,32 @@ public class CacheManager implements Runnable, ResourceChangedListener {
 			}
 			long wStart = CacheManager.this.start.getMillis();
 			long wEnd = CacheManager.this.end.getMillis();
+			
 			//start & end should fall between this.start and this.end
 			//check start >= this.strt && <= this.end && end <= this.end
-			if (start >= wStart && start <= wEnd && end <= wEnd) return true;
+			if (start >= wStart && start <= wEnd && end <= wEnd) {
+				Log.d(TAG, "Cache Window already large enough");
+				return true;
+			}
+
+			Log.d(TAG, "Expanding Cache Window");
 			
 			//we now need to work out what range we need to request
 			//3 Options - 
 					//start -> wStart
 					//wEnd -> wEnd
 					//or both
-			if (start < wStart) retrieveRange(start, wStart);
-			if (end > wEnd) retrieveRange(wEnd,end);
+			if (wStart == wEnd) retrieveRange(start, end);
+			else {
+				if (start < wStart) retrieveRange(start, wStart);
+				if (end > wEnd) retrieveRange(wEnd,end);
+			}
 			return false;
 		}
 
 		@Override
-		public void dataChanged(List<DataChange> changes) {
+		public void dataChanged(List<DataChangeEvent> changes) {
+			if (changes.isEmpty()) return;
 			CacheChangedEvent cce = new CacheChangedEvent(changes);
 			synchronized (listeners) {
 				for (CacheChangedListener listener: listeners) {
@@ -404,19 +476,38 @@ public class CacheManager implements Runnable, ResourceChangedListener {
 	@Override
 	public void resourceChanged(ResourceChangedEvent event) {
 		// TODO Auto-generated method stub
-		List<DataChange> changes = event.getChanges();
+		List<DataChangeEvent> changes = event.getChanges();
 		if (changes == null || changes.isEmpty()) return;	//dont care
-		for (DataChange change : changes) {
+		for (DataChangeEvent change : changes) {
+			
+			//TODO NOTE: changes need to be thread safe!
+			
 			switch (change.action) {
 			case INSERT:
 			case UPDATE:
-				long rid = ((DataDeletedEvent)change).oldRow.getAsLong(ResourceManager.ResourceTableManager.RESOURCE_ID);
+				Resource r = event.getResource(change);
+				//If this resource in our window?
+				
+				//Construct resource
+				VComponent comp;
+				try {
+					comp = VComponent.createComponentFromResource(r);
+				} catch (VComponentCreationException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+				//get instances within window
+				
+				//replace all existing with same RID 
 				
 				break;
 			case DELETE:
-				rid = ((DataDeletedEvent)change).oldRow.getAsLong(ResourceManager.ResourceTableManager.RESOURCE_ID);
-				this.CTMinstance.resourceDeleted(rid);
+				long rid = change.getData().getAsLong(ResourceManager.ResourceTableManager.RESOURCE_ID);
+				//delete
 			}
 		}
 	}
+
+	
 }

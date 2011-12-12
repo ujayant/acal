@@ -32,7 +32,6 @@ import android.os.Parcelable;
 import android.util.Log;
 
 import com.morphoss.acal.Constants;
-import com.morphoss.acal.dataservice.Collection;
 import com.morphoss.acal.dataservice.DefaultResourceInstance;
 import com.morphoss.acal.dataservice.Resource;
 
@@ -65,7 +64,7 @@ public abstract class VComponent implements Parcelable {
 
 	public final String					name;
 
-	protected AcalCollection			collectionData;
+	protected long			collectionId;
 	protected ComponentParts			content;	
 	
 	protected VComponent 				parent;
@@ -84,7 +83,7 @@ public abstract class VComponent implements Parcelable {
 	private Map<String, AcalProperty> properties;
 	protected boolean propertiesSet = false;
 	private int persistenceCount = 0;
-	public Resource resource;
+	protected Resource resource;
 	
 	//Constructors and factory methods
 	/**
@@ -95,9 +94,9 @@ public abstract class VComponent implements Parcelable {
 	 * @param resourceRow
 	 * @param collectionObject
 	 */
-	protected VComponent(ComponentParts splitter, Resource resource, AcalCollection collectionObject, VComponent parent) {
+	protected VComponent(ComponentParts splitter, Resource resource, VComponent parent) {
 		this.resource = resource;
-		this.collectionData = collectionObject;
+		this.collectionId = resource.getCollectionId();
 		this.content = splitter;
 		this.name = splitter.thisComponent;
 		this.parent = parent;
@@ -106,7 +105,7 @@ public abstract class VComponent implements Parcelable {
 	protected VComponent(String typeName, VComponent parent) {
 		this.name = typeName;
 		this.parent = parent;
-		this.collectionData = parent.collectionData;
+		this.collectionId = parent.collectionId;
 		this.content = null;
 		this.children = new ArrayList<VComponent>();
 		this.properties = new HashMap<String,AcalProperty>();
@@ -114,8 +113,8 @@ public abstract class VComponent implements Parcelable {
 		this.propertiesSet = true;
 	}
 
-	protected VComponent(String typeName, AcalCollection collectionObject, VComponent parent) {
-		this.collectionData = collectionObject;
+	protected VComponent(String typeName, long collectionId, VComponent parent) {
+		this.collectionId = collectionId;
 		this.name = typeName;
 		this.parent = parent;
 		this.content = null;
@@ -126,14 +125,14 @@ public abstract class VComponent implements Parcelable {
 	}
 
 	
-	public synchronized static VComponent createComponentFromResource(Resource resource, AcalCollection collectionObject) throws VComponentCreationException {
+	public synchronized static VComponent createComponentFromResource(Resource resource) throws VComponentCreationException {
 		String blob = resource.getBlob();
 		if ( blob == null ) return null;
-		return createComponentFromBlob(blob,resource,collectionObject);
+		return createComponentFromBlob(blob,resource);
 	}
 
 	
-	public synchronized static VComponent createComponentFromBlob(String blob, Resource r, AcalCollection collectionObject) {
+	public synchronized static VComponent createComponentFromBlob(String blob, Resource r) {
 		
 		// Remove all line spacing
 		// Very probably we should do this when we write it into the local database.
@@ -142,21 +141,21 @@ public abstract class VComponent implements Parcelable {
 
 		ComponentParts splitter = new ComponentParts(blob);
 		if ( splitter.thisComponent.equals(VCALENDAR) )
-			return new VCalendar(splitter, r, null,null, collectionObject, null);
+			return new VCalendar(splitter, r, null,null, null);
 		else if (splitter.thisComponent.equals(VCARD))
-			return new VCard(splitter,r, collectionObject,null);
+			return new VCard(splitter,r,null);
 		else if (splitter.thisComponent.equals(VEVENT))
-			return new VEvent(splitter,r, collectionObject,null);
+			return new VEvent(splitter,r,null);
 		else if (splitter.thisComponent.equals(VTODO))
-			return new VTodo(splitter,r, collectionObject,null);
+			return new VTodo(splitter,r,null);
 		else if (splitter.thisComponent.equals(VALARM))
-			return new VAlarm(splitter,r, collectionObject,null);
+			return new VAlarm(splitter,r,null);
 		else if (splitter.thisComponent.equals(VTIMEZONE))
-			return new VTimezone(splitter,r, collectionObject,null);
+			return new VTimezone(splitter,r,null);
 		else if (splitter.thisComponent.equals(VJOURNAL))
-			return new VJournal(splitter,r, collectionObject,null);
+			return new VJournal(splitter,r,null);
 		else
-			return new VGenericComponent(splitter,r, collectionObject,null);
+			return new VGenericComponent(splitter,r,null);
 	}
 	
 	/************************************
@@ -169,13 +168,12 @@ public abstract class VComponent implements Parcelable {
 		return -1;
 	}
 	
-	public synchronized int getCollectionId() {
-		return this.collectionData.collectionId;
+	public synchronized long getCollectionId() {
+		return this.collectionId;
 	}
 
-	public synchronized void setCollection(AcalCollection newCollection) {
-		if ( newCollection != null )
-			this.collectionData = newCollection;
+	public synchronized void setCollection(long newCollectionId) {
+			this.collectionId = newCollectionId;
 	}
 
 	public synchronized int size() {
@@ -245,10 +243,6 @@ public abstract class VComponent implements Parcelable {
 		return content.componentString;
 	}
 
-	
-	public Collection getCollection() {
-		return this.resource.getCollection();
-	}
 	
 	public Resource getResource() {
 		return this.resource;
@@ -325,43 +319,6 @@ public abstract class VComponent implements Parcelable {
 			return false;
 		}
 		return this.properties.containsKey(name.toUpperCase());
-	}
-
-	
-	/**
-	 * Returns the colour assigned to the collection associated with this component.
-	 * @return
-	 */
-	public synchronized int getCollectionColour() {
-		// When we are adding events we might not have a collection yet
-		try {
-			return this.collectionData.getColour();
-		}
-		catch( NullPointerException e ) {};
-		return 0x60a0a0a0; // 40% transparent 60% grey
-	}
-
-	
-	/**
-	 * Returns the name for the collection associated with this component.
-	 * @return
-	 */
-	public CharSequence getCollectionName() {
-		// When we are adding events we might not have a collection yet
-		try {
-			return this.collectionData.getDisplayName();
-		}
-		catch( NullPointerException e ) {};
-		return "Unnamed";
-	}
-
-	public boolean getAlarmEnabled() {
-		try {
-			// When we are adding events we might not have a collection yet
-			return this.collectionData.alarmsEnabled;
-		}
-		catch( NullPointerException e ) {};
-		return true;
 	}
 	
 	
@@ -448,13 +405,13 @@ public abstract class VComponent implements Parcelable {
 		for (PartInfo childInfo : this.content.partInfo) {
 			ComponentParts childSplitter = new ComponentParts( childInfo.getComponent(content.componentString));
 			if ( childInfo.type.equals(VEVENT))
-				this.children.add(new VEvent(childSplitter, this.resource, collectionData,this));
+				this.children.add(new VEvent(childSplitter, this.resource,this));
 			else if (childInfo.type.equals(VALARM))
-				this.children.add(new VAlarm(childSplitter, this.resource, collectionData,this));
+				this.children.add(new VAlarm(childSplitter, this.resource, this));
 			else if (childInfo.type.equals(VTODO))
-				this.children.add(new VTodo(childSplitter,this.resource,collectionData,this));
+				this.children.add(new VTodo(childSplitter,this.resource,this));
 			else
-				this.children.add(new VGenericComponent(childSplitter,this.resource,collectionData,this));
+				this.children.add(new VGenericComponent(childSplitter,this.resource,this));
 		}
 		this.childrenSet = true;
 	}

@@ -24,12 +24,12 @@ import com.morphoss.acal.dataservice.Resource;
 public class VAlarm extends VComponent {
 	public static final String TAG = "aCal VAlarm";
 	
-	public VAlarm(ComponentParts splitter, Resource r, AcalCollection collectionObject,VComponent parent) {
-		super(splitter, r, collectionObject,parent);
+	public VAlarm(ComponentParts splitter, Resource r, VComponent parent) {
+		super(splitter, r,parent);
 	}
 
 	public VAlarm( VComponent parent ) {
-		super( "VALARM", parent.collectionData, parent );
+		super( "VALARM", parent.collectionId, parent );
 		try { setPersistentOn(); } catch (YouMustSurroundThisMethodInTryCatchOrIllEatYouException e) { }
 	}
 

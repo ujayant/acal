@@ -174,7 +174,6 @@ public class RRInitialCollectionSync implements ResourceRequest {
 	}
 	
 	private boolean getCollectionId() {
-		Cursor cursor = null;
 		try {
 			if ( collectionPath == null ) {
 				collectionValues = processor.getCollectionRow(collectionId);
@@ -190,7 +189,6 @@ public class RRInitialCollectionSync implements ResourceRequest {
 			else if ( serverId > 0 && collectionId < 0 ) {
 				collectionValues = new ContentValues();
 				if (processor.getCollectionIdByPath(collectionValues, serverId, collectionPath)) {
-					DatabaseUtils.cursorRowToContentValues(cursor, collectionValues);
 					collectionId = collectionValues.getAsInteger(DavCollections._ID);
 					isCollectionIdAssigned = true;
 				}
@@ -208,7 +206,6 @@ public class RRInitialCollectionSync implements ResourceRequest {
 			Log.e(TAG,Log.getStackTraceString(e));
 		}
 		finally {
-			if (cursor != null) cursor.close();
 		}
 		return ( isCollectionIdAssigned && collectionPath != null );
 	}
@@ -344,6 +341,7 @@ public class RRInitialCollectionSync implements ResourceRequest {
 			if ( !parseResponseNode(response, cv) ) continue;
 
 			//changeList.add( new ResourceModification(action,cv,null));
+			builder.setValues(cv);
 			queryList.addAction(builder.build());
 		}
 

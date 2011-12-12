@@ -36,8 +36,8 @@ public class VTimezone extends VComponent {
 	protected TimeZone tz = null;
 	protected String tzid = null;
 	
-	public VTimezone(ComponentParts splitter, Resource r, AcalCollection collectionObject,VComponent parent) {
-		super(splitter, r, collectionObject, parent);
+	public VTimezone(ComponentParts splitter, Resource r, VComponent parent) {
+		super(splitter, r, parent);
 	}
 
 	public String getTZID() {

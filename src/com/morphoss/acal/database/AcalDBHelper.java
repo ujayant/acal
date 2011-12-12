@@ -259,6 +259,9 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 		
 		db.execSQL(SHOW_UPCOMING_WIDGET_TABLE_SQL);
 		
+		db.execSQL(EVENT_CACHE_TABLE_SQL);
+		db.execSQL(EVENT_CACHE_META_TABLE_SQL);
+		
 		db.setTransactionSuccessful();
 		db.endTransaction();
 	}

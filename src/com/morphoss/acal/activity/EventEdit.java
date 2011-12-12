@@ -53,6 +53,7 @@ import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDateTimeFormatter;
 import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
+import com.morphoss.acal.dataservice.Collection;
 import com.morphoss.acal.dataservice.DefaultCollectionFactory;
 import com.morphoss.acal.dataservice.EventInstance;
 import com.morphoss.acal.dataservice.MethodsRequired;
@@ -176,7 +177,7 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 		
 		if ( operation == EventInstance.EVENT_OPERATION_EDIT ) {
 			try {
-				collectionId = this.event.getCollection().getCollectionId();
+				collectionId = this.event.getCollectionId();
 				this.event.setAction(WriteableEventInstance.ACTION_MODIFY_ALL);
 				if ( event.isModifyAction() ) {
 					String rr = (String)  this.event.getRepetition();
@@ -199,7 +200,7 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 		else if ( operation == EventInstance.EVENT_OPERATION_COPY ) {
 			// Duplicate the event into a new one.
 			try {
-				collectionId = event.getCollection().getCollectionId();
+				collectionId = event.getCollectionId();
 			}
 			catch (Exception e) {
 				if (Constants.LOG_DEBUG)Log.d(TAG, "Error getting data from caller: "+e.getMessage());
@@ -288,7 +289,7 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 				this.currentCollection = cv; break;
 			}
 		}
-		this.event.setCollection(new DefaultCollectionFactory().getInstance(this.currentCollection.getAsInteger(DavCollections._ID)));
+		this.event.setCollection(new DefaultCollectionFactory().getInstance(this.currentCollection.getAsInteger(DavCollections._ID), this));
 		this.updateLayout();
 	}
 
@@ -365,8 +366,8 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 		AcalDateTime start = event.getStart();
 		AcalDateTime end = event.getEnd();
 		end.setAsDate(start.isDate());
-
-		Integer colour = event.getCollection().getColour();
+		Collection collection = new DefaultCollectionFactory().getInstance(event.getCollectionId(),this);
+		Integer colour = collection.getColour();
 		sidebar.setBackgroundColor(colour);
 		sidebarBottom.setBackgroundColor(colour);
 		eventName.setTextColor(colour);

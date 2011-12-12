@@ -35,7 +35,7 @@ public class CRObjectsInMonthByDay extends CacheRequestWithResponse<HashMap<Inte
 	@Override
 	public void process(CacheTableManager processor) throws CacheProcessingException {
 		final HashMap<Integer,ArrayList<CacheObject>> result = new HashMap<Integer,ArrayList<CacheObject>>();
-		AcalDateTime start = new AcalDateTime( year, month, 1, 0, 0, 0, null).applyLocalTimeZone(); 
+		/**AcalDateTime start = new AcalDateTime( year, month, 1, 0, 0, 0, null).applyLocalTimeZone(); 
 		AcalDateTime end = start.clone().addMonths(1).applyLocalTimeZone();
 		while (start.before(end)) {
 			ArrayList<CacheObject> day = new ArrayList<CacheObject>();
@@ -49,7 +49,7 @@ public class CRObjectsInMonthByDay extends CacheRequestWithResponse<HashMap<Inte
 					CacheObject.EVENT_FLAG));
 			result.put((int)start.getMonthDay(), day);
 			start.addDays(1);
-		}
+		} */
 		this.postResponse(new CREventsInMonthByDayResponse<HashMap<Integer,ArrayList<CacheObject>>>(result));
 	}
 

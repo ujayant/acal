@@ -27,8 +27,8 @@ public class VCard extends VComponent {
 	protected final String name = "VCard";
 	
 	
-	public VCard(ComponentParts splitter, Resource r, AcalCollection collectionObject,VComponent parent) {
-		super(splitter, r, collectionObject,parent);
+	public VCard(ComponentParts splitter, Resource r, VComponent parent) {
+		super(splitter, r, parent);
 	}
 	
 }

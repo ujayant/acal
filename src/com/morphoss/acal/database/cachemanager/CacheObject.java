@@ -1,10 +1,10 @@
 package com.morphoss.acal.database.cachemanager;
 
+import android.content.ContentValues;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import com.morphoss.acal.dataservice.Collection;
-import com.morphoss.acal.dataservice.DefaultCollectionFactory;
+import com.morphoss.acal.database.cachemanager.CacheManager.CacheTableManager;
 import com.morphoss.acal.dataservice.EventInstance;
 
 /**
@@ -116,8 +116,8 @@ public class CacheObject implements Parcelable {
 	 * An instance of the collection this resource belongs to
 	 * @return
 	 */
-	public Collection getCollection() {
-		return Collection.getInstance(new DefaultCollectionFactory(), cid);
+	public long getCollectionId() {
+		return cid;
 	}
 
 	/**
@@ -159,4 +159,39 @@ public class CacheObject implements Parcelable {
 	public boolean isAllDay() {
 		return (flags&FLAG_ALL_DAY)>0;
 	}
+	
+	public static CacheObject fromEventInstance(EventInstance ei) {
+	/**	public static final int EVENT_FLAG = 			1;
+		public static final int TODO_FLAG = 			1<<1;
+		public static final int HAS_ALARM_FLAG = 		1<<2;
+		public static final int RECURS_FLAG =			1<<3;
+		public static final int DIRTY_FLAG = 			1<<4;
+		public static final int START_IS_FLOATING_FLAG =1<<5;
+		public static final int END_IS_FLOATING_FLAG = 	1<<6;
+		public static final int FLAG_ALL_DAY = 			1<<7;*/
+		
+		int flag = 1;
+		//if (ei.getStart().isFloating()) flag+=1<<5;
+		//if (ei.getEnd().isFloating()) flag+=1<<6;
+		//if (ei.isAllDay()) flag+= 1<<7;
+		
+		
+		return new CacheObject(ei.getResource().getResourceId(), ei.getCollectionId(), ei.getSummary(), ei.getLocation(), 
+				ei.getStart().getMillis(), ei.getEnd().getMillis(), flag);
+	}
+	
+	public ContentValues getCacheCVs() {
+		ContentValues cv =  new ContentValues();
+		
+		cv.put(CacheTableManager.FIELD_RESOURCE_ID,rid);
+		cv.put(CacheTableManager.FIELD_CID,cid);
+		cv.put(CacheTableManager.FIELD_SUMMARY,this.summary);
+		cv.put(CacheTableManager.FIELD_LOCATION,this.location);
+		cv.put(CacheTableManager.FIELD_DTSTART, this.start);
+		cv.put(CacheTableManager.FIELD_DT_END, this.end);
+		cv.put(CacheTableManager.FIELD_FLAGS, this.flags);
+		return cv;
+	}
+	
+	
 }

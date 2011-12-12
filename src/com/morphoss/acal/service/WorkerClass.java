@@ -241,7 +241,7 @@ public class WorkerClass implements Runnable {
 				while ( (job = getJob()) != null ) {
 //					Log.i(TAG, "Executing job " + job.getDescription());
 //					if ( Constants.debugHeap)
-						AcalDebug.heapDebug(TAG, "Run Job "+job.getDescription().replace(':','-'));
+//						AcalDebug.heapDebug(TAG, "Run Job "+job.getDescription().replace(':','-'));
 
 					job.run(this.context);
 					timeOfLastAction = System.currentTimeMillis();
