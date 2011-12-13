@@ -69,7 +69,12 @@ public class ResourceManager implements Runnable {
 	private boolean running = true;
 	private final ConcurrentLinkedQueue<ResourceRequest> queue = new ConcurrentLinkedQueue<ResourceRequest>();
 
-	// Comms
+	/**
+	 * IMPORTANT INVARIANT:
+	 * listeners should only ever be told about changes by the worker thread calling dataChanged in the enclosed class.
+	 * 
+	 * Notifying listeners in any other way can lead to Race Conditions.
+	 */
 	private final CopyOnWriteArraySet<ResourceChangedListener> listeners = new CopyOnWriteArraySet<ResourceChangedListener>();
 
 	private ResourceManager(Context context) {
@@ -381,6 +386,7 @@ public class ResourceManager implements Runnable {
 
 		}
 
+		//Never ever ever ever call resourceChanged on listeners anywhere else.
 		@Override
 		public void dataChanged(List<DataChangeEvent> changes) {
 			ResourceChangedEvent rce = new ResourceChangedEvent(changes);

@@ -38,8 +38,11 @@ public class RRGetEventsInRange extends ResourceRequestWithResponse<ArrayList<Ev
 		Log.d(TAG,"Getting Resource rows");
 		//step 2 query db for reesources in range
 		ArrayList<ContentValues> rValues = processor.query(null, 
-				ResourceTableManager.LATEST_END+" >= ? AND "+ResourceTableManager.EARLIEST_START+" <= ? ",
-				new String[]{start+"", end+""},
+				
+				"( "+ResourceTableManager.LATEST_END+" ISNULL OR " + ResourceTableManager.LATEST_END+" >= ? )" +
+				" AND "+ResourceTableManager.EARLIEST_START+" <= ? "
+				,
+				new String[]{  start+"", end+""},
 				null,null,null);
 		Log.d(TAG,rValues.size()+" Rows retreived. Converting into Resource Objects");
 		ArrayList<Resource> resources = new ArrayList<Resource>();

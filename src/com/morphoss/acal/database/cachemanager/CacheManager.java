@@ -17,7 +17,9 @@ import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.database.AcalDBHelper;
 import com.morphoss.acal.database.DatabaseTableManager;
+import com.morphoss.acal.database.DatabaseTableManager.DMQueryList;
 import com.morphoss.acal.database.DatabaseTableManager.DataChangeEvent;
+import com.morphoss.acal.database.DatabaseTableManager.QUERY_ACTION;
 import com.morphoss.acal.database.resourcesmanager.RRGetEventsInRange;
 import com.morphoss.acal.database.resourcesmanager.ResourceChangedEvent;
 import com.morphoss.acal.database.resourcesmanager.ResourceChangedListener;
@@ -37,6 +39,10 @@ import com.morphoss.acal.davacal.VComponentCreationException;
  * Call the static getInstance method to get an instance of this Manager.
  * 
  * To use, call sendRequest
+ * 
+ * WARNING: Only the worker thread should access the DB directly. Everything else MUST create a request and put it on the queue
+ * adding methods that directly access the db in this enclosing class could lead to race conditions and cause the db or the cache
+ * to enter an inconsistant state.
  *
  * @author Chris Noldus
  *
@@ -72,8 +78,6 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 
 	//ThreadManagement
 	private ConditionVariable threadHolder = new ConditionVariable();
-	private ConditionVariable DBBlocker = new ConditionVariable();
-	private boolean pauseQueue = false;
 	private Thread workerThread;
 	private boolean running = true;
 	private final ConcurrentLinkedQueue<CacheRequest> queue = new ConcurrentLinkedQueue<CacheRequest>();
@@ -115,7 +119,6 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		this.CTMinstance = this.getECPInstance();
 		rm = ResourceManager.getInstance(context);
 		loadState();
-		DBBlocker.open();
 		workerThread = new Thread(this);
 		workerThread.start();
 		
@@ -237,10 +240,6 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		while (running) {
 			//do stuff
 			while (!queue.isEmpty()) {
-				if (pauseQueue) {
-					try { Thread.sleep(100); } catch (Exception e) { }
-					continue;
-				}
 				CacheRequest request = queue.poll();
 				CTMinstance.process(request);
 			}
@@ -275,34 +274,29 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		if (response instanceof RREventsInRangeResponse<?>) {
 			RREventsInRangeResponse<ArrayList<EventInstance>> res = (RREventsInRangeResponse<ArrayList<EventInstance>>) response;
 			//put new data on the process queue
-			synchronized(CTMinstance) {
-				pauseQueue = true;
-				DBBlocker.block();
-			}
+			
+			DMQueryList inserts = CTMinstance.new DMQueryList();
 			
 			Log.d(TAG, "Have response from Resource manager for range request.");
 			//We should have exclusive DB access at this point
 			AcalDateRange range = res.requestedRange();
 			ArrayList<EventInstance> events = res.result();
-			CTMinstance.beginTransaction();
 			Log.d(TAG, "Deleteing Existing records...");
-			int count = CTMinstance.delete(FIELD_START+" >= ? AND "+FIELD_START+" <= ?", new String[]{range.start.getMillis()+"", range.end.getMillis()+""});
-			Log.d(TAG, count + "Records Deleted. Inserting new records...");
+			inserts.addAction(CTMinstance.new DMQueryBuilder()
+							.setAction(QUERY_ACTION.DELETE)
+							.setWhereClause(FIELD_START+" >= ? AND "+FIELD_START+" <= ?")
+							.setwhereArgs(new String[]{range.start.getMillis()+"", range.end.getMillis()+""})
+							.build());
+							
+			Log.d(TAG, count + "Records added to Delete queue. Adding Insert records...");
 			count = 0;
 			for (EventInstance ei : events) {
-				CTMinstance.insert(null, CacheObject.fromEventInstance(ei).getCacheCVs());
+				ContentValues toInsert = CacheObject.fromEventInstance(ei).getCacheCVs();
+				inserts.addAction(CTMinstance.new DMQueryBuilder().setAction(QUERY_ACTION.INSERT).setValues(toInsert).build());
 				count++;
 			}
-			Log.d(TAG,count+" Records Inserted.");
-			
-			
-			
-			CTMinstance.setTxSuccessful();
-			CTMinstance.endTransaction();
-			if (range.start.before(this.start)) this.start = range.start.clone();
-			if (range.end.after(this.end)) this.end = range.end.clone();
-			Log.d(TAG, "Cache Window: "+start+" -> "+end);
-			pauseQueue = false;
+			Log.d(TAG, count+" records to insert. Adding to queue");
+			this.sendRequest(new CRAddRangeResult(inserts, range));
 			
 		}
 	}
@@ -323,7 +317,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		public static final String FIELD_SUMMARY ="summary";
 		public static final String FIELD_LOCATION ="location";
 		public static final String FIELD_DTSTART = "dtstart";
-		public static final String FIELD_DT_END = "dtend";
+		public static final String FIELD_DTEND = "dtend";
 		public static final String FIELD_FLAGS ="flags";
 		
 		/**
@@ -353,8 +347,6 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		 */
 		public synchronized void process(CacheRequest r) { 
 			//currentRequest = r;
-
-			DBBlocker.close();
 			try {
 				r.process(this);
 				if (this.inTx) {
@@ -371,7 +363,6 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 				try { endQuery(); } catch (Exception e) { }
 			}
 			//currentRequest = null;
-			DBBlocker.open();
 		}
 
 		
@@ -395,44 +386,50 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		public boolean checkWindow(AcalDateRange requestedRange) {
 			Log.d(TAG,"Checking Cache Window: Request "+requestedRange.start.getMillis()+" --> "+requestedRange.end.getMillis());
 			Log.d(TAG,"Checking Cache Window: Current Window:"+ CacheManager.this.start.getMillis()+" --> "+CacheManager.this.end.getMillis());
-			long start;
-			long end;
+			//get current window size
+			AcalDateTime currentStart = AcalDateTime.fromMillis(CacheManager.this.start.getMillis());
+			AcalDateTime currentEnd = AcalDateTime.fromMillis(CacheManager.this.end.getMillis());
+			AcalDateTime start;
+			AcalDateTime end;
+			boolean covered = false;
 			if (requestedRange != null) {
-				start = requestedRange.start.getMillis();
-				end = requestedRange.start.getMillis();
+				start = requestedRange.start.clone();
+				end = requestedRange.end.clone();
+				//set this to true if the requested range is within the covered range.
+				covered = start.after(currentStart) && end.before(currentEnd);
+				
+				//we always work in whole month windows
+				start.setMonthDay(1);
+				start.setDaySecond(0);
+				
+				end.setMonthDay(1);
+				end.setDaySecond(0);
+				
 			} else {
-				AcalDateTime st = new AcalDateTime();
-				AcalDateTime en = new AcalDateTime();
-				st.addMonths(-DEF_MONTHS_BEFORE);
-				en.addMonths(DEF_MONTHS_AFTER);
-				start =st.getMillis();
-				end = en.getMillis();
+				start = new AcalDateTime();
+				end = new AcalDateTime().clone().addMonths(1);
 			}
-			long wStart = CacheManager.this.start.getMillis();
-			long wEnd = CacheManager.this.end.getMillis();
 			
-			//start & end should fall between this.start and this.end
-			//check start >= this.strt && <= this.end && end <= this.end
-			if (start >= wStart && start <= wEnd && end <= wEnd) {
-				Log.d(TAG, "Cache Window already large enough");
-				return true;
-			}
-
-			Log.d(TAG, "Expanding Cache Window");
+			//increase requested window to default miniumums
+			start.addMonths(-DEF_MONTHS_BEFORE);
+			end.addMonths(DEF_MONTHS_AFTER);
 			
-			//we now need to work out what range we need to request
-			//3 Options - 
-					//start -> wStart
-					//wEnd -> wEnd
-					//or both
-			if (wStart == wEnd) retrieveRange(start, end);
-			else {
-				if (start < wStart) retrieveRange(start, wStart);
-				if (end > wEnd) retrieveRange(wEnd,end);
+			
+			
+			//expand as needed
+			if (start.before(currentStart)) {
+				Log.d(TAG, "Expanding Cache Window Left");
+				retrieveRange(start.getMillis(), currentStart.getMillis()-1);
 			}
-			return false;
+			if (end.after(currentEnd)) {
+				Log.d(TAG, "Expanding Cache Window Right");
+				retrieveRange(currentEnd.getMillis()+1, end.getMillis());
+			}
+			
+			return covered;
 		}
 
+		//Never ever ever ever call cacheChanged on listeners anywhere else.
 		@Override
 		public void dataChanged(List<DataChangeEvent> changes) {
 			if (changes.isEmpty()) return;
@@ -447,6 +444,12 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 
 		public void resourceDeleted(long rid) {
 			this.delete(FIELD_RESOURCE_ID+" = ?", new String[]{rid+""});
+		}
+
+		public void updateWindowToInclude(AcalDateRange range) {
+			if (range.start.before(CacheManager.this.start)) CacheManager.this.start = range.start.clone();
+			if (range.end.after(CacheManager.this.end)) CacheManager.this.end = range.end.clone();
+			Log.d(TAG, "Cache Window: "+start+" -> "+end);
 		}	
 		
 		/**
@@ -468,11 +471,26 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 					row.getAsString(CacheTableManager.FIELD_SUMMARY),
 					row.getAsString(CacheTableManager.FIELD_LOCATION),
 					row.getAsLong(CacheTableManager.FIELD_DTSTART),
-					row.getAsLong(CacheTableManager.FIELD_DT_END),
+					row.getAsLong(CacheTableManager.FIELD_DTEND),
 					row.getAsInteger(CacheTableManager.FIELD_FLAGS)
 				);
 	}
 
+	/**
+	 * This method should only ever be called from within the dataChanged method of ResourceTableManager.
+	 * Because of this, we can take into account some simple possibilities:
+	 * 
+	 * FACT: This method was caused by the workerThread of ResourceManager executing a ResourceRequest
+	 * FACT: If it was not one of our requests that caused the change, then any requests of ours that have
+	 * 		not yet been processed will include this updated information and overwriting is O.K.
+	 * FACT: If it was one of our requests that caused the change, then we will get a response only after
+	 * 		this method has finished processing, and the response will also have only current information.
+	 * FACT: Any of our requests that were processed BEFORE these changes have taken affect have either been 
+	 * 		dealt with or are in our QUEUE
+	 * 
+	 *  Conclusion: As long as any work that needs to be done is added to our queue, our state should remain consistant.
+	 *
+	 */
 	@Override
 	public void resourceChanged(ResourceChangedEvent event) {
 		// TODO Auto-generated method stub

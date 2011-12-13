@@ -140,6 +140,7 @@ public abstract class DatabaseTableManager {
 	}
 
 	public void endTransaction() {
+		db.endTransaction();
 		closeDB(CLOSE_TX);
 	}
 
@@ -207,7 +208,7 @@ public abstract class DatabaseTableManager {
 			boolean openDb = false;
 			try {
 				//Queries are always done as in a transaction - we need to see if we are already in one or not.
-				if (!DatabaseTableManager.this.inTx) {
+				if (DatabaseTableManager.this.inTx) {
 					for (DMAction action : actions) action.process(dm);
 				} else {
 					dm.beginTransaction();
@@ -218,6 +219,7 @@ public abstract class DatabaseTableManager {
 				}
 				res = true;
 			} catch (Exception e) {
+				Log.e(TAG, "Exception processing request: "+e);
 			} finally { if (openDb) dm.endTransaction(); }
 			return res;
 		}

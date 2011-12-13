@@ -39,8 +39,12 @@ public class CRPObjectsInRange extends CacheRequestWithResponse<ArrayList<CacheO
 			return;
 		}
 
-		ArrayList<ContentValues> data = processor.query(null, CacheTableManager.FIELD_DTSTART+ " >= ? AND "+CacheTableManager.FIELD_DT_END+" <= ?", 
-				new String[] {range.start.getMillis()+"" , range.start.getMillis()+""},
+		String dtStart = range.start.getMillis()+"";
+		String dtEnd = range.end.getMillis()+"";
+		ArrayList<ContentValues> data = processor.query(null, 
+				"( "+CacheTableManager.FIELD_DTEND+" > ? OR "+CacheTableManager.FIELD_DTEND+" ISNULL ) AND "+
+				"( "+CacheTableManager.FIELD_DTSTART+" < ?  OR "+CacheTableManager.FIELD_DTSTART+" ISNULL )", 
+				new String[] {dtStart , dtEnd},
 				null,null,null);
 		
 		for (ContentValues cv : data) 

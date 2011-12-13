@@ -188,7 +188,7 @@ public class CacheObject implements Parcelable {
 		cv.put(CacheTableManager.FIELD_SUMMARY,this.summary);
 		cv.put(CacheTableManager.FIELD_LOCATION,this.location);
 		cv.put(CacheTableManager.FIELD_DTSTART, this.start);
-		cv.put(CacheTableManager.FIELD_DT_END, this.end);
+		cv.put(CacheTableManager.FIELD_DTEND, this.end);
 		cv.put(CacheTableManager.FIELD_FLAGS, this.flags);
 		return cv;
 	}
