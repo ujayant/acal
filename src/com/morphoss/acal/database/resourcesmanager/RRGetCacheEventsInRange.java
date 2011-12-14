@@ -6,21 +6,21 @@ import android.content.ContentValues;
 import android.util.Log;
 
 import com.morphoss.acal.acaltime.AcalDateRange;
+import com.morphoss.acal.database.cachemanager.CacheObject;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
 import com.morphoss.acal.dataservice.DefaultResourceInstance;
-import com.morphoss.acal.dataservice.EventInstance;
 import com.morphoss.acal.dataservice.Resource;
 import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VComponent;
 import com.morphoss.acal.davacal.VComponentCreationException;
 
-public class RRGetEventsInRange extends ResourceRequestWithResponse<ArrayList<EventInstance>> {
+public class RRGetCacheEventsInRange extends ResourceRequestWithResponse<ArrayList<CacheObject>> {
 
 	private final AcalDateRange range;
-	public static final String TAG = "aCal RRGetEventsInRange";
+	public static final String TAG = "aCal RRGetCacheEventsInRange";
 	
 	
-	public RRGetEventsInRange(AcalDateRange range, ResourceResponseListener<ArrayList<EventInstance>> callback) {
+	public RRGetCacheEventsInRange(AcalDateRange range, ResourceResponseListener<ArrayList<CacheObject>> callback) {
 		super(callback);
 		Log.d(TAG,"Instatiated");
 		this.range = range;
@@ -48,24 +48,28 @@ public class RRGetEventsInRange extends ResourceRequestWithResponse<ArrayList<Ev
 		ArrayList<Resource> resources = new ArrayList<Resource>();
 		for (ContentValues cv : rValues) resources.add(DefaultResourceInstance.fromContentValues(cv));
 		Log.d(TAG, "Conversion complete. Populating VCalendars and appedning events.");
-		ArrayList<EventInstance> events = new ArrayList<EventInstance>();
+		ArrayList<CacheObject> events = new ArrayList<CacheObject>();
 		//step 3 - foreach resource, Vcomps
+		//This is very CPU intensive, so lower our priority to prevent interfering with other parts of the app.
+		int currentPri = Thread.currentThread().getPriority();
+		Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
 		for (Resource r : resources) {
 			//if VComp is VCalendar
 			try {
 				VComponent comp = VComponent.createComponentFromResource(r);
 				if (comp instanceof VCalendar) {
-					((VCalendar)comp).appendEventInstancesBetween(events, range, false);
+					((VCalendar)comp).appendCacheEventInstancesBetween(events, range, false);
 				}
 			} catch (VComponentCreationException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
+		Thread.currentThread().setPriority(currentPri);
 		Log.d(TAG,events.size()+"Event Instances obtained. Posting Response.");
 			
 		//post response
-		super.postResponse(new RREventsInRangeResponse<ArrayList<EventInstance>>(events, range));
+		super.postResponse(new RREventsInRangeResponse<ArrayList<CacheObject>>(events, range));
 
 	}
 	
@@ -75,12 +79,12 @@ public class RRGetEventsInRange extends ResourceRequestWithResponse<ArrayList<Ev
 	 *
 	 * @param <E>
 	 */
-	public class RREventsInRangeResponse<E extends ArrayList<EventInstance>> implements ResourceResponse<ArrayList<EventInstance>> {
+	public class RREventsInRangeResponse<E extends ArrayList<CacheObject>> implements ResourceResponse<ArrayList<CacheObject>> {
 		
-		private ArrayList<EventInstance> result;
+		private ArrayList<CacheObject> result;
 		private AcalDateRange requestedRange;
 		
-		private RREventsInRangeResponse(ArrayList<EventInstance> result, AcalDateRange requestedRange) {
+		private RREventsInRangeResponse(ArrayList<CacheObject> result, AcalDateRange requestedRange) {
 			this.result = result;
 			this.requestedRange = requestedRange;
 		}
@@ -88,7 +92,7 @@ public class RRGetEventsInRange extends ResourceRequestWithResponse<ArrayList<Ev
 		/**
 		 * Returns the result of the original Request.
 		 */
-		public ArrayList<EventInstance> result() {
+		public ArrayList<CacheObject> result() {
 			return this.result;
 		}
 		

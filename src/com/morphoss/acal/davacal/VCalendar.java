@@ -34,7 +34,7 @@ import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
 import com.morphoss.acal.acaltime.AcalRepeatRuleParser;
-import com.morphoss.acal.dataservice.Collection;
+import com.morphoss.acal.database.cachemanager.CacheObject;
 import com.morphoss.acal.dataservice.EventInstance;
 import com.morphoss.acal.dataservice.Resource;
 import com.morphoss.acal.dataservice.WriteableEventInstance;
@@ -116,7 +116,7 @@ public class VCalendar extends VComponent {
 				vEvent.addProperty(exDate);
 			}
 			else if (action.getAction() ==WriteableEventInstance.ACTION_DELETE_ALL_FUTURE) {
-				AcalRepeatRuleParser parsedRule = AcalRepeatRuleParser.parseRepeatRule(action.getRepetition());
+				AcalRepeatRuleParser parsedRule = AcalRepeatRuleParser.parseRepeatRule(action.getRRule());
 				AcalDateTime until = action.getStart().clone();
 				until.addSeconds(-1);
 				parsedRule.setUntil(until);
@@ -176,7 +176,7 @@ public class VCalendar extends VComponent {
 			if ( !description.equals("") )
 				mast.addProperty(new AcalProperty(PropertyName.DESCRIPTION,description));
 
-			String rrule = action.getRepetition();
+			String rrule = action.getRRule();
 			if ( rrule != null && !rrule.equals(""))
 				mast.addProperty(new AcalProperty(PropertyName.RRULE,rrule));
 
@@ -286,6 +286,39 @@ public class VCalendar extends VComponent {
 				checkRepeatRule();
 				if (repeatRule != null) {
 					this.repeatRule.appendEventsInstancesBetween(eventList, rangeRequested);
+					return true;
+				}
+			}
+			//			Log.d(TAG,"Skipped event: Summary="+new UnModifiableAcalEvent(thisEvent,new AcalCalendar(), new AcalCalendar()).summary);
+		}
+		catch(Exception e) {
+			if (Constants.LOG_DEBUG)Log.d(TAG,"Exception in RepeatRule handling");
+			if (Constants.LOG_DEBUG)Log.d(TAG,Log.getStackTraceString(e));
+		}
+		return false;
+	}
+	
+	public boolean appendCacheEventInstancesBetween(List<CacheObject> eventList, AcalDateRange rangeRequested, boolean isPending) {
+		if (isPending) {
+			this.isPending = true;
+			this.repeatRule = null;
+		}
+		try {
+			if (dateRange != null) {
+				AcalDateRange intersection = rangeRequested.getIntersection(this.dateRange);
+				if (intersection != null) {
+					if (hasRepeatRule == null && repeatRule == null) checkRepeatRule();
+					if (hasRepeatRule) {
+						//						Log.d(TAG,"Processing event: Summary="+new UnModifiableAcalEvent(thisEvent,new AcalCalendar(), new AcalCalendar()).summary);
+						this.repeatRule.appendCacheEventInstancesBetween(eventList, intersection);
+						return true;
+					}
+				}
+			}
+			else {
+				checkRepeatRule();
+				if (repeatRule != null) {
+					this.repeatRule.appendCacheEventInstancesBetween(eventList, rangeRequested);
 					return true;
 				}
 			}

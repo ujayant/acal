@@ -2,7 +2,12 @@ package com.morphoss.acal.database.cachemanager;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.TimeZone;
 
+import android.content.ContentValues;
+import android.util.Log;
+
+import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.database.cachemanager.CacheManager.CacheTableManager;
 
@@ -16,42 +21,94 @@ import com.morphoss.acal.database.cachemanager.CacheManager.CacheTableManager;
  * @author Chris Noldus
  *
  */
-public class CRObjectsInMonthByDay extends CacheRequestWithResponse<HashMap<Integer,ArrayList<CacheObject>>> {
+public class CRObjectsInMonthByDay extends CacheRequestWithResponse<HashMap<Short,ArrayList<CacheObject>>> {
 
 	private int month;
 	private int year;
+	
+	public static final String TAG = "aCal CRObjectsInMonthByDay";
+	
+	//metrics
+	private long construct =-1;
+	private long pstart=-1;
+	private long qstart=-1;
+	private long qend=-1;
+	private long pend=-1;
+	
 	
 	/**
 	 * Request all for the month provided. Pass the result to the callback provided
 	 * @param range
 	 * @param callBack
 	 */
-	public CRObjectsInMonthByDay(int month, int year, CacheResponseListener<HashMap<Integer,ArrayList<CacheObject>>> callBack) {
+	public CRObjectsInMonthByDay(int month, int year, CacheResponseListener<HashMap<Short,ArrayList<CacheObject>>> callBack) {
 		super(callBack);
+		construct = System.currentTimeMillis();
 		this.month = month;
 		this.year = year;
 	}
 	
 	@Override
 	public void process(CacheTableManager processor) throws CacheProcessingException {
-		final HashMap<Integer,ArrayList<CacheObject>> result = new HashMap<Integer,ArrayList<CacheObject>>();
-		/**AcalDateTime start = new AcalDateTime( year, month, 1, 0, 0, 0, null).applyLocalTimeZone(); 
+		pstart = System.currentTimeMillis();
+		final HashMap<Short,ArrayList<CacheObject>> result = new HashMap<Short,ArrayList<CacheObject>>();
+		AcalDateTime start = new AcalDateTime( year, month, 1, 0, 0, 0, TimeZone.getDefault().getID()); 
 		AcalDateTime end = start.clone().addMonths(1).applyLocalTimeZone();
-		while (start.before(end)) {
-			ArrayList<CacheObject> day = new ArrayList<CacheObject>();
-			day.add(new CacheObject(
-					-1,
-					1,
-					"Test Event",
-					"Test Location",
-					start.clone().setHour(12).getMillis(),
-					start.clone().setHour(13).getMillis(),
-					CacheObject.EVENT_FLAG));
-			result.put((int)start.getMonthDay(), day);
-			start.addDays(1);
-		} */
-		this.postResponse(new CREventsInMonthByDayResponse<HashMap<Integer,ArrayList<CacheObject>>>(result));
+		
+		if (!processor.checkWindow(new AcalDateRange(start,end))) {
+			//Wait give up - caller can decide to rerequest or waitf for cachechanged notification
+			this.postResponse(new CREventsInMonthByDayResponse<HashMap<Short,ArrayList<CacheObject>>>(result));
+			pend = System.currentTimeMillis();
+			printMetrics();
+			return;
+		}
+		
+		String dtStart = start.getMillis()+"";
+		String dtEnd = end.getMillis()+"";
+		String offset = TimeZone.getDefault().getOffset(start.getMillis())+"";
+		
+		qstart  = System.currentTimeMillis();
+		ArrayList<ContentValues> data = processor.query(null, 
+				"( " + 
+					"( "+CacheTableManager.FIELD_DTEND+" > ? AND NOT "+CacheTableManager.FIELD_DTEND_FLOAT+" )"+
+						" OR "+
+						"( "+CacheTableManager.FIELD_DTEND+" + ? > ? AND "+CacheTableManager.FIELD_DTEND_FLOAT+" )"+
+						" OR "+
+					"( "+CacheTableManager.FIELD_DTEND+" ISNULL )"+
+				" ) AND ( "+
+					"( "+CacheTableManager.FIELD_DTSTART+" < ? AND NOT "+CacheTableManager.FIELD_DTSTART_FLOAT+" )"+
+						" OR "+
+					"( "+CacheTableManager.FIELD_DTSTART+" + ? < ? AND "+CacheTableManager.FIELD_DTSTART_FLOAT+" )"+
+						" OR "+
+					"( "+CacheTableManager.FIELD_DTSTART+" ISNULL )"+
+				")",
+				new String[] {dtStart , offset, dtStart, dtEnd, offset, dtEnd},
+				null,null,CacheTableManager.FIELD_DTSTART+" ASC");
+		qend  = System.currentTimeMillis();
+		for (ContentValues value : data ) {
+			CacheObject co = CacheObject.fromContentValues(value);
+			AcalDateTime dt = AcalDateTime.fromMillis(value.getAsLong(CacheTableManager.FIELD_DTSTART)).shiftTimeZone(TimeZone.getDefault().getID());
+			if (!result.containsKey(dt.getMonthDay())) result.put(dt.getMonthDay(), new ArrayList<CacheObject>());
+			result.get(dt.getMonthDay()).add(co);
+		}
+		
+		this.postResponse(new CREventsInMonthByDayResponse<HashMap<Short,ArrayList<CacheObject>>>(result));
+		pend = System.currentTimeMillis();
+		printMetrics();
 	}
+	
+	private void printMetrics() {
+		long total = pend-construct;
+		long process = pend-pstart;
+		long queuetime = pstart-construct;
+		long query = qend-qstart;
+		Log.d(TAG,
+				"Metrics:\n\tQueue Time: "+queuetime+"\t ProcessTime: "+process+
+				(query==0?" Query not executed. ":" Query Time: "+query)+
+				"\n\tTotal Time: "+total
+				);
+	}
+	
 
 	/**
 	 * This class represents the response from a CRObjectsInMonthByDay Request. It will be passed to the callback if one was provided.
@@ -59,15 +116,15 @@ public class CRObjectsInMonthByDay extends CacheRequestWithResponse<HashMap<Inte
 	 *
 	 * @param <E>
 	 */
-public class CREventsInMonthByDayResponse<E extends HashMap<Integer,ArrayList<CacheObject>>> implements CacheResponse<HashMap<Integer,ArrayList<CacheObject>>> {
+public class CREventsInMonthByDayResponse<E extends HashMap<Short,ArrayList<CacheObject>>> implements CacheResponse<HashMap<Short,ArrayList<CacheObject>>> {
 		
-		private HashMap<Integer,ArrayList<CacheObject>> result;
+		private HashMap<Short,ArrayList<CacheObject>> result;
 		
-		public CREventsInMonthByDayResponse(HashMap<Integer,ArrayList<CacheObject>> result) {
+		public CREventsInMonthByDayResponse(HashMap<Short,ArrayList<CacheObject>> result) {
 			this.result = result;
 		}
 		
-		public HashMap<Integer,ArrayList<CacheObject>> result() {
+		public HashMap<Short,ArrayList<CacheObject>> result() {
 			return this.result;
 		}
 	}

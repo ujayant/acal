@@ -1,56 +1,79 @@
 package com.morphoss.acal.dataservice;
 
-import java.util.List;
-
-import android.content.Context;
-import android.os.Parcelable;
+import java.util.ArrayList;
 
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDuration;
-import com.morphoss.acal.activity.MonthView;
 import com.morphoss.acal.davacal.AcalAlarm;
+import com.morphoss.acal.davacal.PropertyName;
 import com.morphoss.acal.davacal.VEvent;
-import com.morphoss.acal.weekview.WeekViewActivity;
 
-public interface EventInstance extends Parcelable, Comparable<EventInstance> {
+public class EventInstance extends CalendarInstance {
 
+
+	public EventInstance(VEvent vEvent, AcalDateTime dtstart, AcalDuration duration) {
+		super(vEvent.getCollectionId(), vEvent.getResourceId(), vEvent.getStart(), vEvent.getEnd(),
+				vEvent.getAlarms(), vEvent.getRRule(), dtstart.toPropertyString(PropertyName.RECURRENCE_ID),
+				vEvent.getSummary(), vEvent.getLocation(), vEvent.getDescription());
+
+	}
+	
+	private EventInstance(EVENT_BUILDER builder) throws BadlyConstructedEventException {
+		super(0,0,null,null,null,null,null,null,null,null);
+	}
+	
+	@Override
+	public AcalDateTime getEnd() {
+		return this.dtend;
+	}
 
 	
-	int EVENT_OPERATION_COPY = 7;
-	int EVENT_OPERATION_EDIT = 8;
-	int EVENT_OPERATION_VIEW = 9;
+	public static class EVENT_BUILDER {
+		private ArrayList<AcalAlarm> alarmList = new ArrayList<AcalAlarm>();
+		private AcalDateTime start;
+		private AcalDuration duration;
+		private String summary;
+		private long collectionId = -1;
+
+		
+		public AcalDateTime getStart() { return this.start; }
+		public AcalDuration getDuration() { return this.duration; }
+
+		public EVENT_BUILDER setStart(AcalDateTime start) {
+			this.start = start;
+			return this;
+		}
+
+		public EVENT_BUILDER setDuration(AcalDuration duration) {
+			this.duration = duration;
+			return this;
+		}
+
+		public EVENT_BUILDER setSummary(String summary) {
+			this.summary = summary;
+			return this;
+		}
+
+		public EVENT_BUILDER setCollection(long collectionId) {
+			this.collectionId = collectionId;
+			return this;
+		}
+
+		public EVENT_BUILDER addAlarm(AcalAlarm alarm) {
+			this.alarmList.add(alarm);
+			return this;
+		}
+		
+		public EventInstance build() throws BadlyConstructedEventException {
+			return new EventInstance(this);
+		}
+
+
+	}
+
+	public static class BadlyConstructedEventException extends Exception {
+		private static final long serialVersionUID = 1L;
+	}
+
 	
-	//Getters that are always needed
-	public abstract List<AcalAlarm> getAlarms();
-	public abstract AcalDateTime getStart();
-	public abstract AcalDateTime getEnd();
-	public abstract AcalDuration getDuration();
-	public abstract String getRepetition();
-	public abstract String getSummary();
-	public abstract String getLocation();
-	public abstract String getDescription();
-	public abstract boolean overlaps(EventInstance eventInstance);
-	public abstract String getTimeText(WeekViewActivity context, long currentEpoch,
-			long currentEpoch2, boolean b);
-	public abstract CharSequence getTimeText(AcalDateTime viewDate, AcalDateTime addDays,
-			boolean boolean1);
-	public abstract boolean isPending();
-	public abstract boolean isSingleInstance();
-	public abstract String getTimeText(MonthView context, long epoch, long epoch2,
-			boolean boolean1);
-	public abstract boolean isAllDay();
-	public abstract WriteableEventInstance getWriteable();
-	public long getCollectionId();
-	public Resource getResource();
-	public VEvent getMaster();
-	
-	//Special methods that are sometimes needed - should be refactored out
-	public abstract int getLastWidth();
-	public abstract void setLastWidth(int singleWidth);
-	public abstract int calulateMaxWidth(int viewWidth, int hSPP);
-	public abstract int getActualWidth();
-	public abstract void setOperation(int eventOperationCopy);
-
-
-
 }

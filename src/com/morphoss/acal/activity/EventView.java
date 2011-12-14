@@ -60,7 +60,7 @@ public class EventView extends AcalActivity implements OnGestureListener, OnTouc
 	public static final int EDIT_EVENT = 0;
 	public static final int EDIT_ADD = 0;
 	
-	public static final String EVENT_INSTANCE_KEY = "EventInstance";
+	public static final String CACHE_INSTANCE_KEY = "CacheInstance";
 	//public static final String RESOURCE_ID_KEY = "resourceid";
 	//public static final String DTSTART_KEY = "start";
 	

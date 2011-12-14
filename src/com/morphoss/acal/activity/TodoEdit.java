@@ -222,7 +222,7 @@ public class TodoEdit extends AcalActivity
 				collectionId = todo.getCollectionId();
 				this.action = ACTION_MODIFY_ALL;
 				if ( isModifyAction() ) {
-					String rr = (String)  this.todo.getRepetition();
+					String rr = (String)  this.todo.getRRule();
 					if (rr != null && !rr.equals("") && !rr.equals(AcalRepeatRule.SINGLE_INSTANCE)) {
 						this.originalHasOccurrence = true;
 						this.originalOccurence = rr;
@@ -491,7 +491,7 @@ public class TodoEdit extends AcalActivity
 					"FREQ=MONTHLY;COUNT=60;BYDAY="+weekNum+dowStr,
 					"FREQ=YEARLY"
 			};
-			String repeatRuleString = todo.getRepetition();
+			String repeatRuleString = todo.getRRule();
 			if (repeatRuleString == null) repeatRuleString = "";
 			AcalRepeatRule RRule;
 			try {

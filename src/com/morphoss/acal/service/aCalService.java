@@ -137,6 +137,10 @@ public class aCalService extends Service {
 		//Ensure database is closed properly and worker is terminated.
 		if ( worker != null ) worker.killWorker();
 		worker = null;
+		rm.close();
+		cm.close();
+		cm = null;
+		rm = null;
 		if (Constants.LOG_DEBUG) Log.d(TAG, "Worker killed.");
 	}
 	

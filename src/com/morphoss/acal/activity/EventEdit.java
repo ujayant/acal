@@ -180,7 +180,7 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 				collectionId = this.event.getCollectionId();
 				this.event.setAction(WriteableEventInstance.ACTION_MODIFY_ALL);
 				if ( event.isModifyAction() ) {
-					String rr = (String)  this.event.getRepetition();
+					String rr = (String)  this.event.getRRule();
 					if (rr != null && !rr.equals("") && !rr.equals(AcalRepeatRule.SINGLE_INSTANCE)) {
 						this.originalHasOccurrence = true;
 						this.originalOccurence = rr;
@@ -463,7 +463,7 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 				"FREQ=MONTHLY;COUNT=60;BYDAY="+weekNum+dowStr,
 				"FREQ=YEARLY"
 		};
-		String repeatRuleString = event.getRepetition();
+		String repeatRuleString = event.getRRule();
 		if (repeatRuleString == null) repeatRuleString = "";
 		AcalRepeatRule RRule;
 		try {

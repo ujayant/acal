@@ -1,8 +1,8 @@
 package com.morphoss.acal.database;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+
+import com.morphoss.acal.Constants;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -48,7 +48,7 @@ public abstract class DatabaseTableManager {
 	
 	public static final String TAG = "aCal DatabaseManager";
 
-	public abstract void dataChanged(List<DataChangeEvent> changes);
+	public abstract void dataChanged(ArrayList<DataChangeEvent> changes);
 
 
 	private void openDB(final int type) {
@@ -57,17 +57,17 @@ public abstract class DatabaseTableManager {
 		changes = new ArrayList<DataChangeEvent>();
 		switch (type) {
 		case OPEN_READ:
-			Log.d(TAG,"DB:"+this.getTableName()+" OPEN_READ:");
+			if (Constants.debugDatabaseManager) Log.d(TAG,"DB:"+this.getTableName()+" OPEN_READ:");
 			printStackTraceInfo();
 			db = dbHelper.getReadableDatabase();
 			break;
 		case OPEN_WRITE:
-			Log.d(TAG,"DB:"+this.getTableName()+" OPEN_WRITE:");
+			if (Constants.debugDatabaseManager) Log.d(TAG,"DB:"+this.getTableName()+" OPEN_WRITE:");
 			printStackTraceInfo();
 			db = dbHelper.getWritableDatabase();
 			break;
 		case OPEN_WRITETX:
-			Log.d(TAG,"DB:"+this.getTableName()+" OPEN_WRITETX:");
+			if (Constants.debugDatabaseManager) Log.d(TAG,"DB:"+this.getTableName()+" OPEN_WRITETX:");
 			printStackTraceInfo();
 			inTx = true;
 			db = dbHelper.getWritableDatabase();
@@ -89,11 +89,11 @@ public abstract class DatabaseTableManager {
 		dbHelper = null;
 		switch (type) {
 		case CLOSE:
-			Log.d(TAG,"DB:"+this.getTableName()+" CLOSE:");
+			if (Constants.debugDatabaseManager) Log.d(TAG,"DB:"+this.getTableName()+" CLOSE:");
 			printStackTraceInfo();
 			break;
 		case CLOSE_TX:
-			Log.d(TAG,"DB:"+this.getTableName()+" CLOSETX:");
+			if (Constants.debugDatabaseManager) Log.d(TAG,"DB:"+this.getTableName()+" CLOSETX:");
 			printStackTraceInfo();
 			if (!inTx) throw new IllegalStateException("Tried to close a db transaction when not in one!");
 			inTx = false;
@@ -102,18 +102,18 @@ public abstract class DatabaseTableManager {
 		default:
 			throw new IllegalArgumentException("Invalid argument provided for openDB");
 		}
-		this.dataChanged(Collections.unmodifiableList(changes));
+		this.dataChanged(changes);
 		changes = null;
 	}
 
 	private void printStackTraceInfo() {
 		int base = 3;
-		int depth = 3;
+		int depth = 5;
 		StackTraceElement[] stack = Thread.currentThread().getStackTrace();
 		String info = "\t"+stack[base].toString();
 		for (int i = base+1; i < stack.length && i< base+depth; i++)
 			info += "\n\t\t"+stack[i].toString(); 
-		Log.d(TAG, info);
+		if (Constants.debugDatabaseManager) Log.d(TAG, info);
 	}
 	
 	protected void beginReadQuery() {
@@ -149,13 +149,13 @@ public abstract class DatabaseTableManager {
 	//Some useful generic methods
 
 	public int delete(String whereClause, String[] whereArgs) {
-		Log.d(TAG, "Deleting Row on "+this.getTableName()+":\n\tWhere: "+whereClause);
+		if (Constants.debugDatabaseManager) Log.d(TAG, "Deleting Row on "+this.getTableName()+":\n\tWhere: "+whereClause);
 		beginWriteQuery();
 		//First select or the row i'ds
 		ArrayList<ContentValues> rows = this.query(null, whereClause, whereArgs, null,null,null);
 		int count = db.delete(getTableName(), whereClause, whereArgs);
 		if (count != rows.size()) {
-			Log.w(TAG, "Inconsistant number of rows deleted!");
+			if (Constants.debugDatabaseManager) Log.w(TAG, "Inconsistant number of rows deleted!");
 		}
 		for (ContentValues cv : rows) {
 			changes.add(new DataChangeEvent(QUERY_ACTION.DELETE,cv));
@@ -166,7 +166,7 @@ public abstract class DatabaseTableManager {
 
 	public int update(ContentValues values, String whereClause,
 			String[] whereArgs) {
-		Log.d(TAG, "Updating Row on "+this.getTableName()+":\n\t"+values.toString());
+		if (Constants.debugDatabaseManager) Log.d(TAG, "Updating Row on "+this.getTableName()+":\n\t"+values.toString());
 		beginWriteQuery();
 		int count = db.update(getTableName(), values, whereClause,
 				whereArgs);
@@ -176,7 +176,7 @@ public abstract class DatabaseTableManager {
 	}
 
 	public long insert(String nullColumnHack, ContentValues values) {
-		Log.d(TAG, "Inserting Row on "+this.getTableName()+":\n\t"+values.toString());
+		if (Constants.debugDatabaseManager) Log.d(TAG, "Inserting Row on "+this.getTableName()+":\n\t"+values.toString());
 		beginWriteQuery();
 		long count = db.insert(getTableName(), nullColumnHack, values);
 		endQuery();
@@ -219,7 +219,7 @@ public abstract class DatabaseTableManager {
 				}
 				res = true;
 			} catch (Exception e) {
-				Log.e(TAG, "Exception processing request: "+e);
+				Log.e(TAG, "Exception processing request: "+e+Log.getStackTraceString(e));
 			} finally { if (openDb) dm.endTransaction(); }
 			return res;
 		}
@@ -331,12 +331,8 @@ public abstract class DatabaseTableManager {
 			}
 		}
 	}
-	public class DataChangeEvent {
-		public final QUERY_ACTION action;
-		private final ContentValues data;
-		public DataChangeEvent(QUERY_ACTION action, ContentValues data) { this.action = action; this.data = data; }
-		public ContentValues getData() {
-			return new ContentValues(data);
-		}
-	}
+	
+	
+	
+	
 }

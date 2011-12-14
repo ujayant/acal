@@ -1,16 +1,16 @@
 package com.morphoss.acal.database.cachemanager;
 
-import java.util.List;
+import java.util.ArrayList;
 
-import com.morphoss.acal.database.DatabaseTableManager.DataChangeEvent;
+import com.morphoss.acal.database.DataChangeEvent;
 
 public class CacheChangedEvent {
 
-	private List<DataChangeEvent> changes;
+	private ArrayList<DataChangeEvent> changes;
 	
-	public CacheChangedEvent(List<DataChangeEvent> changes) {
+	public CacheChangedEvent(ArrayList<DataChangeEvent> changes) {
 		this.changes = changes;
 	}
 	
-	public List<DataChangeEvent> getChanges() { return this.changes; }
+	public ArrayList<DataChangeEvent> getChanges() { return this.changes; }
 }

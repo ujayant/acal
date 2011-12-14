@@ -123,8 +123,8 @@ public abstract class Masterable extends VComponent {
 	}
 
 	
-	public List<AcalAlarm> getAlarms() {
-		List<AcalAlarm> alarms = new ArrayList<AcalAlarm>(); 
+	public ArrayList<AcalAlarm> getAlarms() {
+		ArrayList<AcalAlarm> alarms = new ArrayList<AcalAlarm>(); 
 		try {
 			this.setPersistentOn();
 			populateChildren();
@@ -181,7 +181,7 @@ public abstract class Masterable extends VComponent {
 		return safePropertyValue(PropertyName.DESCRIPTION);
 	}
 
-	public String getRepetition() {
+	public String getRRule() {
 		return safePropertyValue(PropertyName.RRULE);
 	}
 

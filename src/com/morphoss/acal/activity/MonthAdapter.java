@@ -38,6 +38,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.view.View.OnClickListener;
+import android.view.animation.Animation;
+import android.view.animation.Animation.AnimationListener;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
@@ -46,6 +48,7 @@ import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
+import com.morphoss.acal.database.DataChangeEvent;
 import com.morphoss.acal.database.cachemanager.CRObjectsInMonthByDay;
 import com.morphoss.acal.database.cachemanager.CacheChangedEvent;
 import com.morphoss.acal.database.cachemanager.CacheChangedListener;
@@ -53,13 +56,14 @@ import com.morphoss.acal.database.cachemanager.CacheManager;
 import com.morphoss.acal.database.cachemanager.CacheObject;
 import com.morphoss.acal.database.cachemanager.CacheResponse;
 import com.morphoss.acal.database.cachemanager.CacheResponseListener;
+import com.morphoss.acal.database.cachemanager.CacheManager.CacheTableManager;
 import com.morphoss.acal.views.MonthDayBox;
 
 /**
  * @author Morphoss Ltd
  *
  */
-public class MonthAdapter extends BaseAdapter implements CacheChangedListener, CacheResponseListener<HashMap<Integer,ArrayList<CacheObject>>> {
+public class MonthAdapter extends BaseAdapter implements CacheChangedListener, CacheResponseListener<HashMap<Short,ArrayList<CacheObject>>>, AnimationListener {
 
 	private final static String TAG = "aCal MonthAdapter";
 	private MonthView context;
@@ -73,14 +77,14 @@ public class MonthAdapter extends BaseAdapter implements CacheChangedListener, C
 	private int firstOffset;
 	private int firstCol;
 
-	private ConcurrentHashMap<Integer,ArrayList<CacheObject>> eventsByDay = new ConcurrentHashMap<Integer,ArrayList<CacheObject>>();
+	private ConcurrentHashMap<Short,ArrayList<CacheObject>> eventsByDay = new ConcurrentHashMap<Short,ArrayList<CacheObject>>();
 	private CacheManager cacheManager;
 	
-	private ConditionVariable waitForInitialData = new ConditionVariable();
-	private boolean waiting = false;
+	private volatile long wait = 0;
 	private static final int HANDLER_NEW_DATA = 0;
 	private Handler mHandler = new Handler() {
 			
+	
 		@SuppressWarnings("unchecked")
 		@Override
 		public void handleMessage(Message msg) {
@@ -88,9 +92,13 @@ public class MonthAdapter extends BaseAdapter implements CacheChangedListener, C
 			switch (msg.what) {
 				case HANDLER_NEW_DATA:
 					if (Constants.debugMonthView && Constants.LOG_DEBUG) Log.d(TAG, "New data for display.");
-					HashMap<Integer,ArrayList<CacheObject>> data = (HashMap<Integer,ArrayList<CacheObject>>)msg.obj;
-					for (int i = 1; i<= 31; i++) {
+					HashMap<Short,ArrayList<CacheObject>> data = (HashMap<Short,ArrayList<CacheObject>>)msg.obj;
+					for (short i = 1; i<= 31; i++) {
 						if (data.containsKey(i)) eventsByDay.put(i, data.get(i));
+					}
+					while (System.currentTimeMillis() < wait) {
+						Log.d(TAG, "Waiting "+(wait-System.currentTimeMillis())+"ms for animation end.");
+						try { Thread.sleep(wait-System.currentTimeMillis()); } catch (Exception e) { }
 					}
 					MonthAdapter.this.notifyDataSetChanged();
 					break;
@@ -100,12 +108,14 @@ public class MonthAdapter extends BaseAdapter implements CacheChangedListener, C
 	};
 	
 	
-	public MonthAdapter(MonthView monthview, AcalDateTime displayDate, AcalDateTime selectedDate) {
+	public MonthAdapter(MonthView monthview, AcalDateTime displayDate, AcalDateTime selectedDate, Animation[] animations) {
+		for (Animation a : animations) 
+			if (a != null)a.setAnimationListener(this);
 		this.displayDate = displayDate;
 		this.selectedDate = selectedDate;
 		this.context = monthview;
 		this.cacheManager = CacheManager.getInstance(monthview, this);
-		for (int i = 1; i<=31; i++) eventsByDay.put(i, new ArrayList<CacheObject>());
+		for (short i = 1; i<=31; i++) eventsByDay.put(i, new ArrayList<CacheObject>());
 		getFirstDay(monthview);
 
 		//Get next and previous months
@@ -139,15 +149,11 @@ public class MonthAdapter extends BaseAdapter implements CacheChangedListener, C
 		this.firstOffset = displayDate.get(AcalDateTime.DAY_OF_WEEK);
 		displayDate.set(AcalDateTime.DAY_OF_MONTH, curDay);
 		
-		displayMonthLocalized = displayDate.clone().applyLocalTimeZone();
+		displayMonthLocalized = displayDate.clone().applyLocalTimeZone().setDaySecond(0);
+		displayMonthLocalized.setMonthDay(1);
 		
-		//request data
-		waitForInitialData.close();
-		waiting = true;
-		if (Constants.debugMonthView && Constants.LOG_DEBUG) Log.d(TAG, "Sending CacheRequest and waiting");
+		//request data		
 		cacheManager.sendRequest(new CRObjectsInMonthByDay(displayMonthLocalized.getMonth(), displayMonthLocalized.getYear(), this));
-		waitForInitialData.block();
-		if (Constants.debugMonthView && Constants.LOG_DEBUG) Log.d(TAG, "Data received - resuming.");
 	}
 
 
@@ -253,7 +259,7 @@ public class MonthAdapter extends BaseAdapter implements CacheChangedListener, C
 		
 		MonthDayBox mDayBox = null; 
 		float textScaleFactor = 0.0f;
-		int mDay = bDate.getMonthDay();
+		short mDay = bDate.getMonthDay();
 		if ( inMonth ) {
 			if ( bDate.getYearDay() == selectedDate.getYearDay() && bDate.getYear() == selectedDate.getYear() ) {
 				mDayBox = (MonthDayBox) v.findViewById(R.id.DayBoxHighlightDay);
@@ -323,32 +329,66 @@ public class MonthAdapter extends BaseAdapter implements CacheChangedListener, C
 
 	@Override
 	public void cacheChanged(CacheChangedEvent event) {
-		// TODO Adjust to deal with changes more specifically
+		AcalDateRange myRange = new AcalDateRange(displayMonthLocalized,displayMonthLocalized.clone().addMonths(1));
+		//up-date only if the change could have affected us
+		boolean update = false;
+		for (DataChangeEvent dce : event.getChanges()) {
+			Long sMills = dce.getData().getAsLong(CacheTableManager.FIELD_DTSTART);
+			Long eMills = dce.getData().getAsLong(CacheTableManager.FIELD_DTEND);
+			if (sMills == null || eMills == null) { update = true; break; }
+			if (sMills < myRange.end.getMillis() && eMills > myRange.start.getMillis()) { update = true; break; }
+		}
+		
+		if (update) cacheManager.sendRequest(new CRObjectsInMonthByDay(displayMonthLocalized.getMonth(), displayMonthLocalized.getYear(), this));
 		
 	}
 
 
 	@Override
-	public void cacheResponse(CacheResponse<HashMap<Integer,ArrayList<CacheObject>>> response) {
+	public void cacheResponse(CacheResponse<HashMap<Short,ArrayList<CacheObject>>> response) {
 		if (Constants.debugMonthView && Constants.LOG_DEBUG) Log.d(TAG, "Cache Response Received.");
-		if (waiting) {
-			if (Constants.debugMonthView && Constants.LOG_DEBUG) Log.d(TAG, "In waiting mode - populating data");
-			HashMap<Integer,ArrayList<CacheObject>> data = response.result();
-			int count = 0;
-			for (int i = 1; i<= 31; i++) {
-				if (data.containsKey(i)) {
-					eventsByDay.put(i, data.get(i));
-					count+=data.get(i).size();
-				}
-			}
-			if (Constants.debugMonthView && Constants.LOG_DEBUG) Log.d(TAG, count+" objects added to data set.");
-			waiting = false;
-			waitForInitialData.open();	
-		} else {
-			if (Constants.debugMonthView && Constants.LOG_DEBUG) Log.d(TAG, "Not in waitingmode, sending Handler msg.");
-			mHandler.sendMessage(mHandler.obtainMessage(HANDLER_NEW_DATA, response.result()));
-		}
+		
+		//long waitTime = Math.max(wait-System.currentTimeMillis(),100);
+
+		mHandler.sendMessage(mHandler.obtainMessage(HANDLER_NEW_DATA, response.result()));
+	}
+	
+
+	@Override
+	public void onAnimationEnd(Animation animation) {
+//		if (Constants.debugMonthView && Constants.LOG_DEBUG) Log.d(TAG, "Releasing MonthView updates due to animation end."+animation.toString());
+
 		
 	}
 
+
+	@Override
+	public void onAnimationRepeat(Animation animation) {
+		//not used
+	}
+
+
+	@Override
+	public void onAnimationStart(Animation animation) {
+		//long now = System.currentTimeMillis();
+	//	if (now < wait) {
+		//	wait += animation.getDuration();
+	//	} else {
+	//		wait = System.currentTimeMillis() + animation.getDuration();	
+	//	}
+		
+	//	if (Constants.debugMonthView && Constants.LOG_DEBUG) Log.d(TAG, "Blocking MonthView updates due to animation start. Duration: "+animation.getDuration());
+	}
+
+
+	//An animation is about to start - we will block for half a second. onAnimation start will adjust blocking as required.
+	public void animationInit() {
+	//	if (Constants.debugMonthView && Constants.LOG_DEBUG) Log.d(TAG, "Animation is about to start. blocking for 1000ms.");
+		//wait = System.currentTimeMillis() + 1000;
+	}
+
+	public void close() {
+		this.cacheManager.removeListener(this);
+	}
+	
 }

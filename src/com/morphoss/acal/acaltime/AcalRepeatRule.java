@@ -30,6 +30,7 @@ import java.util.regex.Pattern;
 import android.util.Log;
 
 import com.morphoss.acal.Constants;
+import com.morphoss.acal.database.cachemanager.CacheObject;
 import com.morphoss.acal.dataservice.DefaultEventInstance;
 import com.morphoss.acal.dataservice.EventInstance;
 import com.morphoss.acal.davacal.AcalAlarm;
@@ -422,8 +423,17 @@ public class AcalRepeatRule {
 		}
 	}
 
+	public void appendCacheEventInstancesBetween(List<CacheObject> cacheList, AcalDateRange range) {
+		this.appendEventsInstancesBetween(cacheList, range, true);
+	}
 	
 	public void appendEventsInstancesBetween(List<EventInstance> eventList, AcalDateRange range) {
+		this.appendEventsInstancesBetween(eventList, range, false);
+	}
+	
+	private void appendEventsInstancesBetween(List eventList, AcalDateRange range, boolean cacheObjects) {
+	
+	
 		if ( range.start == null || range.end == null || eventList == null ) return;
 
 		Masterable thisEvent = sourceVCalendar.getMasterChild();
@@ -487,7 +497,11 @@ public class AcalRepeatRule {
 				}
 				if( ! instance.dtstart.before(range.end) ) break;
 
-				eventList.add(instance.getEventInstance());
+				if (cacheObjects) {
+					eventList.add(instance.getCacheObject());
+				} else {
+					eventList.add(instance.getEventInstance());
+				}
 				
 				if ( Constants.debugRepeatRule && Constants.LOG_DEBUG ) {
 					Log.d(TAG, "Adding Instance: "+thisDate.fmtIcal()+" of " +repeatRule.toString() );
@@ -514,8 +528,15 @@ public class AcalRepeatRule {
 			if ( found > 0 ) {
 				Log.d(TAG, "Found "+found+" instances in "+ range.toString());
 				for( int i=0; i<found; i++ ) {
-					EventInstance thisOne = eventList.get(i);
-					Log.v(TAG, "["+i+"] Start: " + thisOne.getStart().fmtIcal() + ", End: " + thisOne.getEnd().fmtIcal() );
+					if (cacheObjects) {
+						CacheObject thisOne = (CacheObject)eventList.get(i);
+						Log.v(TAG, "["+i+"] Start: " + AcalDateTime.fromMillis(thisOne.getStart()).fmtIcal() + 
+								", End: " + AcalDateTime.fromMillis(thisOne.getEnd()).fmtIcal() );
+					} else {
+						EventInstance thisOne = (EventInstance)eventList.get(i);
+						Log.v(TAG, "["+i+"] Start: " + thisOne.getStart().fmtIcal() + ", End: " + thisOne.getEnd().fmtIcal() );	
+					}
+					
 				}
 			}
 		}
@@ -587,6 +608,11 @@ public class AcalRepeatRule {
 		EventInstance getEventInstance() {
 			return new DefaultEventInstance( (VEvent) VEvent, dtstart, duration);
 			//return DefaultEventInstance.getInstance((VEvent) VEvent, dtstart, duration, isPending );
+		}
+		
+		CacheObject getCacheObject() {
+			Thread.yield();
+			return new CacheObject( (VEvent) VEvent, dtstart, duration);
 		}
 	}
 /*

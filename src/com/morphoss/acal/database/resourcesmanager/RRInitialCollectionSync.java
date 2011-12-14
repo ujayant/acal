@@ -11,8 +11,6 @@ import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
 
 import android.content.ContentValues;
-import android.database.Cursor;
-import android.database.DatabaseUtils;
 import android.util.Log;
 
 import com.morphoss.acal.Constants;
@@ -247,6 +245,7 @@ public class RRInitialCollectionSync implements ResourceRequest {
 				cv.put(ResourceTableManager.COLLECTION_ID, collectionId);
 				cv.put(ResourceTableManager.RESOURCE_NAME, name);
 				cv.put(ResourceTableManager.NEEDS_SYNC, 1);
+				cv.put(ResourceTableManager.IS_PENDING, false);
 
 				serverList.put(name, cv);
 
@@ -335,7 +334,7 @@ public class RRInitialCollectionSync implements ResourceRequest {
 				builder.setAction(QUERY_ACTION.INSERT);
 				//action= WriteActions.INSERT;
 			} else {
-				builder.setWhereClause(ResourceTableManager.RESOURCE_ID+" ?")
+				builder.setWhereClause(ResourceTableManager.RESOURCE_ID+" = ?")
 					.setwhereArgs(new String[]{cv.getAsString(ResourceTableManager.RESOURCE_ID)});
 			}
 			if ( !parseResponseNode(response, cv) ) continue;

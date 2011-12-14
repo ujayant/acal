@@ -2,7 +2,6 @@ package com.morphoss.acal.database.resourcesmanager;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -20,7 +19,9 @@ import android.util.Log;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
+import com.morphoss.acal.database.DataChangeEvent;
 import com.morphoss.acal.database.DatabaseTableManager;
+import com.morphoss.acal.database.DatabaseTableManager.QUERY_ACTION;
 import com.morphoss.acal.dataservice.DefaultResourceInstance;
 import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VComponent;
@@ -98,6 +99,7 @@ public class ResourceManager implements Runnable {
 
 	@Override
 	public void run() {
+		Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
 		while (running) {
 			// do stuff
 			Log.d(TAG,"Thread Opened...");
@@ -161,6 +163,9 @@ public class ResourceManager implements Runnable {
 		public static final String EARLIEST_START = "earliest_start";
 		public static final String LATEST_END = "latest_end";
 		public static final String EFFECTIVE_TYPE = "effective_type";
+		
+		public static final String IS_PENDING = "is_pending";	//this is a quasi field that tells use weather a resource came from the pending
+																//table or the resource table
 
 
 		//PendingChanges Table Constants
@@ -175,10 +180,6 @@ public class ResourceManager implements Runnable {
 		public static final String		NEW_DATA					= "new_data";
 		public static final String		UID							= "uid";
 
-		// This is not a field, but we sometimes put this into the ContentValues
-		// as if
-		// it were, when there is a pending change for this resource.
-		public static final String IS_PENDING = "is_pending";
 
 		public static final String TYPE_EVENT = "'VEVENT'";
 		public static final String TYPE_TASK = "'VTODO'";
@@ -249,6 +250,9 @@ public class ResourceManager implements Runnable {
 		@Override
 		public long insert(String nullColumnHack, ContentValues values) {
 			Log.d(TAG, "Resource Insert Begin");
+			ContentValues toWrite = new ContentValues(values);
+			if (toWrite.containsKey(IS_PENDING)) toWrite.remove(IS_PENDING);
+			values = toWrite;
 			try {
 
 				VComponent comp = VComponent.createComponentFromResource(DefaultResourceInstance.fromContentValues(values));
@@ -266,6 +270,37 @@ public class ResourceManager implements Runnable {
 				Log.e(TAG, "Error creating VComponent from resource: "+Log.getStackTraceString(e));
 			}
 			return super.insert(nullColumnHack, values);
+		}
+		
+		//As Above
+		public int update(ContentValues values, String whereClause,	String[] whereArgs) {
+			Log.d(TAG, "Resource Update Begin");
+			ContentValues toWrite = new ContentValues(values);
+			if (toWrite.containsKey(IS_PENDING)) toWrite.remove(IS_PENDING);
+			values = toWrite;
+			try {
+
+				VComponent comp = VComponent.createComponentFromResource(DefaultResourceInstance.fromContentValues(values));
+				
+				//TODO Check effective type here
+			
+				if (comp instanceof VCalendar) {
+					VCalendar vCal = (VCalendar)comp;
+					AcalRepeatRule rrule = AcalRepeatRule.fromVCalendar(vCal);
+					if (rrule != null) {
+						AcalDateRange range = rrule.getInstancesRange();
+						values.put(EARLIEST_START, range.start.getMillis());
+						if (range.end != null) values.put(LATEST_END, range.end.getMillis());
+						else values.putNull(LATEST_END); 
+					}  else {
+						values.putNull(EARLIEST_START);
+						
+					}
+				}
+			} catch (Exception e) {
+				Log.e(TAG, "Error creating VComponent from resource: "+Log.getStackTraceString(e));
+			}
+			return super.update(values, whereClause, whereArgs);
 		}
 
 		/**
@@ -388,10 +423,11 @@ public class ResourceManager implements Runnable {
 
 		//Never ever ever ever call resourceChanged on listeners anywhere else.
 		@Override
-		public void dataChanged(List<DataChangeEvent> changes) {
-			ResourceChangedEvent rce = new ResourceChangedEvent(changes);
+		public void dataChanged(ArrayList<DataChangeEvent> changes) {
+			if (changes.isEmpty()) return;
 			synchronized (listeners) {
 				for (ResourceChangedListener listener : listeners) {
+					ResourceChangedEvent rce = new ResourceChangedEvent(new ArrayList<DataChangeEvent>(changes));
 					listener.resourceChanged(rce);
 				}
 			}

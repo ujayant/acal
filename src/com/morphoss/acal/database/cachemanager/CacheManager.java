@@ -1,7 +1,6 @@
 package com.morphoss.acal.database.cachemanager;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -15,20 +14,21 @@ import android.util.Log;
 
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
+import com.morphoss.acal.acaltime.AcalRepeatRule;
 import com.morphoss.acal.database.AcalDBHelper;
+import com.morphoss.acal.database.DataChangeEvent;
 import com.morphoss.acal.database.DatabaseTableManager;
 import com.morphoss.acal.database.DatabaseTableManager.DMQueryList;
-import com.morphoss.acal.database.DatabaseTableManager.DataChangeEvent;
 import com.morphoss.acal.database.DatabaseTableManager.QUERY_ACTION;
-import com.morphoss.acal.database.resourcesmanager.RRGetEventsInRange;
+import com.morphoss.acal.database.resourcesmanager.RRGetCacheEventsInRange;
 import com.morphoss.acal.database.resourcesmanager.ResourceChangedEvent;
 import com.morphoss.acal.database.resourcesmanager.ResourceChangedListener;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager;
 import com.morphoss.acal.database.resourcesmanager.ResourceResponse;
 import com.morphoss.acal.database.resourcesmanager.ResourceResponseListener;
-import com.morphoss.acal.database.resourcesmanager.RRGetEventsInRange.RREventsInRangeResponse;
-import com.morphoss.acal.dataservice.EventInstance;
+import com.morphoss.acal.database.resourcesmanager.RRGetCacheEventsInRange.RREventsInRangeResponse;
 import com.morphoss.acal.dataservice.Resource;
+import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VComponent;
 import com.morphoss.acal.davacal.VComponentCreationException;
 
@@ -47,7 +47,7 @@ import com.morphoss.acal.davacal.VComponentCreationException;
  * @author Chris Noldus
  *
  */
-public class CacheManager implements Runnable, ResourceChangedListener,  ResourceResponseListener<ArrayList<EventInstance>> {
+public class CacheManager implements Runnable, ResourceChangedListener,  ResourceResponseListener<ArrayList<CacheObject>> {
 
 
 
@@ -106,7 +106,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 	
 	//Settings
 	private static final int DEF_MONTHS_BEFORE = 1;		//these 2 represent the default window size
-	private static final int DEF_MONTHS_AFTER = 2;		//relative to todays date
+	private static final int DEF_MONTHS_AFTER = 4;		//relative to todays date
 	
 	
 	/**
@@ -237,6 +237,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 	 */
 	@Override
 	public void run() {
+		Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
 		while (running) {
 			//do stuff
 			while (!queue.isEmpty()) {
@@ -266,13 +267,13 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 	private void retrieveRange(long start, long end) {
 		AcalDateRange range = new AcalDateRange(AcalDateTime.fromMillis(start), AcalDateTime.fromMillis(end));
 		Log.d(TAG,"Retreiving events in range "+range.start+"-->"+range.end);
-		ResourceManager.getInstance(context).sendRequest(new RRGetEventsInRange(range, this));
+		ResourceManager.getInstance(context).sendRequest(new RRGetCacheEventsInRange(range, this));
 	}
 	
 	@Override
-	public void resourceResponse(ResourceResponse<ArrayList<EventInstance>> response) {
+	public void resourceResponse(ResourceResponse<ArrayList<CacheObject>> response) {
 		if (response instanceof RREventsInRangeResponse<?>) {
-			RREventsInRangeResponse<ArrayList<EventInstance>> res = (RREventsInRangeResponse<ArrayList<EventInstance>>) response;
+			RREventsInRangeResponse<ArrayList<CacheObject>> res = (RREventsInRangeResponse<ArrayList<CacheObject>>) response;
 			//put new data on the process queue
 			
 			DMQueryList inserts = CTMinstance.new DMQueryList();
@@ -280,7 +281,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 			Log.d(TAG, "Have response from Resource manager for range request.");
 			//We should have exclusive DB access at this point
 			AcalDateRange range = res.requestedRange();
-			ArrayList<EventInstance> events = res.result();
+			ArrayList<CacheObject> events = res.result();
 			Log.d(TAG, "Deleteing Existing records...");
 			inserts.addAction(CTMinstance.new DMQueryBuilder()
 							.setAction(QUERY_ACTION.DELETE)
@@ -290,8 +291,8 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 							
 			Log.d(TAG, count + "Records added to Delete queue. Adding Insert records...");
 			count = 0;
-			for (EventInstance ei : events) {
-				ContentValues toInsert = CacheObject.fromEventInstance(ei).getCacheCVs();
+			for (CacheObject event : events) {
+				ContentValues toInsert = event.getCacheCVs();
 				inserts.addAction(CTMinstance.new DMQueryBuilder().setAction(QUERY_ACTION.INSERT).setValues(toInsert).build());
 				count++;
 			}
@@ -313,11 +314,14 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		private static final String TABLE = "event_cache";
 		public static final String FIELD_ID = "_id";
 		public static final String FIELD_RESOURCE_ID = "resource_id";
+		public static final String FIELD_RECURRENCE_ID = "recurrence_id";
 		public static final String FIELD_CID ="collection_id";
 		public static final String FIELD_SUMMARY ="summary";
 		public static final String FIELD_LOCATION ="location";
 		public static final String FIELD_DTSTART = "dtstart";
 		public static final String FIELD_DTEND = "dtend";
+		public static final String FIELD_DTSTART_FLOAT = "dtstartfloat";
+		public static final String FIELD_DTEND_FLOAT = "dtendfloat";
 		public static final String FIELD_FLAGS ="flags";
 		
 		/**
@@ -431,11 +435,11 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 
 		//Never ever ever ever call cacheChanged on listeners anywhere else.
 		@Override
-		public void dataChanged(List<DataChangeEvent> changes) {
+		public void dataChanged(ArrayList<DataChangeEvent> changes) {
 			if (changes.isEmpty()) return;
-			CacheChangedEvent cce = new CacheChangedEvent(changes);
 			synchronized (listeners) {
 				for (CacheChangedListener listener: listeners) {
+					CacheChangedEvent cce = new CacheChangedEvent(new ArrayList<DataChangeEvent>(changes));
 					listener.cacheChanged(cce);
 				}
 			}
@@ -464,17 +468,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		
 	}
 	
-	public static CacheObject fromContentValues(ContentValues row) {
-		return new CacheObject(
-					row.getAsLong(CacheTableManager.FIELD_RESOURCE_ID), 
-					row.getAsInteger(CacheTableManager.FIELD_CID),
-					row.getAsString(CacheTableManager.FIELD_SUMMARY),
-					row.getAsString(CacheTableManager.FIELD_LOCATION),
-					row.getAsLong(CacheTableManager.FIELD_DTSTART),
-					row.getAsLong(CacheTableManager.FIELD_DTEND),
-					row.getAsInteger(CacheTableManager.FIELD_FLAGS)
-				);
-	}
+	
 
 	/**
 	 * This method should only ever be called from within the dataChanged method of ResourceTableManager.
@@ -488,21 +482,19 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 	 * FACT: Any of our requests that were processed BEFORE these changes have taken affect have either been 
 	 * 		dealt with or are in our QUEUE
 	 * 
-	 *  Conclusion: As long as any work that needs to be done is added to our queue, our state should remain consistant.
+	 *  Conclusion: As long as any work that needs to be done is added to our queue, our state should remain consistent.
 	 *
 	 */
 	@Override
 	public void resourceChanged(ResourceChangedEvent event) {
-		// TODO Auto-generated method stub
-		List<DataChangeEvent> changes = event.getChanges();
+		ArrayList<DataChangeEvent> changes = event.getChanges();
 		if (changes == null || changes.isEmpty()) return;	//dont care
 		for (DataChangeEvent change : changes) {
-			
-			//TODO NOTE: changes need to be thread safe!
-			
+			AcalDateRange window = new AcalDateRange(start,end);
 			switch (change.action) {
 			case INSERT:
 			case UPDATE:
+				ArrayList<CacheObject> newData = new ArrayList<CacheObject>();
 				Resource r = event.getResource(change);
 				//If this resource in our window?
 				
@@ -510,19 +502,44 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 				VComponent comp;
 				try {
 					comp = VComponent.createComponentFromResource(r);
+					//get instances within window
+					
+					if (comp instanceof VCalendar) {
+						AcalRepeatRule rrule = AcalRepeatRule.fromVCalendar(((VCalendar)comp));
+						if (rrule != null) rrule.appendCacheEventInstancesBetween(newData, window);
+						//AcalRepeatRule.fromVCalendar((VCalendar)comp).appendEventsInstancesBetween(newData, window);
+					}
+				
+					//add update to queue
+					DMQueryList queries = CTMinstance.new DMQueryList();
+					//Delete existing first
+					queries.addAction(CTMinstance.new DMDeleteQuery(CacheTableManager.FIELD_RESOURCE_ID+" = ?", new String[]{r.getResourceId()+""}));
+					//add all events
+					for (CacheObject co : newData)
+						queries.addAction(
+								CTMinstance.new DMQueryBuilder()
+								.setAction(QUERY_ACTION.INSERT)
+								.setValues(co.getCacheCVs())
+								.build()
+								);
+					this.sendRequest(new CRResourceChanged(queries));
+					
+					
 				} catch (VComponentCreationException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					Log.e(TAG, "Error Handling Resoure Change:"+Log.getStackTraceString(e));
+				} catch (Exception e) {
+					Log.e(TAG, "Error Handling Resoure Change:"+Log.getStackTraceString(e));
 				}
-				
-				//get instances within window
-				
-				//replace all existing with same RID 
-				
+								
 				break;
 			case DELETE:
 				long rid = change.getData().getAsLong(ResourceManager.ResourceTableManager.RESOURCE_ID);
 				//delete
+				DMQueryList queries = CTMinstance.new DMQueryList();
+				//Delete existing first
+				queries.addAction(CTMinstance.new DMDeleteQuery(CacheTableManager.FIELD_RESOURCE_ID+" = ?", new String[]{rid+""}));
+				this.sendRequest(new CRResourceChanged(queries));
+				break;
 			}
 		}
 	}

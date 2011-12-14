@@ -503,7 +503,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 				if ( ourResourceMap != null && ourResourceMap.containsKey(responseHref)) {
 					cv = ourResourceMap.get(responseHref);
 					ourResourceMap.remove(responseHref);
-					builder.setWhereClause(ResourceTableManager.RESOURCE_ID+" ?");
+					builder.setWhereClause(ResourceTableManager.RESOURCE_ID+" = ?");
 					builder.setwhereArgs(new String[] {cv.getAsString(ResourceTableManager.RESOURCE_ID)});
 				}
 				else {
@@ -530,7 +530,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 				Set<String> names = ourResourceMap.keySet();
 				for( String name : names ) {
 					ContentValues cv = ourResourceMap.get(name);
-					queryList.addAction(processor.new DMDeleteQuery(ResourceTableManager.RESOURCE_ID+" ?", new String[]{cv.getAsString(ResourceTableManager.RESOURCE_ID)}));
+					queryList.addAction(processor.new DMDeleteQuery(ResourceTableManager.RESOURCE_ID+" = ?", new String[]{cv.getAsString(ResourceTableManager.RESOURCE_ID)}));
 					//changeList.add( new ResourceModification(WriteActions.DELETE, cv, null) );
 				}
 			}

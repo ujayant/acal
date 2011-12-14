@@ -43,7 +43,8 @@ import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDateTimeFormatter;
-import com.morphoss.acal.database.cachemanager.CRPObjectsInRange;
+import com.morphoss.acal.database.DataChangeEvent;
+import com.morphoss.acal.database.cachemanager.CRObjectsInRange;
 import com.morphoss.acal.database.cachemanager.CacheChangedEvent;
 import com.morphoss.acal.database.cachemanager.CacheChangedListener;
 import com.morphoss.acal.database.cachemanager.CacheManager;
@@ -51,6 +52,7 @@ import com.morphoss.acal.database.cachemanager.CacheObject;
 import com.morphoss.acal.database.cachemanager.CacheRequest;
 import com.morphoss.acal.database.cachemanager.CacheResponse;
 import com.morphoss.acal.database.cachemanager.CacheResponseListener;
+import com.morphoss.acal.database.cachemanager.CacheManager.CacheTableManager;
 import com.morphoss.acal.dataservice.Collection;
 import com.morphoss.acal.dataservice.DefaultCollectionFactory;
 import com.morphoss.acal.dataservice.EventInstance;
@@ -87,9 +89,6 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 	private CacheManager cacheManager;
 	
 	private static final int HANDLER_NEW_LIST = 0;
-	private static final String HANDLER_NEW_LIST_KEY = "newlist";
-	
-	private static final int HANDLER_CACHE_CHANGED = 1;
 	
 	private Handler mHandler = new Handler() {
 		
@@ -99,9 +98,6 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 				case HANDLER_NEW_LIST:
 					dayEvents = (ArrayList<CacheObject>)msg.obj;
 					EventListAdapter.this.notifyDataSetChanged();
-					
-					break;
-				case HANDLER_CACHE_CHANGED:
 					
 					break;
 			}
@@ -126,7 +122,7 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 	}
 
 	private CacheRequest getCacheRequest() {
-		return new CRPObjectsInRange(new AcalDateRange(viewDate,viewDate.clone().addDays(1)), this);
+		return new CRObjectsInRange(new AcalDateRange(viewDate,viewDate.clone().addDays(1)), this);
 	}
 	
 	/**
@@ -264,11 +260,11 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 	@Override
 	public void onClick(View arg0) {
 		if (clickEnabled) {
-			Object tag = arg0.getTag();
-			if (tag instanceof EventInstance) {
+			CacheObject tag = (CacheObject) arg0.getTag();
+			if (tag.isEvent()) {
 				//start event activity
 				Bundle bundle = new Bundle();
-				bundle.putParcelable("EventInstance", (EventInstance)tag);
+				bundle.putParcelable(EventView.CACHE_INSTANCE_KEY, tag);
 				Intent eventViewIntent = new Intent(context, EventView.class);
 				eventViewIntent.putExtras(bundle);
 				context.startActivityForResult(eventViewIntent, MonthView.PICK_TODAY_FROM_EVENT_VIEW);
@@ -321,8 +317,19 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 
 	@Override
 	public void cacheChanged(CacheChangedEvent event) {
-		// TODO Adjust to deal with more specific changes
-		cacheManager.sendRequest(getCacheRequest());
+		AcalDateRange myRange = new AcalDateRange(viewDate,viewDate.clone().addDays(1));
+		//up-date only if the change could have affected us
+		boolean update = false;
+		for (DataChangeEvent dce : event.getChanges()) {
+			Long sMills = dce.getData().getAsLong(CacheTableManager.FIELD_DTSTART);
+			Long eMills = dce.getData().getAsLong(CacheTableManager.FIELD_DTEND);
+			if (sMills == null || eMills == null) { update = true; break; }
+			if (sMills < myRange.end.getMillis() && eMills > myRange.start.getMillis()) { update = true; break; }
+		}
+		
+		if (update) cacheManager.sendRequest(new CRObjectsInRange(myRange,this));
+		
+		
 	}
 
 	/** 

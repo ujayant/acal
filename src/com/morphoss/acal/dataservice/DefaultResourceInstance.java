@@ -3,7 +3,6 @@ package com.morphoss.acal.dataservice;
 import android.content.ContentValues;
 import android.os.Parcel;
 
-import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
 
 public class DefaultResourceInstance implements Resource {
@@ -19,9 +18,10 @@ public class DefaultResourceInstance implements Resource {
 	private final long earliestStart;
 	private final long latestEnd;
 	private final String effectiveType;
+	private final boolean pending;
 
 	public DefaultResourceInstance (long cid, long rid, String name, String etag, String cType, 
-			String data, boolean sync, Long earliestStart, Long latestEnd, String eType) {
+			String data, boolean sync, Long earliestStart, Long latestEnd, String eType, boolean pending) {
 		this.collectionId = cid;
 		this.resourceId = rid;
 		this.name = name;
@@ -34,6 +34,7 @@ public class DefaultResourceInstance implements Resource {
 		if (latestEnd == null) latestEnd = Long.MAX_VALUE;
 		this.latestEnd = latestEnd;
 		this.effectiveType = eType;
+		this.pending = pending;
 	}
 	
 	public DefaultResourceInstance(Parcel in) {
@@ -47,6 +48,7 @@ public class DefaultResourceInstance implements Resource {
 		this.earliestStart = in.readLong();
 		this.latestEnd = in.readLong();
 		this.effectiveType = in.readString();
+		this.pending = in.readByte() == 'T';
 	}
 	
 	@Override
@@ -76,6 +78,7 @@ public class DefaultResourceInstance implements Resource {
 		dest.writeLong(earliestStart);
 		dest.writeLong(latestEnd);
 		dest.writeString(effectiveType);
+		dest.writeByte(this.pending ? (byte)'T' : (byte)'F');
 	}
 
 	@Override
@@ -91,6 +94,8 @@ public class DefaultResourceInstance implements Resource {
 	public static Resource fromContentValues(ContentValues cv) {
 		long rid = -1;
 		if (cv.containsKey(ResourceTableManager.RESOURCE_ID)) rid = cv.getAsLong(ResourceTableManager.RESOURCE_ID);
+		boolean pending = false;
+		if (cv.containsKey(ResourceTableManager.IS_PENDING)) pending = cv.getAsBoolean(ResourceTableManager.IS_PENDING);
 		return new DefaultResourceInstance(
 				cv.getAsLong(ResourceTableManager.COLLECTION_ID),
 				rid,
@@ -101,13 +106,14 @@ public class DefaultResourceInstance implements Resource {
 				cv.getAsInteger(ResourceTableManager.NEEDS_SYNC) == 1,
 				cv.getAsLong(ResourceTableManager.EARLIEST_START),
 				cv.getAsLong(ResourceTableManager.LATEST_END),
-				cv.getAsString(ResourceTableManager.EFFECTIVE_TYPE)
+				cv.getAsString(ResourceTableManager.EFFECTIVE_TYPE),
+				pending
 		);
-	
 		
-		
-		
-		
-		
+	}
+
+	@Override
+	public boolean isPending() {
+		return this.pending;
 	}
 }

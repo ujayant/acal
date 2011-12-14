@@ -9,5 +9,6 @@ public interface Resource extends Parcelable {
 	public abstract long getCollectionId();
 	public abstract String getBlob();
 	public abstract String getEtag();
+	public abstract boolean isPending();
 	
 }

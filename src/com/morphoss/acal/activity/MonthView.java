@@ -112,6 +112,8 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 	private View monthGridRoot;
 	/** The GridView object that displays the month */
 	private GridView monthGrid = null;
+	/** The GridView object that displays the month */
+	private MonthAdapter monthAdapter= null;
 	/** The TextView that displays which month we are looking at */
 	private TextView monthTitle;
 
@@ -521,13 +523,17 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 			if (left) {
 				monthGridFlipper.setInAnimation(leftIn);
 				monthGridFlipper.setOutAnimation(leftOut);
+				if (monthAdapter != null) monthAdapter.animationInit();
 				flipMonth(1);
 			} else {
 				monthGridFlipper.setInAnimation(rightIn);
 				monthGridFlipper.setOutAnimation(rightOut);
+				if (monthAdapter != null) monthAdapter.animationInit();
 				flipMonth(-1);
 			}
 			int cur = monthGridFlipper.getDisplayedChild();
+			
+			//TODO We need to prevent cache updates from upsetting this animation
 			monthGridFlipper.showNext();
 			monthGridFlipper.removeViewAt(cur);
 			return true;
@@ -634,10 +640,17 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 		}
 		*/
 		
-		if (AcalDateTime.isWithinMonth(selectedDate, displayedMonth))
-			monthGrid.setAdapter(new MonthAdapter(this, selectedDate, selectedDate));
-		else
-			monthGrid.setAdapter(new MonthAdapter(this, displayedMonth, selectedDate));
+		if (AcalDateTime.isWithinMonth(selectedDate, displayedMonth)) {
+			if (monthAdapter != null) monthAdapter.close();
+			monthAdapter = new MonthAdapter(this, selectedDate, selectedDate,new Animation[]{leftIn,leftOut,rightIn,rightOut});
+			monthGrid.setAdapter(monthAdapter);
+		}
+		else {
+			if (monthAdapter != null) monthAdapter.close();
+			monthAdapter = new MonthAdapter(this, displayedMonth, selectedDate,new Animation[]{leftIn,leftOut,rightIn,rightOut});
+			monthGrid.setAdapter(monthAdapter);
+			monthGrid.setAdapter(monthAdapter);
+		}
 		monthGrid.refreshDrawableState();
 	}
 
@@ -668,19 +681,20 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 		eventListTitle.setText(AcalDateTime.fmtDayMonthYear(c));
 
 		if (AcalDateTime.isWithinMonth(selectedDate, displayedMonth)) {
-			MonthAdapter ma = ((MonthAdapter) this.monthGrid.getAdapter());
-			if ( ma == null )  
-				this.monthGrid.setAdapter(new MonthAdapter(this, displayedMonth.clone(), selectedDate.clone()));
-			else {
-				ma.updateSelectedDay(selectedDate);
-				ma.notifyDataSetChanged();
+			if ( monthAdapter == null )  {
+				monthAdapter = new MonthAdapter(this, displayedMonth.clone(), selectedDate.clone(),new Animation[]{leftIn,leftOut,rightIn,rightOut});
+				this.monthGrid.setAdapter(monthAdapter);
+			} else {
+				monthAdapter.updateSelectedDay(selectedDate);
+				monthAdapter.notifyDataSetChanged();
 			}
 		} else {
-			MonthAdapter ma = ((MonthAdapter) this.monthGrid.getAdapter());
-			if ( ma == null )
-				this.monthGrid.setAdapter(new MonthAdapter(this, displayedMonth.clone(), selectedDate.clone()));
-			ma.updateSelectedDay(selectedDate);
-			ma.notifyDataSetChanged();
+			if ( monthAdapter == null ) {
+				monthAdapter = new MonthAdapter(this, displayedMonth.clone(), selectedDate.clone(),new Animation[]{leftIn,leftOut,rightIn,rightOut});
+				this.monthGrid.setAdapter(monthAdapter);
+			}
+			monthAdapter.updateSelectedDay(selectedDate);
+			monthAdapter.notifyDataSetChanged();
 		}
 	}
 

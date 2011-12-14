@@ -1,6 +1,7 @@
 package com.morphoss.acal.database.cachemanager;
 
 import java.util.ArrayList;
+import java.util.TimeZone;
 
 import android.content.ContentValues;
 
@@ -16,7 +17,7 @@ import com.morphoss.acal.database.cachemanager.CacheManager.CacheTableManager;
  * @author Chris Noldus
  *
  */
-public class CRPObjectsInRange extends CacheRequestWithResponse<ArrayList<CacheObject>> {
+public class CRObjectsInRange extends CacheRequestWithResponse<ArrayList<CacheObject>> {
 
 	private AcalDateRange range;
 	
@@ -25,7 +26,7 @@ public class CRPObjectsInRange extends CacheRequestWithResponse<ArrayList<CacheO
 	 * @param range
 	 * @param callBack
 	 */
-	public CRPObjectsInRange(AcalDateRange range, CacheResponseListener<ArrayList<CacheObject>> callBack) {
+	public CRObjectsInRange(AcalDateRange range, CacheResponseListener<ArrayList<CacheObject>> callBack) {
 		super(callBack);
 		this.range = range;
 	}
@@ -41,23 +42,28 @@ public class CRPObjectsInRange extends CacheRequestWithResponse<ArrayList<CacheO
 
 		String dtStart = range.start.getMillis()+"";
 		String dtEnd = range.end.getMillis()+"";
+		String offset = TimeZone.getDefault().getOffset(range.start.getMillis())+"";
+		
+		
 		ArrayList<ContentValues> data = processor.query(null, 
-				"( "+CacheTableManager.FIELD_DTEND+" > ? OR "+CacheTableManager.FIELD_DTEND+" ISNULL ) AND "+
-				"( "+CacheTableManager.FIELD_DTSTART+" < ?  OR "+CacheTableManager.FIELD_DTSTART+" ISNULL )", 
-				new String[] {dtStart , dtEnd},
-				null,null,null);
+				"( " + 
+					"( "+CacheTableManager.FIELD_DTEND+" > ? AND NOT "+CacheTableManager.FIELD_DTEND_FLOAT+" )"+
+						" OR "+
+						"( "+CacheTableManager.FIELD_DTEND+" + ? > ? AND "+CacheTableManager.FIELD_DTEND_FLOAT+" )"+
+						" OR "+
+					"( "+CacheTableManager.FIELD_DTEND+" ISNULL )"+
+				" ) AND ( "+
+					"( "+CacheTableManager.FIELD_DTSTART+" < ? AND NOT "+CacheTableManager.FIELD_DTSTART_FLOAT+" )"+
+						" OR "+
+					"( "+CacheTableManager.FIELD_DTSTART+" + ? < ? AND "+CacheTableManager.FIELD_DTSTART_FLOAT+" )"+
+						" OR "+
+					"( "+CacheTableManager.FIELD_DTSTART+" ISNULL )"+
+				")",
+				new String[] {dtStart , offset, dtStart, dtEnd, offset, dtEnd},
+				null,null,CacheTableManager.FIELD_DTSTART+" ASC");
 		
 		for (ContentValues cv : data) 
-				result.add(CacheManager.fromContentValues(cv));
-
-		/**result.add(new CacheObject(
-				-1,
-				1,
-				"Test Event",
-				"Test Location",
-				range.start.clone().setHour(12).getMillis(),
-				range.start.clone().setHour(13).getMillis(),
-				CacheObject.EVENT_FLAG)); */
+				result.add(CacheObject.fromContentValues(cv));
 		
 		this.postResponse(new CRObjectsInRangeResponse<ArrayList<CacheObject>>(result));
 	}
