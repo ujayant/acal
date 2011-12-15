@@ -1,5 +1,6 @@
 package com.morphoss.acal.service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import android.accounts.Account;
@@ -24,6 +25,10 @@ import android.util.Log;
 
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.contacts.VCardContact;
+import com.morphoss.acal.database.resourcesmanager.RRGetResourcesInCollection;
+import com.morphoss.acal.database.resourcesmanager.ResourceManager;
+import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
+import com.morphoss.acal.dataservice.Resource;
 import com.morphoss.acal.davacal.VComponentCreationException;
 
 public class ContactsSyncAdapterService extends Service {
@@ -91,19 +96,18 @@ public class ContactsSyncAdapterService extends Service {
 		
 
 		long collectionId = Long.parseLong(AccountManager.get(context).getUserData(account, AcalAuthenticator.COLLECTION_ID));
-		AcalCollection collection = AcalCollection.fromDatabase(context, collectionId);
-		if ( collection == null ) {
-			return;
-		}
-		ContentValues[] davCardRows = fetchVCards(mContentResolver,collectionId);
-		for ( ContentValues cardRow : davCardRows ) {
+		ArrayList<Resource> resources = ResourceManager.getInstance(context).sendBlockingRequest(
+					new RRGetResourcesInCollection(collectionId)
+				).result();
+		
+		for ( Resource resource : resources ) {
 			VCardContact vc;
 			try {
-				vc = new VCardContact(cardRow,collection);
+				vc = new VCardContact(resource);
 			}
 			catch ( VComponentCreationException e ) {
-				Log.println(Constants.LOGD, TAG, "Could not make VCard from resource ID "+cardRow.getAsString(DavResources._ID));
-				Log.println(Constants.LOGV, TAG, cardRow.getAsString(DavResources.RESOURCE_DATA));
+				Log.println(Constants.LOGD, TAG, "Could not make VCard from resource ID "+resource.getResourceId());
+				Log.println(Constants.LOGV, TAG, resource.getBlob());
 				continue;
 			}
 			Integer androidContactId = androidContacts.get(vc.getUid());

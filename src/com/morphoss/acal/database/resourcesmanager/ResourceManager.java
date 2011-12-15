@@ -143,6 +143,19 @@ public class ResourceManager implements Runnable {
 		queue.offer(request);
 		threadHolder.open();
 	}
+	
+	public <E> ResourceResponse<E> sendBlockingRequest(BlockingResourceRequestWithResponse<E> request) {
+		Log.d(TAG, "Received Blocking Request: "+request.getClass());
+		queue.offer(request);
+		threadHolder.open();
+		int priority = Thread.currentThread().getPriority();
+		Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
+		while (!request.isProcessed()) {
+			try { Thread.sleep(10); } catch (Exception e) {	}
+		}
+		Thread.currentThread().setPriority(priority);
+		return request.getResponse();
+	}
 
 	// This special class provides encapsulation of database operations as is
 	// set up to enforce
