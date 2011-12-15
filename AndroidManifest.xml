@@ -238,11 +238,6 @@
 				<action android:name="com.morphoss.acal.service.aCalService" />
 			</intent-filter>
 		</service>
-		<service android:name="com.morphoss.acal.dataservice.CalendarDataService" >
-			<intent-filter >
-				<action android:name="com.morphoss.acal.dataservice.CalendarDataService" />
-			</intent-filter>
-		</service>
 		<service
 			android:exported="true"
 			android:name="com.morphoss.acal.service.AcalAuthenticator"
