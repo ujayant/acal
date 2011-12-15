@@ -33,6 +33,7 @@ import android.util.Log;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.contacts.VCardContact;
+import com.morphoss.acal.dataservice.Resource;
 import com.morphoss.acal.davacal.VComponentCreationException;
 import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.providers.Servers;
@@ -44,7 +45,6 @@ public class AddressbookToContacts extends ServiceJob {
 	private aCalService context;
 	private ContentResolver cr;
 	private ContentValues collectionValues;
-	private AcalCollection addressBookCollection;
 	private String acalAccountType;
 	private Account	account;
 	
@@ -60,7 +60,6 @@ public class AddressbookToContacts extends ServiceJob {
 		this.cr = context.getContentResolver();
 		this.acalAccountType = context.getString(R.string.AcalAccountType);
 		this.collectionValues = DavCollections.getRow(collectionId, cr);
-		this.addressBookCollection = new AcalCollection(collectionValues);
 		
 		this.account = getAndroidAccount();
 		if ( account == null ) {
@@ -98,11 +97,11 @@ public class AddressbookToContacts extends ServiceJob {
 
 	
 	private void updateContactsFromAddressbook() {
-		ContentValues[] vCards = fetchVCards();
+		Resource[] vCards = fetchVCards();
 		
-		for( ContentValues vCardRow : vCards ) {
+		for( Resource vCardRow : vCards ) {
 			try {
-				VCardContact vCard = new VCardContact(vCardRow, addressBookCollection);
+				VCardContact vCard = new VCardContact(vCardRow);
 
 				Uri rawContactUri = RawContacts.CONTENT_URI.buildUpon()
 						.appendQueryParameter(RawContacts.ACCOUNT_NAME, account.name)
@@ -154,20 +153,20 @@ public class AddressbookToContacts extends ServiceJob {
 	 * Fetch the VCards we should be looking at.
 	 * @return an array of String
 	 */
-	private ContentValues[] fetchVCards() {
+	private Resource[] fetchVCards() {
 		Cursor mCursor = null;
-		ContentValues vcards[] = null;
+		Resource vcards[] = null;
 
 		if (Constants.LOG_VERBOSE) Log.v(TAG, "Retrieving VCards" );
 		try {
 			Uri vcardResourcesUri = Uri.parse(DavResources.CONTENT_URI.toString()+"/collection/"+this.collectionId);
 			mCursor = cr.query(vcardResourcesUri, null, null, null, null);
-			vcards = new ContentValues[mCursor.getCount()];
+			vcards = new Resource[mCursor.getCount()];
 			int count = 0;
 			for( mCursor.moveToFirst(); !mCursor.isAfterLast(); mCursor.moveToNext()) {
 				ContentValues newCard = new ContentValues();
 				DatabaseUtils.cursorRowToContentValues(mCursor, newCard);
-				vcards[count++] = newCard;
+				vcards[count++] = new Resource(newCard);
 			}
 		}
 		catch (Exception e) {

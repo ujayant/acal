@@ -27,6 +27,7 @@ import android.provider.ContactsContract.RawContacts.Data;
 import android.util.Log;
 
 import com.morphoss.acal.Constants;
+import com.morphoss.acal.dataservice.Resource;
 import com.morphoss.acal.davacal.AcalProperty;
 import com.morphoss.acal.davacal.PropertyName;
 import com.morphoss.acal.davacal.VCard;
@@ -43,17 +44,17 @@ public class VCardContact {
 	private static final Pattern structuredNameMatcher = Pattern.compile("^(.*);(.*);(.*);(.*);(.*)$");
 	private static final Pattern simpleSplit = Pattern.compile("[.]");
 	
-	private final ContentValues vCardRow;
+	private final Resource vCardRow;
 	private final VCard sourceCard;
 	private Map<String,Set<AcalProperty>> typeMap = null;
 	private Map<String,Set<AcalProperty>> groupMap = null;
 	private AcalProperty uid = null;
 	private AcalProperty sequence = null;
 
-	public VCardContact( ContentValues resourceRow, AcalCollection collectionObject ) throws VComponentCreationException {
+	public VCardContact( Resource resourceRow ) throws VComponentCreationException {
 		vCardRow = resourceRow;
 		try {
-			sourceCard = (VCard) VComponent.createComponentFromResource(resourceRow, collectionObject);
+			sourceCard = (VCard) VComponent.createComponentFromResource(resourceRow);
 		}
 		catch ( Exception e ) {
 			Log.w(TAG,"Could not build VCard from resource", e);
@@ -74,7 +75,7 @@ public class VCardContact {
 			sequence = new AcalProperty("SEQUENCE", "1");
 		uid = sourceCard.getProperty(PropertyName.UID);
 		if ( uid == null ) {
-			uid = new AcalProperty("UID", vCardRow.getAsString(DavResources._ID));
+			uid = new AcalProperty("UID", Long.toString(vCardRow.getResourceId()));
 		}
 		buildTypeMap();
 		
