@@ -8,7 +8,6 @@ import android.util.Log;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.database.cachemanager.CacheObject;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
-import com.morphoss.acal.dataservice.DefaultResourceInstance;
 import com.morphoss.acal.dataservice.Resource;
 import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VComponent;
@@ -46,7 +45,7 @@ public class RRGetCacheEventsInRange extends ResourceRequestWithResponse<ArrayLi
 				null,null,null);
 		Log.d(TAG,rValues.size()+" Rows retreived. Converting into Resource Objects");
 		ArrayList<Resource> resources = new ArrayList<Resource>();
-		for (ContentValues cv : rValues) resources.add(DefaultResourceInstance.fromContentValues(cv));
+		for (ContentValues cv : rValues) resources.add(Resource.fromContentValues(cv));
 		Log.d(TAG, "Conversion complete. Populating VCalendars and appedning events.");
 		ArrayList<CacheObject> events = new ArrayList<CacheObject>();
 		//step 3 - foreach resource, Vcomps
@@ -79,7 +78,7 @@ public class RRGetCacheEventsInRange extends ResourceRequestWithResponse<ArrayLi
 	 *
 	 * @param <E>
 	 */
-	public class RREventsInRangeResponse<E extends ArrayList<CacheObject>> implements ResourceResponse<ArrayList<CacheObject>> {
+	public class RREventsInRangeResponse<E extends ArrayList<CacheObject>> extends ResourceResponse<ArrayList<CacheObject>> {
 		
 		private ArrayList<CacheObject> result;
 		private AcalDateRange requestedRange;

@@ -42,7 +42,6 @@ import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.dataservice.Collection;
-import com.morphoss.acal.dataservice.DefaultCollectionFactory;
 import com.morphoss.acal.dataservice.EventInstance;
 
 public class WeekViewDays extends ImageView implements OnTouchListener {
@@ -271,7 +270,10 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 					for(int j=0; j < timeTable[i].length; j++) {
 						if (timeTable[i][j] != null) {
 							if (drawn.contains(timeTable[i][j])) {
-								curX+=timeTable[i][j].getLastWidth();
+								/**
+								 * TODO - fix this
+								 */
+								//curX+=timeTable[i][j].getLastWidth();
 								continue;
 							}
 							drawn.add(timeTable[i][j]);
@@ -285,7 +287,10 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 							float singleWidth = (dayWidth/(lastMaxX+1)) * depth;	
 							EventInstance event = timeTable[i][j];
 							drawVertical(event, canvas, (int)dayX+curX, (int)singleWidth, thisDayEpoch);
-							event.setLastWidth((int)singleWidth);
+							/**
+							 * TODO - fix this
+							 */
+							//event.setLastWidth((int)singleWidth);
 							curX+=singleWidth;
 						}
 					}
@@ -388,11 +393,14 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 
 		long topStart = dayStart + topSec;
 		if ( Constants.LOG_VERBOSE && Constants.debugWeekView ) {
-			Log.v(TAG,"Drawing event "+event.getTimeText(context, dayStart, dayStart, true)+
-						": '"+event.getSummary()+"' at "+x+" for "+width+" ~ "+
-						event.getStart().getMillis()+","+event.getEnd().getMillis()+" ~ "+dayStart+", topSec: "+topSec);
-			Log.v(TAG,"Top="+(event.getStart().getMillis() - topStart)+
-						", Bottom="+(event.getEnd().getMillis() - topStart) );
+			/**
+			 * TODO - fix this
+			 */
+			//Log.v(TAG,"Drawing event "+event.getTimeText(context, dayStart, dayStart, true)+
+			//			": '"+event.getSummary()+"' at "+x+" for "+width+" ~ "+
+			//			event.getStart().getMillis()+","+event.getEnd().getMillis()+" ~ "+dayStart+", topSec: "+topSec);
+			//Log.v(TAG,"Top="+(event.getStart().getMillis() - topStart)+
+			//			", Bottom="+(event.getEnd().getMillis() - topStart) );
 		}
 		
 		int maxWidth = width;
@@ -433,14 +441,17 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 		p.setStyle(Paint.Style.FILL);
 		p.setColor(0xff555555);
 
-		if ( Constants.LOG_VERBOSE && Constants.debugWeekView )
-			Log.v(TAG,"Drawing event "+event.getTimeText(context, dayStart, dayStart, true)+
-						": '"+event.getSummary()+"' at "+x+","+top+" for "+width+","+height+
-						" ("+maxWidth+","+maxHeight+")"+
-						" - "+event.getStart().getMillis()+","+event.getEnd().getMillis());
+		//if ( Constants.LOG_VERBOSE && Constants.debugWeekView )
+			/**
+			 * TODO - fix this
+			 */
+			//	Log.v(TAG,"Drawing event "+event.getTimeText(context, dayStart, dayStart, true)+
+			//			": '"+event.getSummary()+"' at "+x+","+top+" for "+width+","+height+
+			//			" ("+maxWidth+","+maxHeight+")"+
+			//			" - "+event.getStart().getMillis()+","+event.getEnd().getMillis());
 
-		Collection collection = new DefaultCollectionFactory().getInstance(event.getCollectionId(),this.context);
-		canvas.drawBitmap(context.getImageCache().getEventBitmap(event.getResource().getResourceId(),event.getSummary(),collection.getColour(),
+		Collection collection = Collection.getInstance(event.getCollectionId(),this.context);
+		canvas.drawBitmap(context.getImageCache().getEventBitmap(event.getResourceId(),event.getSummary(),collection.getColour(),
 						width, height, maxWidth, maxHeight), x, top, new Paint());
 		
 		eventsDisplayed.add( new Rectangle( x, top, x+width, top+height, event) );
@@ -454,17 +465,26 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 	 * @param depth layer for the event
 	 */
 	public void drawHorizontal(EventInstance event, Canvas c, int depth) {
-		int maxWidth = event.calulateMaxWidth(viewWidth, HSPP);
-		if ( maxWidth < 0 ) return;
+		/**
+		 * TODO - fix this
+		 */
+		//int maxWidth = event.calulateMaxWidth(viewWidth, HSPP);
+		//if ( maxWidth < 0 ) return;
 		int x = (int)(event.getStart().getMillis()-HST)/HSPP;
 		if ( x < 0 ) x = 0;
 		int y = HIH*depth;
-		int actualWidth = (int)Math.min(Math.min(event.getActualWidth(), viewWidth-x),(event.getEnd().getMillis()-HST)/HSPP); 
-		if ( actualWidth<=0 ) return;
-		Collection collection = new DefaultCollectionFactory().getInstance(event.getCollectionId(),this.context);
-		c.drawBitmap(context.getImageCache().getEventBitmap(event.getResource().getResourceId(),event.getSummary(),collection.getColour(),
-					actualWidth, HIH, maxWidth, HIH), x,y, new Paint());
-		eventsDisplayed.add( new Rectangle( x, y, x+actualWidth, y+HIH, event) );
+		/**
+		 * TODO - fix this
+		 */
+		//int actualWidth = (int)Math.min(Math.min(event.getActualWidth(), viewWidth-x),(event.getEnd().getMillis()-HST)/HSPP); 
+		//if ( actualWidth<=0 ) return;
+		Collection collection = Collection.getInstance(event.getCollectionId(),this.context);
+		/**
+		 * TODO - fix this
+		 */
+		//c.drawBitmap(context.getImageCache().getEventBitmap(event.getResourceId(),event.getSummary(),collection.getColour(),
+		//			actualWidth, HIH, maxWidth, HIH), x,y, new Paint());
+		//eventsDisplayed.add( new Rectangle( x, y, x+actualWidth, y+HIH, event) );
 	}
 	
 	/**
@@ -474,12 +494,15 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 	 * @return A two-dimensional array of events
 	 */
 	private EventInstance[][] getMultiDayTimeTable(AcalDateRange range) {
-		List<EventInstance> events = context.getEventsForDays(range, WeekViewActivity.INCLUDE_ALL_DAY_EVENTS );
-		if (HTimetable != null && HSimpleList != null) {
-			if (HSimpleList.containsAll(events) && events.size() == HSimpleList.size()) return HTimetable;
-		}
-		HSimpleList = events;
-		Collections.sort(HSimpleList);
+		/**
+		 * TODO - fix this
+		 */
+		//List<EventInstance> events = context.getEventsForDays(range, WeekViewActivity.INCLUDE_ALL_DAY_EVENTS );
+		//if (HTimetable != null && HSimpleList != null) {
+		//	if (HSimpleList.containsAll(events) && events.size() == HSimpleList.size()) return HTimetable;
+		//}
+		//HSimpleList = events;
+		//Collections.sort(HSimpleList);
 		EventInstance[][] timetable = new EventInstance[HSimpleList.size()][HSimpleList.size()]; //maximum possible
 		int depth = 0;
 		for (int x = 0; x < HSimpleList.size(); x++) {
@@ -511,6 +534,9 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 	 * @return An array of lists, one per column
 	 */
 	private EventInstance[][] getInDayTimeTable(AcalDateTime day) {
+		/**
+		 * TODO - fix this
+		 *
 		List<EventInstance> events = context.getEventsForDays(new AcalDateRange(day,day.clone().addDays(1)),
 					WeekViewActivity.INCLUDE_IN_DAY_EVENTS );
 		Collections.sort(events);
@@ -530,9 +556,11 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 			}
 			timetable[y][x] = seo;
 			if (x > maxX) maxX = x;
-		}
+		//}
 		lastMaxX = maxX;
 		return timetable;
+		*/
+		return null;
 	}
 
 
@@ -560,12 +588,14 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 			Log.d(TAG,"Background scrollX="+scrollx+" scrollY="+scrolly+", topSec="+topSec );
 			Log.d(TAG,"Underneath "+(int)x+" is day: "+((AcalDateTime) result.get(0)).toString() );
 			Log.d(TAG,"Underneath "+(int)y+" is sec: "+((Integer) result.get(1)).toString() );
-			
-			for(int i=2; i<result.size(); i++ ) {
-				EventInstance e = (EventInstance) result.get(i); 
-				Log.d(TAG,"Underneath event: "+e.getTimeText(context, currentEpoch, currentEpoch, true) +
-							", Summary: " + e.getSummary() );
-			}
+			/**
+			 * TODO - fix this
+			 */
+			//for(int i=2; i<result.size(); i++ ) {
+				//EventInstance e = (EventInstance) result.get(i); 
+				//Log.d(TAG,"Underneath event: "+e.getTimeText(context, currentEpoch, currentEpoch, true) +
+				//			", Summary: " + e.getSummary() );
+			//}
 		}
 
 		return result;

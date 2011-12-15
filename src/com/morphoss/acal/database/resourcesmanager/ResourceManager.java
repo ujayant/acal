@@ -21,8 +21,7 @@ import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
 import com.morphoss.acal.database.DataChangeEvent;
 import com.morphoss.acal.database.DatabaseTableManager;
-import com.morphoss.acal.database.DatabaseTableManager.QUERY_ACTION;
-import com.morphoss.acal.dataservice.DefaultResourceInstance;
+import com.morphoss.acal.dataservice.Resource;
 import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VComponent;
 import com.morphoss.acal.providers.DavCollections;
@@ -255,7 +254,7 @@ public class ResourceManager implements Runnable {
 			values = toWrite;
 			try {
 
-				VComponent comp = VComponent.createComponentFromResource(DefaultResourceInstance.fromContentValues(values));
+				VComponent comp = VComponent.createComponentFromResource(Resource.fromContentValues(values));
 				
 				//TODO Check effective type here
 			
@@ -280,7 +279,7 @@ public class ResourceManager implements Runnable {
 			values = toWrite;
 			try {
 
-				VComponent comp = VComponent.createComponentFromResource(DefaultResourceInstance.fromContentValues(values));
+				VComponent comp = VComponent.createComponentFromResource(Resource.fromContentValues(values));
 				
 				//TODO Check effective type here
 			

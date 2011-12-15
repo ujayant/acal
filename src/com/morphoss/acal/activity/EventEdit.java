@@ -18,7 +18,8 @@
 
 package com.morphoss.acal.activity;
 
-import java.util.List;
+import java.util.ArrayList;
+import java.util.TimeZone;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -27,15 +28,14 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.GestureDetector.OnGestureListener;
 import android.view.View.OnClickListener;
-import android.view.View.OnTouchListener;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
@@ -53,15 +53,18 @@ import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDateTimeFormatter;
 import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
+import com.morphoss.acal.database.resourcesmanager.RRRequestInstance;
+import com.morphoss.acal.database.resourcesmanager.ResourceChangedEvent;
+import com.morphoss.acal.database.resourcesmanager.ResourceChangedListener;
+import com.morphoss.acal.database.resourcesmanager.ResourceManager;
+import com.morphoss.acal.database.resourcesmanager.ResourceResponse;
+import com.morphoss.acal.database.resourcesmanager.ResourceResponseListener;
+import com.morphoss.acal.dataservice.CalendarInstance;
 import com.morphoss.acal.dataservice.Collection;
-import com.morphoss.acal.dataservice.DefaultCollectionFactory;
 import com.morphoss.acal.dataservice.EventInstance;
-import com.morphoss.acal.dataservice.MethodsRequired;
-import com.morphoss.acal.dataservice.WriteableEventInstance;
-import com.morphoss.acal.dataservice.DefaultWriteableEventInstance.BadlyConstructedEventException;
-import com.morphoss.acal.dataservice.DefaultWriteableEventInstance.EVENT_BUILDER;
+import com.morphoss.acal.dataservice.EventInstance.BadlyConstructedEventException;
+import com.morphoss.acal.dataservice.EventInstance.EVENT_BUILDER;
 import com.morphoss.acal.davacal.AcalAlarm;
-import com.morphoss.acal.davacal.PropertyName;
 import com.morphoss.acal.davacal.VComponent;
 import com.morphoss.acal.davacal.AcalAlarm.ActionType;
 import com.morphoss.acal.providers.DavCollections;
@@ -70,7 +73,7 @@ import com.morphoss.acal.widget.AlarmDialog;
 import com.morphoss.acal.widget.DateTimeDialog;
 import com.morphoss.acal.widget.DateTimeSetListener;
 
-public class EventEdit extends AcalActivity implements OnGestureListener, OnTouchListener, OnClickListener, OnCheckedChangeListener {
+public class EventEdit extends AcalActivity implements  OnClickListener, OnCheckedChangeListener, ResourceChangedListener, ResourceResponseListener<CalendarInstance> {
 
 	public static final String TAG = "aCal EventEdit";
 	public static final int APPLY = 0;
@@ -81,17 +84,29 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 	public static final String			resultAcalEvent					= "newAcalEvent";
 	public static final String			resultCollectionId			= "newCollectionId";
 	
-	private WriteableEventInstance event;
+	public static final String RESOURCE_ID_KEY = "resourceId";
+	public static final String RECCURENCE_ID_KEY = "reccurenceId";
+	public static final String ACTION_KEY = "action";
+	public static final String NEW_EVENT_DATE_TIME_KEY = "datetime";
+	
+	public static final int ACTION_EDIT = 1;
+	public static final int ACTION_ADD = 2;
+	
+	
+	
+	private EventInstance event;
 	private static final int START_DATE_DIALOG = 0;
 	private static final int END_DATE_DIALOG = 2;
 	private static final int SELECT_COLLECTION_DIALOG = 4;
 	private static final int ADD_ALARM_DIALOG = 5;
 	private static final int SET_REPEAT_RULE_DIALOG = 6;
 	private static final int WHICH_EVENT_DIALOG = 7;
+	private static final int LOADING_EVENT_DIALOG = 8;
 
 	boolean prefer24hourFormat = false;
 	
 	private String[] repeatRules;
+	private String[] repeatRulesValues;
 	private String[] eventChangeRanges; // See strings.xml R.array.EventChangeAffecting
 		
 	private String[] alarmRelativeTimeStrings;
@@ -105,10 +120,6 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 		new AcalDuration("-PT2H"),
 		//** Custom **//
 	};
-	
-	private String[] repeatRulesValues;
-	
-	private MethodsRequired dataRequest = new MethodsRequired();
 
 	//GUI Components
 	private Button btnStartDate;
@@ -125,14 +136,56 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 	private Button btnSelectCollection;
 	
 	//Active collections for create mode
-	private ContentValues[] activeCollections;
-	private ContentValues currentCollection;	//currently selected collection
+	private ArrayList<Collection> activeCollections;
 	private String[] collectionsArray;
 
-	private List<AcalAlarm> alarmList;
+	private ArrayList<AcalAlarm> alarmList;
 	
-	private boolean originalHasOccurrence = false;
-	private String originalOccurence = "";
+	private ResourceManager resourceManager;
+	
+	private int action;
+	private int instances = -1;
+	
+	private static final int INSTANCES_SINGLE = 0;
+	private static final int INSTANCES_ALL = 1;
+	private static final int INSTANCES_THIS_FURTURE = 2;
+	
+	
+	private static final int REFRESH = 0;
+	private static final int FAIL = 1;
+	private static final int CONFLICT = 2;
+	private static final int SHOW_LOADING = 3;
+	private static final int GIVE_UP = 4;
+	
+	private Dialog loadingDialog = null;
+	
+	private Handler mHandler = new Handler() {
+		public void handleMessage(Message msg) {
+			if (msg.what == REFRESH) {
+				if (loadingDialog != null) {
+					loadingDialog.dismiss();
+					loadingDialog = null;
+				}
+				updateLayout();
+			} else if(msg.what == CONFLICT) {
+				Toast.makeText(EventEdit.this, "The resource you are editing has been changed or deleted on the server.", 5).show();
+			} else if(msg.what == SHOW_LOADING) {
+				if (event == null) showDialog(LOADING_EVENT_DIALOG);
+			} else if(msg.what == FAIL) {
+				Toast.makeText(EventEdit.this, "Error loading data.", 5).show();
+				finish();
+				return;
+			} else if(msg.what == GIVE_UP) {
+				if (loadingDialog != null) {
+					loadingDialog.dismiss();
+					Toast.makeText(EventEdit.this, "Error loading event data.", Toast.LENGTH_LONG).show();
+					finish();
+					return;
+				}
+			}
+			
+		}
+	};
 	
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -147,155 +200,111 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 		alarmRelativeTimeStrings = getResources().getStringArray(R.array.RelativeAlarmTimes);
 		eventChangeRanges = getResources().getStringArray(R.array.EventChangeAffecting);
 		
-		Bundle b = this.getIntent().getExtras();
-		getEventAction(b);
-		if ( this.event == null ) {
-			Log.d(TAG,"Unable to create AcalEvent object");
-			return;
-		}
-		this.populateLayout();
-	}
-
-	
-	private EventInstance getEventAction(Bundle b) {
-		int operation = EventInstance.EVENT_OPERATION_EDIT;
-		if ( b.containsKey("EventInstance") ) {
-			this.event = b.getParcelable("EventInstance");
-			operation = event.getOperation();
-		}
+		resourceManager = ResourceManager.getInstance(this,this);
 
 		//Get collection data
-		activeCollections = DavCollections.getCollections( getContentResolver(), DavCollections.INCLUDE_EVENTS );
-		long collectionId = -1;
-		if ( activeCollections.length > 0 )
-			collectionId = activeCollections[0].getAsInteger(DavCollections._ID);
-		else {
+		activeCollections = new ArrayList<Collection>();
+		for (ContentValues cv : DavCollections.getCollections( getContentResolver(), DavCollections.INCLUDE_EVENTS ))
+			activeCollections.add(Collection.getInstance(cv.getAsLong(DavCollections._ID),this));
+
+		if (activeCollections.isEmpty()) {
 			Toast.makeText(this, getString(R.string.errorMustHaveActiveCalendar), Toast.LENGTH_LONG);
 			this.finish();	// can't work if no active collections
-			return null;
+			return;
 		}
-		
-		if ( operation == EventInstance.EVENT_OPERATION_EDIT ) {
-			try {
-				collectionId = this.event.getCollectionId();
-				this.event.setAction(WriteableEventInstance.ACTION_MODIFY_ALL);
-				if ( event.isModifyAction() ) {
-					String rr = (String)  this.event.getRRule();
-					if (rr != null && !rr.equals("") && !rr.equals(AcalRepeatRule.SINGLE_INSTANCE)) {
-						this.originalHasOccurrence = true;
-						this.originalOccurence = rr;
-					}
-					if (this.originalHasOccurrence) {
-						this.event.setAction(WriteableEventInstance.ACTION_MODIFY_SINGLE);
-					}
-					else {
-						this.event.setAction(WriteableEventInstance.ACTION_MODIFY_ALL);
-					}
-				}
-			}
-			catch (Exception e) {
-				if (Constants.LOG_DEBUG)Log.d(TAG, "Error getting data from caller: "+e.getMessage());
-			}
-		}
-		else if ( operation == EventInstance.EVENT_OPERATION_COPY ) {
-			// Duplicate the event into a new one.
-			try {
-				collectionId = event.getCollectionId();
-			}
-			catch (Exception e) {
-				if (Constants.LOG_DEBUG)Log.d(TAG, "Error getting data from caller: "+e.getMessage());
-			}
-			this.event.setAction(WriteableEventInstance.ACTION_CREATE);
-		}
-
-		if ( this.event == null ) {
-			AcalDateTime start; 
-			
-			try {
-				start = (AcalDateTime) b.getParcelable("DATE");
-			} catch (Exception e) {
-				start = new AcalDateTime();
-			}
-			AcalDuration duration = new AcalDuration("PT1H");
-			AcalAlarm defaultAlarm = new AcalAlarm( AcalAlarm.RelateWith.START, "", new AcalDuration("-PT15M"),
-						ActionType.AUDIO, start, AcalDateTime.addDuration(start, duration));
-
-			if ( start.isDate() ) {
-				duration = new AcalDuration("PT1D");
-				defaultAlarm = new AcalAlarm( AcalAlarm.RelateWith.START, "", new AcalDuration("-PT12H"),
-							ActionType.AUDIO, start, AcalDateTime.addDuration(start, duration));
-			}
-			else if ( b.containsKey("TIME") ) {
-				start.setDaySecond((b.getInt("TIME") / 1800) * 1800);
-			}
-			else {
-				// Default to "in the next hour"
-				AcalDateTime now = new AcalDateTime();
-				start.setHour(now.getHour());
-				start.setSecond(0);
-				start.setMinute(0);
-				start.addSeconds(AcalDateTime.SECONDS_IN_HOUR);
-			}
-
-			ContentValues collectionData = DavCollections.getRow(collectionId, getContentResolver());
-			Integer preferredCollectionId = Integer.parseInt(prefs.getString(getString(R.string.DefaultCollection_PrefKey), "-1"));
-			if ( preferredCollectionId != -1 ) {
-				for( ContentValues aCollection : activeCollections ) {
-					if ( preferredCollectionId == aCollection.getAsInteger(DavCollections._ID) ) {
-						collectionId = preferredCollectionId;
-						collectionData = aCollection;
-						break;
-					}
-				}
-			}
-			
-			
-			
-			EVENT_BUILDER ev = new EVENT_BUILDER();
-			
-			if ( !start.isFloating() ) {
-				if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG, "Forcing start/end dates to floating on new event...");
-				start = start.setTimeZone(null);
-			}
-			
-			ev.setStart(start)
-				.setDuration(duration)
-				.setSummary(getString(R.string.NewEventTitle))
-				.setCollection(collectionId)
-				.addAlarm(defaultAlarm)
-				.setAction(WriteableEventInstance.ACTION_CREATE);
-		
-			try {
-				this.event = ev.build();
-			} catch (BadlyConstructedEventException bcee) {
-				if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG, "Error creating default event");
-			}
-		}
-		
-		this.collectionsArray = new String[activeCollections.length];
+		this.collectionsArray = new String[activeCollections.size()];
 		int count = 0;
-		for (ContentValues cv : activeCollections) {
-			if (cv.getAsInteger(DavCollections._ID) == collectionId) this.currentCollection = cv;
-			collectionsArray[count++] = cv.getAsString(DavCollections.DISPLAYNAME);
+		for (Collection col : activeCollections) {
+			collectionsArray[count++] = col.getDisplayName();
 		}
-		
-		return event;
+		getEventAction();
+		this.loadLayout();
+	}
+
+
+	private void getEventAction() {
+		Bundle b = this.getIntent().getExtras();
+		if ( b.containsKey(ACTION_KEY) ) {
+			action = b.getInt(ACTION_KEY);
+			switch (action) {
+				case ACTION_EDIT:
+					//We need to load the event - while we are waiting we can show a dialog
+					if (!b.containsKey(RESOURCE_ID_KEY) || !b.containsKey(RECCURENCE_ID_KEY)) {
+						//invalid data supplied
+						this.finish();
+						return;
+					}
+					long rid = b.getLong(RESOURCE_ID_KEY);
+					String rrid = b.getString(RECCURENCE_ID_KEY);
+					resourceManager.sendRequest(new RRRequestInstance(this,rid, rrid));
+					mHandler.sendMessageDelayed(mHandler.obtainMessage(SHOW_LOADING), 50);
+					mHandler.sendMessageDelayed(mHandler.obtainMessage(GIVE_UP), 10000);
+					break;
+				case ACTION_ADD:
+					AcalDateTime start;
+					if (b.containsKey(NEW_EVENT_DATE_TIME_KEY))
+						start = b.getParcelable(NEW_EVENT_DATE_TIME_KEY);
+					else {
+						//start at beggining of next hour
+						 start = new AcalDateTime()
+						 	.setTimeZone(TimeZone.getDefault().getID())
+						 	.setHour(new AcalDateTime().getHour())
+							.setSecond(0)
+							.setMinute(0)
+							.addSeconds(AcalDateTime.SECONDS_IN_HOUR);
+					}
+					
+					AcalDuration eventDuration = ( start.isDate() ) ?  new AcalDuration("PT1D") : new AcalDuration("PT1H");
+					AcalDuration alarmDuration = ( start.isDate() ) ?  new AcalDuration("-PT12H") : new AcalDuration("-PT15M"); 
+					 
+					AcalAlarm defaultAlarm = new AcalAlarm( AcalAlarm.RelateWith.START, "", alarmDuration,
+								ActionType.AUDIO, start, AcalDateTime.addDuration(start, eventDuration));
+					
+					long collectionId = activeCollections.get(0).getCollectionId();
+					Integer preferredCollectionId = Integer.parseInt(prefs.getString(getString(R.string.DefaultCollection_PrefKey), "-1"));
+					if ( preferredCollectionId != -1 ) {
+						for( Collection aCollection : activeCollections ) {
+							if ( preferredCollectionId == aCollection.getCollectionId()) {
+								collectionId = preferredCollectionId;
+								break;
+							}
+						}
+					}
+					
+					try {
+						//build default event
+						this.event = new EVENT_BUILDER()
+							.setStart(start)
+							.setDuration(eventDuration)
+							.setSummary(getString(R.string.NewEventTitle))
+							.setCollection(collectionId)
+							.addAlarm(defaultAlarm)
+							.build();
+					} catch (BadlyConstructedEventException e) {
+						Log.e(TAG, "Error creating a new event: "+e+Log.getStackTraceString(e));
+						this.finish();
+						return;
+					}
+				break;
+			}
+		} else {
+			//no action! bye bye
+			this.finish(); return;
+		}
 	}
 
 	
 	private void setSelectedCollection(String name) {
-		for (ContentValues cv : activeCollections) {
-			if (cv.getAsString(DavCollections.DISPLAYNAME).equals(name)) {
-				this.currentCollection = cv; break;
+		for (Collection col : activeCollections) {
+			if (col.getDisplayName().equals(name)) {
+				this.event.setCollectionId(col.getCollectionId());
+				break;
 			}
 		}
-		this.event.setCollection(new DefaultCollectionFactory().getInstance(this.currentCollection.getAsInteger(DavCollections._ID), this));
 		this.updateLayout();
 	}
 
-	
-	private void populateLayout() {
-
+	private void loadLayout() {
 		//Event Colour
 		sidebar = (LinearLayout)this.findViewById(R.id.EventEditColourBar);
 		sidebarBottom = (LinearLayout)this.findViewById(R.id.EventEditColourBarBottom);
@@ -306,14 +315,14 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 
 		//Title
 		this.eventName = (TextView) this.findViewById(R.id.EventName);
-		if ( event == null || event.getAction() == WriteableEventInstance.ACTION_CREATE ) {
+		if ( action == ACTION_ADD ) {
 			eventName.setSelectAllOnFocus(true);
 		}
 
 		//Collection
 		llSelectCollection = (LinearLayout) this.findViewById(R.id.EventEditCollectionLayout);
 		btnSelectCollection = (Button) this.findViewById(R.id.EventEditCollectionButton);
-		if (activeCollections.length < 2) {
+		if (activeCollections.size() < 2) {
 			llSelectCollection.setVisibility(View.GONE);
 		}
 		else {
@@ -335,8 +344,7 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 		alarmsList = (TableLayout) this.findViewById(R.id.alarms_list_table);
 		alarmsView = (Button) this.findViewById(R.id.EventAlarmsButton);
 		
-		repeatsView = (Button) this.findViewById(R.id.EventRepeatsContent);
-		
+		repeatsView = (Button) this.findViewById(R.id.EventRepeatsContent);	
 		
 		//Button listeners
 		setListen(btnStartDate,START_DATE_DIALOG);
@@ -349,30 +357,28 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 		AcalTheme.setContainerFromTheme(alarmsView, AcalTheme.BUTTON );
 		AcalTheme.setContainerFromTheme(repeatsView, AcalTheme.BUTTON );
 		
-		String title = event.getSummary();
-		eventName.setText(title);
-
-		String location = event.getLocation();
-		locationView.setText(location);
-
-		String description = event.getDescription();
-		notesView.setText(description);
-		
 		updateLayout();
 	}
+	
 
 	
 	private void updateLayout() {
+		//it is possible that event is not yet loaded. If this is the case we will abort
+		if (this.event == null) return;
+		
+		this.locationView.setText(event.getLocation());
+		this.eventName.setText(event.getSummary());
+		this.notesView.setText(event.getDescription());
 		AcalDateTime start = event.getStart();
 		AcalDateTime end = event.getEnd();
 		end.setAsDate(start.isDate());
-		Collection collection = new DefaultCollectionFactory().getInstance(event.getCollectionId(),this);
+		Collection collection = Collection.getInstance(event.getCollectionId(),this);
 		Integer colour = collection.getColour();
 		sidebar.setBackgroundColor(colour);
 		sidebarBottom.setBackgroundColor(colour);
 		eventName.setTextColor(colour);
-		if (activeCollections.length > 1) {
-			btnSelectCollection.setText(this.currentCollection.getAsString(DavCollections.DISPLAYNAME));
+		if (!activeCollections.isEmpty()) {
+			btnSelectCollection.setText(collection.getDisplayName());
 			AcalTheme.setContainerColour(btnSelectCollection, colour);
 			btnSelectCollection.setTextColor(AcalTheme.pickForegroundForBackground(colour));
 		}
@@ -478,6 +484,7 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 		repeatsView.setText(rr);
 	}
 
+	
 	private void setListen(Button b, final int dialog) {
 		b.setOnClickListener(new View.OnClickListener() {
 
@@ -487,6 +494,32 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 
 			}
 		});
+	}
+
+	private void setupButton(int id, int val) {
+		Button button = (Button) this.findViewById(id);
+		button.setOnClickListener(this);
+		button.setTag(val);
+		AcalTheme.setContainerFromTheme(button, AcalTheme.BUTTON);
+		if ( val == APPLY )
+			button.setText((action == ACTION_EDIT ? getString(R.string.Save) : getString(R.string.Add)));
+	}
+	
+	@Override
+	public void onClick(View arg0) {
+		int button = (int)((Integer)arg0.getTag());
+		switch ( button ) {
+			case APPLY:
+				applyChanges();
+				break;
+			case CANCEL:
+				finish();
+		}
+	}
+	
+	@Override
+	public void onCheckedChanged(CompoundButton arg0, boolean arg1) {
+		this.updateLayout();
 	}
 
 	
@@ -515,22 +548,18 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 			event.setEndDate(end);
 		}
 		
-		if (event.getAction() == WriteableEventInstance.ACTION_CREATE ||
-				event.getAction() == WriteableEventInstance.ACTION_MODIFY_ALL) {
-			if ( !this.saveChanges() ){
+		if (action == ACTION_EDIT && instances <0)
+			this.showDialog(WHICH_EVENT_DIALOG);
+		else if ( !this.saveChanges() ){
 				Toast.makeText(this, "Save failed: retrying!", Toast.LENGTH_LONG).show();
 				this.saveChanges();
-			}
-			return; 
+		} else {
+			Toast.makeText(this, "Event(s) Saved.", Toast.LENGTH_LONG).show();
 		}
-		
-		//ask the user which instance(s) to apply to
-		this.showDialog(WHICH_EVENT_DIALOG);
-
 	}
 
 	private boolean saveChanges() {
-		
+		/**
 		try {
 			if ( Constants.LOG_DEBUG ) Log.d(TAG,"saveChanges: dtstart = "+event.getStart().toPropertyString(PropertyName.DTSTART));
 			this.dataRequest.eventChanged(event);
@@ -559,114 +588,44 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 			if (Constants.LOG_DEBUG)Log.d(TAG,Log.getStackTraceString(e));
 			Toast.makeText(this, getString(R.string.ErrorSavingEvent), Toast.LENGTH_LONG).show();
 		}
+		*/
 		return true;
 	}
-
-	private void setupButton(int id, int val) {
-		Button button = (Button) this.findViewById(id);
-		button.setOnClickListener(this);
-		button.setTag(val);
-		AcalTheme.setContainerFromTheme(button, AcalTheme.BUTTON);
-		if ( val == APPLY )
-			button.setText((event.isModifyAction() ? getString(R.string.Save) : getString(R.string.Add)));
-	}
-
-	@Override
-	public boolean onDown(MotionEvent arg0) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean onFling(MotionEvent arg0, MotionEvent arg1, float arg2,
-			float arg3) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public void onLongPress(MotionEvent arg0) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public boolean onScroll(MotionEvent arg0, MotionEvent arg1, float arg2,
-			float arg3) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public void onShowPress(MotionEvent arg0) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public boolean onSingleTapUp(MotionEvent arg0) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean onTouch(View arg0, MotionEvent arg1) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public void onClick(View arg0) {
-		int button = (int)((Integer)arg0.getTag());
-		switch ( button ) {
-			case APPLY:
-				applyChanges();
-				break;
-			case CANCEL:
-				finish();
-		}
-	}
-	
-	@Override
-	public void onCheckedChanged(CompoundButton arg0, boolean arg1) {
-		this.updateLayout();
-	}
-
-
 	
 	//Dialogs
-	protected Dialog onCreateDialog(int id) {
-		AcalDateTime start = event.getStart();
-		AcalDateTime end = event.getEnd();
-		switch (id) {
-			case START_DATE_DIALOG:
-				return new DateTimeDialog( this, start.clone(), prefer24hourFormat, true, true,
-						new DateTimeSetListener() { public void onDateTimeSet(AcalDateTime newDateTime) {
-							AcalDateTime oldStart = event.getStart();
-							AcalDuration delta = oldStart.getDurationTo(newDateTime);
-							AcalDateTime newEnd = event.getEnd();
-							String endTzId = newEnd.getTimeZoneId();
-							newEnd.addDuration(delta);
-							if ( oldStart.isDate() != newDateTime.isDate() ) {
-								newEnd.setAsDate(newDateTime.isDate() );
-							}
-							String oldTzId = oldStart.getTimeZoneId();
-							String newTzId = newDateTime.getTimeZoneId();
-							if ( oldTzId == null && newTzId != null ) {
-								if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,
-										"The timezone changed from floating to "+newTzId+", EndTzId was "+endTzId);
-								if ( endTzId == null ) newEnd.shiftTimeZone(newTzId);
-							}
-							else if ( oldTzId != null && !oldTzId.equals(newTzId) ) {
-								if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,
-										"The timezone changed from "+oldTzId+" to "+newTzId+", EndTzId was "+endTzId);
-								if ( oldTzId.equals(endTzId) ) newEnd.shiftTimeZone(newTzId);
-							}
-							else {
-								if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,"The timezone did not change from "+oldTzId+" to "+newTzId+", EndTzId was "+endTzId);
-							}
-							event.setDates(newDateTime, newEnd);
-							updateLayout();
+	protected Dialog onCreateDialog(int id) { 
+		if (event != null) {
+			AcalDateTime start = event.getStart();
+			AcalDateTime end = event.getEnd();
+			switch (id) {
+				case START_DATE_DIALOG:
+					return new DateTimeDialog( this, start.clone(), prefer24hourFormat, true, true,
+							new DateTimeSetListener() { public void onDateTimeSet(AcalDateTime newDateTime) {
+								AcalDateTime oldStart = event.getStart();
+								AcalDuration delta = oldStart.getDurationTo(newDateTime);
+								AcalDateTime newEnd = event.getEnd();
+								String endTzId = newEnd.getTimeZoneId();
+								newEnd.addDuration(delta);
+								if ( oldStart.isDate() != newDateTime.isDate() ) {
+									newEnd.setAsDate(newDateTime.isDate() );
+								}
+								String oldTzId = oldStart.getTimeZoneId();
+								String newTzId = newDateTime.getTimeZoneId();
+								if ( oldTzId == null && newTzId != null ) {
+									if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,
+											"The timezone changed from floating to "+newTzId+", EndTzId was "+endTzId);
+									if ( endTzId == null ) newEnd.shiftTimeZone(newTzId);
+								}
+								else if ( oldTzId != null && !oldTzId.equals(newTzId) ) {
+									if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,
+											"The timezone changed from "+oldTzId+" to "+newTzId+", EndTzId was "+endTzId);
+									if ( oldTzId.equals(endTzId) ) newEnd.shiftTimeZone(newTzId);
+								}
+								else {
+									if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,"The timezone did not change from "+oldTzId+" to "+newTzId+", EndTzId was "+endTzId);
+								}
+								event.setDates(newDateTime, newEnd);
+								updateLayout();
 						}
 				});
 
@@ -724,15 +683,15 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 					public void onClick(DialogInterface dialog, int item) {
 						switch ( item ) {
 							case 0:
-								event.setAction(WriteableEventInstance.ACTION_MODIFY_SINGLE);
+								instances = INSTANCES_SINGLE;
 								saveChanges();
 								return;
 							case 1:
-								event.setAction(WriteableEventInstance.ACTION_MODIFY_ALL);
+								instances = INSTANCES_ALL;
 								saveChanges();
 								return;
 							case 2:
-								event.setAction(WriteableEventInstance.ACTION_MODIFY_ALL_FUTURE);
+								instances = INSTANCES_THIS_FURTURE;
 								saveChanges();
 								return;
 						}
@@ -750,14 +709,8 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 							item--;
 							newRule = repeatRulesValues[item];
 						}
-						if ( event.isModifyAction() ) {
-							if ( EventEdit.this.originalHasOccurrence
-									&& !newRule.equals(EventEdit.this.originalOccurence) ) {
-								event.setAction(WriteableEventInstance.ACTION_MODIFY_ALL);
-							}
-							else if ( EventEdit.this.originalHasOccurrence ) {
-								event.setAction(WriteableEventInstance.ACTION_MODIFY_SINGLE);
-							}
+						if ( action == ACTION_EDIT && !newRule.equals(EventEdit.this.event.getRRule())) {
+							instances = INSTANCES_ALL;
 						}
 						event.setRepeatRule(newRule);
 						updateLayout();
@@ -765,11 +718,25 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 					}
 				});
 				return builder.create();
-			default:
+				default:
 				return null;
+			}
 		}
+		else {
+		
+			if (id == LOADING_EVENT_DIALOG) {
+				AlertDialog.Builder builder = new AlertDialog.Builder(this);
+				builder.setTitle("Loading...");
+				builder.setCancelable(false);
+				loadingDialog = builder.create();
+				return loadingDialog;
+			}
+			
+			return null;
+		}
+			
+		
 	}
-	
 
 	protected void customAlarmDialog() {
 
@@ -809,5 +776,26 @@ public class EventEdit extends AcalActivity implements OnGestureListener, OnTouc
 			}
 		});
 		return rowLayout;
+	}
+	
+
+
+	@Override
+	public void resourceChanged(ResourceChangedEvent event) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	@Override
+	public void resourceResponse(ResourceResponse<CalendarInstance> response) {
+		int msg = FAIL;
+		if (response.wasSuccessful()) {
+			this.event = (EventInstance) response.result();
+			msg = REFRESH;
+		}
+		mHandler.sendMessage(mHandler.obtainMessage(msg));
+		
+		
 	}
 }

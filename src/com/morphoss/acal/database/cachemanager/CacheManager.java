@@ -11,6 +11,7 @@ import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.ConditionVariable;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
@@ -211,6 +212,8 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		cr.close();
 		if (!data.getAsBoolean(FIELD_CLOSED)) {
 			Log.d(TAG, "Application not closed correctly last time. Resetting cache.");
+			for (int i = 0; i <5; i++)
+				Toast.makeText(context, "aCal was not correctly shutdown last time.\nRebuilding cache - It may take some time before events are visible.",Toast.LENGTH_LONG).show();
 			this.CTMinstance.clearCache();
 			data.put(FIELD_COUNT, 0);
 			data.put(FIELD_START,  defaultWindow.getMillis());

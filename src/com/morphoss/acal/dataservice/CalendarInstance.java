@@ -1,12 +1,17 @@
 package com.morphoss.acal.dataservice;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.davacal.AcalAlarm;
+import com.morphoss.acal.davacal.Masterable;
+import com.morphoss.acal.davacal.RecurrenceId;
+import com.morphoss.acal.davacal.VCalendar;
+import com.morphoss.acal.davacal.VComponent;
+import com.morphoss.acal.davacal.VComponentCreationException;
+import com.morphoss.acal.davacal.VEvent;
+import com.morphoss.acal.davacal.VTodo;
 
 public abstract class CalendarInstance {
 
@@ -20,6 +25,7 @@ public abstract class CalendarInstance {
 	protected String summary;
 	protected String location;
 	protected String description;
+	protected String etag;
 	
 
 	/**
@@ -35,7 +41,7 @@ public abstract class CalendarInstance {
 	 * @param description
 	 */
 	protected CalendarInstance(long cid, long rid, AcalDateTime start, AcalDateTime end, ArrayList<AcalAlarm> alarms, String rrule,
-			String rrid, String summary, String location, String description) {
+			String rrid, String summary, String location, String description, String etag) {
 		
 		this.collectionId = cid; if (cid < 0) throw new IllegalArgumentException("Collection ID must be a valid collection!");
 		this.resourceId = (rid<0) ? -1 : rid;
@@ -46,7 +52,8 @@ public abstract class CalendarInstance {
 		this.rrid = rrid;
 		this.summary = (summary == null) ? "" : summary; 
 		this.location = (location == null) ? "" : location; 
-		this.description = (description == null) ? "" : location; 
+		this.description = (description == null) ? "" : description; 
+		this.etag = (etag == null) ? "" : etag;
 		
 		
 	}
@@ -62,11 +69,11 @@ public abstract class CalendarInstance {
 	}
 	
 	public AcalDateTime getStart() { return (dtstart  == null) ? null : this.dtstart.clone(); };
-	public List<AcalAlarm> getAlarms() { return Collections.unmodifiableList(alarms); } 
+	public ArrayList<AcalAlarm> getAlarms() { return alarms; } 
 	public String getRRule() { return this.rrule; }
 	public String getSummary() { return this.summary; }
-	public String getLocation() { return this.getLocation(); }
-	public String getDescription() { return this.getDescription(); }
+	public String getLocation() { return location; }
+	public String getDescription() { return this.description; }
 	public boolean isSingleInstance() { return (rrule == null || rrule.equals("")); }
 	public long getCollectionId() { return this.collectionId; }
 	public long getResourceId() { return this.resourceId; }
@@ -100,6 +107,29 @@ public abstract class CalendarInstance {
 	}
 	public void setRepeatRule(String newRule) {
 		this.rrule = newRule;
+	}
+	
+
+	public static CalendarInstance fromResourceAndRRId(Resource res, String rrid) throws IllegalArgumentException {
+		try {
+			VComponent comp = VComponent.createComponentFromResource(res);
+			if (!(comp instanceof VCalendar)) throw new IllegalArgumentException("Resource provided is no a VCalendar");
+			Masterable obj = ((VCalendar)comp).getChildFromRecurrenceId(RecurrenceId.fromString(rrid));
+			if (obj instanceof VEvent) {
+				return new EventInstance((VEvent)obj, obj.getStart(), obj.getDuration());
+			} else if (obj instanceof VTodo) {
+				return new TodoInstance((VTodo)obj, obj.getStart(), obj.getDuration());
+			} else {
+				throw new IllegalArgumentException("Resource does not map to a known Componant Type");
+			}
+		} catch (VComponentCreationException e) {
+			throw new IllegalArgumentException(e);
+		}
+		
+	}
+	
+	public String getEtag() {
+		return this.etag;
 	}
 
 }

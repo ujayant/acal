@@ -31,7 +31,6 @@ import android.util.Log;
 
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.database.cachemanager.CacheObject;
-import com.morphoss.acal.dataservice.DefaultEventInstance;
 import com.morphoss.acal.dataservice.EventInstance;
 import com.morphoss.acal.davacal.AcalAlarm;
 import com.morphoss.acal.davacal.AcalProperty;
@@ -606,7 +605,7 @@ public class AcalRepeatRule {
 		}
 
 		EventInstance getEventInstance() {
-			return new DefaultEventInstance( (VEvent) VEvent, dtstart, duration);
+			return new EventInstance( (VEvent) VEvent, dtstart, duration);
 			//return DefaultEventInstance.getInstance((VEvent) VEvent, dtstart, duration, isPending );
 		}
 		

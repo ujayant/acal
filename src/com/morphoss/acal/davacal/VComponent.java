@@ -32,7 +32,6 @@ import android.os.Parcelable;
 import android.util.Log;
 
 import com.morphoss.acal.Constants;
-import com.morphoss.acal.dataservice.DefaultResourceInstance;
 import com.morphoss.acal.dataservice.Resource;
 
 /**
@@ -631,7 +630,7 @@ public abstract class VComponent implements Parcelable {
 	//}
 
 	public VComponent(Parcel in) {
-		this.resource = new DefaultResourceInstance(in);
+		this.resource = new Resource(in);
 		this.name = in.readString();
 		String original = in.readString();
 		ComponentParts origParts = null;

@@ -47,11 +47,11 @@ public class Constants {
 	public static final Pattern	matchSegmentName	= Pattern.compile("([^/]+)$");
 
 	/** Set this to false and all debug logging is turned off */
-	public static final boolean DEBUG_MODE = false;
+	public static final boolean DEBUG_MODE = true;
 
 	/** How much stuff to spit out into the logs */
 	public static final boolean LOG_VERBOSE = false && DEBUG_MODE;		//Very verbose play by play execution information
-	public static final boolean LOG_DEBUG = false && DEBUG_MODE;			//Information relevant to debugging tasks.
+	public static final boolean LOG_DEBUG = true && DEBUG_MODE;			//Information relevant to debugging tasks.
 	public static final boolean DEBUG_SETTINGS = false && DEBUG_MODE;	// Does the debugging menu appear in Settings
 
 	/** Since Andrew's device won't display logs at DEBUG level he needs a way to fake that! */

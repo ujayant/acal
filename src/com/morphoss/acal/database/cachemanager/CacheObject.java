@@ -7,7 +7,6 @@ import android.os.Parcelable;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.database.cachemanager.CacheManager.CacheTableManager;
-import com.morphoss.acal.dataservice.EventInstance;
 import com.morphoss.acal.davacal.PropertyName;
 import com.morphoss.acal.davacal.VEvent;
 
@@ -81,21 +80,12 @@ public class CacheObject implements Parcelable, Comparable<CacheObject> {
 		cid = in.readLong();
 		summary = in.readString();
 		location = in.readString();
-		start = in.readLong();
-		end = in.readLong();
 		startFloating = (in.readByte() == 'T' ? true : false);
 		endFloating = (in.readByte() == 'T' ? true : false);
+		start = in.readLong();
+		end = in.readLong();
 		flags = in.readInt();
 
-	}
-	
-	/**
-	 * 
-	 * @return
-	 */
-	public EventInstance getFullEventInstance() {
-		//TODO
-		return null;
 	}
 
 	@Override
@@ -151,13 +141,22 @@ public class CacheObject implements Parcelable, Comparable<CacheObject> {
 	}
 	
 	/**
-	 * An instance of the collection this resource belongs to
+	 * The collection id
 	 * @return
 	 */
 	public long getCollectionId() {
 		return cid;
 	}
 
+	/**
+	 * The resource id
+	 * @return
+	 */
+	public long getResourceId() {
+		return rid;
+	}
+
+	
 	/**
 	 * Whether this resource has recurrences
 	 * @return
@@ -236,6 +235,10 @@ public class CacheObject implements Parcelable, Comparable<CacheObject> {
 
 	public boolean isEvent() {
 		return (flags & EVENT_FLAG) > 0;
+	}
+
+	public String getRecurrenceId() {
+		return this.rrid;
 	}
 	
 	

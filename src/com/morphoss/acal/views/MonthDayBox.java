@@ -32,7 +32,6 @@ import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.database.cachemanager.CacheObject;
 import com.morphoss.acal.dataservice.Collection;
-import com.morphoss.acal.dataservice.DefaultCollectionFactory;
 
 public class MonthDayBox extends TextView {
 
@@ -123,7 +122,7 @@ public class MonthDayBox extends TextView {
 				if ( eFinish < (eStart + (secsPerPixel * minBarHeight)) )
 					eFinish = eStart + (minBarHeight * secsPerPixel);
 				//draw
-				Collection collection = new DefaultCollectionFactory().getInstance(e.getCollectionId(), this.context);
+				Collection collection = Collection.getInstance(e.getCollectionId(), this.context);
 				p.setColor((collection.getColour()|0xff000000)-0x77000000);
 				arg0.drawRect(x,(y+eStart/secsPerPixel), x+barWidth, y+(eFinish/secsPerPixel), p);
 				

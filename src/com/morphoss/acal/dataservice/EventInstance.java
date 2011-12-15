@@ -14,12 +14,15 @@ public class EventInstance extends CalendarInstance {
 	public EventInstance(VEvent vEvent, AcalDateTime dtstart, AcalDuration duration) {
 		super(vEvent.getCollectionId(), vEvent.getResourceId(), vEvent.getStart(), vEvent.getEnd(),
 				vEvent.getAlarms(), vEvent.getRRule(), dtstart.toPropertyString(PropertyName.RECURRENCE_ID),
-				vEvent.getSummary(), vEvent.getLocation(), vEvent.getDescription());
+				vEvent.getSummary(), vEvent.getLocation(), vEvent.getDescription(),vEvent.getResource().getEtag());
 
 	}
 	
 	private EventInstance(EVENT_BUILDER builder) throws BadlyConstructedEventException {
-		super(0,0,null,null,null,null,null,null,null,null);
+		super(
+				builder.collectionId, -1, builder.start, builder.duration.getEndDate(builder.start),
+				builder.alarmList, null, builder.start.toPropertyString(PropertyName.RECURRENCE_ID),
+				builder.summary, null, null, null);
 	}
 	
 	@Override
@@ -74,6 +77,5 @@ public class EventInstance extends CalendarInstance {
 	public static class BadlyConstructedEventException extends Exception {
 		private static final long serialVersionUID = 1L;
 	}
-
 	
 }

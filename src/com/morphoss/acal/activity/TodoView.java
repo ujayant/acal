@@ -38,7 +38,6 @@ import com.morphoss.acal.AcalTheme;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.dataservice.Collection;
-import com.morphoss.acal.dataservice.DefaultCollectionFactory;
 import com.morphoss.acal.davacal.AcalAlarm;
 import com.morphoss.acal.davacal.SimpleAcalTodo;
 import com.morphoss.acal.davacal.VCalendar;
@@ -154,7 +153,7 @@ public class TodoView extends AcalActivity implements OnGestureListener, OnTouch
 		else {
 			((RelativeLayout) this.findViewById(R.id.TodoNotesLayout)).setVisibility(View.GONE);
 		}
-		Collection todoCollection = new DefaultCollectionFactory().getInstance(todo.getCollectionId(),this);
+		Collection todoCollection = Collection.getInstance(todo.getCollectionId(),this);
 		TextView alarmsView = (TextView) this.findViewById(R.id.TodoAlarmsContent);
 		if ( alarms != null && alarms.length() > 0 ) {
 			((RelativeLayout) this.findViewById(R.id.TodoAlarmsLayout)).setVisibility(View.VISIBLE);

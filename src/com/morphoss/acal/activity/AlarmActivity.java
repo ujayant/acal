@@ -270,7 +270,11 @@ public class AlarmActivity extends AcalActivity implements OnClickListener  {
 			AcalDateTime viewDate = new AcalDateTime();
 			viewDate.applyLocalTimeZone();
 			viewDate.setDaySecond(0);
-			time.setText(event.getTimeText(viewDate, AcalDateTime.addDays(viewDate,1),prefs.getBoolean(getString(R.string.prefTwelveTwentyfour), false)));
+			/**
+			 * TODO - fix this
+			 */
+			//
+			//time.setText(event.getTimeText(viewDate, AcalDateTime.addDays(viewDate,1),prefs.getBoolean(getString(R.string.prefTwelveTwentyfour), false)));
 
 			playAlarm();
 		}

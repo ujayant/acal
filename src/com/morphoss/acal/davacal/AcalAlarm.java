@@ -27,7 +27,6 @@ import android.util.Log;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDuration;
-import com.morphoss.acal.dataservice.DefaultEventInstance;
 import com.morphoss.acal.dataservice.EventInstance;
 
 public class AcalAlarm implements Serializable, Parcelable, Comparable<AcalAlarm> {
@@ -221,6 +220,7 @@ public class AcalAlarm implements Serializable, Parcelable, Comparable<AcalAlarm
 
 	@Override
 	public void writeToParcel(Parcel out, int flags) {
+		//TODO needs refactoring!!!
 		out.writeByte((byte)(relativeTo.toString().charAt(0)));
 		out.writeString(description);
 		if ( relativeTime == null ) {
@@ -235,9 +235,11 @@ public class AcalAlarm implements Serializable, Parcelable, Comparable<AcalAlarm
 		if (isSnooze) {
 			snoozeTime.writeToParcel(out,flags);
 		}
+
 		out.writeByte((byte)(hasEventAssociated ? 'T' : 'F'));
+		//TODO needs refactoring!!!
 		if (hasEventAssociated) {
-			myEvent.writeToParcel(out, flags);
+		//	myEvent.writeToParcel(out, flags);
 		}
 		out.writeString(actionType.toString());
 	}
@@ -255,8 +257,9 @@ public class AcalAlarm implements Serializable, Parcelable, Comparable<AcalAlarm
 		}
 		hasEventAssociated = (in.readByte() == 'T');
 		if (hasEventAssociated) {
+			//TODO needs refactoring!!!
 			//myEvent = new AcalEvent(in);
-			myEvent = DefaultEventInstance.getInstance(in);
+			//myEvent = DefaultEventInstance.getInstance(in);
 		}
 		actionType = ActionType.fromString(in.readString());
 	}

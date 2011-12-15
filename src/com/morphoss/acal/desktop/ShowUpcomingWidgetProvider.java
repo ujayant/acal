@@ -26,10 +26,8 @@ import com.morphoss.acal.DatabaseChangedEvent;
 import com.morphoss.acal.R;
 import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.acaltime.AcalDateTime;
-import com.morphoss.acal.activity.EventView;
 import com.morphoss.acal.database.AcalDBHelper;
-import com.morphoss.acal.dataservice.DefaultCollectionFactory;
-import com.morphoss.acal.dataservice.DefaultEventInstance;
+import com.morphoss.acal.dataservice.Collection;
 import com.morphoss.acal.dataservice.EventInstance;
 import com.morphoss.acal.service.aCalService;
 
@@ -96,9 +94,9 @@ public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 					int rid = cvs[i].getAsInteger(FIELD_RESOURCE_ID);
 					
 					//set up on click intent
-					Intent viewEvent = new Intent(context, EventView.class);
-					viewEvent.putExtra(EventView.EVENT_INSTANCE_KEY, DefaultEventInstance.fromDB(rid, cvs[i].getAsLong(FIELD_DTSTART)));
-					PendingIntent onClickIntent = PendingIntent.getActivity(context, i, viewEvent, PendingIntent.FLAG_UPDATE_CURRENT);
+					//Intent viewEvent = new Intent(context, EventView.class);
+				//	viewEvent.putExtra(EventView.EVENT_INSTANCE_KEY, DefaultEventInstance.fromDB(rid, cvs[i].getAsLong(FIELD_DTSTART)));
+				//	PendingIntent onClickIntent = PendingIntent.getActivity(context, i, viewEvent, PendingIntent.FLAG_UPDATE_CURRENT);
 					
 					//inflate row
 					RemoteViews row = new RemoteViews(context.getPackageName(), R.layout.show_upcoming_widget_base_row);
@@ -111,8 +109,8 @@ public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 						dateTimeText = getNiceTime(context,dtstart,dtend,prefer24Hour) + " ("+dateTimeText+")";
 					}
 					row.setImageViewBitmap(R.id.upcoming_row_image, rowLayout.setData(cvs[i], dateTimeText ));
-					row.setOnClickPendingIntent(R.id.upcoming_row, onClickIntent);
-					row.setOnClickPendingIntent(R.id.upcoming_row_image, onClickIntent);
+					//row.setOnClickPendingIntent(R.id.upcoming_row, onClickIntent);
+					//row.setOnClickPendingIntent(R.id.upcoming_row_image, onClickIntent);
 					
 
 					if (timeOfNextEventEnd > cvs[i].getAsLong(FIELD_DTEND))
@@ -276,9 +274,9 @@ public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 
 	public synchronized static ContentValues getCVFromEvent(Context context, EventInstance event) {
 		ContentValues cv = new ContentValues();
-		cv.put(FIELD_RESOURCE_ID, event.getResource().getResourceId());
-		cv.put(FIELD_ETAG, event.getResource().getEtag());
-		cv.put(FIELD_COLOUR,new DefaultCollectionFactory().getInstance(event.getCollectionId(), context).getColour());
+		cv.put(FIELD_RESOURCE_ID, event.getResourceId());
+		cv.put(FIELD_ETAG, event.getEtag());
+		cv.put(FIELD_COLOUR, Collection.getInstance(event.getCollectionId(), context).getColour());
 		cv.put(FIELD_DTSTART, event.getStart().getMillis());
 		cv.put(FIELD_DTEND, event.getEnd().getMillis());
 		cv.put(FIELD_SUMMARY, event.getSummary());

@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import com.morphoss.acal.database.DataChangeEvent;
-import com.morphoss.acal.dataservice.DefaultResourceInstance;
 import com.morphoss.acal.dataservice.Resource;
 
 public class ResourceChangedEvent {
@@ -14,7 +13,7 @@ public class ResourceChangedEvent {
 	public ResourceChangedEvent(ArrayList<DataChangeEvent> changes) {
 		this.changes = changes;
 		for (DataChangeEvent change : changes) {
-			changedResources.put(change, DefaultResourceInstance.fromContentValues(change.getData()));
+			changedResources.put(change, Resource.fromContentValues(change.getData()));
 		}
 	}
 	public ArrayList<DataChangeEvent> getChanges() { return this.changes; }

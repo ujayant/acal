@@ -37,7 +37,6 @@ import com.morphoss.acal.acaltime.AcalRepeatRuleParser;
 import com.morphoss.acal.database.cachemanager.CacheObject;
 import com.morphoss.acal.dataservice.EventInstance;
 import com.morphoss.acal.dataservice.Resource;
-import com.morphoss.acal.dataservice.WriteableEventInstance;
 
 public class VCalendar extends VComponent {
 	public static final String TAG = "aCal VCalendar";
@@ -88,8 +87,10 @@ public class VCalendar extends VComponent {
 		return new VCalendar(this.content, this.getResource(), this.earliestStart, this.latestEnd, this.parent);
 	}
 
-	public String applyEventAction(WriteableEventInstance action) {
-		try {
+	public String applyEventAction(EventInstance action) {
+		//TODO
+		//needs to be refactored
+		/**try {
 			this.setEditable();
 
 			VEvent vEvent = (VEvent) this.getMasterChild();
@@ -137,10 +138,15 @@ public class VCalendar extends VComponent {
 			Log.w(TAG,Log.getStackTraceString(e));
 			return "";
 		}
-
+	*/
+		return null;
 	}
 
-	private void applyModify(Masterable mast, WriteableEventInstance action) {
+	/**
+	 * TODO - needs to be refactored
+	 */
+	private void applyModify(Masterable mast, EventInstance action) {
+		/**
 		//there are 3 possible modify actions:
 		if (action.getAction() == WriteableEventInstance.ACTION_MODIFY_SINGLE) {
 			// Only modify the single instance
@@ -182,6 +188,7 @@ public class VCalendar extends VComponent {
 
 			mast.updateAlarmComponents( action.getAlarms() );
 		}
+		*/
 	}
 
 	private void updateTimeZones(VEvent vEvent) {

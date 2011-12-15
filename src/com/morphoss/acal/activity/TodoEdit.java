@@ -53,8 +53,6 @@ import com.morphoss.acal.acaltime.AcalDateTimeFormatter;
 import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
 import com.morphoss.acal.dataservice.Collection;
-import com.morphoss.acal.dataservice.DefaultCollectionFactory;
-import com.morphoss.acal.dataservice.DefaultCollectionInstance;
 import com.morphoss.acal.dataservice.MethodsRequired;
 import com.morphoss.acal.davacal.AcalAlarm;
 import com.morphoss.acal.davacal.SimpleAcalTodo;
@@ -379,7 +377,7 @@ public class TodoEdit extends AcalActivity
 		AcalDateTime due = todo.getDue();
 		AcalDateTime completed = todo.getCompleted();
 		
-		Collection todoCollection = new DefaultCollectionFactory().getInstance(todo.getTopParent().getCollectionId(), this);
+		Collection todoCollection = Collection.getInstance(todo.getTopParent().getCollectionId(), this);
 
 		Integer colour = todoCollection.getColour();
 		if ( colour == null ) colour = 0x70a0a0a0;

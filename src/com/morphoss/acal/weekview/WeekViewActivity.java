@@ -354,7 +354,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	/**
 	 * Methods for managing event structure
 	 * @param typesToInclude 
-	 */
+	 *
 	public List<EventInstance> getEventsForDays(AcalDateRange range, int typesToInclude) {
 			List<EventInstance> supplied = dataRequest.getEventsForDays(range);
 			if ( typesToInclude == (INCLUDE_ALL_DAY_EVENTS | INCLUDE_IN_DAY_EVENTS) ) return supplied; 
@@ -368,7 +368,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 				}
 			}
 			return filtered;
-	}
+	}*/
 
 	public int getNumberEventsForDay(AcalDateTime day) {
 		return dataRequest.getNumberEventsForDay(day);
@@ -559,7 +559,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
         		break;
         	}
         	default: {
-        		EventInstance sae = (EventInstance) underList.get(item.getItemId() & 0xFF);
+        		/*EventInstance sae = (EventInstance) underList.get(item.getItemId() & 0xFF);
         		int action = (item.getItemId() & 0xFF00);
         		if ( action == CONTEXT_ACTION_VIEW ) {
 	        		Bundle bundle = new Bundle();
@@ -582,7 +582,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	    			Intent eventEditIntent = new Intent(this, EventEdit.class);
 	    			eventEditIntent.putExtras(bundle);
 	    			this.startActivity(eventEditIntent);
-        		}
+        		}*/
         		break;
         	}
         }
@@ -638,13 +638,13 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 				// There's at least one event under the double-click
 				if ( under.size() == 3 ) {
 					// There's only one event under the tap, so we'll view it directly
-					Bundle bundle = new Bundle();
+					/**Bundle bundle = new Bundle();
 					EventInstance sae = ((EventInstance) under.get(2));
 					sae.setOperation(EventInstance.EVENT_OPERATION_VIEW);
 					bundle.putParcelable("SimpleAcalEvent", sae);
 					Intent eventViewIntent = new Intent(this, EventView.class);
 					eventViewIntent.putExtras(bundle);
-					this.startActivity(eventViewIntent);
+					this.startActivity(eventViewIntent);*/
 				}
 				else {
 					// There's more than one, so we need to show a context menu

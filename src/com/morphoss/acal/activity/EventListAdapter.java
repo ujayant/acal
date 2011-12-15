@@ -54,9 +54,6 @@ import com.morphoss.acal.database.cachemanager.CacheResponse;
 import com.morphoss.acal.database.cachemanager.CacheResponseListener;
 import com.morphoss.acal.database.cachemanager.CacheManager.CacheTableManager;
 import com.morphoss.acal.dataservice.Collection;
-import com.morphoss.acal.dataservice.DefaultCollectionFactory;
-import com.morphoss.acal.dataservice.EventInstance;
-import com.morphoss.acal.dataservice.WriteableEventInstance;
 
 /**
  * <p>
@@ -188,7 +185,7 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 		}
 		if ( event == null ) return rowLayout;
 		
-		Collection eventCollection = new DefaultCollectionFactory().getInstance(event.getCollectionId(), this.context);
+		Collection eventCollection = Collection.getInstance(event.getCollectionId(), this.context);
 		
 		final boolean isPending = event.isPending();
 		if (isPending) {
@@ -274,8 +271,13 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 		}
 
 	}
-	
+	 
+	/**
+	 * TODO - refactor
+	*/
 	public boolean contextClick(MenuItem item) {
+		return false;
+	/**
 		try {
 			int id = item.getItemId();
 			int action = id & 0xf0000;
@@ -312,8 +314,10 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 		catch (ClassCastException e) {
 			return false;
 		}
-		
+	*/	
 	}
+	
+	
 
 	@Override
 	public void cacheChanged(CacheChangedEvent event) {
