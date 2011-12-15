@@ -2,8 +2,6 @@ package com.morphoss.acal.database;
 
 import java.util.ArrayList;
 
-import com.morphoss.acal.Constants;
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -11,6 +9,8 @@ import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteMisuseException;
 import android.util.Log;
+
+import com.morphoss.acal.Constants;
 
 
 /**
@@ -23,10 +23,6 @@ import android.util.Log;
  */
 public abstract class DatabaseTableManager {
 
-	protected SQLiteDatabase db;
-	protected AcalDBHelper dbHelper;
-	protected Context context;
-
 	protected boolean inTx = false;
 	private boolean sucTx = false;
 
@@ -38,11 +34,41 @@ public abstract class DatabaseTableManager {
 	public static final int CLOSE_TX = 5;
 	
 	private ArrayList<DataChangeEvent> changes;
+	
+	protected SQLiteDatabase db;
+	protected AcalDBHelper dbHelper;
+	protected Context context;
 
 	protected DatabaseTableManager(Context context) {
 		this.context = context;
 	}
+	protected void printStackTraceInfo() {
+		int base = 3;
+		int depth = 5;
+		StackTraceElement[] stack = Thread.currentThread().getStackTrace();
+		String info = "\t"+stack[base].toString();
+		for (int i = base+1; i < stack.length && i< base+depth; i++)
+			info += "\n\t\t"+stack[i].toString(); 
+		if (Constants.debugDatabaseManager) Log.d(TAG, info);
+	}
+	
+	protected abstract String getTableName();
 
+	public ArrayList<ContentValues> query(String[] columns, String selection, String[] selectionArgs, String groupBy, String having, String orderBy) {
+		beginReadQuery();
+		ArrayList<ContentValues> result = new ArrayList<ContentValues>();
+		int count = 0;
+		Cursor c = db.query(getTableName(), columns, selection, selectionArgs, groupBy, having, orderBy);
+		if (c.getCount() > 0) {
+			for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
+				result.add(new ContentValues());
+				DatabaseUtils.cursorRowToContentValues(c, result.get(count++));
+			}
+		}
+		c.close();
+		endQuery();
+		return result;
+	}
 
 	public enum QUERY_ACTION { INSERT, UPDATE, DELETE };
 	
@@ -50,8 +76,7 @@ public abstract class DatabaseTableManager {
 
 	public abstract void dataChanged(ArrayList<DataChangeEvent> changes);
 
-
-	private void openDB(final int type) {
+	protected void openDB(final int type) {
 		if (inTx || sucTx || db != null) throw new SQLiteMisuseException("Tried to open DB when already open");
 		dbHelper = new AcalDBHelper(context);
 		changes = new ArrayList<DataChangeEvent>();
@@ -81,7 +106,7 @@ public abstract class DatabaseTableManager {
 		}
 	}
 
-	private void closeDB(final int type) {
+	protected void closeDB(final int type) {
 		if (db == null) throw new SQLiteMisuseException("Tried to close a DB that wasn't opened");
 		db.close();
 		dbHelper.close();
@@ -106,16 +131,6 @@ public abstract class DatabaseTableManager {
 		changes = null;
 	}
 
-	private void printStackTraceInfo() {
-		int base = 3;
-		int depth = 5;
-		StackTraceElement[] stack = Thread.currentThread().getStackTrace();
-		String info = "\t"+stack[base].toString();
-		for (int i = base+1; i < stack.length && i< base+depth; i++)
-			info += "\n\t\t"+stack[i].toString(); 
-		if (Constants.debugDatabaseManager) Log.d(TAG, info);
-	}
-	
 	protected void beginReadQuery() {
 		if (!inTx) openDB(OPEN_READ);
 	}
@@ -143,8 +158,6 @@ public abstract class DatabaseTableManager {
 		db.endTransaction();
 		closeDB(CLOSE_TX);
 	}
-
-	protected abstract String getTableName();
 
 	//Some useful generic methods
 
@@ -182,22 +195,6 @@ public abstract class DatabaseTableManager {
 		endQuery();
 		changes.add(new DataChangeEvent(QUERY_ACTION.INSERT, new ContentValues(values)));
 		return count;
-	}
-
-	public ArrayList<ContentValues> query(String[] columns, String selection, String[] selectionArgs, String groupBy, String having, String orderBy) {
-		beginReadQuery();
-		ArrayList<ContentValues> result = new ArrayList<ContentValues>();
-		int count = 0;
-		Cursor c = db.query(getTableName(), columns, selection, selectionArgs, groupBy, having, orderBy);
-		if (c.getCount() > 0) {
-			for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
-				result.add(new ContentValues());
-				DatabaseUtils.cursorRowToContentValues(c, result.get(count++));
-			}
-		}
-		c.close();
-		endQuery();
-		return result;
 	}
 
 	public class DMQueryList {

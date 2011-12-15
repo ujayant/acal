@@ -1,4 +1,4 @@
-package com.morphoss.acal.database.resourcesmanager;
+package com.morphoss.acal.database.resourcesmanager.requests;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,7 +22,11 @@ import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.database.DatabaseTableManager.DMAction;
 import com.morphoss.acal.database.DatabaseTableManager.DMQueryBuilder;
 import com.morphoss.acal.database.DatabaseTableManager.QUERY_ACTION;
+import com.morphoss.acal.database.resourcesmanager.ResourceManager;
+import com.morphoss.acal.database.resourcesmanager.ResourceProcessingException;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
+import com.morphoss.acal.database.resourcesmanager.ResourceManager.WriteableResourceTableManager;
+import com.morphoss.acal.database.resourcesmanager.requesttypes.ResourceRequest;
 import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VCard;
 import com.morphoss.acal.davacal.VComponent;
@@ -51,7 +55,7 @@ public class RRSyncChangesToServer implements ResourceRequest {
 	private volatile boolean running = true;
 	private boolean updateSyncStatus = false;
 	
-	private ResourceTableManager processor;
+	private WriteableResourceTableManager processor;
 	
 	public RRSyncChangesToServer() {
 		
@@ -74,7 +78,7 @@ public class RRSyncChangesToServer implements ResourceRequest {
 	}
 	
 	@Override
-	public void process(ResourceTableManager processor) throws ResourceProcessingException {
+	public void process(WriteableResourceTableManager processor) throws ResourceProcessingException {
 		this.processor = processor;
 		this.requestor = new AcalRequestor();
 		
@@ -183,7 +187,7 @@ public class RRSyncChangesToServer implements ResourceRequest {
 		String oldData = pending.getAsString(ResourceTableManager.OLD_DATA);
 		
 		
-		DMQueryBuilder builder = processor.new DMQueryBuilder();
+		DMQueryBuilder builder = processor.getNewQueryBuilder();
 		//WriteActions action = WriteActions.UPDATE;
 		builder.setAction(QUERY_ACTION.UPDATE);
 		

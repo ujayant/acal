@@ -18,8 +18,8 @@
 
 package com.morphoss.acal.service;
 
-import com.morphoss.acal.database.resourcesmanager.RRSyncChangesToServer;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager;
+import com.morphoss.acal.database.resourcesmanager.requests.RRSyncChangesToServer;
 
 public class SyncChangesToServer extends ServiceJob {
 

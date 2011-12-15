@@ -1,4 +1,4 @@
-package com.morphoss.acal.database.resourcesmanager;
+package com.morphoss.acal.database.resourcesmanager.requests;
 
 import java.util.ArrayList;
 
@@ -7,16 +7,21 @@ import android.util.Log;
 
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.database.cachemanager.CacheObject;
+import com.morphoss.acal.database.resourcesmanager.ResourceResponse;
+import com.morphoss.acal.database.resourcesmanager.ResourceResponseListener;
+import com.morphoss.acal.database.resourcesmanager.ResourceManager.ReadOnlyResourceTableManager;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
+import com.morphoss.acal.database.resourcesmanager.requesttypes.ReadOnlyResourceRequestWithResponse;
 import com.morphoss.acal.dataservice.Resource;
 import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VComponent;
 import com.morphoss.acal.davacal.VComponentCreationException;
 
-public class RRGetCacheEventsInRange extends ResourceRequestWithResponse<ArrayList<CacheObject>> {
+public class RRGetCacheEventsInRange extends ReadOnlyResourceRequestWithResponse<ArrayList<CacheObject>> {
 
 	private final AcalDateRange range;
 	public static final String TAG = "aCal RRGetCacheEventsInRange";
+	private boolean processed = false;
 	
 	
 	public RRGetCacheEventsInRange(AcalDateRange range, ResourceResponseListener<ArrayList<CacheObject>> callback) {
@@ -26,7 +31,7 @@ public class RRGetCacheEventsInRange extends ResourceRequestWithResponse<ArrayLi
 	}
 	
 	@Override
-	public void process(ResourceTableManager processor) {
+	public void process(ReadOnlyResourceTableManager processor) {
 		// TODO At the moment this algorithm ignores pending resources nor does it handle floating events.
 		Log.d(TAG,"Process Called...");
 		
@@ -70,6 +75,7 @@ public class RRGetCacheEventsInRange extends ResourceRequestWithResponse<ArrayLi
 		//post response
 		super.postResponse(new RREventsInRangeResponse<ArrayList<CacheObject>>(events, range));
 
+		this.processed = true;
 	}
 	
 	/**
@@ -98,6 +104,11 @@ public class RRGetCacheEventsInRange extends ResourceRequestWithResponse<ArrayLi
 		public AcalDateRange requestedRange() {
 			return this.requestedRange;
 		}
+	}
+
+	@Override
+	public boolean isProcessed() {
+		return this.processed;
 	}
 
 }

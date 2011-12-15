@@ -1,4 +1,6 @@
-package com.morphoss.acal.database.resourcesmanager;
+package com.morphoss.acal.database.resourcesmanager.requesttypes;
+
+import com.morphoss.acal.database.resourcesmanager.ResourceResponse;
 
 public abstract class BlockingResourceRequestWithResponse<E> extends ResourceRequestWithResponse<E> {
 

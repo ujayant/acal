@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.PriorityBlockingQueue;
 
 import android.content.ContentQueryMap;
 import android.content.ContentValues;
@@ -21,6 +22,16 @@ import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
 import com.morphoss.acal.database.DataChangeEvent;
 import com.morphoss.acal.database.DatabaseTableManager;
+import com.morphoss.acal.database.DatabaseTableManager.DMAction;
+import com.morphoss.acal.database.DatabaseTableManager.DMDeleteQuery;
+import com.morphoss.acal.database.DatabaseTableManager.DMInsertQuery;
+import com.morphoss.acal.database.DatabaseTableManager.DMQueryBuilder;
+import com.morphoss.acal.database.DatabaseTableManager.DMQueryList;
+import com.morphoss.acal.database.DatabaseTableManager.DMUpdateQuery;
+import com.morphoss.acal.database.resourcesmanager.requesttypes.BlockingResourceRequestWithResponse;
+import com.morphoss.acal.database.resourcesmanager.requesttypes.ReadOnlyBlockingRequestWithResponse;
+import com.morphoss.acal.database.resourcesmanager.requesttypes.ReadOnlyResourceRequest;
+import com.morphoss.acal.database.resourcesmanager.requesttypes.ResourceRequest;
 import com.morphoss.acal.dataservice.Resource;
 import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VComponent;
@@ -67,7 +78,8 @@ public class ResourceManager implements Runnable {
 	private ConditionVariable threadHolder = new ConditionVariable();
 	private Thread workerThread;
 	private boolean running = true;
-	private final ConcurrentLinkedQueue<ResourceRequest> queue = new ConcurrentLinkedQueue<ResourceRequest>();
+	private final ConcurrentLinkedQueue<ResourceRequest> writeQueue = new ConcurrentLinkedQueue<ResourceRequest>();
+	private final PriorityBlockingQueue<ReadOnlyResourceRequest> readQueue = new PriorityBlockingQueue<ReadOnlyResourceRequest>();
 
 	/**
 	 * IMPORTANT INVARIANT:
@@ -102,14 +114,55 @@ public class ResourceManager implements Runnable {
 		while (running) {
 			// do stuff
 			Log.d(TAG,"Thread Opened...");
-			while (!queue.isEmpty()) {
-				Log.d(TAG,queue.size()+" items in queue.");
-				final ResourceRequest request = queue.poll();
-				Log.d(TAG,"Processing Request: "+request.getClass());
-				try {
-					getRPInstance().process(request);
-				} catch (Exception e) {
-					Log.e(TAG, "Error processing request: "+Log.getStackTraceString(e));
+			
+			while (readQueue.isEmpty() && writeQueue.isEmpty() ){
+			
+				//process reads first
+				
+				//Tell the processor that we are about to send a buch of reads.
+				getRPInstance().beginReads();
+				
+				//Start all read processes
+				while (!readQueue.isEmpty()) {
+					Log.d(TAG,readQueue.size()+" items in queue.");
+					final ReadOnlyResourceRequest request = readQueue.poll();
+					Log.d(TAG,"Processing Request: "+request.getClass());
+					try {
+						new Thread(new Runnable() {
+							public void run() {
+								try {
+									getRPInstance().processRead(request);
+								} catch (Exception e) {
+									Log.e(TAG, "Error processing request: "+Log.getStackTraceString(e));
+								}
+							}
+						}).start();
+					} catch (Exception e) {
+						Log.e(TAG, "Error processing request: "+Log.getStackTraceString(e));
+					}
+				}
+				//Wait untill all processes have finished
+				while (getRPInstance().isProcessingReads()) {
+					try {
+						Thread.sleep(10);
+					} catch (Exception e) {
+						
+					}
+				}
+				
+				//tell processor that we are done
+				getRPInstance().endReads();
+				
+				//process writes
+				while (!writeQueue.isEmpty()) {
+					Log.d(TAG,writeQueue.size()+" items in queue.");
+					final ResourceRequest request = writeQueue.poll();
+					Log.d(TAG,"Processing Request: "+request.getClass());
+					try {
+						getRPInstance().process(request);
+					} catch (Exception e) {
+						Log.e(TAG, "Error processing request: "+Log.getStackTraceString(e));
+					}
 				}
 			}
 			// Wait till next time
@@ -140,13 +193,13 @@ public class ResourceManager implements Runnable {
 	// Request handlers
 	public void sendRequest(ResourceRequest request) {
 		Log.d(TAG, "Received Request: "+request.getClass());
-		queue.offer(request);
+		writeQueue.offer(request);
 		threadHolder.open();
 	}
 	
 	public <E> ResourceResponse<E> sendBlockingRequest(BlockingResourceRequestWithResponse<E> request) {
 		Log.d(TAG, "Received Blocking Request: "+request.getClass());
-		queue.offer(request);
+		writeQueue.offer(request);
 		threadHolder.open();
 		int priority = Thread.currentThread().getPriority();
 		Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
@@ -156,11 +209,68 @@ public class ResourceManager implements Runnable {
 		Thread.currentThread().setPriority(priority);
 		return request.getResponse();
 	}
+	
+	// Request handlers
+	public void sendRequest(ReadOnlyResourceRequest request) {
+		Log.d(TAG, "Received Request: "+request.getClass());
+		readQueue.offer(request);
+		threadHolder.open();
+	}
+	
+	public <E> ResourceResponse<E> sendBlockingRequest(ReadOnlyBlockingRequestWithResponse<E> request) {
+		Log.d(TAG, "Received Blocking Request: "+request.getClass());
+		readQueue.offer(request);
+		threadHolder.open();
+		int priority = Thread.currentThread().getPriority();
+		Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
+		while (!request.isProcessed()) {
+			try { Thread.sleep(10); } catch (Exception e) {	}
+		}
+		Thread.currentThread().setPriority(priority);
+		return request.getResponse();
+	}
+	
+	
+	public interface WriteableResourceTableManager extends ReadOnlyResourceTableManager {
+		public long insert(String nullColumnHack, ContentValues values);
+		public int update(ContentValues values, String whereClause,	String[] whereArgs);
+		public void deleteByCollectionId(long id);
+		public void deleteInvalidCollectionRecord(int collectionId);
+		public void deletePendingChange(Integer pendingId);
+		public void updateCollection(long collectionId, ContentValues collectionData);
+		public boolean doSyncListAndToken(DMQueryList newChangeList, long collectionId, String syncToken);
+		public boolean syncToServer(DMAction action, long resourceId, Integer pendingId);
+		public DMQueryList getNewQueryList();
+		public DMDeleteQuery getNewDeleteQuery(String whereClause, String[] whereArgs);
+		public DMInsertQuery getNewInsertQuery(String nullColumnHack, ContentValues values);
+		public DMUpdateQuery getNewUpdateQuery(ContentValues values, String whereClause, String[] whereArgs);
+		public DMQueryBuilder getNewQueryBuilder();
+		public void doList(DMQueryList queryList);
+	}
+	
+	public interface ReadOnlyResourceTableManager {
+		public void process(ResourceRequest r);
+		public ConnectivityManager getConectivityService();
+		public ContentValues getRow(long rid);
+		public Context getContext();
+		public ContentValues getResourceInCollection(long collectionId,	String name);
+		public Map<String, ContentValues> findSyncNeededResources(long collectionId);
+		public Map<String, ContentValues> getCurrentResourceMap(long collectionId);
+		public ContentValues getServerData(int serverId);
+		public ContentValues getCollectionRow(int collectionId);
+		public boolean getCollectionIdByPath(ContentValues values, long serverId, String collectionPath );
+		public boolean marshallChangesToSync(ArrayList<ContentValues> pendingChangesList);
+		public boolean marshallCollectionsToSync(ArrayList<ContentValues> pendingChangesList);
+		public ArrayList<ContentValues> query(String[] columns, String selection, String[] selectionArgs,
+				String groupBy, String having, String orderBy);
+
+
+	}
 
 	// This special class provides encapsulation of database operations as is
 	// set up to enforce
 	// Scope. I.e. ONLY ResourceManager can start a request
-	public class ResourceTableManager extends DatabaseTableManager {
+	public class ResourceTableManager extends DatabaseTableManager implements WriteableResourceTableManager, ReadOnlyResourceTableManager {
 
 		// Resources Table Constants
 		private static final String RESOURCE_DATABASE_TABLE = "dav_resource";
@@ -202,8 +312,44 @@ public class ResourceManager implements Runnable {
 
 		public static final String TAG = "acal Resources RequestProccessor";
 
+		
+		private volatile int numReadsProcessing = 0;
+		
 		private ResourceTableManager() {
 			super(ResourceManager.this.context);
+		}
+
+		public void beginReads() {
+			this.beginTransaction();
+		}
+
+		public void endReads() {
+			if (this.numReadsProcessing != 0) throw new IllegalStateException("Tried to stop reads queue processing when there are still processes");
+			this.endTransaction();
+		}
+		
+		public void processRead(ReadOnlyResourceRequest request) {
+			this.numReadsProcessing++;
+			this.process(request);
+		}
+		
+		public boolean isProcessingReads() {
+			return this.numReadsProcessing == 0;
+		}
+		
+		public void process(ReadOnlyResourceRequest r) {
+			try {
+				r.process(this);
+			} catch (ResourceProcessingException e) {
+				Log.e(TAG, "Error Procssing Resource Request: "
+						+ Log.getStackTraceString(e));
+			} catch (Exception e) {
+				Log.e(TAG,
+						"INVALID TERMINATION while processing Resource Request: "
+						+ Log.getStackTraceString(e));
+			} finally {
+				this.numReadsProcessing--;
+			}
 		}
 
 		@Override
@@ -526,6 +672,36 @@ public class ResourceManager implements Runnable {
 		pendingCursor.close();
 		
 		return ( pendingChangesList.size() != 0 );
+	}
+
+	@Override
+	public DMDeleteQuery getNewDeleteQuery(String whereClause, String[] whereArgs) {
+		return new DMDeleteQuery(whereClause, whereArgs);
+	}
+
+	@Override
+	public DMInsertQuery getNewInsertQuery(String nullColumnHack, ContentValues values) {
+		return new DMInsertQuery(nullColumnHack, values);
+	}
+
+	@Override
+	public DMQueryBuilder getNewQueryBuilder() {
+		return new DMQueryBuilder();
+	}
+
+	@Override
+	public DMQueryList getNewQueryList() {
+		return new DMQueryList();
+	}
+
+	@Override
+	public DMUpdateQuery getNewUpdateQuery(ContentValues values, String whereClause, String[] whereArgs) {
+		return new DMUpdateQuery(values, whereClause, whereArgs);
+	}
+
+	@Override
+	public void doList(DMQueryList queryList) {
+		queryList.process(this);
 	}
 
 	

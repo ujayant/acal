@@ -24,8 +24,8 @@ import android.util.Log;
 
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.contacts.VCardContact;
-import com.morphoss.acal.database.resourcesmanager.RRGetResourcesInCollection;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager;
+import com.morphoss.acal.database.resourcesmanager.requests.RRGetResourcesInCollection;
 import com.morphoss.acal.dataservice.Resource;
 import com.morphoss.acal.davacal.VComponentCreationException;
 

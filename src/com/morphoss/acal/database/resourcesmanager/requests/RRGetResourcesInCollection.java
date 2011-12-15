@@ -1,13 +1,18 @@
-package com.morphoss.acal.database.resourcesmanager;
+package com.morphoss.acal.database.resourcesmanager.requests;
 
 import java.util.ArrayList;
 
 import android.content.ContentValues;
 
+import com.morphoss.acal.database.resourcesmanager.ResourceManager;
+import com.morphoss.acal.database.resourcesmanager.ResourceProcessingException;
+import com.morphoss.acal.database.resourcesmanager.ResourceResponse;
+import com.morphoss.acal.database.resourcesmanager.ResourceManager.ReadOnlyResourceTableManager;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
+import com.morphoss.acal.database.resourcesmanager.requesttypes.ReadOnlyBlockingRequestWithResponse;
 import com.morphoss.acal.dataservice.Resource;
 
-public class RRGetResourcesInCollection extends BlockingResourceRequestWithResponse<ArrayList<Resource>> {
+public class RRGetResourcesInCollection extends ReadOnlyBlockingRequestWithResponse<ArrayList<Resource>> {
 
 	private long collectionId;
 	
@@ -15,7 +20,7 @@ public class RRGetResourcesInCollection extends BlockingResourceRequestWithRespo
 		this.collectionId = collectionId;
 	}
 	@Override
-	public void process(ResourceTableManager processor)	throws ResourceProcessingException {
+	public void process(ReadOnlyResourceTableManager processor)	throws ResourceProcessingException {
 		ArrayList<Resource> response = new ArrayList<Resource>();
 		
 		//DO PROCESSING HERE

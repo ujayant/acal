@@ -22,8 +22,8 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 
 import com.morphoss.acal.HashCodeUtil;
-import com.morphoss.acal.database.resourcesmanager.RRInitialCollectionSync;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager;
+import com.morphoss.acal.database.resourcesmanager.requests.RRInitialCollectionSync;
 
 public class InitialCollectionSync extends ServiceJob {
 

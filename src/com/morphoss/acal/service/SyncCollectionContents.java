@@ -19,8 +19,8 @@
 package com.morphoss.acal.service;
 
 import com.morphoss.acal.HashCodeUtil;
-import com.morphoss.acal.database.resourcesmanager.RRSyncCollectionContents;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager;
+import com.morphoss.acal.database.resourcesmanager.requests.RRSyncCollectionContents;
 
 public class SyncCollectionContents extends ServiceJob {
 

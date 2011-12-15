@@ -1,4 +1,4 @@
-package com.morphoss.acal.database.resourcesmanager;
+package com.morphoss.acal.database.resourcesmanager.requests;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -25,10 +25,16 @@ import com.morphoss.acal.Constants;
 import com.morphoss.acal.DatabaseChangedEvent;
 import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.acaltime.AcalDateTime;
+import com.morphoss.acal.database.DatabaseTableManager.DMDeleteQuery;
 import com.morphoss.acal.database.DatabaseTableManager.DMQueryBuilder;
 import com.morphoss.acal.database.DatabaseTableManager.DMQueryList;
+import com.morphoss.acal.database.DatabaseTableManager.DMUpdateQuery;
 import com.morphoss.acal.database.DatabaseTableManager.QUERY_ACTION;
+import com.morphoss.acal.database.resourcesmanager.ResourceManager;
+import com.morphoss.acal.database.resourcesmanager.ResourceProcessingException;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
+import com.morphoss.acal.database.resourcesmanager.ResourceManager.WriteableResourceTableManager;
+import com.morphoss.acal.database.resourcesmanager.requesttypes.ResourceRequest;
 import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.providers.Servers;
 import com.morphoss.acal.service.HomeSetsUpdate;
@@ -77,7 +83,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 	private int	errorCounter = 0;
 	
 	
-	private ResourceTableManager processor;
+	private WriteableResourceTableManager processor;
 	private volatile boolean running = true;
 	
 	public boolean isRunning() {
@@ -122,7 +128,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 	
 	
 	@Override
-	public void process(ResourceTableManager processor)	throws ResourceProcessingException {
+	public void process(WriteableResourceTableManager processor)	throws ResourceProcessingException {
 	this.processor = processor;
 		if ( Constants.debugHeap ) AcalDebug.heapDebug(TAG, "SyncCollectionContents start");
 		if ( collectionId < 0 || !getCollectionInfo()) {
@@ -332,7 +338,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
  */
 		
 		//ArrayList<ResourceModification> changeList = new ArrayList<ResourceModification>(); 
-		DMQueryList queryList = processor.new DMQueryList();
+		DMQueryList queryList = processor.getNewQueryList();
 
 		if (Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents )
 			Log.println(Constants.LOGV,TAG, "Start processing response");
@@ -378,7 +384,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 				if (Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents )
 					Log.println(Constants.LOGV,TAG, "Processing response for "+responseHref);
 				//WriteActions action = WriteActions.UPDATE;
-				DMQueryBuilder builder = processor.new DMQueryBuilder();
+				DMQueryBuilder builder = processor.getNewQueryBuilder();
 				builder.setAction(QUERY_ACTION.UPDATE);
 				ContentValues cv = processor.getResourceInCollection( collectionId, responseHref);
 				if ( cv == null ) {
@@ -437,8 +443,8 @@ public class RRSyncCollectionContents implements ResourceRequest {
 			Log.println(Constants.LOGD,TAG,"Found sync token of '"+syncToken+"' in sync-report response." );
 		
 		//ResourceModification.commitChangeList(context, changeList, processor.getTableName(this));
-		queryList.process(processor);
-		
+		processor.doList(queryList);
+	
 		return needSyncAfterwards;
 	}
 
@@ -483,7 +489,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 
 		Map<String, ContentValues> ourResourceMap = processor.getCurrentResourceMap(collectionId);
 		//ArrayList<ResourceModification> changeList = new ArrayList<ResourceModification>();
-		DMQueryList queryList = processor.new DMQueryList();
+		DMQueryList queryList = processor.getNewQueryList();
 
 		try {
 			if (Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents )
@@ -498,7 +504,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 
 				ContentValues cv = null;				
 				//WriteActions action = WriteActions.UPDATE;
-				DMQueryBuilder builder = processor.new DMQueryBuilder();
+				DMQueryBuilder builder = processor.getNewQueryBuilder();
 				builder.setAction(QUERY_ACTION.UPDATE);
 				if ( ourResourceMap != null && ourResourceMap.containsKey(responseHref)) {
 					cv = ourResourceMap.get(responseHref);
@@ -530,7 +536,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 				Set<String> names = ourResourceMap.keySet();
 				for( String name : names ) {
 					ContentValues cv = ourResourceMap.get(name);
-					queryList.addAction(processor.new DMDeleteQuery(ResourceTableManager.RESOURCE_ID+" = ?", new String[]{cv.getAsString(ResourceTableManager.RESOURCE_ID)}));
+					queryList.addAction(processor.getNewDeleteQuery(ResourceTableManager.RESOURCE_ID+" = ?", new String[]{cv.getAsString(ResourceTableManager.RESOURCE_ID)}));
 					//changeList.add( new ResourceModification(WriteActions.DELETE, cv, null) );
 				}
 			}
@@ -544,7 +550,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 		}
 
 		//ResourceModification.commitChangeList(context, changeList, processor.getTableName(this));
-		queryList.process(processor);
+		processor.doList(queryList);
 		
 		return needSyncAfterwards;
 	}
@@ -703,7 +709,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 				Log.println(Constants.LOGV,TAG, "Start processing response");
 			List<DavNode> responses = root.getNodesFromPath("multistatus/response");
 			//List<ResourceModification> changeList = new ArrayList<ResourceModification>(hrefList.length());
-			DMQueryList queryList = processor.new DMQueryList();
+			DMQueryList queryList = processor.getNewQueryList();
 
 			for (DavNode response : responses) {
 				try { Thread.sleep(2); } catch ( InterruptedException e ) { }  // Give the UI thread more of a chance to do stuff.
@@ -715,7 +721,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 				}
 
 				ContentValues cv = originalData.get(name);
-				DMQueryBuilder builder = processor.new DMQueryBuilder();
+				DMQueryBuilder builder = processor.getNewQueryBuilder();
 				//WriteActions action = WriteActions.UPDATE;
 				builder.setAction(QUERY_ACTION.UPDATE);
 				
@@ -741,7 +747,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 			}
 
 			//ResourceModification.commitChangeList(context, changeList, processor.getTableName(this));
-			queryList.process(processor);
+			processor.doList(queryList);
 			
 		}
 
@@ -855,7 +861,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 
 		Header[] headers = new Header[] {};
 		//List<ResourceModification> changeList = new ArrayList<ResourceModification>(hrefs.length);
-		DMQueryList queryList = processor.new DMQueryList();
+		DMQueryList queryList = processor.getNewQueryList();
 		String path;
 		InputStream in;
 		int status;
@@ -907,7 +913,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 							}
 						}
 						cv.put(ResourceTableManager.NEEDS_SYNC, 0);
-						queryList.addAction(processor.new DMUpdateQuery(cv, ResourceTableManager.RESOURCE_ID+" = ?", new String[]{cv.getAsString(ResourceTableManager.RESOURCE_ID)}));
+						queryList.addAction(processor.getNewUpdateQuery(cv, ResourceTableManager.RESOURCE_ID+" = ?", new String[]{cv.getAsString(ResourceTableManager.RESOURCE_ID)}));
 						//changeList.add( new ResourceModification(WriteActions.UPDATE, cv, null) );
 						if (Constants.LOG_DEBUG)
 							Log.println(Constants.LOGD,TAG, "Get response for "+hrefs[hrefIndex] );
@@ -920,7 +926,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 		}
 
 		//ResourceModification.commitChangeList(context, changeList, processor.getTableName(this));
-		queryList.process(processor);
+		processor.doList(queryList);
 
 		if (Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents )
 			Log.println(Constants.LOGV,TAG, "syncWithGet() for " + hrefs.length + " resources took "

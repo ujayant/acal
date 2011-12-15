@@ -1,4 +1,4 @@
-package com.morphoss.acal.database.resourcesmanager;
+package com.morphoss.acal.database.resourcesmanager.requests;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -15,10 +15,17 @@ import android.util.Log;
 
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.acaltime.AcalDateTime;
+import com.morphoss.acal.database.DatabaseTableManager.DMDeleteQuery;
+import com.morphoss.acal.database.DatabaseTableManager.DMInsertQuery;
 import com.morphoss.acal.database.DatabaseTableManager.DMQueryBuilder;
 import com.morphoss.acal.database.DatabaseTableManager.DMQueryList;
+import com.morphoss.acal.database.DatabaseTableManager.DMUpdateQuery;
 import com.morphoss.acal.database.DatabaseTableManager.QUERY_ACTION;
+import com.morphoss.acal.database.resourcesmanager.ResourceManager;
+import com.morphoss.acal.database.resourcesmanager.ResourceProcessingException;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
+import com.morphoss.acal.database.resourcesmanager.ResourceManager.WriteableResourceTableManager;
+import com.morphoss.acal.database.resourcesmanager.requesttypes.ResourceRequest;
 import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.providers.Servers;
 import com.morphoss.acal.service.HomeSetsUpdate;
@@ -41,7 +48,7 @@ public class RRInitialCollectionSync implements ResourceRequest {
 	private boolean collectionNeedsSync = false;
 	private AcalRequestor requestor;
 	private aCalService acalService;
-	private ResourceTableManager processor;
+	private WriteableResourceTableManager processor;
 	private volatile boolean processed = false;
 
 	private Header[] syncHeaders = new Header[] {
@@ -103,7 +110,7 @@ public class RRInitialCollectionSync implements ResourceRequest {
 	}
 
 	@Override
-	public void process(ResourceTableManager processor) throws ResourceProcessingException {
+	public void process(WriteableResourceTableManager processor) throws ResourceProcessingException {
 		this.processor = processor;  
 
 		if ( !getCollectionId() ) {
@@ -255,10 +262,10 @@ public class RRInitialCollectionSync implements ResourceRequest {
 			//Remove all duplicates
 			removeDuplicates(databaseMap, serverList);
 
-			DMQueryList newChangeList = processor.new DMQueryList();
+			DMQueryList newChangeList = processor.getNewQueryList();
 			
 			for ( ContentValues cv : databaseList ) {
-				newChangeList.addAction(processor.new DMDeleteQuery(ResourceTableManager.RESOURCE_ID+" = ?", new String[] {cv.getAsString(ResourceTableManager.RESOURCE_ID)}));
+				newChangeList.addAction(processor.getNewDeleteQuery(ResourceTableManager.RESOURCE_ID+" = ?", new String[] {cv.getAsString(ResourceTableManager.RESOURCE_ID)}));
 			}
 			String id;
 			ContentValues cv;
@@ -266,9 +273,9 @@ public class RRInitialCollectionSync implements ResourceRequest {
 				cv = e.getValue();
 				id = cv.getAsString(ResourceTableManager.RESOURCE_ID);
 				if (id == null || id.equals("")) {
-					newChangeList.addAction(processor.new DMInsertQuery(null, cv));
+					newChangeList.addAction(processor.getNewInsertQuery(null, cv));
 				} else {
-					newChangeList.addAction(processor.new DMUpdateQuery(cv, ResourceTableManager.RESOURCE_ID+" = ?", new String[] { cv.getAsString(ResourceTableManager.RESOURCE_ID)}));
+					newChangeList.addAction(processor.getNewUpdateQuery(cv, ResourceTableManager.RESOURCE_ID+" = ?", new String[] { cv.getAsString(ResourceTableManager.RESOURCE_ID)}));
 				}
 			}
 			
@@ -311,7 +318,7 @@ public class RRInitialCollectionSync implements ResourceRequest {
 				String.format(calendarQuery, from.fmtIcal(), until.fmtIcal()));
 
 		//ArrayList<ResourceModification> changeList = new ArrayList<ResourceModification>(); 
-		DMQueryList queryList = processor.new DMQueryList();
+		DMQueryList queryList = processor.getNewQueryList();
 
 		List<DavNode> responses = root.getNodesFromPath("multistatus/response");
 
@@ -324,7 +331,7 @@ public class RRInitialCollectionSync implements ResourceRequest {
 			if (!cvList.isEmpty()) cv = cvList.get(0);
 
 			//WriteActions action = WriteActions.UPDATE;
-			DMQueryBuilder builder = processor.new DMQueryBuilder();
+			DMQueryBuilder builder = processor.getNewQueryBuilder();
 			builder.setAction(QUERY_ACTION.UPDATE);
 			if ( cv == null ) {
 				cv = new ContentValues();
@@ -345,7 +352,7 @@ public class RRInitialCollectionSync implements ResourceRequest {
 		}
 
 		//ResourceModification.commitChangeList(acalService, changeList, processor.getTableName());
-		queryList.process(processor);
+		processor.doList(queryList);
 
 	}
 

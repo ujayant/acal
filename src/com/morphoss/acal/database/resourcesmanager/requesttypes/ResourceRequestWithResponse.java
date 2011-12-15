@@ -1,11 +1,14 @@
-package com.morphoss.acal.database.resourcesmanager;
+package com.morphoss.acal.database.resourcesmanager.requesttypes;
+
+import com.morphoss.acal.database.resourcesmanager.ResourceResponse;
+import com.morphoss.acal.database.resourcesmanager.ResourceResponseListener;
 
 
 public abstract class ResourceRequestWithResponse<E> implements ResourceRequest {
 
 	//The CallBack
 	private ResourceResponseListener<E> callBack = null;
-	
+
 	/**
 	 * Mandatory constructor - stores the callBack to notify when posting response. CallBack can be null if requester doesn't care about
 	 * response;
@@ -14,6 +17,7 @@ public abstract class ResourceRequestWithResponse<E> implements ResourceRequest 
 	protected ResourceRequestWithResponse(ResourceResponseListener<E> callBack ){
 		this.callBack = callBack;
 	}
+
 	
 	/**
 	 * Called by child classes to send response to the callback. Sends response on its own Thread so will usually return immediately.

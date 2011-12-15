@@ -38,8 +38,8 @@ import android.util.Log;
 import com.morphoss.acal.DatabaseChangedEvent;
 import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.database.AcalDBHelper;
-import com.morphoss.acal.database.resourcesmanager.RRDeleteByCollectionId;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager;
+import com.morphoss.acal.database.resourcesmanager.requests.RRDeleteByCollectionId;
 import com.morphoss.acal.service.aCalService;
 
 /**
