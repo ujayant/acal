@@ -16,16 +16,19 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.widget.RemoteViews;
 
+import com.morphoss.acal.AcalDebug;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.DatabaseChangedEvent;
 import com.morphoss.acal.R;
 import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.acaltime.AcalDateTime;
+import com.morphoss.acal.activity.EventView;
 import com.morphoss.acal.database.AcalDBHelper;
 import com.morphoss.acal.dataservice.Collection;
 import com.morphoss.acal.dataservice.EventInstance;
@@ -33,7 +36,7 @@ import com.morphoss.acal.service.aCalService;
 
 public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 	
-	public static final String TAG = "acal ShowUpcomingWidgetProvider";
+	public static final String TAG = "aCal ShowUpcomingWidgetProvider";
 	
 	public static final int NUMBER_OF_EVENTS_TO_SHOW = 4;
 	public static final int NUM_DAYS_TO_LOOK_AHEAD = 7;
@@ -56,11 +59,15 @@ public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 			int[] ids = intent.getExtras().getIntArray(SHOW_UPCOMING_WIDGET_IDS_KEY);
 			this.onUpdate(context, AppWidgetManager.getInstance(context), ids);
 		} else super.onReceive(context, intent);
+		if ( Constants.debugHeap ) AcalDebug.heapDebug(TAG, "Widget onReceive");
 	}
+
 	
 	public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
 
-		if (Constants.LOG_DEBUG) Log.d(TAG, "onUpdate Called...");
+		if (Constants.LOG_DEBUG && Constants.debugWidget) Log.println(Constants.LOGD, TAG,
+				"onUpdate Called...");
+		if ( Constants.debugHeap ) AcalDebug.heapDebug(TAG, "Widget onUpdate");
 		for (int widgetId : appWidgetIds) {
 
 			Intent updateIntent = new Intent();	
@@ -69,7 +76,8 @@ public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 
 			PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, updateIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 			
-			if (Constants.LOG_DEBUG) Log.d(TAG, "Processing for widget id: "+widgetId);
+			if (Constants.LOG_DEBUG && Constants.debugWidget) Log.println(Constants.LOGD, TAG,
+					"Processing for widget id: "+widgetId);
 			SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
 			boolean prefer24Hour = prefs.getBoolean(context.getString(R.string.prefTwelveTwentyfour),false);
 			
@@ -88,80 +96,101 @@ public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 			ContentValues[] cvs = getCurrentData(context);
 			for (int  i = 0; i<NUMBER_OF_EVENTS_TO_SHOW; i++) {
 				if (cvs[i] != null) {
-					if (Constants.LOG_VERBOSE) Log.v(TAG, "Processing event "+i);
-					AcalDateTime dtstart = AcalDateTime.fromMillis(cvs[i].getAsLong(FIELD_DTSTART)).shiftTimeZone(TimeZone.getDefault().getID());
-					AcalDateTime dtend = AcalDateTime.fromMillis(cvs[i].getAsLong(FIELD_DTEND)).shiftTimeZone(TimeZone.getDefault().getID());
-					int rid = cvs[i].getAsInteger(FIELD_RESOURCE_ID);
-					
-					//set up on click intent
-					//Intent viewEvent = new Intent(context, EventView.class);
-				//	viewEvent.putExtra(EventView.EVENT_INSTANCE_KEY, DefaultEventInstance.fromDB(rid, cvs[i].getAsLong(FIELD_DTSTART)));
-				//	PendingIntent onClickIntent = PendingIntent.getActivity(context, i, viewEvent, PendingIntent.FLAG_UPDATE_CURRENT);
-					
-					//inflate row
-					RemoteViews row = new RemoteViews(context.getPackageName(), R.layout.show_upcoming_widget_base_row);
+					if (Constants.LOG_VERBOSE) Log.println(Constants.LOGV, TAG, "Processing event "+i);
+					try {
+						AcalDateTime dtstart = AcalDateTime.fromMillis(cvs[i].getAsLong(FIELD_DTSTART)).shiftTimeZone(TimeZone.getDefault().getID());
+						AcalDateTime dtend = AcalDateTime.fromMillis(cvs[i].getAsLong(FIELD_DTEND)).shiftTimeZone(TimeZone.getDefault().getID());
 
+						int rid = cvs[i].getAsInteger(FIELD_RESOURCE_ID);
+						
+						//set up on click intent
+						Intent viewEvent = new Intent(context, EventView.class);
+						viewEvent.putExtra(EventView.RESOURCE_ID_KEY, rid);
+						viewEvent.putExtra(EventView.DTSTART_KEY,dtstart.getMillis());
+						PendingIntent onClickIntent = PendingIntent.getActivity(context, i, viewEvent, PendingIntent.FLAG_UPDATE_CURRENT);
+						
+						//inflate row
+						RemoteViews row = new RemoteViews(context.getPackageName(), R.layout.show_upcoming_widget_base_row);
+	
+						LayoutInflater lf = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+						ShowUpcomingRowLayout rowLayout = (ShowUpcomingRowLayout)lf.inflate(R.layout.show_upcoming_widget_custom_row, null);
+	
+						row.setImageViewBitmap(R.id.upcoming_row_image, rowLayout.setData(
+								cvs[i].getAsInteger(ShowUpcomingWidgetProvider.FIELD_COLOUR),
+								cvs[i].getAsString(ShowUpcomingWidgetProvider.FIELD_SUMMARY),
+								getNiceDateTime(context,dtstart,dtend,prefer24Hour) ));
+
+						row.setOnClickPendingIntent(R.id.upcoming_row, onClickIntent);
+						row.setOnClickPendingIntent(R.id.upcoming_row_image, onClickIntent);
+						
+						if (timeOfNextEventEnd > dtend.getMillis()) timeOfNextEventEnd = dtend.getMillis();
+						if (timeOfNextEventStart > dtstart.getMillis()) timeOfNextEventStart = dtstart.getMillis();
+						
+						//addview
+						views.addView(R.id.upcoming_container, row);
+					}
+					catch( Exception e ) {
+						Log.e(TAG,"Error getting widget datetime",e);
+					}
+					
+				}
+				else if ( i==0 ) {
+					RemoteViews row = new RemoteViews(context.getPackageName(), R.layout.show_upcoming_widget_base_row);
+					
 					LayoutInflater lf = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 					ShowUpcomingRowLayout rowLayout = (ShowUpcomingRowLayout)lf.inflate(R.layout.show_upcoming_widget_custom_row, null);
 
-					String dateTimeText = getNiceDate(context,dtstart);
-					if ( !dateTimeText.equals("") ) {
-						dateTimeText = getNiceTime(context,dtstart,dtend,prefer24Hour) + " ("+dateTimeText+")";
-					}
-					row.setImageViewBitmap(R.id.upcoming_row_image, rowLayout.setData(cvs[i], dateTimeText ));
-					//row.setOnClickPendingIntent(R.id.upcoming_row, onClickIntent);
-					//row.setOnClickPendingIntent(R.id.upcoming_row_image, onClickIntent);
-					
-
-					if (timeOfNextEventEnd > cvs[i].getAsLong(FIELD_DTEND))
-						timeOfNextEventEnd = cvs[i].getAsLong(FIELD_DTEND);
-					
-					if (timeOfNextEventStart > cvs[i].getAsLong(FIELD_DTSTART))
-						timeOfNextEventStart = cvs[i].getAsLong(FIELD_DTSTART);
+					row.setImageViewBitmap(R.id.upcoming_row_image,
+							rowLayout.setData(Color.BLACK,context.getString(R.string.noScheduledEvents), "" ));
 					
 					//addview
 					views.addView(R.id.upcoming_container, row);
-					
-				} else break;
+				}
 			}
 			
 			//set on click
 			//views.setOnClickPendingIntent(R.id.upcoming_container, pendingIntent);
 			
-			if (Constants.LOG_DEBUG) Log.d(TAG, "Processing widget "+widgetId+" completed.");
+			if (Constants.LOG_DEBUG && Constants.debugWidget) Log.println(Constants.LOGD, TAG, 
+					"Processing widget "+widgetId+" completed.");
 		
 			appWidgetManager.updateAppWidget(widgetId, views);
 			
 			//schedule alarm to wake us if next event starts/ends within refresh period (30 mins);
 			//ignore start if negative
-			long now = new AcalDateTime().getMillis();
+			long now = System.currentTimeMillis();
 			long start = timeOfNextEventStart - now;
 			long end = timeOfNextEventEnd - now;
 			long timeTillNextAlarm = end;
 			if (start > 0 && start<end) timeTillNextAlarm = start;
 			
-			if (Constants.LOG_DEBUG) Log.d(TAG, "Next Event start/finsih = "+timeTillNextAlarm);
+			if (Constants.LOG_DEBUG && Constants.debugWidget) Log.println(Constants.LOGD, TAG, 
+					"Next Event start/finish = "+timeTillNextAlarm);
 			if (timeTillNextAlarm< 1800000L) {
-				if (Constants.LOG_DEBUG)  Log.d(TAG, "Setting update alarm for "+(timeTillNextAlarm/1000)+" seconds from now. due to event starting or ending");
+				if (Constants.LOG_DEBUG && Constants.debugWidget) Log.println(Constants.LOGD, TAG, 
+						"Setting update alarm for "+(timeTillNextAlarm/1000)+" seconds from now. due to event starting or ending");
 				// Get the AlarmManager service
 				 AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
 				 am.set(AlarmManager.RTC, System.currentTimeMillis()+timeTillNextAlarm, pendingIntent);
 			} else {
-				if (Constants.LOG_DEBUG)  Log.d(TAG, "No Events starting or ending in the next 30 mins, not setting alarm.");
+				if (Constants.LOG_DEBUG && Constants.debugWidget) Log.println(Constants.LOGD, TAG, 
+						"No Events starting or ending in the next 30 mins, not setting alarm.");
 			}
 		}
 	}
 	
 	//Clean any events from the DB that have ended
 	public static void cleanOld(Context context) {
-		long endTime = new AcalDateTime().getMillis();
+		if ( Constants.debugHeap ) AcalDebug.heapDebug(TAG, "Widget cleanOld");
+		long endTime = System.currentTimeMillis();
 		AcalDBHelper dbhelper = new AcalDBHelper(context);
 		SQLiteDatabase db = dbhelper.getReadableDatabase();
 		int res = db.delete(TABLE, FIELD_DTEND+" <= ?", new String[]{""+endTime});
 		db.close();
 		dbhelper.close();
 		if (res >  0) aCalService.databaseDispatcher.dispatchEvent(new DatabaseChangedEvent(DatabaseChangedEvent.DATABASE_SHOW_UPCOMING_WIDGET_UPDATE,null,null));
-		if (Constants.LOG_DEBUG)  Log.d(TAG, "Deleted "+res+" event(s) that have ended.");
+		if (Constants.LOG_DEBUG && Constants.debugWidget)  Log.println(Constants.LOGD, TAG,
+				"Deleted "+res+" event(s) that have ended.");
 	}
 	
 	/**
@@ -174,7 +203,8 @@ public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 	 * @return
 	 */
 	public synchronized static ContentValues[] getCurrentData(Context context) {
-		if (Constants.LOG_DEBUG) Log.d(TAG, "Retreiveing current data");
+		if ( Constants.debugHeap ) AcalDebug.heapDebug(TAG, "Widget getCurrentData");
+		if (Constants.LOG_DEBUG) Log.println(Constants.LOGD, TAG, "Retrieving current data");
 		ContentValues[] cvs = new ContentValues[NUMBER_OF_EVENTS_TO_SHOW];
 		AcalDBHelper dbhelper = new AcalDBHelper(context);
 		SQLiteDatabase db = dbhelper.getReadableDatabase();
@@ -185,18 +215,22 @@ public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 			for (int i=0; !cursor.isAfterLast() && i<NUMBER_OF_EVENTS_TO_SHOW; cursor.moveToNext(), i++) {
 				cvs[i] = new ContentValues();
 				DatabaseUtils.cursorRowToContentValues(cursor, cvs[i]);
-				if (Constants.LOG_VERBOSE) Log.v(TAG, "Loaded event "+i+" from db");
+				if (Constants.LOG_VERBOSE && Constants.debugWidget) Log.println(Constants.LOGV, TAG,
+						"Loaded event "+i+" from db");
 			}
 		}
 		cursor.close();
 		db.close();
 		dbhelper.close();
+		if ( Constants.debugHeap ) AcalDebug.heapDebug(TAG, "Widget getCurrentData done");
 		return cvs;
 	}
 
 	public synchronized static void checkIfUpdateRequired(Context context, List<EventInstance> currentEvents) {
-		if (Constants.LOG_DEBUG) Log.d(TAG, "Checking to see if widget update is required...");
+		if (Constants.LOG_DEBUG && Constants.debugWidget) Log.println(Constants.LOGD, TAG, 
+				"Checking to see if widget update is required...");
 
+		if ( Constants.debugHeap ) AcalDebug.heapDebug(TAG, "Widget checkIfUpdateRequired");
 		//Turn events into content vals for easier processing
 		ContentValues[] cvs = new ContentValues[currentEvents.size()];
 		for (int i = 0; i< currentEvents.size(); i++) {
@@ -206,11 +240,14 @@ public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 		}
 		
 		if (hasDataChanged(context, cvs)){
-			if (Constants.LOG_DEBUG) Log.d(TAG, "Data change detected, Updating DB");
+			if (Constants.LOG_DEBUG && Constants.debugWidget) Log.println(Constants.LOGD, TAG,
+					"Data change detected, Updating DB");
 			updateData(context, cvs);
-			if (Constants.LOG_DEBUG) Log.d(TAG, "Sending update broadcast");
+			if (Constants.LOG_DEBUG && Constants.debugWidget) Log.println(Constants.LOGD, TAG,
+					"Sending update broadcast");
 			StaticHelpers.updateWidgets(context, ShowUpcomingWidgetProvider.class);
 		}
+		if ( Constants.debugHeap ) AcalDebug.heapDebug(TAG, "Widget checkIfUpdateRequired done");
 	}
 	
 	/**
@@ -221,8 +258,10 @@ public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 	 */
 	public synchronized static boolean hasDataChanged(Context context, ContentValues[] newData) {
 		ContentValues[] oldData = getCurrentData(context);
-		if (Constants.LOG_DEBUG) Log.d(TAG, "Comparing current data to db");
+		if (Constants.LOG_DEBUG && Constants.debugWidget) Log.println(Constants.LOGD, TAG,
+				"Comparing current data to db");
 		
+		if ( Constants.debugHeap ) AcalDebug.heapDebug(TAG, "Widget hasDataChanged");
 		if (oldData.length != newData.length) return true;
 		
 		for (int i = 0; i< NUMBER_OF_EVENTS_TO_SHOW && i< oldData.length; i++) {
@@ -242,7 +281,8 @@ public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 			long now = new AcalDateTime().getMillis();
 			if (oldData[i].getAsLong(FIELD_DTEND) <= now) return true;
 		}
-		if (Constants.LOG_DEBUG) Log.d(TAG, "Data does not appear to have changed.");
+		if (Constants.LOG_DEBUG && Constants.debugWidget) Log.println(Constants.LOGD, TAG,
+				"Data does not appear to have changed.");
 		return false;
 	}
 	
@@ -252,14 +292,17 @@ public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 	 * @param currentEvents
 	 */
 	public static synchronized void updateData(Context context, ContentValues[] cvs) {
-		if (Constants.LOG_DEBUG) Log.d(TAG, "Writing new values to DB");
+		if (Constants.LOG_DEBUG && Constants.debugWidget) Log.println(Constants.LOGD, TAG,
+				"Writing new values to DB");
+		if ( Constants.debugHeap ) AcalDebug.heapDebug(TAG, "Widget upateData");
 		AcalDBHelper dbhelper = new AcalDBHelper(context);
 		SQLiteDatabase db = dbhelper.getWritableDatabase();
 		db.beginTransaction();
 		
 		//1st, clear existing data
 		db.delete(TABLE, null, null);
-			db.yieldIfContendedSafely();
+		db.yieldIfContendedSafely();
+
 		//2nd Add each event
 		for (ContentValues cv : cvs) {
 			db.insert(TABLE, null, cv);
@@ -270,6 +313,7 @@ public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 		db.endTransaction(); 
 		
 		db.close(); 
+		if ( Constants.debugHeap ) AcalDebug.heapDebug(TAG, "Widget upateData done");
 	}
 
 	public synchronized static ContentValues getCVFromEvent(Context context, EventInstance event) {
@@ -283,46 +327,55 @@ public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 		
 		return cv;
 	}
+
 	
-	
-	
-	public String getNiceDate(Context context, AcalDateTime dateTime) {
+	private String getNiceDateTime(Context context, AcalDateTime start, AcalDateTime end, boolean use24HourFormat) {
 		AcalDateTime now = new AcalDateTime().applyLocalTimeZone();
-		if (dateTime.getMillis() <= now.getMillis()) return context.getString(R.string.ends); ///Event is occuring now
-		if (now.getEpochDay() == dateTime.getEpochDay()) {
-//			String today = context.getString(R.string.Today);
-			return "";
-		}
-		int dow = dateTime.getWeekDay();
-		switch (dow) {
-			case AcalDateTime.MONDAY: return context.getString(R.string.Mon);
-			case AcalDateTime.TUESDAY: return context.getString(R.string.Tue);
-			case AcalDateTime.WEDNESDAY: return context.getString(R.string.Wed);
-			case AcalDateTime.THURSDAY: return context.getString(R.string.Thu);
-			case AcalDateTime.FRIDAY: return context.getString(R.string.Fri);
-			case AcalDateTime.SATURDAY: return context.getString(R.string.Sat);
-			case AcalDateTime.SUNDAY: return context.getString(R.string.Sun);
-		}
-		
-		//Shouldn't really be able to get here - note localisation settings don't seem to work properly.
-		//See http://code.google.com/p/android/issues/detail?id=12679
-		DateFormat shortDate = DateFormat.getDateInstance(DateFormat.SHORT);
-		return shortDate.format(dateTime.toJavaDate());
-	}
-	
-	public String getNiceTime(Context context, AcalDateTime start, AcalDateTime end, boolean use24HourFormat) {
-		AcalDateTime now = new AcalDateTime().applyLocalTimeZone();
+
+		String time;
 		DateFormat format;
 		if (use24HourFormat) format = new SimpleDateFormat("HH:mm");
 		else format = new SimpleDateFormat("hh:mmaa");
-		if (start.getMillis() <= now.getMillis()) {
-			if (end.getYear() == now.getYear() && end.getYearDay() == now.getYearDay())
-				return format.format(end.toJavaDate()).toLowerCase();
-			else 
-				//multiday event
-				return now.getDurationTo(end).getDays()+" "+context.getString(R.string.days);
+		if ( start.getMillis() <= System.currentTimeMillis() ) {
+			if ( end.getMillis() < System.currentTimeMillis() ) {
+				return context.getString(R.string.Finished);
+			}
+			else if (end.getYear() == now.getYear() && end.getYearDay() == now.getYearDay())
+				time = format.format(end.toJavaDate()).toLowerCase();
+			else { 
+				if ( now.getDurationTo(end).getDays() == 0 ) {
+					return context.getString(R.string.Today);
+				}
+				else {
+					//multiday event
+					time = now.getDurationTo(end).getDays()+" "+context.getString(R.string.days);
+				}
+			}
 		}
-		else return format.format(start.toJavaDate()).toLowerCase();
+		else time = format.format(start.toJavaDate()).toLowerCase();
+
+		if (start.getMillis() <= System.currentTimeMillis() ) {
+			return context.getString(R.string.endsAt, time); ///Event is occuring now
+		}
+		else if ( start.getEpochDay() == now.getEpochDay() ) {
+			return time;  // Leave day of week off to identify it as 'today'
+		}
+		else {
+			StringBuilder result = new StringBuilder(time);
+			result.append(" (");
+			int dow = start.getWeekDay();
+			switch (dow) {
+				case AcalDateTime.MONDAY: result.append(context.getString(R.string.Mon)); break;
+				case AcalDateTime.TUESDAY: result.append(context.getString(R.string.Tue)); break;
+				case AcalDateTime.WEDNESDAY: result.append(context.getString(R.string.Wed)); break;
+				case AcalDateTime.THURSDAY: result.append(context.getString(R.string.Thu)); break;
+				case AcalDateTime.FRIDAY: result.append(context.getString(R.string.Fri)); break;
+				case AcalDateTime.SATURDAY: result.append(context.getString(R.string.Sat)); break;
+				case AcalDateTime.SUNDAY: result.append(context.getString(R.string.Sun)); break;
+			}
+			result.append(")");
+			return result.toString();
+		}
 	}
 	
 }
