@@ -348,8 +348,9 @@ public class ResourceManager implements Runnable {
 						"INVALID TERMINATION while processing Resource Request: "
 						+ Log.getStackTraceString(e));
 			} finally {
-				this.numReadsProcessing--;
+				
 			}
+			this.numReadsProcessing--;
 		}
 
 		@Override
