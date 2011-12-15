@@ -4,18 +4,13 @@ import android.content.Context;
 import android.graphics.Color;
 import android.preference.Preference;
 import android.util.AttributeSet;
-import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ContextMenu.ContextMenuInfo;
-import android.view.View.OnCreateContextMenuListener;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.morphoss.acal.R;
-import com.morphoss.acal.davacal.SimpleAcalEvent;
 
 public class CollectionConfigListItemPreference extends Preference {
 

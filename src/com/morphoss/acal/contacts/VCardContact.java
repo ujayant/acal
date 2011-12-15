@@ -27,14 +27,12 @@ import android.provider.ContactsContract.RawContacts.Data;
 import android.util.Log;
 
 import com.morphoss.acal.Constants;
-import com.morphoss.acal.davacal.AcalCollection;
 import com.morphoss.acal.davacal.AcalProperty;
 import com.morphoss.acal.davacal.PropertyName;
 import com.morphoss.acal.davacal.VCard;
 import com.morphoss.acal.davacal.VComponent;
 import com.morphoss.acal.davacal.VComponentCreationException;
 import com.morphoss.acal.davacal.YouMustSurroundThisMethodInTryCatchOrIllEatYouException;
-import com.morphoss.acal.providers.DavResources;
 import com.morphoss.acal.service.connector.Base64Coder;
 
 public class VCardContact {

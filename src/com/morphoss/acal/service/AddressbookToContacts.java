@@ -33,10 +33,8 @@ import android.util.Log;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.contacts.VCardContact;
-import com.morphoss.acal.davacal.AcalCollection;
 import com.morphoss.acal.davacal.VComponentCreationException;
 import com.morphoss.acal.providers.DavCollections;
-import com.morphoss.acal.providers.DavResources;
 import com.morphoss.acal.providers.Servers;
 
 public class AddressbookToContacts extends ServiceJob {

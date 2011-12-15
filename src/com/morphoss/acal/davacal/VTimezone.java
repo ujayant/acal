@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.SimpleTimeZone;
 import java.util.TimeZone;
 
-import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.dataservice.Resource;
 
 
@@ -79,7 +78,7 @@ public class VTimezone extends VComponent {
 					tzid = tz.getID();
 					return true;
 				}
-				tzid = AcalDateTime.getOlsonName(tzid);
+				tzid = VCalendar.staticGetOlsonName(tzid);
 				if ( tzid != null ) {
 					tz = TimeZone.getTimeZone(tzid);
 					if ( tz != null ) {
