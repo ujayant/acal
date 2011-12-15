@@ -15,7 +15,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SyncResult;
 import android.database.Cursor;
-import android.database.DatabaseUtils;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -27,7 +26,6 @@ import com.morphoss.acal.Constants;
 import com.morphoss.acal.contacts.VCardContact;
 import com.morphoss.acal.database.resourcesmanager.RRGetResourcesInCollection;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager;
-import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
 import com.morphoss.acal.dataservice.Resource;
 import com.morphoss.acal.davacal.VComponentCreationException;
 
@@ -135,39 +133,6 @@ public class ContactsSyncAdapterService extends Service {
 		 * @todo: Here we should go through any remaining androidContacts and create the VCards
 		 * for them.
 		 */
-	}
-
-
-	/**
-	 * Fetch the VCards we should be looking at.
-	 * @return an array of String
-	 */
-	private static ContentValues[] fetchVCards(ContentResolver cr, long collectionId) {
-		Cursor mCursor = null;
-		ContentValues vcards[] = null;
-
-		if (Constants.LOG_VERBOSE) Log.v(TAG, "Retrieving VCards" );
-		try {
-			Uri vcardResourcesUri = Uri.parse(DavResources.CONTENT_URI.toString()+"/collection/"+collectionId);
-			mCursor = cr.query(vcardResourcesUri, null, null, null, null);
-			vcards = new ContentValues[mCursor.getCount()];
-			int count = 0;
-			for( mCursor.moveToFirst(); !mCursor.isAfterLast(); mCursor.moveToNext()) {
-				ContentValues newCard = new ContentValues();
-				DatabaseUtils.cursorRowToContentValues(mCursor, newCard);
-				vcards[count++] = newCard;
-			}
-		}
-		catch (Exception e) {
-			Log.e(TAG,"Unknown error retrieving VCards: "+e.getMessage());
-			Log.e(TAG,Log.getStackTraceString(e));
-		}
-		finally {
-			if (mCursor != null) mCursor.close();
-		}
-		if (Constants.LOG_VERBOSE)
-			Log.v(TAG, "Retrieved " + (vcards == null ? 0 :vcards.length) + " VCard resources.");
-		return vcards;
 	}
 	
 }
