@@ -60,20 +60,20 @@ public class DebugDatabase extends ServiceJob {
 	}
 
 	private void revertDatabase() {
-		if (Constants.LOG_DEBUG) Log.d(TAG,"Reverting database...");
+		if (Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG,"Reverting database...");
 		try {
 			AcalDBHelper dbHelper = new AcalDBHelper(this.context);
 			dbHelper.onUpgrade(dbHelper.getWritableDatabase(), -1, -1);
 			dbHelper.close();
 			aCalService.databaseDispatcher.dispatchEvent(new DatabaseChangedEvent(DatabaseChangedEvent.DATABASE_INVALIDATED,null,null));
-			if (Constants.LOG_DEBUG) Log.d(TAG,"Reversion complete.");
+			if (Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG,"Reversion complete.");
 		} catch (Exception e) {
 			Log.e(TAG,"Error reverting database: "+e.getMessage());
 		}
 	}
 
 	private void saveDatabase() {
-		if (Constants.LOG_DEBUG) Log.d(TAG, "Database copy requested. Beginning file xfer to "+Constants.COPY_DB_TARGET);
+		if (Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG, "Database copy requested. Beginning file xfer to "+Constants.COPY_DB_TARGET);
 		File inputFile = new File("/data/data/com.morphoss.acal/databases/acal.db");
 		File outputFile = new File(Constants.COPY_DB_TARGET);
 
@@ -88,7 +88,7 @@ public class DebugDatabase extends ServiceJob {
 		} catch (Exception e) {
 			Log.e(TAG,"Error copying file.");
 		}
-		if (Constants.LOG_DEBUG) Log.d(TAG, "File copy completed.");
+		if (Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG, "File copy completed.");
 	}
 
 	@Override

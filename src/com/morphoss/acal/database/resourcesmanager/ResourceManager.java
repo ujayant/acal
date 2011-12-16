@@ -113,7 +113,7 @@ public class ResourceManager implements Runnable {
 		Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
 		while (running) {
 			// do stuff
-			Log.d(TAG,"Thread Opened...");
+			Log.println(Constants.LOGD,TAG,"Thread Opened...");
 			
 			while (readQueue.isEmpty() && writeQueue.isEmpty() ){
 			
@@ -124,9 +124,9 @@ public class ResourceManager implements Runnable {
 				
 				//Start all read processes
 				while (!readQueue.isEmpty()) {
-					Log.d(TAG,readQueue.size()+" items in queue.");
+					Log.println(Constants.LOGD,TAG,readQueue.size()+" items in queue.");
 					final ReadOnlyResourceRequest request = readQueue.poll();
-					Log.d(TAG,"Processing Request: "+request.getClass());
+					Log.println(Constants.LOGD,TAG,"Processing Request: "+request.getClass());
 					try {
 						new Thread(new Runnable() {
 							public void run() {
@@ -141,7 +141,8 @@ public class ResourceManager implements Runnable {
 						Log.e(TAG, "Error processing request: "+Log.getStackTraceString(e));
 					}
 				}
-				//Wait untill all processes have finished
+
+				//Wait until all processes have finished
 				while (getRPInstance().isProcessingReads()) {
 					try {
 						Thread.sleep(10);
@@ -155,9 +156,9 @@ public class ResourceManager implements Runnable {
 				
 				//process writes
 				while (!writeQueue.isEmpty()) {
-					Log.d(TAG,writeQueue.size()+" items in queue.");
+					Log.println(Constants.LOGD,TAG,writeQueue.size()+" items in queue.");
 					final ResourceRequest request = writeQueue.poll();
-					Log.d(TAG,"Processing Request: "+request.getClass());
+					Log.println(Constants.LOGD,TAG,"Processing Request: "+request.getClass());
 					try {
 						getRPInstance().process(request);
 					} catch (Exception e) {
@@ -192,13 +193,13 @@ public class ResourceManager implements Runnable {
 
 	// Request handlers
 	public void sendRequest(ResourceRequest request) {
-		Log.d(TAG, "Received Request: "+request.getClass());
+		Log.println(Constants.LOGD,TAG, "Received Request: "+request.getClass());
 		writeQueue.offer(request);
 		threadHolder.open();
 	}
 	
 	public <E> ResourceResponse<E> sendBlockingRequest(BlockingResourceRequestWithResponse<E> request) {
-		Log.d(TAG, "Received Blocking Request: "+request.getClass());
+		Log.println(Constants.LOGD,TAG, "Received Blocking Request: "+request.getClass());
 		writeQueue.offer(request);
 		threadHolder.open();
 		int priority = Thread.currentThread().getPriority();
@@ -212,13 +213,13 @@ public class ResourceManager implements Runnable {
 	
 	// Request handlers
 	public void sendRequest(ReadOnlyResourceRequest request) {
-		Log.d(TAG, "Received Request: "+request.getClass());
+		Log.println(Constants.LOGD,TAG, "Received Request: "+request.getClass());
 		readQueue.offer(request);
 		threadHolder.open();
 	}
 	
 	public <E> ResourceResponse<E> sendBlockingRequest(ReadOnlyBlockingRequestWithResponse<E> request) {
-		Log.d(TAG, "Received Blocking Request: "+request.getClass());
+		Log.println(Constants.LOGD,TAG, "Received Blocking Request: "+request.getClass());
 		readQueue.offer(request);
 		threadHolder.open();
 		int priority = Thread.currentThread().getPriority();
@@ -359,7 +360,7 @@ public class ResourceManager implements Runnable {
 		}
 
 		public void process(ResourceRequest r) {
-			Log.d(TAG,"Begin Processing");
+			Log.println(Constants.LOGD,TAG,"Begin Processing");
 			try {
 				r.process(this);
 				if (this.inTx) {
@@ -382,7 +383,7 @@ public class ResourceManager implements Runnable {
 					} catch (Exception e) {
 					}
 			}
-			Log.d(TAG,"End Processing");
+			Log.println(Constants.LOGD,TAG,"End Processing");
 		}
 
 		public ConnectivityManager getConectivityService() {
@@ -408,7 +409,7 @@ public class ResourceManager implements Runnable {
 		 */
 		@Override
 		public long insert(String nullColumnHack, ContentValues values) {
-			Log.d(TAG, "Resource Insert Begin");
+			Log.println(Constants.LOGD,TAG, "Resource Insert Begin");
 			ContentValues toWrite = new ContentValues(values);
 			if (toWrite.containsKey(IS_PENDING)) toWrite.remove(IS_PENDING);
 			values = toWrite;
@@ -433,7 +434,7 @@ public class ResourceManager implements Runnable {
 		
 		//As Above
 		public int update(ContentValues values, String whereClause,	String[] whereArgs) {
-			Log.d(TAG, "Resource Update Begin");
+			Log.println(Constants.LOGD,TAG, "Resource Update Begin");
 			ContentValues toWrite = new ContentValues(values);
 			if (toWrite.containsKey(IS_PENDING)) toWrite.remove(IS_PENDING);
 			values = toWrite;
@@ -569,7 +570,7 @@ public class ResourceManager implements Runnable {
 						PENDING_ID+"=?",
 						new String[] { Integer.toString(pendingId) });
 				if ( Constants.LOG_DEBUG )
-					Log.d(TAG, "Deleted "+removed+" one pending_change record ID="+pendingId+" for resourceId="+resourceId);
+					Log.println(Constants.LOGD,TAG, "Deleted "+removed+" one pending_change record ID="+pendingId+" for resourceId="+resourceId);
 
 				ContentValues pending = new ContentValues();
 				pending.put(PENDING_ID, pendingId);

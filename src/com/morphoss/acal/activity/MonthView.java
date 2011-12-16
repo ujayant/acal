@@ -28,13 +28,13 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.GestureDetector;
+import android.view.GestureDetector.OnGestureListener;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.GestureDetector.OnGestureListener;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.view.animation.Animation;
@@ -48,7 +48,6 @@ import com.morphoss.acal.AcalTheme;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateTime;
-import com.morphoss.acal.dataservice.MethodsRequired;
 import com.morphoss.acal.service.aCalService;
 import com.morphoss.acal.weekview.WeekViewActivity;
 import com.morphoss.acal.widget.AcalViewFlipper;
@@ -149,9 +148,6 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 	private double consumedY;
 	private static final int maxAngleDev = 30;
 	private static final int minDistance = 60;
-
-	/* Fields relating to calendar data */
-	private MethodsRequired dataRequest = new MethodsRequired();
 
 	/* Fields relating to Intent Results */
 	public static final int PICK_MONTH_FROM_YEAR_VIEW = 0;
@@ -698,13 +694,6 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 		}
 	}
 
-
-	/**
-	 * Methods for managing event structure
-	 */
-	public void requestEventsForDay(AcalDateTime day) {
-		//TODO Request events for day
-	}
 
 	public void deleteEvent(AcalDateTime day, int n, int action ) {
 		//TODO	

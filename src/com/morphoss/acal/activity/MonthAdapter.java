@@ -26,7 +26,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.ConditionVariable;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
@@ -35,9 +34,9 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.ViewParent;
-import android.view.View.OnClickListener;
 import android.view.animation.Animation;
 import android.view.animation.Animation.AnimationListener;
 import android.widget.BaseAdapter;
@@ -53,10 +52,10 @@ import com.morphoss.acal.database.cachemanager.CRObjectsInMonthByDay;
 import com.morphoss.acal.database.cachemanager.CacheChangedEvent;
 import com.morphoss.acal.database.cachemanager.CacheChangedListener;
 import com.morphoss.acal.database.cachemanager.CacheManager;
+import com.morphoss.acal.database.cachemanager.CacheManager.CacheTableManager;
 import com.morphoss.acal.database.cachemanager.CacheObject;
 import com.morphoss.acal.database.cachemanager.CacheResponse;
 import com.morphoss.acal.database.cachemanager.CacheResponseListener;
-import com.morphoss.acal.database.cachemanager.CacheManager.CacheTableManager;
 import com.morphoss.acal.views.MonthDayBox;
 
 /**
@@ -88,16 +87,16 @@ public class MonthAdapter extends BaseAdapter implements CacheChangedListener, C
 		@SuppressWarnings("unchecked")
 		@Override
 		public void handleMessage(Message msg) {
-			if (Constants.debugMonthView && Constants.LOG_DEBUG) Log.d(TAG, "Handler has received messsge.");
+			if (Constants.debugMonthView && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG, "Handler has received messsge.");
 			switch (msg.what) {
 				case HANDLER_NEW_DATA:
-					if (Constants.debugMonthView && Constants.LOG_DEBUG) Log.d(TAG, "New data for display.");
+					if (Constants.debugMonthView && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG, "New data for display.");
 					HashMap<Short,ArrayList<CacheObject>> data = (HashMap<Short,ArrayList<CacheObject>>)msg.obj;
 					for (short i = 1; i<= 31; i++) {
 						if (data.containsKey(i)) eventsByDay.put(i, data.get(i));
 					}
 					while (System.currentTimeMillis() < wait) {
-						Log.d(TAG, "Waiting "+(wait-System.currentTimeMillis())+"ms for animation end.");
+						Log.println(Constants.LOGD,TAG, "Waiting "+(wait-System.currentTimeMillis())+"ms for animation end.");
 						try { Thread.sleep(wait-System.currentTimeMillis()); } catch (Exception e) { }
 					}
 					MonthAdapter.this.notifyDataSetChanged();
@@ -274,9 +273,9 @@ public class MonthAdapter extends BaseAdapter implements CacheChangedListener, C
 			}
 			if ( Constants.LOG_VERBOSE && Constants.debugMonthView ) {
 				List<CacheObject> eventList = eventsByDay.get(mDay);
-				Log.v(TAG,"MonthAdapter for "+bDate.fmtIcal());
+				Log.println(Constants.LOGV,TAG,"MonthAdapter for "+bDate.fmtIcal());
 				for( CacheObject event : eventList ) {
-					Log.v(TAG, String.format("%d - %d: %s", event.getStart(), event.getEnd(), event.getSummary()));
+					Log.println(Constants.LOGV,TAG, String.format("%d - %d: %s", event.getStart(), event.getEnd(), event.getSummary()));
 				}
 			}
 			mDayBox.setEvents(eventsByDay.get(mDay));
@@ -346,7 +345,7 @@ public class MonthAdapter extends BaseAdapter implements CacheChangedListener, C
 
 	@Override
 	public void cacheResponse(CacheResponse<HashMap<Short,ArrayList<CacheObject>>> response) {
-		if (Constants.debugMonthView && Constants.LOG_DEBUG) Log.d(TAG, "Cache Response Received.");
+		if (Constants.debugMonthView && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG, "Cache Response Received.");
 		
 		//long waitTime = Math.max(wait-System.currentTimeMillis(),100);
 
@@ -356,7 +355,7 @@ public class MonthAdapter extends BaseAdapter implements CacheChangedListener, C
 
 	@Override
 	public void onAnimationEnd(Animation animation) {
-//		if (Constants.debugMonthView && Constants.LOG_DEBUG) Log.d(TAG, "Releasing MonthView updates due to animation end."+animation.toString());
+//		if (Constants.debugMonthView && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG, "Releasing MonthView updates due to animation end."+animation.toString());
 
 		
 	}
@@ -377,13 +376,13 @@ public class MonthAdapter extends BaseAdapter implements CacheChangedListener, C
 	//		wait = System.currentTimeMillis() + animation.getDuration();	
 	//	}
 		
-	//	if (Constants.debugMonthView && Constants.LOG_DEBUG) Log.d(TAG, "Blocking MonthView updates due to animation start. Duration: "+animation.getDuration());
+	//	if (Constants.debugMonthView && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG, "Blocking MonthView updates due to animation start. Duration: "+animation.getDuration());
 	}
 
 
 	//An animation is about to start - we will block for half a second. onAnimation start will adjust blocking as required.
 	public void animationInit() {
-	//	if (Constants.debugMonthView && Constants.LOG_DEBUG) Log.d(TAG, "Animation is about to start. blocking for 1000ms.");
+	//	if (Constants.debugMonthView && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG, "Animation is about to start. blocking for 1000ms.");
 		//wait = System.currentTimeMillis() + 1000;
 	}
 
