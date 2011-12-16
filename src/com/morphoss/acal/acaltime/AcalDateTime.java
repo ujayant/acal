@@ -1720,4 +1720,27 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 		return asProperty(pName.toString());
 	}
 
+
+	/**
+	 * Gets an instance of AcalDateTime at the current clock time in the current timezone. 
+	 * @return
+	 */
+	public static AcalDateTime getInstance() {
+		AcalDateTime answer = new AcalDateTime();
+		answer.tz = UTC;
+		answer.tzName = UTC.getID();
+		answer.applyLocalTimeZone();
+		return answer;
+	}
+
+
+	/**
+	 * Set this AcalDateTime to the start of the month
+	 * @return
+	 */
+	public AcalDateTime setMonthStart() {
+		setMonthDay(1);
+		return setDaySecond(0);
+	}
+
 }
