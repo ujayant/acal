@@ -156,5 +156,27 @@ public class AcalDateTimeFormatter {
 			}
 			return timeText;
 		}
+
+	/**
+	 * Formatter for handling Task start/due/completed dates.
+	 * @param c
+	 * @param dtstart
+	 * @param due
+	 * @param completed
+	 * @param as24HourTime
+	 * @return
+	 */
+	public static CharSequence getTodoTimeText(Context c,
+			AcalDateTime dtstart, AcalDateTime due, AcalDateTime completed, boolean as24HourTime) {
+
+		if ( dtstart == null && due == null && completed == null ) return c.getString(R.string.Unscheduled);
+
+		SimpleDateFormat formatter = new SimpleDateFormat(" MMM d, "+(as24HourTime ? "HH:mm" : "hh:mmaa"));
+
+		return (dtstart == null ? "" : c.getString(R.string.FromPrompt) + formatter.format(dtstart.toJavaDate()))
+				+ (due == null ? "" : " -" + c.getString(R.string.DuePrompt) + formatter.format(due.toJavaDate()))
+				+ (completed != null ? (due != null || dtstart != null ? ", " : "") + c.getString(R.string.CompletedPrompt) + formatter.format(completed.toJavaDate()):"")
+				;
+	}
 	
 }
