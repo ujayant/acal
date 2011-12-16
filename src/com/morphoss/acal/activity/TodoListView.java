@@ -18,17 +18,8 @@
 
 package com.morphoss.acal.activity;
 
-import java.util.ArrayList;
-
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.IBinder;
-import android.os.Message;
-import android.os.RemoteException;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -42,11 +33,6 @@ import android.widget.TextView;
 import com.morphoss.acal.AcalTheme;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
-import com.morphoss.acal.dataservice.MethodsRequired;
-import com.morphoss.acal.davacal.SimpleAcalTodo;
-import com.morphoss.acal.davacal.VCalendar;
-import com.morphoss.acal.davacal.VComponent;
-import com.morphoss.acal.davacal.VComponentCreationException;
 import com.morphoss.acal.service.aCalService;
 
 /**
@@ -103,9 +89,6 @@ public class TodoListView extends AcalActivity implements OnClickListener {
 	public static final int TODO = 1;
 	public static final int ADD = 3;
 
-	/* Fields relating to calendar data */
-	private MethodsRequired dataRequest = new MethodsRequired();
-
 	private int	todoListTop;
 
 	private int	todoListIndex;
@@ -143,8 +126,20 @@ public class TodoListView extends AcalActivity implements OnClickListener {
 	}
 
 
+	@Override
+	public void onPause() {
+		super.onPause();
+		rememberCurrentPosition();
+		todoList = null;
+	}
 
-	private synchronized void serviceIsConnected() {
+	@Override
+	public void onResume() {
+		super.onResume();
+		updateLayout();
+	}
+	
+	private void updateLayout() {
 		if ( this.todoList == null ) createListView(true);
 		this.todoListAdapter = new TodoListAdapter(this, showCompleted, showFuture );
 		this.todoList.setAdapter(todoListAdapter);
@@ -211,7 +206,7 @@ public class TodoListView extends AcalActivity implements OnClickListener {
 		);
 
 		this.todoListAdapter = null;
-		serviceIsConnected();
+		updateLayout();
 	}
 
 
@@ -278,31 +273,6 @@ public class TodoListView extends AcalActivity implements OnClickListener {
 	/****************************************************
 	 * Public Methods *
 	 ****************************************************/
-
-	/**
-	 * Methods for managing event structure
-	 */
-	public ArrayList<SimpleAcalTodo> getTodos(boolean listCompleted, boolean listFuture) {
-		if (dataRequest == null) {
-			Log.w(TAG,"DataService connection not available!");
-			return new ArrayList<SimpleAcalTodo>();
-		}
-		if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG, 
-				"Requesting TodoList where isCompleted="+listCompleted+", isFuture="+listFuture);
-		ArrayList<SimpleAcalTodo> result = (ArrayList<SimpleAcalTodo>) dataRequest.getTodos(listCompleted,listFuture);
-		if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,
-				"Got "+result.size()+" tasks");
-		return result;
-
-	}
-
-	public int getNumberTodos() {
-		return dataRequest.getNumberTodos();
-	}
-
-	public SimpleAcalTodo getNthTodo(int n) {
-		return dataRequest.getNthTodo(n);
-	}
 
 	public void deleteTodo( int n, int action ) {
 		//TODO

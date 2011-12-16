@@ -13,6 +13,7 @@ import android.os.ConditionVariable;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.morphoss.acal.Constants;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
@@ -197,21 +198,29 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		AcalDBHelper dbHelper = new AcalDBHelper(context);
 		SQLiteDatabase db = dbHelper.getWritableDatabase();
 		//load start/end range from meta table
-		Cursor cr = db.query(META_TABLE, null, null, null, null, null, null);
 		AcalDateTime defaultWindow = new AcalDateTime();
-		if (cr.getCount() < 1) {
-			Log.d(TAG, "Initializing cache for first use.");
-			data.put(FIELD_CLOSED, true);
-			data.put(FIELD_COUNT, 0);
-			data.put(FIELD_START,  defaultWindow.getMillis());
-			data.put(FIELD_END,  defaultWindow.getMillis());
-		} else  {
-			cr.moveToFirst();
-			DatabaseUtils.cursorRowToContentValues(cr, data);
+		Cursor mCursor = db.query(META_TABLE, null, null, null, null, null, null);
+		try {
+			if (mCursor.getCount() < 1) {
+				Log.println(Constants.LOGD,TAG, "Initializing cache for first use.");
+				data.put(FIELD_CLOSED, true);
+				data.put(FIELD_COUNT, 0);
+				data.put(FIELD_START,  defaultWindow.getMillis());
+				data.put(FIELD_END,  defaultWindow.getMillis());
+			} else  {
+				mCursor.moveToFirst();
+				DatabaseUtils.cursorRowToContentValues(mCursor, data);
+			}
 		}
-		cr.close();
+		catch( Exception e ) {
+			Log.i(TAG,Log.getStackTraceString(e));
+		}
+		finally {
+			if ( mCursor != null ) mCursor.close();
+		}
+
 		if (!data.getAsBoolean(FIELD_CLOSED)) {
-			Log.d(TAG, "Application not closed correctly last time. Resetting cache.");
+			Log.println(Constants.LOGD,TAG, "Application not closed correctly last time. Resetting cache.");
 			for (int i = 0; i <5; i++)
 				Toast.makeText(context, "aCal was not correctly shutdown last time.\nRebuilding cache - It may take some time before events are visible.",Toast.LENGTH_LONG).show();
 			this.CTMinstance.clearCache();
@@ -269,7 +278,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 	//Request events (FROM RESOURCES) that start within the range provided. Expand window on result.
 	private void retrieveRange(long start, long end) {
 		AcalDateRange range = new AcalDateRange(AcalDateTime.fromMillis(start), AcalDateTime.fromMillis(end));
-		Log.d(TAG,"Retreiving events in range "+range.start+"-->"+range.end);
+		Log.println(Constants.LOGD,TAG,"Retreiving events in range "+range.start+"-->"+range.end);
 		ResourceManager.getInstance(context).sendRequest(new RRGetCacheEventsInRange(range, this));
 	}
 	
@@ -281,25 +290,25 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 			
 			DMQueryList inserts = CTMinstance.new DMQueryList();
 			
-			Log.d(TAG, "Have response from Resource manager for range request.");
+			Log.println(Constants.LOGD,TAG, "Have response from Resource manager for range request.");
 			//We should have exclusive DB access at this point
 			AcalDateRange range = res.requestedRange();
 			ArrayList<CacheObject> events = res.result();
-			Log.d(TAG, "Deleteing Existing records...");
+			Log.println(Constants.LOGD,TAG, "Deleteing Existing records...");
 			inserts.addAction(CTMinstance.new DMQueryBuilder()
 							.setAction(QUERY_ACTION.DELETE)
 							.setWhereClause(FIELD_START+" >= ? AND "+FIELD_START+" <= ?")
 							.setwhereArgs(new String[]{range.start.getMillis()+"", range.end.getMillis()+""})
 							.build());
 							
-			Log.d(TAG, count + "Records added to Delete queue. Adding Insert records...");
+			Log.println(Constants.LOGD,TAG, count + "Records added to Delete queue. Adding Insert records...");
 			count = 0;
 			for (CacheObject event : events) {
 				ContentValues toInsert = event.getCacheCVs();
 				inserts.addAction(CTMinstance.new DMQueryBuilder().setAction(QUERY_ACTION.INSERT).setValues(toInsert).build());
 				count++;
 			}
-			Log.d(TAG, count+" records to insert. Adding to queue");
+			Log.println(Constants.LOGD,TAG, count+" records to insert. Adding to queue");
 			this.sendRequest(new CRAddRangeResult(inserts, range));
 			
 		}
@@ -315,17 +324,24 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		public static final String TAG = "acal EventCacheProcessor";
 		
 		private static final String TABLE = "event_cache";
-		public static final String FIELD_ID = "_id";
-		public static final String FIELD_RESOURCE_ID = "resource_id";
-		public static final String FIELD_RECURRENCE_ID = "recurrence_id";
-		public static final String FIELD_CID ="collection_id";
-		public static final String FIELD_SUMMARY ="summary";
-		public static final String FIELD_LOCATION ="location";
-		public static final String FIELD_DTSTART = "dtstart";
-		public static final String FIELD_DTEND = "dtend";
-		public static final String FIELD_DTSTART_FLOAT = "dtstartfloat";
-		public static final String FIELD_DTEND_FLOAT = "dtendfloat";
-		public static final String FIELD_FLAGS ="flags";
+		public static final String	FIELD_ID				= "_id";
+		public static final String	FIELD_RESOURCE_ID		= "resource_id";
+		public static final String	FIELD_RESOURCE_TYPE		= "resource_type";
+		public static final String	FIELD_RECURRENCE_ID		= "recurrence_id";
+		public static final String	FIELD_CID				= "collection_id";
+		public static final String	FIELD_SUMMARY			= "summary";
+		public static final String	FIELD_LOCATION			= "location";
+		public static final String	FIELD_DTSTART			= "dtstart";
+		public static final String	FIELD_DTEND				= "dtend";
+		public static final String	FIELD_COMPLETED			= "completed";
+		public static final String	FIELD_DTSTART_FLOAT		= "dtstartfloat";
+		public static final String	FIELD_DTEND_FLOAT		= "dtendfloat";
+		public static final String	FIELD_COMPLETE_FLOAT	= "completedfloat";
+		public static final String	FIELD_FLAGS				= "flags";
+
+		public static final String	RESOURCE_TYPE_VEVENT	= "VEVENT";
+		public static final String	RESOURCE_TYPE_VTODO		= "VTODO";
+		public static final String	RESOURCE_TYPE_VJOURNAL	= "VJOURNAL";
 		
 		/**
 		 * The current request being processed. Presently not used but may become useful.
@@ -391,8 +407,8 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		 * Returns weather or not the cache fully covers a specified (or default) range
 		 */
 		public boolean checkWindow(AcalDateRange requestedRange) {
-			Log.d(TAG,"Checking Cache Window: Request "+requestedRange.start.getMillis()+" --> "+requestedRange.end.getMillis());
-			Log.d(TAG,"Checking Cache Window: Current Window:"+ CacheManager.this.start.getMillis()+" --> "+CacheManager.this.end.getMillis());
+			Log.println(Constants.LOGD,TAG,"Checking Cache Window: Request "+requestedRange.start.getMillis()+" --> "+requestedRange.end.getMillis());
+			Log.println(Constants.LOGD,TAG,"Checking Cache Window: Current Window:"+ CacheManager.this.start.getMillis()+" --> "+CacheManager.this.end.getMillis());
 			//get current window size
 			AcalDateTime currentStart = AcalDateTime.fromMillis(CacheManager.this.start.getMillis());
 			AcalDateTime currentEnd = AcalDateTime.fromMillis(CacheManager.this.end.getMillis());
@@ -425,11 +441,11 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 			
 			//expand as needed
 			if (start.before(currentStart)) {
-				Log.d(TAG, "Expanding Cache Window Left");
+				Log.println(Constants.LOGD,TAG, "Expanding Cache Window Left");
 				retrieveRange(start.getMillis(), currentStart.getMillis()-1);
 			}
 			if (end.after(currentEnd)) {
-				Log.d(TAG, "Expanding Cache Window Right");
+				Log.println(Constants.LOGD,TAG, "Expanding Cache Window Right");
 				retrieveRange(currentEnd.getMillis()+1, end.getMillis());
 			}
 			
@@ -456,7 +472,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		public void updateWindowToInclude(AcalDateRange range) {
 			if (range.start.before(CacheManager.this.start)) CacheManager.this.start = range.start.clone();
 			if (range.end.after(CacheManager.this.end)) CacheManager.this.end = range.end.clone();
-			Log.d(TAG, "Cache Window: "+start+" -> "+end);
+			Log.println(Constants.LOGD,TAG, "Cache Window: "+start+" -> "+end);
 		}	
 		
 		/**

@@ -118,6 +118,9 @@ public class TodoEdit extends AcalActivity
 		//** Custom **//
 	};
 
+	public static final String	KEY_CACHE_OBJECT	= "CacheObject";
+	public static final String	KEY_OPERATION		= "Operation";
+
 	private String[] repeatRulesValues;
 	
 	private MethodsRequired dataRequest = new MethodsRequired();

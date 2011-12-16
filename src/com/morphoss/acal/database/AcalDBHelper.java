@@ -18,12 +18,12 @@
 
 package com.morphoss.acal.database;
 
-import com.morphoss.acal.providers.Servers;
-
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
+
+import com.morphoss.acal.providers.Servers;
 
 /**
  * <p>
@@ -48,7 +48,7 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 	/**
 	 * The version of this database. Used to determine if an upgrade is required.
 	 */
-	public static final int DB_VERSION = 16;
+	public static final int DB_VERSION = 17;
 	
 	/**
 	 * <p>The dav_server Table as stated in the specification.</p>
@@ -203,22 +203,25 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 	/**
 	 * Used for caching event data
 	 */
-	public static final String EVENT_CACHE_TABLE_SQL = 
+	public static final String RESOURCE_CACHE_TABLE_SQL = 
 		"CREATE TABLE event_cache ("
 	        +"_id INTEGER PRIMARY KEY AUTOINCREMENT"
 			+",resource_id INTEGER REFERENCES dav_resource(_id)"
+			+",resource_type TEXT"
 			+",recurrence_id TEXT"
 			+",collection_id NUMERIC"
 			+",summary TEXT"
 			+",location TEXT"
 			+",dtstart NUMERIC"
 			+",dtend NUMERIC"
+			+",completed BOOLEAN"
 			+",dtstartfloat BOOLEAN"
 			+",dtendfloat BOOLEAN"
+			+",completedfloat BOOLEAN"
 			+",flags INTEGER"
 		+");";
 	
-	public static final String EVENT_CACHE_META_TABLE_SQL = 
+	public static final String RESOURCE_CACHE_META_TABLE_SQL = 
 		"CREATE TABLE event_cache_meta ("
 	        +"_id INTEGER PRIMARY KEY AUTOINCREMENT"
 			+",dtstart NUMERIC"
@@ -260,10 +263,10 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 		db.execSQL(EVENT_INDEX_SQL);
 		db.execSQL(TODO_INDEX_SQL);
 		
-		db.execSQL(SHOW_UPCOMING_WIDGET_TABLE_SQL);
+		db.execSQL(RESOURCE_CACHE_TABLE_SQL);
+		db.execSQL(RESOURCE_CACHE_META_TABLE_SQL);
 		
-		db.execSQL(EVENT_CACHE_TABLE_SQL);
-		db.execSQL(EVENT_CACHE_META_TABLE_SQL);
+		db.execSQL(SHOW_UPCOMING_WIDGET_TABLE_SQL);
 		
 		db.setTransactionSuccessful();
 		db.endTransaction();
@@ -324,8 +327,14 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 		}
 		
 		if (oldVersion == 15) {
-			db.execSQL(EVENT_CACHE_TABLE_SQL);
-			db.execSQL(EVENT_CACHE_META_TABLE_SQL);
+			db.execSQL(RESOURCE_CACHE_TABLE_SQL);
+			db.execSQL(RESOURCE_CACHE_META_TABLE_SQL);
+			oldVersion++;
+		}
+		
+		if (oldVersion == 16) {
+			db.execSQL("DROP TABLE event_cache");
+			db.execSQL(RESOURCE_CACHE_TABLE_SQL);
 			oldVersion++;
 		}
 		
@@ -334,11 +343,13 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 			// then recreate them.
 			try {
 				// Drop all the tables except the dav_server one.
+				db.execSQL("DROP TABLE event_cache_meta");
+				db.execSQL("DROP TABLE event_cache");
+				db.execSQL("DROP TABLE show_upcoming_widget_data");
 				db.execSQL("DROP TABLE dav_path_set");
 				db.execSQL("DROP TABLE dav_collection");
 				db.execSQL("DROP TABLE dav_resource");
 				db.execSQL("DROP TABLE pending_change");
-				db.execSQL("DROP TABLE show_upcoming_widget_data");
 		
 				// Recreate the tables we just dropped.
 				db.execSQL(DAV_PATH_SET_TABLE_SQL);
@@ -347,6 +358,8 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 				db.execSQL(PENDING_CHANGE_TABLE_SQL);
 				db.execSQL(EVENT_INDEX_SQL);
 				db.execSQL(TODO_INDEX_SQL);
+				db.execSQL(RESOURCE_CACHE_TABLE_SQL);
+				db.execSQL(RESOURCE_CACHE_META_TABLE_SQL);
 				db.execSQL(SHOW_UPCOMING_WIDGET_TABLE_SQL);
 				db.setTransactionSuccessful();
 			}

@@ -18,12 +18,17 @@
 
 package com.morphoss.acal.activity;
 
+import java.util.ArrayList;
+
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
@@ -38,8 +43,21 @@ import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.TextView;
 
+import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
-import com.morphoss.acal.davacal.SimpleAcalTodo;
+import com.morphoss.acal.acaltime.AcalDateRange;
+import com.morphoss.acal.acaltime.AcalDateTime;
+import com.morphoss.acal.acaltime.AcalDateTimeFormatter;
+import com.morphoss.acal.database.DataChangeEvent;
+import com.morphoss.acal.database.cachemanager.CRTodosByType;
+import com.morphoss.acal.database.cachemanager.CacheChangedEvent;
+import com.morphoss.acal.database.cachemanager.CacheChangedListener;
+import com.morphoss.acal.database.cachemanager.CacheManager;
+import com.morphoss.acal.database.cachemanager.CacheManager.CacheTableManager;
+import com.morphoss.acal.database.cachemanager.CacheObject;
+import com.morphoss.acal.database.cachemanager.CacheResponse;
+import com.morphoss.acal.database.cachemanager.CacheResponseListener;
+import com.morphoss.acal.dataservice.Collection;
 
 /**
  * <p>
@@ -49,7 +67,9 @@ import com.morphoss.acal.davacal.SimpleAcalTodo;
  * @author Morphoss Ltd
  * 
  */
-public class TodoListAdapter extends BaseAdapter implements OnClickListener, ListAdapter {
+public class TodoListAdapter extends BaseAdapter
+		implements 	OnClickListener, ListAdapter, CacheChangedListener,
+					CacheResponseListener<ArrayList<CacheObject>> {
 
 	/**
 	 * <p>
@@ -61,8 +81,11 @@ public class TodoListAdapter extends BaseAdapter implements OnClickListener, Lis
 	private boolean listCompleted;
 	private boolean listFuture;
 	public static final String TAG = "aCal TodoListAdapter";
-	private volatile boolean clickEnabled = true;
 
+	private ArrayList<CacheObject> taskList = new ArrayList<CacheObject>();
+	private CacheManager cacheManager;
+
+	private static final int HANDLER_NEW_DATA = 0;
 	
 	public static final int CONTEXT_EDIT = 0;
 	public static final int CONTEXT_DELETE = 0x10000;
@@ -81,16 +104,37 @@ public class TodoListAdapter extends BaseAdapter implements OnClickListener, Lis
 	 */
 	public TodoListAdapter(TodoListView todoListView, boolean showCompleted, boolean showFuture ) {
 		this.context = todoListView;
+		this.cacheManager = CacheManager.getInstance(context, this);
 		this.listCompleted = showCompleted;
 		this.listFuture = showFuture;
 
 		// Get preferences
 		prefs = PreferenceManager.getDefaultSharedPreferences(this.context);
 
-		context.getTodos(listCompleted,listFuture);
-		
+		//request data		
+		cacheManager.sendRequest(new CRTodosByType(showCompleted, showFuture, this));
 	}
 
+	private Handler mHandler = new Handler() {
+			
+		@SuppressWarnings("unchecked")
+		@Override
+		public void handleMessage(Message msg) {
+			if (Constants.debugTodoListView && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG, "Handler has received messsge.");
+			switch (msg.what) {
+				case HANDLER_NEW_DATA:
+					if (Constants.debugTodoListView && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG,
+							"New data for display - "+((ArrayList<CacheObject>)msg.obj).size()+" records.");
+					taskList = (ArrayList<CacheObject>)msg.obj;
+					TodoListAdapter.this.notifyDataSetChanged();
+					break;
+				default: break;
+			}
+		}
+	};
+	
+	
+	
 	/**
 	 * <p>Returns the number of elements in this adapter.</p>
 	 * 
@@ -99,7 +143,7 @@ public class TodoListAdapter extends BaseAdapter implements OnClickListener, Lis
 	 */
 	@Override
 	public int getCount() {
-		return context.getNumberTodos();
+		return taskList.size();
 	}
 
 	/**
@@ -109,8 +153,8 @@ public class TodoListAdapter extends BaseAdapter implements OnClickListener, Lis
 	 * @see android.widget.Adapter#getItem(int)
 	 */
 	@Override
-	public SimpleAcalTodo getItem(int position) {
-		return context.getNthTodo(position);
+	public CacheObject getItem(int position) {
+		return taskList.get(position);
 	}
 
 	/**
@@ -145,41 +189,36 @@ public class TodoListAdapter extends BaseAdapter implements OnClickListener, Lis
 		
 		LinearLayout sideBar = (LinearLayout) rowLayout.findViewById(R.id.TodoListItemColorBar);
 
-		SimpleAcalTodo todo = getItem(position);
+		CacheObject todo = getItem(position);
 		if ( todo == null ) return rowLayout;
-		
-		final boolean isPending = todo.isPending;
-		if (isPending) {
-			sideBar.setBackgroundColor(todo.colour|0xa0000000); title.setTextColor(todo.colour|0xa0000000);
-			((LinearLayout) rowLayout.findViewById(R.id.TodoListItemText)).setBackgroundColor(0x44000000);
-		}
-		else {
-			rowLayout.findViewById(R.id.TodoListItemIcons).setBackgroundColor(todo.colour);
-			sideBar.setBackgroundColor(todo.colour); 
-			title.setTextColor(todo.colour);
-		}
 
-		title.setText((todo.summary == null  || todo.summary.length() <= 0 ) ? "Untitled" : todo.summary);
+		Collection collection = Collection.getInstance(todo.getCollectionId(), context);
+		rowLayout.findViewById(R.id.TodoListItemIcons).setBackgroundColor(collection.getColour());
+		sideBar.setBackgroundColor(collection.getColour()); 
+		title.setTextColor(collection.getColour());
 
-		time.setText(todo.getTimeText(context,
-				prefs.getBoolean(context.getString(R.string.prefTwelveTwentyfour), false))
-				+ (isPending ? " (saving)" : "") );
-		if ( !todo.isCompleted() && todo.isOverdue() ) {
-			time.setTextColor(context.getResources().getColor(R.color.OverdueTask));
-		}
-		else if ( !todo.isCompleted() && todo.isOverdue() ) {
+		title.setText((todo.getSummary() == null  || todo.getSummary().length() <= 0 )
+				? context.getString(R.string.NewTaskTitle)
+				: todo.getSummary());
+
+		time.setText(AcalDateTimeFormatter.getTodoTimeText(context, todo.getStartDateTime(), todo.getEndDateTime(), todo.getCompletedDateTime(),
+				prefs.getBoolean(context.getString(R.string.prefTwelveTwentyfour),true)));
+		if ( todo.isCompleted() ) {
 			time.setTextColor(context.getResources().getColor(R.color.CompletedTask));
 		}
-		
-		
-		if ( todo.hasAlarm ) {
-			ImageView alarmed = (ImageView) rowLayout.findViewById(R.id.TodoListItemAlarmBell);
-			alarmed.setVisibility(View.VISIBLE);
-			if ( ! todo.alarmEnabled ) alarmed.setBackgroundColor(Color.WHITE);
+		else if ( todo.isOverdue() ) {
+			time.setTextColor(context.getResources().getColor(R.color.OverdueTask));
 		}
 		
-		if (todo.location != null && todo.location.length() > 0 )
-			location.setText(todo.location);
+		
+		if ( todo.hasAlarms() ) {
+			ImageView alarmed = (ImageView) rowLayout.findViewById(R.id.TodoListItemAlarmBell);
+			alarmed.setVisibility(View.VISIBLE);
+			if ( ! collection.alarmsEnabled ) alarmed.setBackgroundColor(Color.WHITE);
+		}
+		
+		if ( todo.getLocation() != null && todo.getLocation().length() > 0 )
+			location.setText(todo.getLocation());
 		else
 			location.setHeight(2);
 
@@ -203,8 +242,7 @@ public class TodoListAdapter extends BaseAdapter implements OnClickListener, Lis
 			@Override
 			public void onCreateContextMenu(ContextMenu menu, View view, ContextMenuInfo info) {
 				menu.setHeaderTitle(context.getString(R.string.ChooseAction));
-				if ( !isPending ) menu.add(0, position, 0, context.getString(R.string.Edit));
-
+				menu.add(0, position, 0, context.getString(R.string.Edit));
 				menu.add(0, CONTEXT_COPY + position,  0, context.getString(R.string.newEventFromThis));
 				menu.add(0, CONTEXT_DELETE+ position, 0, context.getString(R.string.Delete));
 				menu.add(0, CONTEXT_COMPLETE+ position, 0, context.getString(R.string.SetCompleted));
@@ -214,27 +252,19 @@ public class TodoListAdapter extends BaseAdapter implements OnClickListener, Lis
 		return rowLayout;
 	}
 
-	public void setClickEnabled(boolean enabled) {
-		this.clickEnabled = enabled;
-	}
-
 	@Override
 	public void onClick(View arg0) {
-		if (clickEnabled) {
-			Object tag = arg0.getTag();
-			if (tag instanceof SimpleAcalTodo) {
-				//start event activity
-				Bundle bundle = new Bundle();
-				bundle.putParcelable("SimpleAcalTodo", (SimpleAcalTodo)tag);
-				Intent todoViewIntent = new Intent(context, TodoView.class);
-				todoViewIntent.putExtras(bundle);
-				context.startActivity(todoViewIntent);
-			}
-		} else {
-			clickEnabled = true;
+		Object tag = arg0.getTag();
+		if (tag instanceof CacheObject) {
+			//start event activity
+			Bundle bundle = new Bundle();
+			bundle.putParcelable(TodoEdit.KEY_CACHE_OBJECT, (CacheObject) tag);
+			Intent todoViewIntent = new Intent(context, TodoView.class);
+			todoViewIntent.putExtras(bundle);
+			context.startActivity(todoViewIntent);
 		}
-
 	}
+
 	
 	public boolean contextClick(MenuItem item) {
 		try {
@@ -242,15 +272,16 @@ public class TodoListAdapter extends BaseAdapter implements OnClickListener, Lis
 			int action = id & 0xf0000;
 			id = id & 0xffff;
 
-			SimpleAcalTodo todo = getItem(id);
-			todo.operation = TodoEdit.ACTION_EDIT;
+			CacheObject todo = getItem(id);
+			int operation = TodoEdit.ACTION_EDIT;
 			switch( action ) {
 				case CONTEXT_COPY:
-					todo.operation = TodoEdit.ACTION_COPY;
+					operation = TodoEdit.ACTION_COPY;
 				case CONTEXT_EDIT:
 					//start TodoEdit activity
 					Bundle bundle = new Bundle();
-					bundle.putParcelable("SimpleAcalTodo", todo);
+					bundle.putParcelable(TodoEdit.KEY_CACHE_OBJECT, todo);
+					bundle.putInt(TodoEdit.KEY_OPERATION, operation);
 					Intent todoViewIntent = new Intent(context, TodoEdit.class);
 					todoViewIntent.putExtras(bundle);
 					context.startActivity(todoViewIntent);
@@ -272,5 +303,36 @@ public class TodoListAdapter extends BaseAdapter implements OnClickListener, Lis
 		}
 		
 	}
+
+	@Override
+	public void cacheChanged(CacheChangedEvent event) {
+		AcalDateTime rangeEnd = AcalDateTime.getInstance().addDays(7);
+		if ( listFuture ) rangeEnd.setMonthStart().addMonths(3);
+		AcalDateRange myRange = new AcalDateRange( AcalDateTime.getInstance().setMonthStart().addMonths(-1), rangeEnd );
+		//up-date only if the change could have affected us
+		boolean update = false;
+		for (DataChangeEvent dce : event.getChanges()) {
+			if ( !listCompleted && dce.getData().getAsLong(CacheTableManager.FIELD_COMPLETED) < Long.MAX_VALUE ) continue;
+			Long sMills = dce.getData().getAsLong(CacheTableManager.FIELD_DTSTART);
+			Long eMills = dce.getData().getAsLong(CacheTableManager.FIELD_DTEND);
+			if (sMills == null || eMills == null) { update = true; break; }
+			if (sMills < myRange.end.getMillis() && eMills > myRange.start.getMillis()) { update = true; break; }
+		}
+		
+		if (update)
+			cacheManager.sendRequest(new CRTodosByType(listCompleted, listFuture, this));
+		
+	}
+
+
+	@Override
+	public void cacheResponse(CacheResponse<ArrayList<CacheObject>> response) {
+		if (Constants.debugTodoListView && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG, "Cache Response Received.");
+		
+		//long waitTime = Math.max(wait-System.currentTimeMillis(),100);
+
+		mHandler.sendMessage(mHandler.obtainMessage(HANDLER_NEW_DATA, response.result()));
+	}
+	
 
 }
