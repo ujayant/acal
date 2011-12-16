@@ -330,15 +330,15 @@ public class ResourceManager implements Runnable {
 		}
 		
 		public void processRead(ReadOnlyResourceRequest request) {
-			this.numReadsProcessing++;
 			this.process(request);
 		}
 		
 		public boolean isProcessingReads() {
-			return this.numReadsProcessing == 0;
+			return this.numReadsProcessing != 0;
 		}
 		
 		public void process(ReadOnlyResourceRequest r) {
+			this.numReadsProcessing++;
 			try {
 				r.process(this);
 			} catch (ResourceProcessingException e) {
