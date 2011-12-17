@@ -387,8 +387,7 @@ public class ResourceManager implements Runnable {
 		}
 
 		public ConnectivityManager getConectivityService() {
-			return (ConnectivityManager) context
-			.getSystemService(Context.CONNECTIVITY_SERVICE);
+			return (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 		}
 
 		/**
@@ -413,12 +412,12 @@ public class ResourceManager implements Runnable {
 			ContentValues toWrite = new ContentValues(values);
 			if (toWrite.containsKey(IS_PENDING)) toWrite.remove(IS_PENDING);
 			values = toWrite;
+			String effectiveType = "UNKNOWN";
 			try {
 
 				VComponent comp = VComponent.createComponentFromResource(Resource.fromContentValues(values));
+				effectiveType = comp.getEffectiveType();
 				
-				//TODO Check effective type here
-			
 				if (comp instanceof VCalendar) {
 					VCalendar vCal = (VCalendar)comp;
 					AcalRepeatRule rrule = AcalRepeatRule.fromVCalendar(vCal);
@@ -429,6 +428,7 @@ public class ResourceManager implements Runnable {
 			} catch (Exception e) {
 				Log.e(TAG, "Error creating VComponent from resource: "+Log.getStackTraceString(e));
 			}
+			values.put(EFFECTIVE_TYPE, effectiveType);
 			return super.insert(nullColumnHack, values);
 		}
 		
