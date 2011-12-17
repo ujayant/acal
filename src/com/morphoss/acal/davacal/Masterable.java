@@ -221,4 +221,8 @@ public abstract class Masterable extends VComponent {
 		return safePropertyValue(PropertyName.STATUS);
 	}
 
+	@Override
+	public String getEffectiveType() {
+		return this.name;
+	}
 }

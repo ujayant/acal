@@ -247,4 +247,9 @@ public class VTimezone extends VComponent {
 		return ZoneData.zones[i][1];
 	}
 
+	@Override
+	public String getEffectiveType() {
+		return this.getTopParent().getEffectiveType();
+	}
+
 }

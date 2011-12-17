@@ -90,4 +90,10 @@ public class VAlarm extends VComponent {
 		
 		return description + ": " + action + " - " + trigger + " " + direction + " " + tRelated;
 	}
+
+	@Override
+	public String getEffectiveType() {
+		return parent.getEffectiveType();
+	}
+	
 }

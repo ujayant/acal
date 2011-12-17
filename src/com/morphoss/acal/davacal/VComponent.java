@@ -623,12 +623,6 @@ public abstract class VComponent implements Parcelable {
 	}
 
 
-	//public static VComponent fromDatabase(Context context, long l) throws VComponentCreationException {
-	//	ContentValues res = OldDavResources.getRow(l, context.getContentResolver());
-	//	AcalCollection collection = AcalCollection.fromDatabase(context, res.getAsInteger(OldDavResources.COLLECTION_ID));
-	//	return createComponentFromResource(res, collection);
-	//}
-
 	public VComponent(Parcel in) {
 		this.resource = new Resource(in);
 		this.name = in.readString();
@@ -653,6 +647,8 @@ public abstract class VComponent implements Parcelable {
 		// @todo Auto-generated method stub
 		return 0;
 	}
+
+	public abstract String getEffectiveType();
 
 
 }

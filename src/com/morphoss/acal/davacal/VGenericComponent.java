@@ -28,4 +28,9 @@ public class VGenericComponent extends VComponent {
 		super(splitter, r, parent);
 	}
 
+	@Override
+	public String getEffectiveType() {
+		return this.getTopParent().getEffectiveType();
+	}
+
 }

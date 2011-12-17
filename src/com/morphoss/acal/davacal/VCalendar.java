@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -34,7 +33,6 @@ import com.morphoss.acal.Constants;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
-import com.morphoss.acal.acaltime.AcalRepeatRuleParser;
 import com.morphoss.acal.database.cachemanager.CacheObject;
 import com.morphoss.acal.dataservice.EventInstance;
 import com.morphoss.acal.dataservice.Resource;
@@ -598,5 +596,10 @@ public class VCalendar extends VComponent {
 			return new VCalendar[size];
 		}
 	};
+
+	@Override
+	public String getEffectiveType() {
+		return this.getMasterChild().getEffectiveType();
+	}
 
 }

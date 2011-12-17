@@ -30,5 +30,11 @@ public class VCard extends VComponent {
 	public VCard(ComponentParts splitter, Resource r, VComponent parent) {
 		super(splitter, r, parent);
 	}
+
+
+	@Override
+	public String getEffectiveType() {
+		return VComponent.VCARD;
+	}
 	
 }
