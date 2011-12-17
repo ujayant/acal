@@ -25,15 +25,12 @@ import com.morphoss.acal.Constants;
 import com.morphoss.acal.DatabaseChangedEvent;
 import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.acaltime.AcalDateTime;
-import com.morphoss.acal.database.DatabaseTableManager.DMDeleteQuery;
 import com.morphoss.acal.database.DatabaseTableManager.DMQueryBuilder;
 import com.morphoss.acal.database.DatabaseTableManager.DMQueryList;
-import com.morphoss.acal.database.DatabaseTableManager.DMUpdateQuery;
 import com.morphoss.acal.database.DatabaseTableManager.QUERY_ACTION;
-import com.morphoss.acal.database.resourcesmanager.ResourceManager;
-import com.morphoss.acal.database.resourcesmanager.ResourceProcessingException;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager.WriteableResourceTableManager;
+import com.morphoss.acal.database.resourcesmanager.ResourceProcessingException;
 import com.morphoss.acal.database.resourcesmanager.requesttypes.ResourceRequest;
 import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.providers.Servers;
@@ -138,7 +135,8 @@ public class RRSyncCollectionContents implements ResourceRequest {
 		}
 
 		if (!(1 == serverData.getAsInteger(Servers.ACTIVE))) {
-			if (Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG, "Server is no longer active - sync cancelled: " + serverData.getAsInteger(Servers.ACTIVE)
+			if (Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG, 
+					"Server is no longer active - sync cancelled: " + serverData.getAsInteger(Servers.ACTIVE)
 							+ " " + serverData.getAsString(Servers.FRIENDLY_NAME));
 			return;
 		}
@@ -157,15 +155,15 @@ public class RRSyncCollectionContents implements ResourceRequest {
 				return;
 			}
 
-			if ( Constants.LOG_DEBUG )
-				Log.println(Constants.LOGD,TAG, "Starting sync on collection " + this.collectionPath + " (" + this.collectionId + ")");
+			if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD,TAG, 
+						"Starting sync on collection " + this.collectionPath + " (" + this.collectionId + ")");
 
 			aCalService.databaseDispatcher.dispatchEvent(new DatabaseChangedEvent(
 					DatabaseChangedEvent.DATABASE_BEGIN_RESOURCE_CHANGES, DavCollections.class, collectionData));
 
 			if (originalData.size() < 1) {
-				if (Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents )
-					Log.println(Constants.LOGV,TAG, "No local resources marked as needing synchronisation.");
+				if (Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents ) Log.println(Constants.LOGV,TAG,
+						"No local resources marked as needing synchronisation.");
 			}
 			else 
 				syncMarkedResources( originalData );

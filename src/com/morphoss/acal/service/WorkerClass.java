@@ -26,7 +26,6 @@ import java.util.TimerTask;
 import android.os.ConditionVariable;
 import android.util.Log;
 
-import com.morphoss.acal.AcalDebug;
 import com.morphoss.acal.Constants;
 
 /**
@@ -239,7 +238,7 @@ public class WorkerClass implements Runnable {
 				// variable is closed automatically.
 				ServiceJob job;
 				while ( (job = getJob()) != null ) {
-//					Log.i(TAG, "Executing job " + job.getDescription());
+					Log.i(TAG, "Executing job " + job.getDescription());
 //					if ( Constants.debugHeap)
 //						AcalDebug.heapDebug(TAG, "Run Job "+job.getDescription().replace(':','-'));
 

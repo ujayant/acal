@@ -54,7 +54,7 @@ public class aCalService extends Service {
 	
 	public void onCreate() {
 		super.onCreate();
-		this.context = this;
+		aCalService.context = this;
 		Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
 		startService();
 	}
@@ -133,7 +133,7 @@ public class aCalService extends Service {
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
-		if (Constants.LOG_DEBUG) Log.d(TAG, "On destroy called. Killing worker thread.");
+		if (Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG, "On destroy called. Killing worker thread.");
 		//Ensure database is closed properly and worker is terminated.
 		if ( worker != null ) worker.killWorker();
 		worker = null;
@@ -141,7 +141,7 @@ public class aCalService extends Service {
 		cm.close();
 		cm = null;
 		rm = null;
-		if (Constants.LOG_DEBUG) Log.d(TAG, "Worker killed.");
+		if (Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG, "Worker killed.");
 	}
 	
 
