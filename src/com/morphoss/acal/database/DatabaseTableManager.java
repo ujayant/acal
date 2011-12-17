@@ -60,13 +60,20 @@ public abstract class DatabaseTableManager {
 		ArrayList<ContentValues> result = new ArrayList<ContentValues>();
 		int count = 0;
 		Cursor c = db.query(getTableName(), columns, selection, selectionArgs, groupBy, having, orderBy);
-		if (c.getCount() > 0) {
-			for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
-				result.add(new ContentValues());
-				DatabaseUtils.cursorRowToContentValues(c, result.get(count++));
+		try {
+			if (c.getCount() > 0) {
+				for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
+					result.add(new ContentValues());
+					DatabaseUtils.cursorRowToContentValues(c, result.get(count++));
+				}
 			}
 		}
-		c.close();
+		catch( Exception e ) {
+			Log.e(TAG,Log.getStackTraceString(e));
+		}
+		finally {
+			if ( c != null ) c.close();
+		}
 		endQuery();
 		return result;
 	}
@@ -97,7 +104,6 @@ public abstract class DatabaseTableManager {
 			printStackTraceInfo();
 			inTx = true;
 			db = dbHelper.getReadableDatabase();
-			db.beginTransaction();
 			break;
 		case OPEN_WRITETX:
 			if (Constants.debugDatabaseManager) Log.d(TAG,"DB:"+this.getTableName()+" OPEN_WRITETX:");
@@ -167,7 +173,7 @@ public abstract class DatabaseTableManager {
 	}
 
 	public void endTransaction() {
-		db.endTransaction();
+		if ( db.inTransaction() ) db.endTransaction();
 		closeDB(CLOSE_TX);
 	}
 
