@@ -2,6 +2,8 @@ package com.morphoss.acal.database.resourcesmanager;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -115,7 +117,7 @@ public class ResourceManager implements Runnable {
 			// do stuff
 			Log.println(Constants.LOGD,TAG,"Thread Opened...");
 			
-			while (readQueue.isEmpty() && writeQueue.isEmpty() ){
+			while ( !readQueue.isEmpty() || !writeQueue.isEmpty() ){
 			
 				//process reads first
 				
@@ -124,21 +126,21 @@ public class ResourceManager implements Runnable {
 				
 				//Start all read processes
 				while (!readQueue.isEmpty()) {
-					Log.println(Constants.LOGD,TAG,readQueue.size()+" items in queue.");
+					Log.println(Constants.LOGD,TAG,readQueue.size()+" items in read queue.");
 					final ReadOnlyResourceRequest request = readQueue.poll();
-					Log.println(Constants.LOGD,TAG,"Processing Request: "+request.getClass());
+					Log.println(Constants.LOGD,TAG,"Processing Read Request: "+request.getClass());
 					try {
 						new Thread(new Runnable() {
 							public void run() {
 								try {
 									getRPInstance().processRead(request);
 								} catch (Exception e) {
-									Log.e(TAG, "Error processing request: "+Log.getStackTraceString(e));
+									Log.e(TAG, "Error processing read request: "+Log.getStackTraceString(e));
 								}
 							}
 						}).start();
 					} catch (Exception e) {
-						Log.e(TAG, "Error processing request: "+Log.getStackTraceString(e));
+						Log.e(TAG, "Error processing read request: "+Log.getStackTraceString(e));
 					}
 				}
 
@@ -156,13 +158,13 @@ public class ResourceManager implements Runnable {
 				
 				//process writes
 				while (!writeQueue.isEmpty()) {
-					Log.println(Constants.LOGD,TAG,writeQueue.size()+" items in queue.");
+					Log.println(Constants.LOGD,TAG,writeQueue.size()+" items in write queue.");
 					final ResourceRequest request = writeQueue.poll();
-					Log.println(Constants.LOGD,TAG,"Processing Request: "+request.getClass());
+					Log.println(Constants.LOGD,TAG,"Processing Write Request: "+request.getClass());
 					try {
 						getRPInstance().process(request);
 					} catch (Exception e) {
-						Log.e(TAG, "Error processing request: "+Log.getStackTraceString(e));
+						Log.e(TAG, "Error processing write request: "+Log.getStackTraceString(e));
 					}
 				}
 			}
@@ -265,7 +267,6 @@ public class ResourceManager implements Runnable {
 		public ArrayList<ContentValues> query(String[] columns, String selection, String[] selectionArgs,
 				String groupBy, String having, String orderBy);
 
-
 	}
 
 	// This special class provides encapsulation of database operations as is
@@ -315,6 +316,7 @@ public class ResourceManager implements Runnable {
 
 		
 		private volatile int numReadsProcessing = 0;
+		private final HashSet<ReadOnlyResourceRequest> requestList = new HashSet<ReadOnlyResourceRequest>(); 
 		
 		private ResourceTableManager() {
 			super(ResourceManager.this.context);
@@ -330,17 +332,9 @@ public class ResourceManager implements Runnable {
 		}
 		
 		public void processRead(ReadOnlyResourceRequest request) {
-			this.process(request);
-		}
-		
-		public boolean isProcessingReads() {
-			return this.numReadsProcessing != 0;
-		}
-		
-		public void process(ReadOnlyResourceRequest r) {
-			this.numReadsProcessing++;
+			preProcessing(request);
 			try {
-				r.process(this);
+				request.process(this);
 			} catch (ResourceProcessingException e) {
 				Log.e(TAG, "Error Procssing Resource Request: "
 						+ Log.getStackTraceString(e));
@@ -351,7 +345,28 @@ public class ResourceManager implements Runnable {
 			} finally {
 				
 			}
+			postProcessing(request);
+		}
+		
+		public boolean isProcessingReads() {
+			if ( this.numReadsProcessing != 0 ) return true;
+			if ( this.requestList.isEmpty() ) return false;
+			Iterator<ReadOnlyResourceRequest> i = requestList.iterator();
+			while( i.hasNext() ) {
+				ReadOnlyResourceRequest r = i.next();
+				if ( !r.isProcessed() ) return true;
+			}
+			return false;
+		}
+		
+		private synchronized void preProcessing(ReadOnlyResourceRequest r) {
+			this.numReadsProcessing++;
+			requestList.add(r);
+		}
+
+		private synchronized void postProcessing(ReadOnlyResourceRequest r) {
 			this.numReadsProcessing--;
+			requestList.remove(r);
 		}
 
 		@Override
