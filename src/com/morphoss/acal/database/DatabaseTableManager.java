@@ -27,11 +27,12 @@ public abstract class DatabaseTableManager {
 	private boolean sucTx = false;
 
 	public static final int OPEN_READ = 1;
-	public static final int OPEN_WRITE = 2;
-	public static final int OPEN_WRITETX = 3;
+	public static final int OPEN_READTX = 2;
+	public static final int OPEN_WRITE = 3;
+	public static final int OPEN_WRITETX = 4;
 
-	public static final int CLOSE = 4;
-	public static final int CLOSE_TX = 5;
+	public static final int CLOSE = 5;
+	public static final int CLOSE_TX = 6;
 	
 	private ArrayList<DataChangeEvent> changes;
 	
@@ -91,6 +92,13 @@ public abstract class DatabaseTableManager {
 			printStackTraceInfo();
 			db = dbHelper.getWritableDatabase();
 			break;
+		case OPEN_READTX:
+			if (Constants.debugDatabaseManager) Log.d(TAG,"DB:"+this.getTableName()+" OPEN_READTX:");
+			printStackTraceInfo();
+			inTx = true;
+			db = dbHelper.getReadableDatabase();
+			db.beginTransaction();
+			break;
 		case OPEN_WRITETX:
 			if (Constants.debugDatabaseManager) Log.d(TAG,"DB:"+this.getTableName()+" OPEN_WRITETX:");
 			printStackTraceInfo();
@@ -146,6 +154,10 @@ public abstract class DatabaseTableManager {
 
 	public void beginTransaction() {
 		openDB(OPEN_WRITETX);
+	}
+
+	public void beginReadTransaction() {
+		openDB(OPEN_READTX);
 	}
 
 	public void setTxSuccessful() {
