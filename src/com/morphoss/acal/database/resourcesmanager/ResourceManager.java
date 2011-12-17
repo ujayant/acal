@@ -321,7 +321,7 @@ public class ResourceManager implements Runnable {
 		}
 
 		public void beginReads() {
-			this.beginTransaction();
+			this.beginReadTransaction();
 		}
 
 		public void endReads() {
