@@ -427,65 +427,59 @@ public class ResourceManager implements Runnable {
 		public Context getContext() {
 			return context;
 		}
-		
+
+		private ContentValues preProcessValues(ContentValues values) {
+			ContentValues toWrite = new ContentValues(values);
+			if (toWrite.containsKey(IS_PENDING)) toWrite.remove(IS_PENDING);
+			values = toWrite;
+			String effectiveType = null;
+			if ( values.getAsString(RESOURCE_DATA) != null ) {
+				try {
+	
+					VComponent comp = VComponent.createComponentFromResource(Resource.fromContentValues(values));
+					
+					if ( comp == null ) {
+						Log.w(TAG, "Unable to parse VComponent from:\n"+values.getAsString(RESOURCE_DATA));
+					}
+					else {
+						effectiveType = comp.getEffectiveType();
+						
+						if (comp instanceof VCalendar) {
+							VCalendar vCal = (VCalendar)comp;
+							AcalRepeatRule rrule = AcalRepeatRule.fromVCalendar(vCal);
+							if ( rrule != null ) {
+								AcalDateRange range = rrule.getInstancesRange();
+								values.put(EARLIEST_START, range.start.getMillis());
+								if (range.end != null) values.put(LATEST_END, range.end.getMillis());
+								else values.putNull(LATEST_END); 
+							}  else {
+								values.putNull(EARLIEST_START);
+							}
+						}
+					}
+				} catch (Exception e) {
+					Log.e(TAG, "Error updating VComponent from resource: "+Log.getStackTraceString(e));
+				}
+			}
+			if ( effectiveType != null ) values.put(EFFECTIVE_TYPE, effectiveType);
+			return values;
+		}
+
 		/**
 		 * This override is important to ensure earliest start and latest end are always set
 		 */
 		@Override
 		public long insert(String nullColumnHack, ContentValues values) {
 			Log.println(Constants.LOGD,TAG, "Resource Insert Begin");
-			ContentValues toWrite = new ContentValues(values);
-			if (toWrite.containsKey(IS_PENDING)) toWrite.remove(IS_PENDING);
-			values = toWrite;
-			String effectiveType = "UNKNOWN";
-			try {
-
-				VComponent comp = VComponent.createComponentFromResource(Resource.fromContentValues(values));
-				effectiveType = comp.getEffectiveType();
-				
-				if (comp instanceof VCalendar) {
-					VCalendar vCal = (VCalendar)comp;
-					AcalRepeatRule rrule = AcalRepeatRule.fromVCalendar(vCal);
-					AcalDateRange range = rrule.getInstancesRange();
-					values.put(EARLIEST_START, range.start.getMillis());
-					if (range.end != null) values.put(LATEST_END, range.end.getMillis());
-				}
-			} catch (Exception e) {
-				Log.e(TAG, "Error creating VComponent from resource: "+Log.getStackTraceString(e));
-			}
-			values.put(EFFECTIVE_TYPE, effectiveType);
-			return super.insert(nullColumnHack, values);
+			return super.insert(nullColumnHack, preProcessValues(values));
 		}
 		
-		//As Above
+		/**
+		 * This override is important to ensure earliest start and latest end are always set
+		 */
 		public int update(ContentValues values, String whereClause,	String[] whereArgs) {
 			Log.println(Constants.LOGD,TAG, "Resource Update Begin");
-			ContentValues toWrite = new ContentValues(values);
-			if (toWrite.containsKey(IS_PENDING)) toWrite.remove(IS_PENDING);
-			values = toWrite;
-			try {
-
-				VComponent comp = VComponent.createComponentFromResource(Resource.fromContentValues(values));
-				
-				//TODO Check effective type here
-			
-				if (comp instanceof VCalendar) {
-					VCalendar vCal = (VCalendar)comp;
-					AcalRepeatRule rrule = AcalRepeatRule.fromVCalendar(vCal);
-					if (rrule != null) {
-						AcalDateRange range = rrule.getInstancesRange();
-						values.put(EARLIEST_START, range.start.getMillis());
-						if (range.end != null) values.put(LATEST_END, range.end.getMillis());
-						else values.putNull(LATEST_END); 
-					}  else {
-						values.putNull(EARLIEST_START);
-						
-					}
-				}
-			} catch (Exception e) {
-				Log.e(TAG, "Error creating VComponent from resource: "+Log.getStackTraceString(e));
-			}
-			return super.update(values, whereClause, whereArgs);
+			return super.update(preProcessValues(values), whereClause, whereArgs);
 		}
 
 		/**

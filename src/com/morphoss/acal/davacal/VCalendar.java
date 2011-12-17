@@ -342,8 +342,9 @@ public class VCalendar extends VComponent {
 	public Masterable getMasterChild() {
 		if (childrenSet) {
 			for (VComponent vc : this.getChildren()) {
-				if ( vc instanceof VEvent)   return (VEvent)vc;
-				if ( vc instanceof VTodo )	 return (VTodo) vc;
+				if ( vc instanceof VEvent)   	return (VEvent)vc;
+				if ( vc instanceof VTodo )		return (VTodo) vc;
+				if ( vc instanceof VJournal )	return (VJournal) vc;
 			}
 		}
 		for( PartInfo childInfo : content.partInfo ) {
@@ -355,6 +356,10 @@ public class VCalendar extends VComponent {
 				return new VTodo(new ComponentParts(childInfo.getComponent(content.componentString)),
 						resource, this);
 			}
+			else if ( childInfo.type.equals(VJOURNAL) ) {
+				return new VJournal(new ComponentParts(childInfo.getComponent(content.componentString)),
+						resource, this);
+			}
 		}
 		return null;
 	}
@@ -363,6 +368,21 @@ public class VCalendar extends VComponent {
 		if ( dateRange == null ) return null;
 		return dateRange.end;
 	}
+
+	@Override
+	public String getEffectiveType() {
+		Masterable masterInstance =  this.getMasterChild();
+		if ( masterInstance != null ) return masterInstance.getEffectiveType();
+		if ( childrenSet && getChildren().size() > 0) {
+			VComponent vc = getChildren().get(0);
+			return vc.name;
+		}
+		if ( content.partInfo.size() > 0 ) {
+			return content.partInfo.get(0).type;
+		}
+		return name;
+	}
+
 
 	public boolean masterHasOverrides() {
 		if ( masterHasOverrides == null ) {
@@ -596,10 +616,5 @@ public class VCalendar extends VComponent {
 			return new VCalendar[size];
 		}
 	};
-
-	@Override
-	public String getEffectiveType() {
-		return this.getMasterChild().getEffectiveType();
-	}
 
 }
