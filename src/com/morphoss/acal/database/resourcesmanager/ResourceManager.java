@@ -120,54 +120,62 @@ public class ResourceManager implements Runnable {
 			while ( !readQueue.isEmpty() || !writeQueue.isEmpty() ){
 			
 				//process reads first
-				
-				//Tell the processor that we are about to send a buch of reads.
-				getRPInstance().beginReads();
-				
-				//Start all read processes
-				while (!readQueue.isEmpty()) {
-					Log.println(Constants.LOGD,TAG,readQueue.size()+" items in read queue.");
-					final ReadOnlyResourceRequest request = readQueue.poll();
-					Log.println(Constants.LOGD,TAG,"Processing Read Request: "+request.getClass());
-					try {
-						new Thread(new Runnable() {
-							public void run() {
-								try {
-									getRPInstance().processRead(request);
-								} catch (Exception e) {
-									Log.e(TAG, "Error processing read request: "+Log.getStackTraceString(e));
-								}
-							}
-						}).start();
-					} catch (Exception e) {
-						Log.e(TAG, "Error processing read request: "+Log.getStackTraceString(e));
-					}
-				}
+				Log.println(Constants.LOGD,TAG,readQueue.size()+" items in read queue, "+writeQueue.size()+" items in write queue");
 
-				//Wait until all processes have finished
-				while (getRPInstance().isProcessingReads()) {
-					try {
-						Thread.sleep(10);
-					} catch (Exception e) {
-						
+				if (!readQueue.isEmpty()) {
+					//Tell the processor that we are about to send a buch of reads.
+					getRPInstance().beginReads();
+					
+					//Start all read processes
+					while (!readQueue.isEmpty()) {
+						Log.println(Constants.LOGD,TAG,readQueue.size()+" items in read queue.");
+						final ReadOnlyResourceRequest request = readQueue.poll();
+						Log.println(Constants.LOGD,TAG,"Processing Read Request: "+request.getClass());
+						try {
+							new Thread(new Runnable() {
+								public void run() {
+									try {
+										getRPInstance().processRead(request);
+									} catch (Exception e) {
+										Log.e(TAG, "Error processing read request: "+Log.getStackTraceString(e));
+									}
+								}
+							}).start();
+						} catch (Exception e) {
+							Log.e(TAG, "Error processing read request: "+Log.getStackTraceString(e));
+						}
 					}
+	
+					//Wait until all processes have finished
+					while (getRPInstance().isProcessingReads()) {
+						try {
+							Thread.sleep(10);
+						} catch (Exception e) {
+							
+						}
+					}
+					
+					//tell processor that we are done
+					getRPInstance().endReads();
+					
 				}
-				
-				//tell processor that we are done
-				getRPInstance().endReads();
-				
-				//process writes
-				while (!writeQueue.isEmpty()) {
-					Log.println(Constants.LOGD,TAG,writeQueue.size()+" items in write queue.");
-					final ResourceRequest request = writeQueue.poll();
-					Log.println(Constants.LOGD,TAG,"Processing Write Request: "+request.getClass());
-					try {
-						getRPInstance().process(request);
-					} catch (Exception e) {
-						Log.e(TAG, "Error processing write request: "+Log.getStackTraceString(e));
+				else {
+					//process writes
+					while (!writeQueue.isEmpty()) {
+						Log.println(Constants.LOGD,TAG,writeQueue.size()+" items in write queue.");
+						final ResourceRequest request = writeQueue.poll();
+						Log.println(Constants.LOGD,TAG,"Processing Write Request: "+request.getClass());
+						try {
+							getRPInstance().process(request);
+						} catch (Exception e) {
+							Log.e(TAG, "Error processing write request: "+Log.getStackTraceString(e));
+						}
 					}
 				}
 			}
+			// do stuff
+			Log.println(Constants.LOGD,TAG,"Finished processing, closing & blocking.");
+
 			// Wait till next time
 			threadHolder.close();
 			threadHolder.block();
@@ -195,7 +203,7 @@ public class ResourceManager implements Runnable {
 
 	// Request handlers
 	public void sendRequest(ResourceRequest request) {
-		Log.println(Constants.LOGD,TAG, "Received Request: "+request.getClass());
+		Log.println(Constants.LOGD,TAG, "Received Write Request: "+request.getClass());
 		writeQueue.offer(request);
 		threadHolder.open();
 	}
@@ -215,13 +223,13 @@ public class ResourceManager implements Runnable {
 	
 	// Request handlers
 	public void sendRequest(ReadOnlyResourceRequest request) {
-		Log.println(Constants.LOGD,TAG, "Received Request: "+request.getClass());
+		Log.println(Constants.LOGD,TAG, "Received Read Request: "+request.getClass());
 		readQueue.offer(request);
 		threadHolder.open();
 	}
 	
 	public <E> ResourceResponse<E> sendBlockingRequest(ReadOnlyBlockingRequestWithResponse<E> request) {
-		Log.println(Constants.LOGD,TAG, "Received Blocking Request: "+request.getClass());
+		Log.println(Constants.LOGD,TAG, "Received Blocking Read Request: "+request.getClass());
 		readQueue.offer(request);
 		threadHolder.open();
 		int priority = Thread.currentThread().getPriority();
@@ -333,6 +341,11 @@ public class ResourceManager implements Runnable {
 		
 		public void processRead(ReadOnlyResourceRequest request) {
 			preProcessing(request);
+			process(request);
+			postProcessing(request);
+		}
+		
+		public void process(ReadOnlyResourceRequest request) {
 			try {
 				request.process(this);
 			} catch (ResourceProcessingException e) {
@@ -342,12 +355,9 @@ public class ResourceManager implements Runnable {
 				Log.e(TAG,
 						"INVALID TERMINATION while processing Resource Request: "
 						+ Log.getStackTraceString(e));
-			} finally {
-				
 			}
-			postProcessing(request);
 		}
-		
+
 		public boolean isProcessingReads() {
 			if ( this.numReadsProcessing != 0 ) return true;
 			if ( this.requestList.isEmpty() ) return false;
