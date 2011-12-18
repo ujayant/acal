@@ -9,8 +9,10 @@ import android.os.Parcelable;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.database.cachemanager.CacheManager.CacheTableManager;
+import com.morphoss.acal.davacal.Masterable;
 import com.morphoss.acal.davacal.PropertyName;
 import com.morphoss.acal.davacal.VEvent;
+import com.morphoss.acal.davacal.VJournal;
 import com.morphoss.acal.davacal.VTodo;
 
 /**
@@ -85,21 +87,21 @@ public class CacheObject implements Parcelable, Comparable<CacheObject> {
 
 	
 	//Generate a cacheObject from a VTodo
-	public CacheObject( VTodo task, AcalDateTime dtstart, AcalDateTime due, AcalDateTime completed) {
-		this.rid = task.getResourceId();
+	public CacheObject( VTodo masterInstance, AcalDateTime dtstart, AcalDateTime due, AcalDateTime completed) {
+		this.rid = masterInstance.getResourceId();
 		this.resourceType = CacheTableManager.RESOURCE_TYPE_VTODO;
 		this.rrid = dtstart.toPropertyString(PropertyName.RECURRENCE_ID);
-		this.cid = task.getCollectionId();
-		this.summary = task.getSummary();
-		this.location = task.getLocation();
+		this.cid = masterInstance.getCollectionId();
+		this.summary = masterInstance.getSummary();
+		this.location = masterInstance.getLocation();
 		this.start = dtstart.getMillis();
 		this.end = due.getMillis();
 		this.completed = completed.getMillis();
 		
 		int flags = 0;
-		if (!task.getAlarms().isEmpty()) flags+=HAS_ALARM_FLAG;
-		if (task.getProperty(PropertyName.RRULE) != null) flags+=RECURS_FLAG;
-		if (task.getResource().isPending()) flags+=DIRTY_FLAG;
+		if (!masterInstance.getAlarms().isEmpty()) flags+=HAS_ALARM_FLAG;
+		if (masterInstance.getProperty(PropertyName.RRULE) != null) flags+=RECURS_FLAG;
+		if (masterInstance.getResource().isPending()) flags+=DIRTY_FLAG;
 		startFloating = dtstart.isFloating();
 		endFloating = due.isFloating();
 		completeFloating = completed.isFloating();
@@ -107,6 +109,79 @@ public class CacheObject implements Parcelable, Comparable<CacheObject> {
 		if (dtstart.isDate()) flags+= FLAG_ALL_DAY;
 		this.flags = flags;
 	}
+
+	public CacheObject( Masterable masterInstance ) {
+		this.rid = masterInstance.getResourceId();
+		this.resourceType = masterInstance.name;
+		this.cid = masterInstance.getCollectionId();
+		this.summary = masterInstance.getSummary();
+		this.location = masterInstance.getLocation();
+
+		int flags = 0;
+		String recurrenceId = null;
+
+		AcalDateTime aDate = masterInstance.getStart();
+		this.start = (aDate == null ? Long.MAX_VALUE : aDate.getMillis());
+		startFloating = (aDate == null ? true : aDate.isFloating());
+		if ( aDate != null )
+			recurrenceId = aDate.toPropertyString(PropertyName.RECURRENCE_ID);
+		if (aDate.isDate()) flags+= FLAG_ALL_DAY;
+
+		aDate = masterInstance.getEnd();
+		this.end = (aDate == null ? Long.MAX_VALUE : aDate.getMillis());
+		endFloating = (aDate == null ? true : aDate.isFloating());
+		if ( aDate != null )
+			recurrenceId = aDate.toPropertyString(PropertyName.RECURRENCE_ID);
+
+		aDate = AcalDateTime.fromAcalProperty(masterInstance.getProperty(PropertyName.COMPLETED));
+		this.completed = (aDate == null ? Long.MAX_VALUE : aDate.getMillis());
+		completeFloating = (aDate == null ? true : aDate.isFloating());
+		if ( aDate != null )
+			recurrenceId = aDate.toPropertyString(PropertyName.RECURRENCE_ID);
+		this.rrid = recurrenceId;
+		
+		if (!masterInstance.getAlarms().isEmpty()) flags+=HAS_ALARM_FLAG;
+		if (masterInstance.getProperty(PropertyName.RRULE) != null) flags+=RECURS_FLAG;
+		if (masterInstance.getResource().isPending()) flags+=DIRTY_FLAG;
+
+		this.flags = flags;
+	}
+	
+	//Generate a cacheObject from a Masterable with dates
+	public CacheObject( Masterable masterInstance, AcalDateTime dtstart, AcalDateTime dtend, AcalDateTime completed) {
+		this.rid = masterInstance.getResourceId();
+		this.resourceType = masterInstance.getEffectiveType();
+		this.cid = masterInstance.getCollectionId();
+		this.summary = masterInstance.getSummary();
+		this.location = masterInstance.getLocation();
+
+		int flags = 0;
+		String recurrenceId = null;
+
+		this.start = (dtstart == null ? Long.MAX_VALUE : dtstart.getMillis());
+		startFloating = (dtstart == null ? true : dtstart.isFloating());
+		if ( dtstart != null )
+			recurrenceId = dtstart.toPropertyString(PropertyName.RECURRENCE_ID);
+		if (dtstart.isDate()) flags+= FLAG_ALL_DAY;
+
+		this.end = (dtend == null ? Long.MAX_VALUE : dtend.getMillis());
+		endFloating = (dtend == null ? true : dtend.isFloating());
+		if ( dtend != null )
+			recurrenceId = dtend.toPropertyString(PropertyName.RECURRENCE_ID);
+
+		this.completed = (completed == null ? Long.MAX_VALUE : completed.getMillis());
+		completeFloating = (completed == null ? true : completed.isFloating());
+		if ( completed != null )
+			recurrenceId = completed.toPropertyString(PropertyName.RECURRENCE_ID);
+		this.rrid = recurrenceId;
+		
+		if (!masterInstance.getAlarms().isEmpty()) flags+=HAS_ALARM_FLAG;
+		if (masterInstance.getProperty(PropertyName.RRULE) != null) flags+=RECURS_FLAG;
+		if (masterInstance.getResource().isPending()) flags+=DIRTY_FLAG;
+
+		this.flags = flags;
+	}
+
 	
 	private CacheObject(Parcel in) {
 		rid = in.readLong();
