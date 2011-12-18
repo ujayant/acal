@@ -335,7 +335,7 @@ public class ResourceManager implements Runnable {
 		}
 
 		public void endReads() {
-			if (this.numReadsProcessing != 0) throw new IllegalStateException("Tried to stop reads queue processing when there are still processes");
+			if ( this.isProcessingReads() ) throw new IllegalStateException("Tried to stop reads queue processing when there are still processes");
 			this.endTransaction();
 		}
 		
