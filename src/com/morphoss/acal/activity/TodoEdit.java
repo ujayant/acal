@@ -72,10 +72,6 @@ public class TodoEdit extends AcalActivity
 
 	public static final String TAG = "aCal TodoEdit";
 
-	public static final String	resultSimpleAcalTodo	= "changedTodo";
-	public static final String	resultVCalendar	= "changedVCalendar";
-	public static final String	resultCollectionId	= "changedCollectionId";
-	
 	private SimpleAcalTodo sat;
 	private VTodo todo;
 
@@ -120,6 +116,9 @@ public class TodoEdit extends AcalActivity
 
 	public static final String	KEY_CACHE_OBJECT	= "CacheObject";
 	public static final String	KEY_OPERATION		= "Operation";
+	public static final String	KEY_RESOURCE		= "Resource";
+	public static final String	KEY_VCALENDAR_BLOB	= "VCalendar";
+	
 
 	private String[] repeatRulesValues;
 	
@@ -582,9 +581,11 @@ public class TodoEdit extends AcalActivity
 
 			Intent ret = new Intent();
 			Bundle b = new Bundle();
-			b.putParcelable(resultSimpleAcalTodo, sat);
-			b.putString(resultVCalendar, vc.getCurrentBlob());
-			b.putLong(resultCollectionId, currentCollection.getAsInteger(DavCollections._ID));
+			b.putParcelable(KEY_CACHE_OBJECT, sat);
+			b.putString(KEY_VCALENDAR_BLOB, vc.getCurrentBlob());
+			/*
+			b.putLong(KEY_RESOURCE, currentCollection.getAsInteger(DavCollections._ID));
+			*/
 			ret.putExtras(b);
 			this.setResult(RESULT_OK, ret);
 

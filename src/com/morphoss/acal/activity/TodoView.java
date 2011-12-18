@@ -23,64 +23,93 @@ import java.util.List;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
+import android.view.GestureDetector.OnGestureListener;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.GestureDetector.OnGestureListener;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.morphoss.acal.AcalTheme;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
+import com.morphoss.acal.acaltime.AcalDateTime;
+import com.morphoss.acal.acaltime.AcalDateTimeFormatter;
+import com.morphoss.acal.database.DataChangeEvent;
+import com.morphoss.acal.database.cachemanager.CacheObject;
+import com.morphoss.acal.database.resourcesmanager.ResourceChangedEvent;
+import com.morphoss.acal.database.resourcesmanager.ResourceChangedListener;
+import com.morphoss.acal.database.resourcesmanager.ResourceManager;
+import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
+import com.morphoss.acal.database.resourcesmanager.ResourceResponse;
+import com.morphoss.acal.database.resourcesmanager.ResourceResponseListener;
+import com.morphoss.acal.database.resourcesmanager.requests.RRRequestInstance;
+import com.morphoss.acal.dataservice.CalendarInstance;
 import com.morphoss.acal.dataservice.Collection;
+import com.morphoss.acal.dataservice.Resource;
+import com.morphoss.acal.dataservice.TodoInstance;
 import com.morphoss.acal.davacal.AcalAlarm;
-import com.morphoss.acal.davacal.SimpleAcalTodo;
-import com.morphoss.acal.davacal.VCalendar;
-import com.morphoss.acal.davacal.VComponent;
-import com.morphoss.acal.davacal.VTodo;
 import com.morphoss.acal.service.aCalService;
 
-public class TodoView extends AcalActivity implements OnGestureListener, OnTouchListener, OnClickListener{
+public class TodoView extends AcalActivity
+					implements OnGestureListener, OnTouchListener, OnClickListener,
+					ResourceChangedListener, ResourceResponseListener<CalendarInstance> {
 
 	public static final String TAG = "aCal TodoView";
 	public static final int EDIT = 1;
 	public static final int ADD = 2;
 	public static final int SHOW_ON_MAP = 3;
+
+	private final static boolean DEBUG = true && Constants.DEBUG_MODE;
 	
-	private VCalendar vc = null;
-	private VTodo todo = null;
-	private SimpleAcalTodo sat = null;
+	private CacheObject cacheTodo = null;
+	private Collection collection = null;
+	private TodoInstance todo = null;
 	
+	private ResourceManager	resourceManager = null;
+	private Long	rid;
+	private String	rrid;
+	
+	private Button	map = null;
+	
+	private static final int REFRESH = 0;
+	private static final int FAIL = 1;
+	
+	private Handler mHandler = new Handler() {
+		public void handleMessage(Message msg) {
+			if (msg.what == REFRESH) {
+				populateLayout();
+			} else if(msg.what == FAIL) {
+				Toast.makeText(TodoView.this, "The resource you are looking at has changed or been deleted.", 5).show();
+				finish();
+			}
+			
+		}
+	};
 	
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		this.setContentView(R.layout.todo_view);
 
 		//Ensure service is actually running
 		this.startService(new Intent(this, aCalService.class));
 		//gestureDetector = new GestureDetector(this);
 
-		//Set up buttons
-		this.setupButton(R.id.todo_edit_button, EDIT);
-		this.setupButton(R.id.todo_add_button, ADD);
-		
+		this.resourceManager  = ResourceManager.getInstance(this);
+		this.resourceManager.addListener(this);
 		
 		Bundle b = this.getIntent().getExtras();
 		try {
-			throw new Exception("This activity need to be modified to work with new system");
-			/**this.sat = (SimpleAcalTodo) b.getParcelable("SimpleAcalTodo");
-			if (Constants.LOG_DEBUG)
-				Log.d(TAG, "Loading Todo: "+sat.summary );
-			this.vc = (VCalendar) VComponent.fromDatabase(this, sat.resource.getResourceId());
-			this.todo = (VTodo) ((VCalendar) vc).getMasterChild();
-					
-			this.populateLayout();
-			*/
+			this.cacheTodo = (CacheObject) b.getParcelable(TodoEdit.KEY_CACHE_OBJECT);
+			rid = cacheTodo.getResourceId();
+			rrid = cacheTodo.getRecurrenceId();
+			resourceManager.sendRequest(new RRRequestInstance(this,rid, rrid));
 		}
 		catch (Exception e) {
 			if (Constants.LOG_DEBUG) {
@@ -88,8 +117,20 @@ public class TodoView extends AcalActivity implements OnGestureListener, OnTouch
 				Log.d(TAG, Log.getStackTraceString(e));
 			}
 		}
+		this.setContentView(R.layout.todo_view);
+
+		//Set up buttons
+		this.setupButton(R.id.todo_edit_button, EDIT);
+		this.setupButton(R.id.todo_add_button, ADD);
 		
-		Button map = (Button) this.findViewById(R.id.TodoFindOnMapButton);
+		this.collection = Collection.getInstance(cacheTodo.getCollectionId(), this);
+		this.populateLayout();
+	}
+
+
+	private void setupMapButton() {
+		if ( todo == null || map != null ) return;
+		map = (Button) this.findViewById(R.id.TodoFindOnMapButton);
 		map.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				
@@ -100,29 +141,17 @@ public class TodoView extends AcalActivity implements OnGestureListener, OnTouch
 				startActivity(new Intent(android.content.Intent.ACTION_VIEW, target)); 
 				//start map view
 				return;
-
+	
 			}
 		});
-		
 	}
 	
 	private void populateLayout() {
-		String title = todo.getSummary();
-		String location = todo.getLocation();
-		String description = todo.getDescription();
-		StringBuilder alarms = new StringBuilder();
-		List<AcalAlarm> alarmList = todo.getAlarms();
-		if ( alarmList != null ) {
-			for (AcalAlarm alarm : alarmList) {
-				if ( alarms.length() > 0 ) alarms.append('\n');
-				alarms.append(alarm.toPrettyString());
-			}
-		}
-		if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD,TAG,
-				"Populating view layout for '"+title+"'");
-		
-//		String repetition = todo.getRepetition();
-		int colour = sat.colour;
+		String title = cacheTodo.getSummary();
+		if ( DEBUG ) Log.println(Constants.LOGD,TAG,
+				"Populating view layout for '"+title+"' with todo "+(todo==null?"un":"")+"set.");
+
+		int colour = collection.getColour();
 		LinearLayout sidebar = (LinearLayout)this.findViewById(R.id.TodoViewColourBar);
 		LinearLayout sidebarBottom = (LinearLayout)this.findViewById(R.id.TodoViewColourBarBottom);
 		sidebar.setBackgroundColor(colour);
@@ -133,9 +162,34 @@ public class TodoView extends AcalActivity implements OnGestureListener, OnTouch
 		name.setTextColor(colour);
 		
 		TextView time = (TextView) this.findViewById(R.id.TodoTimeContent);
-		time.setText(sat.getTimeText( this, prefs.getBoolean(getString(R.string.prefTwelveTwentyfour),false)));
 		time.setTextColor(colour);
-
+		
+		String location = null;
+		String description = null;
+		List<AcalAlarm> alarmList = null;
+		StringBuilder alarms = new StringBuilder();
+		AcalDateTime dtStart = cacheTodo.getStartDateTime();
+		AcalDateTime due = cacheTodo.getEndDateTime();
+		AcalDateTime completed = cacheTodo.getCompletedDateTime();
+		
+		if ( todo != null ) {
+			setupMapButton();
+			location = todo.getLocation();
+			description = todo.getDescription();
+			alarms = new StringBuilder();
+			alarmList = todo.getAlarms();
+			if ( alarmList != null ) {
+				for (AcalAlarm alarm : alarmList) {
+					if ( alarms.length() > 0 ) alarms.append('\n');
+					alarms.append(alarm.toPrettyString());
+				}
+			}
+			dtStart = todo.getStart();
+			due = todo.getEnd();
+			completed = todo.getCompleted();
+		}
+		time.setText(AcalDateTimeFormatter.getTodoTimeText(this, dtStart, due, completed, prefs.getBoolean(getString(R.string.prefTwelveTwentyfour),true)));
+		
 		TextView locationView = (TextView) this.findViewById(R.id.TodoLocationContent);
 		if ( location != null && ! location.equals("") ) {
 			locationView.setText(location);
@@ -153,12 +207,11 @@ public class TodoView extends AcalActivity implements OnGestureListener, OnTouch
 		else {
 			((RelativeLayout) this.findViewById(R.id.TodoNotesLayout)).setVisibility(View.GONE);
 		}
-		Collection todoCollection = Collection.getInstance(todo.getCollectionId(),this);
 		TextView alarmsView = (TextView) this.findViewById(R.id.TodoAlarmsContent);
 		if ( alarms != null && alarms.length() > 0 ) {
 			((RelativeLayout) this.findViewById(R.id.TodoAlarmsLayout)).setVisibility(View.VISIBLE);
 			alarmsView.setText(alarms);
-			if ( !todoCollection.alarmsEnabled() ) {
+			if ( !collection.alarmsEnabled() ) {
 				TextView alarmsWarning = (TextView) this.findViewById(R.id.CalendarAlarmsDisabled);
 				alarmsWarning.setVisibility(View.VISIBLE);
 			}
@@ -169,11 +222,6 @@ public class TodoView extends AcalActivity implements OnGestureListener, OnTouch
 		
 		RelativeLayout repeatsLayout = (RelativeLayout) this.findViewById(R.id.TodoRepeatsLayout);
 		repeatsLayout.setVisibility(View.GONE);
-//		TextView repeatsView = (TextView) this.findViewById(R.id.TodoRepeatsContent);
-//		AcalRepeatRule RRule = new AcalRepeatRule(start, repetition); 
-//		String rr = RRule.repeatRule.toPrettyString(this);
-//		if (rr == null || rr.equals("")) rr = getString(R.string.OnlyOnce);
-//		repeatsView.setText(rr);
 		
 		
 	}
@@ -236,8 +284,7 @@ public class TodoView extends AcalActivity implements OnGestureListener, OnTouch
 			case EDIT: {
 				//start todo activity
 				Bundle bundle = new Bundle();
-				sat.operation = TodoEdit.ACTION_EDIT;
-				bundle.putParcelable("SimpleAcalTodo", sat);
+				bundle.putParcelable(TodoEdit.KEY_CACHE_OBJECT, cacheTodo);
 				Intent todoEditIntent = new Intent(this, TodoEdit.class);
 				todoEditIntent.putExtras(bundle);
 				if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG, 
@@ -263,12 +310,12 @@ public class TodoView extends AcalActivity implements OnGestureListener, OnTouch
     	if (requestCode == TodoEdit.ACTION_EDIT && resultCode == RESULT_OK) {
 			try {
 				Bundle b = data.getExtras();
-				SimpleAcalTodo tmpSat = (SimpleAcalTodo) b.getParcelable(TodoEdit.resultSimpleAcalTodo);
-				if ( tmpSat != null ) sat = tmpSat;
-				String blob = b.getString(TodoEdit.resultVCalendar);
+				CacheObject tmpCache = (CacheObject) b.getParcelable(TodoEdit.KEY_CACHE_OBJECT);
+				if ( tmpCache != null ) cacheTodo = tmpCache;
+				String blob = b.getString(TodoEdit.KEY_VCALENDAR_BLOB);
+				Resource resource = b.getParcelable(TodoEdit.KEY_OPERATION);
 				if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG, "Received blob is:\n"+blob);
-				this.vc = (VCalendar) VComponent.createComponentFromBlob(blob, sat.resource);
-				this.todo = (VTodo) vc.getMasterChild();
+				this.todo = (TodoInstance) TodoInstance.fromResourceAndRRId(resource, rrid);
 			}
 			catch (Exception e) {
 				if (Constants.LOG_DEBUG)Log.d(TAG, "Error getting data from caller: "+e.getMessage());
@@ -281,5 +328,37 @@ public class TodoView extends AcalActivity implements OnGestureListener, OnTouch
 			this.finish();
     	}
     }
+
+
+	@Override
+	public void resourceChanged(ResourceChangedEvent event) {
+		for (DataChangeEvent dce: event.getChanges()) {
+			if (dce.getData().getAsLong(ResourceTableManager.RESOURCE_ID) == rid) {
+				//our data has changed!
+				resourceManager.sendRequest(new RRRequestInstance(this,rid, this.rrid));
+			}
+		}
+	}
+
+
+	@Override
+	public void resourceResponse(ResourceResponse<CalendarInstance> response) {
+		if (!response.wasSuccessful()) {
+			if (DEBUG) Log.println(Constants.LOGD,TAG, "Unsuccessful Resource Response Received.");
+			mHandler.sendMessage(mHandler.obtainMessage(FAIL));
+			return;
+		}
+		if (DEBUG) Log.println(Constants.LOGD,TAG, "Successful Resource Response Received.");
+		CalendarInstance res = response.result();
+		if (res instanceof TodoInstance) {
+			this.todo = (TodoInstance)res;
+			this.rid = this.todo.getResourceId();
+			this.rrid = this.todo.getRecurrenceId();
+			mHandler.sendMessage(mHandler.obtainMessage(REFRESH));
+		}
+		else {
+			Log.e(TAG, "Resource Response was not a TodoInstance!");
+		}
+	}
 	
 }

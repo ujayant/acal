@@ -74,6 +74,7 @@ import com.morphoss.acal.service.aCalService;
 public class TodoListView extends AcalActivity implements OnClickListener {
 
 	public static final String TAG = "aCal TodoListView";
+	private final static boolean DEBUG = true && Constants.DEBUG_MODE;
 
 	private boolean invokedFromView = false;
 
@@ -153,7 +154,7 @@ public class TodoListView extends AcalActivity implements OnClickListener {
 			todoListIndex = todoList.getFirstVisiblePosition();
 			View v = todoList.getChildAt(0);
 			todoListTop = (v == null) ? 0 : v.getTop();
-			if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,
+			if ( DEBUG ) Log.println(Constants.LOGD, TAG,
 					"Saved list view position of "+todoListIndex+", "+todoListTop);
 		}
 	}
@@ -163,7 +164,7 @@ public class TodoListView extends AcalActivity implements OnClickListener {
 		if ( todoList != null ) {
 			todoList.setSelectionFromTop(todoListIndex, todoListTop);
 		}
-		if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,
+		if ( DEBUG ) Log.println(Constants.LOGD, TAG,
 				"Set list view to position "+todoListIndex+", "+todoListTop);
 	}
 

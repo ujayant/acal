@@ -6,6 +6,7 @@ import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.davacal.AcalAlarm;
 import com.morphoss.acal.davacal.Masterable;
+import com.morphoss.acal.davacal.PropertyName;
 import com.morphoss.acal.davacal.RecurrenceId;
 import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VComponent;
@@ -58,9 +59,16 @@ public abstract class CalendarInstance {
 		
 	}
 
-	//abstract classes
-	public abstract AcalDateTime getEnd();
-	
+	public CalendarInstance(Masterable vEvent, AcalDateTime dtstart, AcalDuration duration) {
+		this(vEvent.getCollectionId(), vEvent.getResourceId(), dtstart,
+				(duration == null || dtstart == null ? null : AcalDateTime.addDuration(dtstart, duration)),
+				vEvent.getAlarms(), vEvent.getRRule(), dtstart.toPropertyString(PropertyName.RECURRENCE_ID),
+				vEvent.getSummary(), vEvent.getLocation(), vEvent.getDescription(),vEvent.getResource().getEtag());
+	}
+
+	public AcalDateTime getEnd() {
+		return this.dtend;
+	}
 	
 	//getters
 	public AcalDuration getDuration() { 
@@ -77,6 +85,7 @@ public abstract class CalendarInstance {
 	public boolean isSingleInstance() { return (rrule == null || rrule.equals("")); }
 	public long getCollectionId() { return this.collectionId; }
 	public long getResourceId() { return this.resourceId; }
+	public String getRecurrenceId() { return this.rrid; }
 
 	
 	public void setAlarms(ArrayList<AcalAlarm> alarms) {
@@ -113,8 +122,12 @@ public abstract class CalendarInstance {
 	public static CalendarInstance fromResourceAndRRId(Resource res, String rrid) throws IllegalArgumentException {
 		try {
 			VComponent comp = VComponent.createComponentFromResource(res);
-			if (!(comp instanceof VCalendar)) throw new IllegalArgumentException("Resource provided is no a VCalendar");
-			Masterable obj = ((VCalendar)comp).getChildFromRecurrenceId(RecurrenceId.fromString(rrid));
+			if (!(comp instanceof VCalendar)) throw new IllegalArgumentException("Resource provided is not a VCalendar");
+			Masterable obj;
+			if ( rrid == null )
+				obj = ((VCalendar)comp).getMasterChild();
+			else
+				obj = ((VCalendar)comp).getChildFromRecurrenceId(RecurrenceId.fromString(rrid));
 			if (obj instanceof VEvent) {
 				return new EventInstance((VEvent)obj, obj.getStart(), obj.getDuration());
 			} else if (obj instanceof VTodo) {

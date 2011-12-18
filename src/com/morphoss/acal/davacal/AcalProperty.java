@@ -62,6 +62,7 @@ public class AcalProperty {
 	 * @return
 	 */
 	public static AcalProperty fromString(String blob) {
+		if ( blob == null ) throw new NullPointerException();
 		String tmpblob;
 		String value;
 		String[] paramsBlob;

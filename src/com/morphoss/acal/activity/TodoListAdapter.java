@@ -81,6 +81,7 @@ public class TodoListAdapter extends BaseAdapter
 	private boolean listCompleted;
 	private boolean listFuture;
 	public static final String TAG = "aCal TodoListAdapter";
+	private final static boolean DEBUG = true && Constants.DEBUG_MODE;
 
 	private ArrayList<CacheObject> taskList = new ArrayList<CacheObject>();
 	private CacheManager cacheManager;
@@ -120,10 +121,10 @@ public class TodoListAdapter extends BaseAdapter
 		@SuppressWarnings("unchecked")
 		@Override
 		public void handleMessage(Message msg) {
-			if (Constants.debugTodoListView && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG, "Handler has received messsge.");
+			if (DEBUG) Log.println(Constants.LOGD,TAG, "Handler has received messsge.");
 			switch (msg.what) {
 				case HANDLER_NEW_DATA:
-					if (Constants.debugTodoListView && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG,
+					if (DEBUG) Log.println(Constants.LOGD,TAG,
 							"New data for display - "+((ArrayList<CacheObject>)msg.obj).size()+" records.");
 					taskList = (ArrayList<CacheObject>)msg.obj;
 					TodoListAdapter.this.notifyDataSetChanged();
@@ -256,11 +257,15 @@ public class TodoListAdapter extends BaseAdapter
 	public void onClick(View arg0) {
 		Object tag = arg0.getTag();
 		if (tag instanceof CacheObject) {
+			CacheObject todo = (CacheObject) tag;
 			//start event activity
 			Bundle bundle = new Bundle();
-			bundle.putParcelable(TodoEdit.KEY_CACHE_OBJECT, (CacheObject) tag);
+			bundle.putParcelable(TodoEdit.KEY_CACHE_OBJECT, todo);
 			Intent todoViewIntent = new Intent(context, TodoView.class);
 			todoViewIntent.putExtras(bundle);
+			
+			if (DEBUG) Log.println(Constants.LOGD, TAG,
+					"Starting view activity for rid: "+todo.getResourceId()+", rrid: "+todo.getRecurrenceId()+", Summary: "+todo.getSummary());
 			context.startActivity(todoViewIntent);
 		}
 	}
@@ -327,7 +332,7 @@ public class TodoListAdapter extends BaseAdapter
 
 	@Override
 	public void cacheResponse(CacheResponse<ArrayList<CacheObject>> response) {
-		if (Constants.debugTodoListView && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG, "Cache Response Received.");
+		if (DEBUG) Log.println(Constants.LOGD,TAG, "Cache Response Received.");
 		
 		//long waitTime = Math.max(wait-System.currentTimeMillis(),100);
 

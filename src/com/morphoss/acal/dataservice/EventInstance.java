@@ -12,7 +12,7 @@ public class EventInstance extends CalendarInstance {
 
 
 	public EventInstance(VEvent vEvent, AcalDateTime dtstart, AcalDuration duration) {
-		super(vEvent.getCollectionId(), vEvent.getResourceId(), vEvent.getStart(), vEvent.getEnd(),
+		super(vEvent.getCollectionId(), vEvent.getResourceId(), dtstart, AcalDateTime.addDuration(dtstart, duration),
 				vEvent.getAlarms(), vEvent.getRRule(), dtstart.toPropertyString(PropertyName.RECURRENCE_ID),
 				vEvent.getSummary(), vEvent.getLocation(), vEvent.getDescription(),vEvent.getResource().getEtag());
 
@@ -24,12 +24,6 @@ public class EventInstance extends CalendarInstance {
 				builder.alarmList, null, builder.start.toPropertyString(PropertyName.RECURRENCE_ID),
 				builder.summary, null, null, null);
 	}
-	
-	@Override
-	public AcalDateTime getEnd() {
-		return this.dtend;
-	}
-
 	
 	public static class EVENT_BUILDER {
 		private ArrayList<AcalAlarm> alarmList = new ArrayList<AcalAlarm>();
