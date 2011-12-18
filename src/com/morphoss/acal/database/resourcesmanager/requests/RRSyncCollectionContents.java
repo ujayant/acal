@@ -46,7 +46,7 @@ import com.morphoss.acal.xml.DavNode;
 public class RRSyncCollectionContents implements ResourceRequest {
 
 	public static final String	TAG					= "aCal ResourceRequest: SyncCollectionContents";
-	private static final int	nPerMultiget		= 100;
+	private static final int	nPerMultiget		= 30;
 	
 	private long timeToWait = 0;
 	private boolean scheduleNextInstance = false;
@@ -746,7 +746,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 
 			//ResourceModification.commitChangeList(context, changeList, processor.getTableName(this));
 			processor.doList(queryList);
-			
+			try { Thread.sleep(300); } catch ( InterruptedException e ) { }
 		}
 
 		for( String href : toBeRemoved ) {
