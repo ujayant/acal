@@ -30,6 +30,9 @@ import com.morphoss.acal.database.resourcesmanager.ResourceResponseListener;
 import com.morphoss.acal.database.resourcesmanager.requests.RRGetCacheEventsInRange;
 import com.morphoss.acal.database.resourcesmanager.requests.RRGetCacheEventsInRange.RREventsInRangeResponse;
 import com.morphoss.acal.dataservice.Resource;
+import com.morphoss.acal.davacal.AcalProperty;
+import com.morphoss.acal.davacal.Masterable;
+import com.morphoss.acal.davacal.PropertyName;
 import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VComponent;
 import com.morphoss.acal.davacal.VComponentCreationException;
@@ -294,14 +297,14 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 			//We should have exclusive DB access at this point
 			AcalDateRange range = res.requestedRange();
 			ArrayList<CacheObject> events = res.result();
-			Log.println(Constants.LOGD,TAG, "Deleteing Existing records...");
+			Log.println(Constants.LOGD,TAG, "Deleting Existing records...");
 			inserts.addAction(CTMinstance.new DMQueryBuilder()
 							.setAction(QUERY_ACTION.DELETE)
 							.setWhereClause(FIELD_START+" >= ? AND "+FIELD_START+" <= ?")
 							.setwhereArgs(new String[]{range.start.getMillis()+"", range.end.getMillis()+""})
 							.build());
 							
-			Log.println(Constants.LOGD,TAG, count + "Records added to Delete queue. Adding Insert records...");
+			Log.println(Constants.LOGD,TAG, count + " records added to Delete queue. Adding Insert records...");
 			count = 0;
 			for (CacheObject event : events) {
 				ContentValues toInsert = event.getCacheCVs();
@@ -310,7 +313,6 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 			}
 			Log.println(Constants.LOGD,TAG, count+" records to insert. Adding to queue");
 			this.sendRequest(new CRAddRangeResult(inserts, range));
-			
 		}
 	}
 
@@ -400,15 +402,18 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		}
 		
 		
-		/**Checks that the window has been populated with the requested range
+		/**
+		 * Checks that the window has been populated with the requested range
 		 * range can be NULL in which case the default range is used.
 		 * If the range is NOT covered, a request is made to resource
 		 * manager to get the required data.
 		 * Returns weather or not the cache fully covers a specified (or default) range
 		 */
 		public boolean checkWindow(AcalDateRange requestedRange) {
-			Log.println(Constants.LOGD,TAG,"Checking Cache Window: Request "+requestedRange.start.getMillis()+" --> "+requestedRange.end.getMillis());
-			Log.println(Constants.LOGD,TAG,"Checking Cache Window: Current Window:"+ CacheManager.this.start.getMillis()+" --> "+CacheManager.this.end.getMillis());
+			if ( Constants.LOG_DEBUG ) {
+				Log.println(Constants.LOGD,TAG,"Checking Cache Window: Request "+requestedRange);
+				Log.println(Constants.LOGD,TAG,"Checking Cache Window: Current Window:"+ CacheManager.this.start+" --> "+CacheManager.this.end);
+			}
 			//get current window size
 			AcalDateTime currentStart = AcalDateTime.fromMillis(CacheManager.this.start.getMillis());
 			AcalDateTime currentEnd = AcalDateTime.fromMillis(CacheManager.this.end.getMillis());
@@ -437,15 +442,13 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 			start.addMonths(-DEF_MONTHS_BEFORE);
 			end.addMonths(DEF_MONTHS_AFTER);
 			
-			
-			
 			//expand as needed
 			if (start.before(currentStart)) {
-				Log.println(Constants.LOGD,TAG, "Expanding Cache Window Left");
+				if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD,TAG, "Expanding Cache Window Left to "+start);
 				retrieveRange(start.getMillis(), currentStart.getMillis()-1);
 			}
 			if (end.after(currentEnd)) {
-				Log.println(Constants.LOGD,TAG, "Expanding Cache Window Right");
+				if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD,TAG, "Expanding Cache Window Right to "+end);
 				retrieveRange(currentEnd.getMillis()+1, end.getMillis());
 			}
 			
@@ -472,7 +475,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		public void updateWindowToInclude(AcalDateRange range) {
 			if (range.start.before(CacheManager.this.start)) CacheManager.this.start = range.start.clone();
 			if (range.end.after(CacheManager.this.end)) CacheManager.this.end = range.end.clone();
-			Log.println(Constants.LOGD,TAG, "Cache Window: "+start+" -> "+end);
+			Log.println(Constants.LOGD,TAG, "Cache window extended, now: "+start+" -> "+end);
 		}	
 		
 		/**
@@ -521,12 +524,34 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 				VComponent comp;
 				try {
 					comp = VComponent.createComponentFromResource(r);
+					if ( comp == null ) continue;
 					//get instances within window
+
+					if ( comp.getEffectiveType().equals(VComponent.VTODO) ) {
+						Log.println(Constants.LOGD,TAG, "Processing a VTODO resource changed.");
+					}
+					else
+						Log.println(Constants.LOGD,TAG, "Processing a resource changed for a "+comp.getEffectiveType());
 					
 					if (comp instanceof VCalendar) {
-						AcalRepeatRule rrule = AcalRepeatRule.fromVCalendar(((VCalendar)comp));
-						if (rrule != null) rrule.appendCacheEventInstancesBetween(newData, window);
-						//AcalRepeatRule.fromVCalendar((VCalendar)comp).appendEventsInstancesBetween(newData, window);
+						// This logic should probably move into VCalendar
+						Masterable m = ((VCalendar)comp).getMasterChild();
+						if ( m != null ) {
+							AcalProperty rProperty = m.getProperty(PropertyName.RRULE);
+							if ( rProperty == null )
+								rProperty = m.getProperty(PropertyName.RDATE);
+							if ( rProperty == null ) {
+								Log.println(Constants.LOGD,TAG, "Individual instance CacheObject being created.");
+								newData.add(new CacheObject(m));
+							}
+							else {
+								Log.println(Constants.LOGD,TAG, "Building CacheObject instances from RepeatRule.");
+								AcalRepeatRule rrule = AcalRepeatRule.fromVCalendar(((VCalendar)comp));
+								if (rrule != null) rrule.appendCacheEventInstancesBetween(newData, window);
+							}
+						}
+						else
+							Log.println(Constants.LOGD,TAG, "VCalendar master instance was null for "+comp.getEffectiveType());
 					}
 				
 					//add update to queue
