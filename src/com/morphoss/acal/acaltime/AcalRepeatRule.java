@@ -72,8 +72,6 @@ public class AcalRepeatRule {
 	
 	final private static int			MAX_REPEAT_INSTANCES	= 100;
 	
-	private boolean isPending = false;
-	
 	public AcalRepeatRule(AcalDateTime dtStart, String rRule) {
 		baseDate = dtStart.clone();
 		if ( rRule == null || rRule.equals("")) {
@@ -109,7 +107,7 @@ public class AcalRepeatRule {
 		if ( masterComponent == null ) {
 			if ( Constants.debugRepeatRule && Constants.LOG_VERBOSE ) {
 				Log.w(TAG, "Cannot find master instance inside " + vCal.getName() );
-				Log.v(TAG, "Original blob is\n"+vCal.getOriginalBlob() );
+				Log.println(Constants.LOGV,TAG, "Original blob is\n"+vCal.getOriginalBlob() );
 			}
 			return null;
 		}
@@ -123,18 +121,17 @@ public class AcalRepeatRule {
 			repeatFromDate = masterComponent.getProperty(PropertyName.DTEND);
 		if ( repeatFromDate == null ) {
 			if ( Constants.debugRepeatRule && Constants.LOG_VERBOSE ) {
-				Log.v(TAG,"Cannot calculate instances of "+masterComponent.getName()+" without DTSTART/DUE inside " + vCal.getName() );
+				Log.println(Constants.LOGV,TAG,"Cannot calculate instances of "+masterComponent.getName()+" without DTSTART/DUE inside " + vCal.getName() );
 				repeatFromDate = masterComponent.getProperty(PropertyName.DTSTART);
 				masterComponent = vCal.getMasterChild();
 				repeatFromDate = masterComponent.getProperty(PropertyName.DTSTART);
-				Log.v(TAG, "Original blob is\n"+vCal.getOriginalBlob() );
+				Log.println(Constants.LOGV,TAG, "Original blob is\n"+vCal.getOriginalBlob() );
 			}
 			return null;
 		}
 
 		AcalRepeatRule ret = new AcalRepeatRule( repeatFromDate, masterComponent.getProperty(PropertyName.RRULE) );
 		ret.sourceVCalendar = vCal;
-		if (vCal.isPending()) ret.setPending(true);
 		
 		ret.baseDuration = masterComponent.getDuration();
 
@@ -181,7 +178,7 @@ public class AcalRepeatRule {
 		getMoreInstances();
 		if (currentPos > lastCalc && finished) return null;
 		if ( currentPos >= recurrences.size() ) {
-			if (Constants.LOG_DEBUG) Log.d(TAG,"Managed to exceed recurrences.size() at " + currentPos+"/"+recurrences.size()
+			if (Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG,"Managed to exceed recurrences.size() at " + currentPos+"/"+recurrences.size()
 						+" Last"+lastCalc+(finished?" (finished)":"")
 						+" processing: " + this.repeatRule.toString() );
 		}
@@ -375,7 +372,7 @@ public class AcalRepeatRule {
 					&& repeatRule.count < MAX_REPEAT_INSTANCES ) {
 
 			if ( Constants.debugRepeatRule && Constants.LOG_DEBUG )
-				Log.d(TAG,"Calculating instance range for count limited repeat: " + repeatRule.toString() );
+				Log.println(Constants.LOGD,TAG,"Calculating instance range for count limited repeat: " + repeatRule.toString() );
 
 			while( hasNext() ) {
 				next();
@@ -406,12 +403,12 @@ public class AcalRepeatRule {
 	public void appendAlarmInstancesBetween(List<AcalAlarm> alarmList, AcalDateRange range) {
 		List<EventInstance> events = new ArrayList<EventInstance>();
 		if ( this.sourceVCalendar.hasAlarm() && this.sourceVCalendar.appendEventInstancesBetween(events, range, false) ) {
-			if ( Constants.debugAlarms ) Log.v(TAG,"Event has alarms");
+			if ( Constants.debugAlarms ) Log.println(Constants.LOGV,TAG,"Event has alarms");
 			for( EventInstance event : events ) {
 				for (AcalAlarm alarm : event.getAlarms()) {
 					alarm.setToLocalTime();
 					if ( Constants.debugAlarms && Constants.LOG_VERBOSE )
-						Log.v(TAG,"Alarm next time to fire is "+alarm.getNextTimeToFire().fmtIcal());
+						Log.println(Constants.LOGV,TAG,"Alarm next time to fire is "+alarm.getNextTimeToFire().fmtIcal());
 
 					if ( range.contains(alarm.getNextTimeToFire()) ) {
 						//the alarm needs to have event data associated
@@ -433,21 +430,17 @@ public class AcalRepeatRule {
 	
 	private void appendEventsInstancesBetween(List eventList, AcalDateRange range, boolean cacheObjects) {
 	
-	
 		if ( range.start == null || range.end == null || eventList == null ) return;
 
 		Masterable thisEvent = sourceVCalendar.getMasterChild();
-		if ( thisEvent == null || !(thisEvent instanceof VEvent) ) {
-//			Log.d(TAG,"Skipped non-VEvent VCalendar");
-			return;
-		}
-
+		if ( thisEvent == null ) return;
+		
 		if ( Constants.debugDateTime && range.start.after(futureish) ) {
 			throw new IllegalArgumentException("The date: " + range.start.fmtIcal() + " is way too far in the future! (after " + futureish.fmtIcal() );
 		}
 		if ( Constants.debugRepeatRule && Constants.LOG_DEBUG ) {
-			 Log.d(TAG, "Fetching instances in "+range.toString());
-			 Log.d(TAG, "Base is: "+this.baseDate.fmtIcal()+", Rule is: "+repeatRule.toString() );
+			 Log.println(Constants.LOGD,TAG, "Fetching instances in "+range.toString());
+			 Log.println(Constants.LOGD,TAG, "Base is: "+this.baseDate.fmtIcal()+", Rule is: "+repeatRule.toString() );
 		}
 
 		if ( repeatRule.until != null && repeatRule.until.before(range.start) )
@@ -469,7 +462,7 @@ public class AcalRepeatRule {
 				thisDate = next();
 				if ( thisDate == null ) {
 					if ( Constants.debugRepeatRule && Constants.LOG_DEBUG )
-						Log.d(TAG, "Null before finding useful instance for " +repeatRule.toString() );
+						Log.println(Constants.LOGD,TAG, "Null before finding useful instance for " +repeatRule.toString() );
 					break;
 				}
 				if ( thisDate != null ) {
@@ -480,8 +473,8 @@ public class AcalRepeatRule {
 					}
 				}
 				if ( Constants.debugRepeatRule && Constants.LOG_DEBUG ) {
-					Log.d(TAG, "Skipping Instance: "+thisDate.fmtIcal()+" of " +repeatRule.toString() );
-					Log.d(TAG, "Skipping Instance from: "+instance.dtstart.fmtIcal()+" - "+instance.dtend.fmtIcal() );
+					Log.println(Constants.LOGD,TAG, "Skipping Instance: "+thisDate.fmtIcal()+" of " +repeatRule.toString() );
+					Log.println(Constants.LOGD,TAG, "Skipping Instance from: "+instance.dtstart.fmtIcal()+" - "+instance.dtend.fmtIcal() );
 				}
 			}
 			while( thisDate != null && ! instance.dtend.after(range.start) && possiblyInfinite < 20 );
@@ -504,8 +497,8 @@ public class AcalRepeatRule {
 				}
 				
 				if ( Constants.debugRepeatRule && Constants.LOG_DEBUG ) {
-					Log.d(TAG, "Adding Instance: "+thisDate.fmtIcal()+" of " +repeatRule.toString() );
-					Log.d(TAG, "Adding Instance range: "+instance.dtstart.fmtIcal()+" - "+instance.dtend.fmtIcal() );
+					Log.println(Constants.LOGD,TAG, "Adding Instance: "+thisDate.fmtIcal()+" of " +repeatRule.toString() );
+					Log.println(Constants.LOGD,TAG, "Adding Instance range: "+instance.dtstart.fmtIcal()+" - "+instance.dtend.fmtIcal() );
 				}
 				
 				thisDate = next();
@@ -515,8 +508,8 @@ public class AcalRepeatRule {
 		}
 		catch ( Exception e ) {
 			if ( Constants.LOG_VERBOSE ) {
-				Log.v(TAG,"Exception while appending event instances between "+range.start.fmtIcal()+" and "+range.end.fmtIcal());
-				Log.v(TAG,Log.getStackTraceString(e));
+				Log.println(Constants.LOGV,TAG,"Exception while appending event instances between "+range.start.fmtIcal()+" and "+range.end.fmtIcal());
+				Log.println(Constants.LOGV,TAG,Log.getStackTraceString(e));
 			}
 		}
 		finally {
@@ -524,27 +517,23 @@ public class AcalRepeatRule {
 			sourceVCalendar.setPersistentOff();
 		}
 		if ( Constants.debugRepeatRule && Constants.LOG_DEBUG ) {
-			Log.d(TAG, "Took "+(System.currentTimeMillis()-processingStarted )+"ms to find "+found+" in "+repeatRule.toString() );
+			Log.println(Constants.LOGD,TAG, "Took "+(System.currentTimeMillis()-processingStarted )+"ms to find "+found+" in "+repeatRule.toString() );
 			if ( found > 0 ) {
-				Log.d(TAG, "Found "+found+" instances in "+ range.toString());
+				Log.println(Constants.LOGD,TAG, "Found "+found+" instances in "+ range.toString());
 				for( int i=0; i<found; i++ ) {
 					if (cacheObjects) {
 						CacheObject thisOne = (CacheObject)eventList.get(i);
-						Log.v(TAG, "["+i+"] Start: " + AcalDateTime.fromMillis(thisOne.getStart()).fmtIcal() + 
+						Log.println(Constants.LOGV,TAG, "["+i+"] Start: " + AcalDateTime.fromMillis(thisOne.getStart()).fmtIcal() + 
 								", End: " + AcalDateTime.fromMillis(thisOne.getEnd()).fmtIcal() );
 					} else {
 						EventInstance thisOne = (EventInstance)eventList.get(i);
-						Log.v(TAG, "["+i+"] Start: " + thisOne.getStart().fmtIcal() + ", End: " + thisOne.getEnd().fmtIcal() );	
+						Log.println(Constants.LOGV,TAG, "["+i+"] Start: " + thisOne.getStart().fmtIcal() + ", End: " + thisOne.getEnd().fmtIcal() );	
 					}
 					
 				}
 			}
 		}
 		return;
-	}
-
-	public void setPending(boolean isPending) {
-		this.isPending = isPending;
 	}
 
 	private LocalEventInstance getRecurrence(AcalDateTime thisDate, Masterable ourVEvent ) {
@@ -580,25 +569,23 @@ public class AcalRepeatRule {
 
 		lastDuration = ourDuration;
 		
-		LocalEventInstance ret = new LocalEventInstance(ourVEvent, instanceStart, ourDuration, isPending); 
+		LocalEventInstance ret = new LocalEventInstance(ourVEvent, instanceStart, ourDuration); 
 
 		return ret;
 	}
 
 	private class LocalEventInstance {
-		final Masterable VEvent;
+		final Masterable masterInstance;
 		final AcalDateTime dtstart;
 		final AcalDateTime dtend;
 		final AcalDuration duration;
-		final boolean isPending;
 		
-		LocalEventInstance( Masterable VEvent, AcalDateTime dtstart, AcalDuration duration, boolean isPending ) {
-			this.VEvent = VEvent;
+		LocalEventInstance( Masterable masterIn, AcalDateTime dtstart, AcalDuration duration ) {
+			this.masterInstance = masterIn;
 			this.dtstart = dtstart;
 			this.duration = duration;
-			this.isPending = isPending;
 			if ( duration.seconds < 0 || duration.days < 0 )
-				throw new IllegalArgumentException("Resource duration must be positive. UID: "+VEvent.getUID() );
+				throw new IllegalArgumentException("Resource duration must be positive. UID: "+masterIn.getUID() );
 			if ( Constants.debugRepeatRule && duration.days > 10 ) {
 				throw new IllegalArgumentException();
 			}
@@ -606,13 +593,16 @@ public class AcalRepeatRule {
 		}
 
 		EventInstance getEventInstance() {
-			return new EventInstance( (VEvent) VEvent, dtstart, duration);
+			return new EventInstance( (VEvent) masterInstance, dtstart, duration);
 			//return DefaultEventInstance.getInstance((VEvent) VEvent, dtstart, duration, isPending );
 		}
 		
 		CacheObject getCacheObject() {
 			Thread.yield();
-			return new CacheObject( (VEvent) VEvent, dtstart, duration);
+			if ( masterInstance instanceof VEvent )
+				return new CacheObject( (VEvent) masterInstance, dtstart, duration);
+			else
+				return new CacheObject(masterInstance, dtstart, dtend, null);
 		}
 	}
 /*
@@ -620,7 +610,7 @@ public class AcalRepeatRule {
 	protected void debugInstanceList( String whereAmI ) {
 		if ( recurrences == null || recurrences.isEmpty() ) {
 			if ( Constants.debugRepeatRule && Constants.LOG_VERBOSE )
-				Log.v(TAG, "Instances at "+whereAmI+" is empty" );
+				Log.println(Constants.LOGV,TAG, "Instances at "+whereAmI+" is empty" );
 			return;
 		}
 		debugDates = new String[recurrences.size()];
@@ -635,19 +625,19 @@ public class AcalRepeatRule {
 			}
 			if ( i == 3 && debugDates[0].equals(debugDates[1]) && debugDates[1].equals(debugDates[2]) ) {
 				if ( Constants.debugRepeatRule && Constants.LOG_VERBOSE ) {
-					Log.v(TAG, "Managed to build a duplicate list of dates by now" );
+					Log.println(Constants.LOGV,TAG, "Managed to build a duplicate list of dates by now" );
 					try {
 						throw new Exception("fake");
 					}
 					catch( Exception e ) {
-						Log.v(TAG, Log.getStackTraceString(e) );
+						Log.println(Constants.LOGV,TAG, Log.getStackTraceString(e) );
 					}
 				}
 			}
 		}
 
 		if ( Constants.debugRepeatRule && Constants.LOG_VERBOSE )
-			Log.v(TAG, "Instances at "+whereAmI+" ["+debugDates.length+"]: "+dateList );
+			Log.println(Constants.LOGV,TAG, "Instances at "+whereAmI+" ["+debugDates.length+"]: "+dateList );
 	}
 
 */
