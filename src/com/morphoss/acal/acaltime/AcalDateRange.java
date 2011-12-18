@@ -71,7 +71,7 @@ public class AcalDateRange implements Parcelable, Cloneable {
 		if ( newEnd != null && other.end != null && newEnd.after(other.end) ) newEnd = other.end;
 		if ( newEnd != null && newEnd.before(newStart)) return null;
 
-		if ( Constants.debugDateTime && Constants.LOG_VERBOSE )	Log.v(TAG,"Intersection of ("+start.fmtIcal()+","+(end==null?"null":end.fmtIcal())+") & ("
+		if ( Constants.debugDateTime && Constants.LOG_VERBOSE )	Log.println(Constants.LOGV,TAG,"Intersection of ("+start.fmtIcal()+","+(end==null?"null":end.fmtIcal())+") & ("
 						+other.start.fmtIcal()+","+(other.end==null?"null":other.end.fmtIcal())+") is ("
 						+newStart.fmtIcal()+","+(newEnd==null?"null":newEnd.fmtIcal())+")"
 					);
@@ -92,7 +92,8 @@ public class AcalDateRange implements Parcelable, Cloneable {
 	}
 
 	/**
-	 * Test whether this range overlaps the period from otherStart (inclusive) to otherEnd (non-inclusive)
+	 * Test whether this range overlaps the period from otherStart (inclusive) to otherEnd (non-inclusive). A null
+	 * at either end extends the range to infinity in that direction.
 	 * @param otherStart
 	 * @param otherEnd
 	 * @return true, if the ranges overlap.
@@ -117,8 +118,8 @@ public class AcalDateRange implements Parcelable, Cloneable {
 		else {
 			answer = ( !otherEnd.before(start) && !otherStart.after(end) );
 		}
-		if ( Constants.debugDateTime && Constants.LOG_VERBOSE )
-			Log.v(TAG,"Overlap of "+toString()+
+		if ( Constants.debugDateTime &&  Constants.LOG_VERBOSE )
+			Log.println(Constants.LOGV,TAG,"Overlap of "+toString()+
 					" with range("+(otherStart==null?"<forever<":otherStart.fmtIcal())+
 					","+ (otherEnd==null?">forever>":otherEnd.fmtIcal())+") is: "
 						+ (answer? "yes":"no")
