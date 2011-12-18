@@ -12,7 +12,6 @@ import com.morphoss.acal.database.cachemanager.CacheManager.CacheTableManager;
 import com.morphoss.acal.davacal.Masterable;
 import com.morphoss.acal.davacal.PropertyName;
 import com.morphoss.acal.davacal.VEvent;
-import com.morphoss.acal.davacal.VJournal;
 import com.morphoss.acal.davacal.VTodo;
 
 /**
@@ -123,9 +122,10 @@ public class CacheObject implements Parcelable, Comparable<CacheObject> {
 		AcalDateTime aDate = masterInstance.getStart();
 		this.start = (aDate == null ? Long.MAX_VALUE : aDate.getMillis());
 		startFloating = (aDate == null ? true : aDate.isFloating());
-		if ( aDate != null )
+		if ( aDate != null ) {
 			recurrenceId = aDate.toPropertyString(PropertyName.RECURRENCE_ID);
-		if (aDate.isDate()) flags+= FLAG_ALL_DAY;
+			if (aDate.isDate()) flags+= FLAG_ALL_DAY;
+		}
 
 		aDate = masterInstance.getEnd();
 		this.end = (aDate == null ? Long.MAX_VALUE : aDate.getMillis());
@@ -385,14 +385,17 @@ public class CacheObject implements Parcelable, Comparable<CacheObject> {
 	}
 
 	public AcalDateTime getStartDateTime() {
+		if ( start == Long.MAX_VALUE ) return null;
 		return AcalDateTime.localTimeFromMillis(start,startFloating);
 	}
 
 	public AcalDateTime getEndDateTime() {
+		if ( end == Long.MAX_VALUE ) return null;
 		return AcalDateTime.localTimeFromMillis(end,endFloating);
 	}
 
 	public AcalDateTime getCompletedDateTime() {
+		if ( completed == Long.MAX_VALUE ) return null;
 		return AcalDateTime.localTimeFromMillis(completed,completeFloating);
 	}
 	
