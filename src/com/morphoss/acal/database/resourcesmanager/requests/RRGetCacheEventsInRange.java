@@ -41,7 +41,8 @@ public class RRGetCacheEventsInRange extends ReadOnlyResourceRequestWithResponse
 		long end = range.end.getMillis();
 		
 		Log.println(Constants.LOGD,TAG,"Getting Resource rows");
-		//step 2 query db for reesources in range
+
+		//step 2 query db for resources in range
 		ArrayList<ContentValues> rValues = processor.query(null,
 				"("+ResourceTableManager.EFFECTIVE_TYPE +"=? OR "+ResourceTableManager.EFFECTIVE_TYPE +"=? )" +
 				" AND ("+ResourceTableManager.LATEST_END+" IS NULL OR " + ResourceTableManager.LATEST_END+" >= ? )" +
@@ -50,6 +51,7 @@ public class RRGetCacheEventsInRange extends ReadOnlyResourceRequestWithResponse
 				new String[]{ VComponent.VEVENT, VComponent.VTODO, start+"", end+""},
 				null,null,null);
 		Log.println(Constants.LOGD,TAG,rValues.size()+" Rows retreived. Converting into Resource Objects");
+
 		ArrayList<Resource> resources = new ArrayList<Resource>();
 		for (ContentValues cv : rValues) resources.add(Resource.fromContentValues(cv));
 		Log.println(Constants.LOGD,TAG, "Conversion complete. Populating VCalendars and appedning events.");
