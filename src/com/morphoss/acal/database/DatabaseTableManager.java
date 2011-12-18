@@ -50,15 +50,19 @@ public abstract class DatabaseTableManager {
 		String info = "\t"+stack[base].toString();
 		for (int i = base+1; i < stack.length && i< base+depth; i++)
 			info += "\n\t\t"+stack[i].toString(); 
-		if (Constants.debugDatabaseManager) Log.d(TAG, info);
+		if (Constants.debugDatabaseManager) Log.println(Constants.LOGD, TAG, info);
 	}
 	
 	protected abstract String getTableName();
 
 	public ArrayList<ContentValues> query(String[] columns, String selection, String[] selectionArgs, String groupBy, String having, String orderBy) {
-		beginReadQuery();
 		ArrayList<ContentValues> result = new ArrayList<ContentValues>();
 		int count = 0;
+		if ( Constants.debugDatabaseManager ) printStackTraceInfo();
+		while ( db == null || !db.isOpen() ) {
+			try { Thread.sleep(10); } catch ( InterruptedException e ) {}
+			beginReadQuery();
+		}
 		Cursor c = db.query(getTableName(), columns, selection, selectionArgs, groupBy, having, orderBy);
 		try {
 			if (c.getCount() > 0) {
@@ -85,7 +89,14 @@ public abstract class DatabaseTableManager {
 	public abstract void dataChanged(ArrayList<DataChangeEvent> changes);
 
 	protected void openDB(final int type) {
-		if (inTx || sucTx || db != null) throw new SQLiteMisuseException("Tried to open DB when already open");
+		if ( db != null && db.isOpen() ) {
+			if ( type == OPEN_READTX || type == OPEN_WRITETX ) {
+				inTx = true;
+				if ( type == OPEN_WRITETX && !db.inTransaction() ) db.beginTransaction();
+			}
+			return;
+		}
+		if (inTx || sucTx ) throw new SQLiteMisuseException("Tried to open DB when already open");
 		dbHelper = new AcalDBHelper(context);
 		changes = new ArrayList<DataChangeEvent>();
 		switch (type) {
@@ -146,7 +157,7 @@ public abstract class DatabaseTableManager {
 	}
 
 	protected void beginReadQuery() {
-		if (!inTx) openDB(OPEN_READ);
+		if (!inTx || db == null || !db.isOpen()) openDB(OPEN_READ);
 	}
 
 	protected void endQuery() {
@@ -237,6 +248,9 @@ public abstract class DatabaseTableManager {
 				Log.e(TAG, "Exception processing request: "+e+Log.getStackTraceString(e));
 			} finally { if (openDb) dm.endTransaction(); }
 			return res;
+		}
+		public boolean isEmpty() {
+			return actions.isEmpty();
 		}
 	}
 
