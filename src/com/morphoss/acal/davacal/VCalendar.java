@@ -266,71 +266,54 @@ public class VCalendar extends VComponent {
 		hasRepeatRule = ( repeatRule != null );
 	}
 
-	public boolean appendAlarmInstancesBetween(List<AcalAlarm> alarmList, AcalDateRange rangeRequested) {
+	private boolean appendAlarmInstancesBetween(List<AcalAlarm> alarmList, AcalDateRange rangeRequested) {
 		if ( hasRepeatRule == null && repeatRule == null ) checkRepeatRule();
 		if ( !hasRepeatRule ) return false;
 		this.repeatRule.appendAlarmInstancesBetween(alarmList, rangeRequested);
 		return true;
 	}
 
-	public boolean appendEventInstancesBetween(List<EventInstance> eventList, AcalDateRange rangeRequested, boolean isPending) {
-		if (isPending) {
-			this.isPending = true;
-			this.repeatRule = null;
-		}
-		try {
-			if (dateRange != null) {
-				AcalDateRange intersection = rangeRequested.getIntersection(this.dateRange);
-				if (intersection != null) {
-					if (hasRepeatRule == null && repeatRule == null) checkRepeatRule();
-					if (hasRepeatRule) {
-						//						Log.d(TAG,"Processing event: Summary="+new UnModifiableAcalEvent(thisEvent,new AcalCalendar(), new AcalCalendar()).summary);
-						this.repeatRule.appendEventsInstancesBetween(eventList, intersection);
-						return true;
-					}
-				}
-			}
-			else {
-				checkRepeatRule();
-				if (repeatRule != null) {
-					this.repeatRule.appendEventsInstancesBetween(eventList, rangeRequested);
-					return true;
-				}
-			}
-			//			Log.d(TAG,"Skipped event: Summary="+new UnModifiableAcalEvent(thisEvent,new AcalCalendar(), new AcalCalendar()).summary);
-		}
-		catch(Exception e) {
-			if (Constants.LOG_DEBUG)Log.d(TAG,"Exception in RepeatRule handling");
-			if (Constants.LOG_DEBUG)Log.d(TAG,Log.getStackTraceString(e));
-		}
-		return false;
-	}
 	
-	public boolean appendCacheEventInstancesBetween(List<CacheObject> eventList, AcalDateRange rangeRequested, boolean isPending) {
-		if (isPending) {
-			this.isPending = true;
-			this.repeatRule = null;
-		}
+	public boolean appendCacheEventInstancesBetween(List<CacheObject> eventList, AcalDateRange rangeRequested ) {
 		try {
-			if (dateRange != null) {
-				AcalDateRange intersection = rangeRequested.getIntersection(this.dateRange);
-				if (intersection != null) {
-					if (hasRepeatRule == null && repeatRule == null) checkRepeatRule();
-					if (hasRepeatRule) {
-						//						Log.d(TAG,"Processing event: Summary="+new UnModifiableAcalEvent(thisEvent,new AcalCalendar(), new AcalCalendar()).summary);
-						this.repeatRule.appendCacheEventInstancesBetween(eventList, intersection);
-						return true;
+			Masterable m = getMasterChild();
+			if ( m != null ) {
+				AcalProperty rProperty = m.getProperty(PropertyName.RRULE);
+				if ( rProperty == null )
+					rProperty = m.getProperty(PropertyName.RDATE);
+				if ( rProperty == null ) {
+					Log.println(Constants.LOGD,TAG, "Individual instance CacheObject being created.");
+					eventList.add(new CacheObject(m));
+					return true;
+				}
+				else {
+					Log.println(Constants.LOGD,TAG, "Building CacheObject instances from RepeatRule.");
+
+					if ( dateRange != null ) {
+						AcalDateRange intersection = rangeRequested.getIntersection(this.dateRange);
+						if ( intersection != null ) {
+							if ( hasRepeatRule == null && repeatRule == null ) checkRepeatRule();
+							if ( hasRepeatRule ) {
+								// Log.d(TAG,"Processing event: Summary="+new
+								// UnModifiableAcalEvent(thisEvent,new AcalCalendar(),
+								// new AcalCalendar()).summary);
+								this.repeatRule.appendCacheEventInstancesBetween(eventList, intersection);
+								return true;
+							}
+						}
+						else {
+							checkRepeatRule();
+							if ( repeatRule != null ) {
+								this.repeatRule.appendCacheEventInstancesBetween(eventList, rangeRequested);
+								return true;
+							}
+						}
 					}
 				}
 			}
-			else {
-				checkRepeatRule();
-				if (repeatRule != null) {
-					this.repeatRule.appendCacheEventInstancesBetween(eventList, rangeRequested);
-					return true;
-				}
-			}
-			//			Log.d(TAG,"Skipped event: Summary="+new UnModifiableAcalEvent(thisEvent,new AcalCalendar(), new AcalCalendar()).summary);
+			else
+				Log.println(Constants.LOGD,TAG, "VCalendar master instance was null for "+getEffectiveType());
+					
 		}
 		catch(Exception e) {
 			if (Constants.LOG_DEBUG)Log.d(TAG,"Exception in RepeatRule handling");
@@ -388,7 +371,7 @@ public class VCalendar extends VComponent {
 		if ( masterHasOverrides == null ) {
 			int countMasterables = 0;
 			for( PartInfo childInfo : content.partInfo ) {
-				if ( childInfo.type.equals(VEVENT) || childInfo.type.equals(VTODO) ) {
+				if ( childInfo.type.equals(VEVENT) || childInfo.type.equals(VTODO) || childInfo.type.equals(VJOURNAL) ) {
 					countMasterables++;
 					if ( countMasterables > 1 ) break;
 				}

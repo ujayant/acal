@@ -54,7 +54,7 @@ public class RRGetCacheEventsInRange extends ReadOnlyResourceRequestWithResponse
 
 		ArrayList<Resource> resources = new ArrayList<Resource>();
 		for (ContentValues cv : rValues) resources.add(Resource.fromContentValues(cv));
-		Log.println(Constants.LOGD,TAG, "Conversion complete. Populating VCalendars and appedning events.");
+		Log.println(Constants.LOGD,TAG, "Conversion complete. Populating VCalendars and appending events.");
 		ArrayList<CacheObject> events = new ArrayList<CacheObject>();
 		//step 3 - foreach resource, Vcomps
 		//This is very CPU intensive, so lower our priority to prevent interfering with other parts of the app.
@@ -65,7 +65,7 @@ public class RRGetCacheEventsInRange extends ReadOnlyResourceRequestWithResponse
 			try {
 				VComponent comp = VComponent.createComponentFromResource(r);
 				if (comp instanceof VCalendar) {
-					((VCalendar)comp).appendCacheEventInstancesBetween(events, range, false);
+					((VCalendar)comp).appendCacheEventInstancesBetween(events, range);
 				}
 			} catch (VComponentCreationException e) {
 				Log.i(TAG,Log.getStackTraceString(e));

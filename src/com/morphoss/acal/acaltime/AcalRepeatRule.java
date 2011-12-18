@@ -401,9 +401,11 @@ public class AcalRepeatRule {
 
 	//TODO dirty hack to get alarms in range.
 	public void appendAlarmInstancesBetween(List<AcalAlarm> alarmList, AcalDateRange range) {
+
 		List<EventInstance> events = new ArrayList<EventInstance>();
-		if ( this.sourceVCalendar.hasAlarm() && this.sourceVCalendar.appendEventInstancesBetween(events, range, false) ) {
+		if ( this.sourceVCalendar.hasAlarm() ) {
 			if ( Constants.debugAlarms ) Log.println(Constants.LOGV,TAG,"Event has alarms");
+			this.appendEventsInstancesBetween(events, range, false);
 			for( EventInstance event : events ) {
 				for (AcalAlarm alarm : event.getAlarms()) {
 					alarm.setToLocalTime();
@@ -418,14 +420,11 @@ public class AcalRepeatRule {
 				}
 			}
 		}
+
 	}
 
 	public void appendCacheEventInstancesBetween(List<CacheObject> cacheList, AcalDateRange range) {
 		this.appendEventsInstancesBetween(cacheList, range, true);
-	}
-	
-	public void appendEventsInstancesBetween(List<EventInstance> eventList, AcalDateRange range) {
-		this.appendEventsInstancesBetween(eventList, range, false);
 	}
 	
 	private void appendEventsInstancesBetween(List eventList, AcalDateRange range, boolean cacheObjects) {

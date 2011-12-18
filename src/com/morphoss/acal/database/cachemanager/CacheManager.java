@@ -16,7 +16,6 @@ import android.widget.Toast;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
-import com.morphoss.acal.acaltime.AcalRepeatRule;
 import com.morphoss.acal.database.AcalDBHelper;
 import com.morphoss.acal.database.DataChangeEvent;
 import com.morphoss.acal.database.DatabaseTableManager;
@@ -30,9 +29,6 @@ import com.morphoss.acal.database.resourcesmanager.ResourceResponseListener;
 import com.morphoss.acal.database.resourcesmanager.requests.RRGetCacheEventsInRange;
 import com.morphoss.acal.database.resourcesmanager.requests.RRGetCacheEventsInRange.RREventsInRangeResponse;
 import com.morphoss.acal.dataservice.Resource;
-import com.morphoss.acal.davacal.AcalProperty;
-import com.morphoss.acal.davacal.Masterable;
-import com.morphoss.acal.davacal.PropertyName;
 import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VComponent;
 import com.morphoss.acal.davacal.VComponentCreationException;
@@ -76,7 +72,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 	}
 
 	private Context context;
-	private long count;	//Number of rows in DB
+
 	private AcalDateTime start; //Current Start time of window
 	private AcalDateTime end; //Current End time of window
 	private long metaRow; //Current End time of window
@@ -176,7 +172,6 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		ContentValues data = new ContentValues();
 		data.put(FIELD_START, start.getMillis());
 		data.put(FIELD_END, end.getMillis());
-		data.put(FIELD_COUNT, count);
 		data.put(FIELD_CLOSED, true);
 
 		AcalDBHelper dbHelper = new AcalDBHelper(context);
@@ -241,7 +236,6 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		dbHelper.close();
 		this.start = AcalDateTime.fromMillis(data.getAsLong(FIELD_START));
 		this.end = AcalDateTime.fromMillis(data.getAsLong(FIELD_END));
-		this.count = data.getAsLong(FIELD_COUNT);
 		
 		rm.addListener(this);
 
@@ -281,7 +275,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 	//Request events (FROM RESOURCES) that start within the range provided. Expand window on result.
 	private void retrieveRange(long start, long end) {
 		AcalDateRange range = new AcalDateRange(AcalDateTime.fromMillis(start), AcalDateTime.fromMillis(end));
-		Log.println(Constants.LOGD,TAG,"Retreiving events in range "+range.start+"-->"+range.end);
+		if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD,TAG,"Retrieving events in "+range);
 		ResourceManager.getInstance(context).sendRequest(new RRGetCacheEventsInRange(range, this));
 	}
 	
@@ -297,21 +291,27 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 			//We should have exclusive DB access at this point
 			AcalDateRange range = res.requestedRange();
 			ArrayList<CacheObject> events = res.result();
-			Log.println(Constants.LOGD,TAG, "Deleting Existing records...");
+			Log.println(Constants.LOGD,TAG, "Queueing delete of events in "+range);
 			inserts.addAction(CTMinstance.new DMQueryBuilder()
 							.setAction(QUERY_ACTION.DELETE)
 							.setWhereClause(FIELD_START+" >= ? AND "+FIELD_START+" <= ?")
 							.setwhereArgs(new String[]{range.start.getMillis()+"", range.end.getMillis()+""})
 							.build());
 							
-			Log.println(Constants.LOGD,TAG, count + " records added to Delete queue. Adding Insert records...");
-			count = 0;
+			Log.println(Constants.LOGD,TAG, "Queueing insert of "+events.size()+" new events in "+range);
 			for (CacheObject event : events) {
+				if ( event.getStart() == Long.MAX_VALUE || event.getEnd() == Long.MAX_VALUE ) {
+					// Single instance tasks with a null start date can get included multiple times 
+					inserts.addAction(CTMinstance.new DMDeleteQuery(
+							CacheTableManager.FIELD_RESOURCE_ID+"="+event.getResourceId() +
+							" AND "+CacheTableManager.FIELD_DTSTART+"="+event.getStart() +
+							" AND "+CacheTableManager.FIELD_DTEND+"="+event.getEnd()
+							, null));
+				}
 				ContentValues toInsert = event.getCacheCVs();
 				inserts.addAction(CTMinstance.new DMQueryBuilder().setAction(QUERY_ACTION.INSERT).setValues(toInsert).build());
-				count++;
 			}
-			Log.println(Constants.LOGD,TAG, count+" records to insert. Adding to queue");
+
 			this.sendRequest(new CRAddRangeResult(inserts, range));
 		}
 	}
@@ -399,6 +399,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 			this.delete(null, null);
 			this.setTxSuccessful();
 			this.endTransaction();
+			Log.println(Constants.LOGW,TAG,"Cache cleared of possibly corrupt data.");
 		}
 		
 		
@@ -511,81 +512,66 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 	public void resourceChanged(ResourceChangedEvent event) {
 		ArrayList<DataChangeEvent> changes = event.getChanges();
 		if (changes == null || changes.isEmpty()) return;	//dont care
-		for (DataChangeEvent change : changes) {
-			AcalDateRange window = new AcalDateRange(start,end);
-			switch (change.action) {
-			case INSERT:
-			case UPDATE:
-				ArrayList<CacheObject> newData = new ArrayList<CacheObject>();
-				Resource r = event.getResource(change);
-				//If this resource in our window?
-				
-				//Construct resource
-				VComponent comp;
-				try {
-					comp = VComponent.createComponentFromResource(r);
-					if ( comp == null ) continue;
-					//get instances within window
 
-					if ( comp.getEffectiveType().equals(VComponent.VTODO) ) {
-						Log.println(Constants.LOGD,TAG, "Processing a VTODO resource changed.");
-					}
-					else
-						Log.println(Constants.LOGD,TAG, "Processing a resource changed for a "+comp.getEffectiveType());
-					
-					if (comp instanceof VCalendar) {
-						// This logic should probably move into VCalendar
-						Masterable m = ((VCalendar)comp).getMasterChild();
-						if ( m != null ) {
-							AcalProperty rProperty = m.getProperty(PropertyName.RRULE);
-							if ( rProperty == null )
-								rProperty = m.getProperty(PropertyName.RDATE);
-							if ( rProperty == null ) {
-								Log.println(Constants.LOGD,TAG, "Individual instance CacheObject being created.");
-								newData.add(new CacheObject(m));
-							}
-							else {
-								Log.println(Constants.LOGD,TAG, "Building CacheObject instances from RepeatRule.");
-								AcalRepeatRule rrule = AcalRepeatRule.fromVCalendar(((VCalendar)comp));
-								if (rrule != null) rrule.appendCacheEventInstancesBetween(newData, window);
-							}
+		AcalDateRange window = new AcalDateRange(start,end);
+		DMQueryList queries = CTMinstance.new DMQueryList();
+		Resource r;
+		VComponent comp;
+		ArrayList<CacheObject> newData;
+		for (DataChangeEvent change : changes) {
+			switch ( change.action ) {
+				case INSERT:
+				case UPDATE:
+					r = event.getResource(change);
+					// If this resource in our window?
+
+					// Construct resource
+					try {
+						comp = VComponent.createComponentFromResource(r);
+						if ( comp == null ) continue;
+						// get instances within window
+
+						Log.println(Constants.LOGD, TAG,
+								"Processing a resource changed for a " + comp.getEffectiveType());
+
+						newData = new ArrayList<CacheObject>();
+						if ( comp instanceof VCalendar ) {
+							((VCalendar) comp).appendCacheEventInstancesBetween(newData, window);
+
+							// Delete existing first
+							queries.addAction(CTMinstance.new DMDeleteQuery(CacheTableManager.FIELD_RESOURCE_ID+"="+r.getResourceId(), null));
+
+							// Then add all instances
+							for (CacheObject co : newData)
+								queries.addAction(CTMinstance.new DMQueryBuilder().setAction(QUERY_ACTION.INSERT)
+										.setValues(co.getCacheCVs()).build());
 						}
-						else
-							Log.println(Constants.LOGD,TAG, "VCalendar master instance was null for "+comp.getEffectiveType());
+
 					}
-				
-					//add update to queue
-					DMQueryList queries = CTMinstance.new DMQueryList();
-					//Delete existing first
-					queries.addAction(CTMinstance.new DMDeleteQuery(CacheTableManager.FIELD_RESOURCE_ID+" = ?", new String[]{r.getResourceId()+""}));
-					//add all events
-					for (CacheObject co : newData)
-						queries.addAction(
-								CTMinstance.new DMQueryBuilder()
-								.setAction(QUERY_ACTION.INSERT)
-								.setValues(co.getCacheCVs())
-								.build()
-								);
-					this.sendRequest(new CRResourceChanged(queries));
-					
-					
-				} catch (VComponentCreationException e) {
-					Log.e(TAG, "Error Handling Resoure Change:"+Log.getStackTraceString(e));
-				} catch (Exception e) {
-					Log.e(TAG, "Error Handling Resoure Change:"+Log.getStackTraceString(e));
-				}
-								
-				break;
-			case DELETE:
-				long rid = change.getData().getAsLong(ResourceManager.ResourceTableManager.RESOURCE_ID);
-				//delete
-				DMQueryList queries = CTMinstance.new DMQueryList();
-				//Delete existing first
-				queries.addAction(CTMinstance.new DMDeleteQuery(CacheTableManager.FIELD_RESOURCE_ID+" = ?", new String[]{rid+""}));
-				this.sendRequest(new CRResourceChanged(queries));
-				break;
+					catch ( VComponentCreationException e ) {
+						Log.e(TAG, "Error Handling Resoure Change:" + Log.getStackTraceString(e));
+					}
+					catch ( Exception e ) {
+						Log.e(TAG, "Error Handling Resoure Change:" + Log.getStackTraceString(e));
+					}
+
+					break;
+				case DELETE:
+					long rid = change.getData().getAsLong(ResourceManager.ResourceTableManager.RESOURCE_ID);
+					queries.addAction(CTMinstance.new DMDeleteQuery(CacheTableManager.FIELD_RESOURCE_ID+"="+rid, null));
+					break;
 			}
 		}
+
+		if ( !queries.isEmpty() ) {
+			try {
+				this.sendRequest(new CRResourceChanged(queries));
+			}
+			catch( Exception e ) {
+				Log.e(TAG,Log.getStackTraceString(e));
+			}
+		}
+
 	}
 
 	
