@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.TimeZone;
 
 import android.content.ContentValues;
+import android.util.Log;
 
+import com.morphoss.acal.Constants;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.database.cachemanager.CacheManager.CacheTableManager;
@@ -19,6 +21,8 @@ import com.morphoss.acal.database.cachemanager.CacheManager.CacheTableManager;
  *
  */
 public class CRTodosByType extends CacheRequestWithResponse<ArrayList<CacheObject>> {
+
+	private final static String TAG = "aCal CRTodosByType"; 
 
 	private boolean includeCompleted;
 	private boolean includeFuture;
@@ -49,23 +53,26 @@ public class CRTodosByType extends CacheRequestWithResponse<ArrayList<CacheObjec
 
 		String dtEnd = rangeEnd.getMillis()+"";
 		String offset = TimeZone.getDefault().getOffset(range.start.getMillis())+"";
+
+		String whereClause = CacheTableManager.FIELD_RESOURCE_TYPE +"= '"+CacheTableManager.RESOURCE_TYPE_VTODO+"'";
 		
+		if ( !includeCompleted )
+			whereClause += " AND "+CacheTableManager.FIELD_COMPLETED+" = "+Long.MAX_VALUE;    
+
+		String[] whereArgs = null;
+		if ( !includeFuture ) {
+			whereClause +=
+				" AND ( "+CacheTableManager.FIELD_DTEND+" = "+Long.MAX_VALUE + " OR " +
+					"( "+CacheTableManager.FIELD_DTEND+" < ? AND NOT "+CacheTableManager.FIELD_DTEND_FLOAT+" )"+ " OR "+
+					"( "+CacheTableManager.FIELD_DTEND+" + ? < ? AND "+CacheTableManager.FIELD_DTEND_FLOAT+" )"+
+				")";
+			whereArgs = new String[] { dtEnd, offset, dtEnd }; 
+		}
+
+		if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG, "Fetching tasks:\n"+whereClause);
 		
-		ArrayList<ContentValues> data = processor.query(null, 
-				"(" + CacheTableManager.FIELD_RESOURCE_TYPE +"= ?)"+  
-				" AND (" + CacheTableManager.FIELD_COMPLETED +"< ? OR ?)"+  
-				" AND ( "+
-					"( "+CacheTableManager.FIELD_DTSTART+" < ? AND NOT "+CacheTableManager.FIELD_DTSTART_FLOAT+" )"+
-						" OR "+
-					"( "+CacheTableManager.FIELD_DTSTART+" + ? < ? AND "+CacheTableManager.FIELD_DTSTART_FLOAT+" )"+
-						" OR "+
-					"( "+CacheTableManager.FIELD_DTSTART+" ISNULL )"+
-				")",
-				new String[] {
-						CacheTableManager.RESOURCE_TYPE_VTODO, Long.MAX_VALUE+"", (includeCompleted ? "1" : "0"),
-						dtEnd, offset, dtEnd
-						},
-				null,null,CacheTableManager.FIELD_DTSTART+" ASC");
+		ArrayList<ContentValues> data = processor.query(null, whereClause, whereArgs, null,null,
+				CacheTableManager.FIELD_DTEND+" ASC, "+CacheTableManager.FIELD_DTSTART+" ASC ");
 		
 		for (ContentValues cv : data) 
 				result.add(CacheObject.fromContentValues(cv));
