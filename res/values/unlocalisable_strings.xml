@@ -28,5 +28,5 @@
 	<color name="WeekViewDayGridBorder">#AAAAAA</color>
 	<color name="WeekViewDayGridWorkTimeBG">#90F6F6D0</color>
 	<color name="OverdueTask">#FFE03010</color>
-	<color name="CompletedTask">#FF00B030</color>
+	<color name="CompletedTask">#FF007010</color>
 </resources>
