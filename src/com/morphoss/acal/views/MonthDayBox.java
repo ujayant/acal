@@ -109,26 +109,31 @@ public class MonthDayBox extends TextView {
 			
 			int barWidth = (int) (width/5f);
 			int secsPerPixel = (int) ((displaySecs / height) + 1);
-			for (CacheObject e : events) {
-				if ( e.isAllDay() ) {
+			for (CacheObject event : events) {
+				if ( event.isAllDay() ) {
 					eStart = 0;
 					eFinish = dayFinish - dayStart;
 				}
 				else {
-					eStart = (int) (e.getStart()/1000 - dayEpoch) - dayStart;
+					eStart = (int) (event.getStart()/1000 - dayEpoch) - dayStart;
 					if ( eStart < 0 ) eStart = 0;
-					eFinish = (int) (e.getEnd()/1000 - dayEpoch) - dayStart;
+					eFinish = (int) (event.getEnd()/1000 - dayEpoch) - dayStart;
 				}
 				if ( eFinish < (eStart + (secsPerPixel * minBarHeight)) )
 					eFinish = eStart + (minBarHeight * secsPerPixel);
 				//draw
-				Collection collection = Collection.getInstance(e.getCollectionId(), this.context);
-				p.setColor((collection.getColour()|0xff000000)-0x77000000);
+				Collection collection = Collection.getInstance(event.getCollectionId(), this.context);
+				try {
+					p.setColor((collection.getColour()|0xff000000)-0x77000000);
+				}
+				catch( Exception ex ) {
+					Log.e(TAG,Log.getStackTraceString(ex));
+				}
 				arg0.drawRect(x,(y+eStart/secsPerPixel), x+barWidth, y+(eFinish/secsPerPixel), p);
 				
 				if ( Constants.LOG_VERBOSE && Constants.debugMonthView )
 					Log.v(TAG, String.format("%d - %d: %s (%ds - %ds, %dspp, %dx,%dy, %dw,%dh, %d-%d)",
-								e.getStart()/1000, e.getEnd()/1000, e.getSummary(),
+								event.getStart()/1000, event.getEnd()/1000, event.getSummary(),
 								eStart, eFinish, secsPerPixel, x, y, barWidth, (int) height,
 								(int) y+(eStart/secsPerPixel), (int) y+(eFinish/secsPerPixel)));
 			}
