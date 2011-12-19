@@ -219,12 +219,13 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 
 		if (!data.getAsBoolean(FIELD_CLOSED)) {
 			Log.println(Constants.LOGD,TAG, "Application not closed correctly last time. Resetting cache.");
-			for (int i = 0; i <5; i++)
-				Toast.makeText(context, "aCal was not correctly shutdown last time.\nRebuilding cache - It may take some time before events are visible.",Toast.LENGTH_LONG).show();
+			Toast.makeText(context, "aCal was not correctly shutdown last time.\nRebuilding cache - It may take some time before events are visible.",Toast.LENGTH_LONG).show();
+			db.close();
 			this.CTMinstance.clearCache();
 			data.put(FIELD_COUNT, 0);
 			data.put(FIELD_START,  defaultWindow.getMillis());
 			data.put(FIELD_END,  defaultWindow.getMillis());
+			db = dbHelper.getWritableDatabase();
 		}
 		else data.put(FIELD_CLOSED, false);
 
