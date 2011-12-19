@@ -189,6 +189,7 @@ public class TodoView extends AcalActivity
 			completed = todo.getCompleted();
 		}
 		time.setText(AcalDateTimeFormatter.getTodoTimeText(this, dtStart, due, completed, prefs.getBoolean(getString(R.string.prefTwelveTwentyfour),true)));
+
 		
 		TextView locationView = (TextView) this.findViewById(R.id.TodoLocationContent);
 		if ( location != null && ! location.equals("") ) {
@@ -199,6 +200,7 @@ public class TodoView extends AcalActivity
 			((RelativeLayout) this.findViewById(R.id.TodoLocationLayout)).setVisibility(View.GONE);
 		}
 
+		
 		TextView notesView = (TextView) this.findViewById(R.id.TodoNotesContent);
 		if ( description != null && ! description.equals("") ) {
 			notesView.setText(description);
@@ -207,6 +209,8 @@ public class TodoView extends AcalActivity
 		else {
 			((RelativeLayout) this.findViewById(R.id.TodoNotesLayout)).setVisibility(View.GONE);
 		}
+
+		
 		TextView alarmsView = (TextView) this.findViewById(R.id.TodoAlarmsContent);
 		if ( alarms != null && alarms.length() > 0 ) {
 			((RelativeLayout) this.findViewById(R.id.TodoAlarmsLayout)).setVisibility(View.VISIBLE);
@@ -219,10 +223,9 @@ public class TodoView extends AcalActivity
 		else {
 			((RelativeLayout) this.findViewById(R.id.TodoAlarmsLayout)).setVisibility(View.GONE);
 		}
-		
+
 		RelativeLayout repeatsLayout = (RelativeLayout) this.findViewById(R.id.TodoRepeatsLayout);
 		repeatsLayout.setVisibility(View.GONE);
-		
 		
 	}
 	
@@ -351,7 +354,7 @@ public class TodoView extends AcalActivity
 		if (DEBUG) Log.println(Constants.LOGD,TAG, "Successful Resource Response Received.");
 		CalendarInstance res = response.result();
 		if (res instanceof TodoInstance) {
-			this.todo = (TodoInstance)res;
+			this.todo = (TodoInstance) res;
 			this.rid = this.todo.getResourceId();
 			this.rrid = this.todo.getRecurrenceId();
 			mHandler.sendMessage(mHandler.obtainMessage(REFRESH));
