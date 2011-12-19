@@ -301,12 +301,12 @@ public class VCalendar extends VComponent {
 								return true;
 							}
 						}
-						else {
-							checkRepeatRule();
-							if ( repeatRule != null ) {
-								this.repeatRule.appendCacheEventInstancesBetween(eventList, rangeRequested);
-								return true;
-							}
+					}
+					else {
+						checkRepeatRule();
+						if ( repeatRule != null ) {
+							this.repeatRule.appendCacheEventInstancesBetween(eventList, rangeRequested);
+							return true;
 						}
 					}
 				}
@@ -383,7 +383,7 @@ public class VCalendar extends VComponent {
 
 
 	public Masterable getChildFromRecurrenceId(RecurrenceId recurrenceProperty) {
-		if ( masterHasOverrides() ) return this.getMasterChild();
+		if ( !masterHasOverrides() ) return this.getMasterChild();
 		try {
 			this.setPersistentOn();
 			List<Masterable> matchingChildren = new ArrayList<Masterable>();
