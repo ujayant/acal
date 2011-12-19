@@ -43,6 +43,8 @@ import com.morphoss.acal.providers.Servers;
 public class ResourceManager implements Runnable {
 	// The current instance
 	private static ResourceManager instance = null;
+	
+	private volatile int numReadsProcessing = 0;
 
 	// Get an instance
 	public synchronized static ResourceManager getInstance(Context context) {
@@ -131,6 +133,7 @@ public class ResourceManager implements Runnable {
 						Log.println(Constants.LOGD,TAG,readQueue.size()+" items in read queue.");
 						final ReadOnlyResourceRequest request = readQueue.poll();
 						Log.println(Constants.LOGD,TAG,"Processing Read Request: "+request.getClass());
+						this.numReadsProcessing++;
 						try {
 							new Thread(new Runnable() {
 								public void run() {
@@ -323,9 +326,6 @@ public class ResourceManager implements Runnable {
 		public static final String TAG = "acal Resources RequestProccessor";
 
 		
-		private volatile int numReadsProcessing = 0;
-		private final HashSet<ReadOnlyResourceRequest> requestList = new HashSet<ReadOnlyResourceRequest>(); 
-		
 		private ResourceTableManager() {
 			super(ResourceManager.this.context);
 		}
@@ -359,24 +359,16 @@ public class ResourceManager implements Runnable {
 		}
 
 		public boolean isProcessingReads() {
-			if ( this.numReadsProcessing != 0 ) return true;
-			if ( this.requestList.isEmpty() ) return false;
-			Iterator<ReadOnlyResourceRequest> i = requestList.iterator();
-			while( i.hasNext() ) {
-				ReadOnlyResourceRequest r = i.next();
-				if ( !r.isProcessed() ) return true;
-			}
+			if ( numReadsProcessing != 0 ) return true;
 			return false;
 		}
 		
 		private synchronized void preProcessing(ReadOnlyResourceRequest r) {
-			this.numReadsProcessing++;
-			requestList.add(r);
+		
 		}
 
 		private synchronized void postProcessing(ReadOnlyResourceRequest r) {
-			this.numReadsProcessing--;
-			requestList.remove(r);
+			numReadsProcessing--;
 		}
 
 		@Override
