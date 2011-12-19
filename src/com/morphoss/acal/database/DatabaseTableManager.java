@@ -40,6 +40,13 @@ public abstract class DatabaseTableManager {
 	protected AcalDBHelper dbHelper;
 	protected Context context;
 
+	public enum QUERY_ACTION { INSERT, UPDATE, DELETE };
+	
+	public static final String TAG = "aCal DatabaseManager";
+
+	public abstract void dataChanged(ArrayList<DataChangeEvent> changes);
+	protected abstract String getTableName();
+	
 	protected DatabaseTableManager(Context context) {
 		this.context = context;
 	}
@@ -53,16 +60,11 @@ public abstract class DatabaseTableManager {
 		if (Constants.debugDatabaseManager) Log.println(Constants.LOGD, TAG, info);
 	}
 	
-	protected abstract String getTableName();
-
 	public ArrayList<ContentValues> query(String[] columns, String selection, String[] selectionArgs, String groupBy, String having, String orderBy) {
 		ArrayList<ContentValues> result = new ArrayList<ContentValues>();
 		int count = 0;
 		if ( Constants.debugDatabaseManager ) printStackTraceInfo();
-		while ( db == null || !db.isOpen() ) {
-			try { Thread.sleep(10); } catch ( InterruptedException e ) {}
-			beginReadQuery();
-		}
+		beginReadQuery();
 		Cursor c = db.query(getTableName(), columns, selection, selectionArgs, groupBy, having, orderBy);
 		try {
 			if (c.getCount() > 0) {
@@ -82,11 +84,6 @@ public abstract class DatabaseTableManager {
 		return result;
 	}
 
-	public enum QUERY_ACTION { INSERT, UPDATE, DELETE };
-	
-	public static final String TAG = "aCal DatabaseManager";
-
-	public abstract void dataChanged(ArrayList<DataChangeEvent> changes);
 
 	protected void openDB(final int type) {
 		if ( db != null && db.isOpen() ) {
@@ -184,7 +181,9 @@ public abstract class DatabaseTableManager {
 	}
 
 	public void endTransaction() {
-		if ( db.inTransaction() ) db.endTransaction();
+		if (!inTx)  throw new IllegalStateException("Tried to end Tx when not in TX");
+		//if ( db.inTransaction() )
+		db.endTransaction();
 		closeDB(CLOSE_TX);
 	}
 

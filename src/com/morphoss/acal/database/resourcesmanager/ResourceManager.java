@@ -150,7 +150,7 @@ public class ResourceManager implements Runnable {
 					}
 	
 					//Wait until all processes have finished
-					while (getRPInstance().isProcessingReads()) {
+					while (this.numReadsProcessing > 0) {
 						try {
 							Thread.sleep(10);
 						} catch (Exception e) {
@@ -335,17 +335,10 @@ public class ResourceManager implements Runnable {
 		}
 
 		public void endReads() {
-			if ( this.isProcessingReads() ) throw new IllegalStateException("Tried to stop reads queue processing when there are still processes");
 			this.endTransaction();
 		}
 		
 		public void processRead(ReadOnlyResourceRequest request) {
-			preProcessing(request);
-			process(request);
-			postProcessing(request);
-		}
-		
-		public void process(ReadOnlyResourceRequest request) {
 			try {
 				request.process(this);
 			} catch (ResourceProcessingException e) {
@@ -355,20 +348,9 @@ public class ResourceManager implements Runnable {
 				Log.e(TAG,
 						"INVALID TERMINATION while processing Resource Request: "
 						+ Log.getStackTraceString(e));
+			} finally {
+				numReadsProcessing--;
 			}
-		}
-
-		public boolean isProcessingReads() {
-			if ( numReadsProcessing != 0 ) return true;
-			return false;
-		}
-		
-		private synchronized void preProcessing(ReadOnlyResourceRequest r) {
-		
-		}
-
-		private synchronized void postProcessing(ReadOnlyResourceRequest r) {
-			numReadsProcessing--;
 		}
 
 		@Override
