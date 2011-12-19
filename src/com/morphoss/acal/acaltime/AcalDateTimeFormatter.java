@@ -173,9 +173,11 @@ public class AcalDateTimeFormatter {
 
 		SimpleDateFormat formatter = new SimpleDateFormat(" MMM d, "+(as24HourTime ? "HH:mm" : "hh:mmaa"));
 
-		return (dtstart == null ? "" : c.getString(R.string.FromPrompt) + formatter.format(dtstart.toJavaDate()))
-				+ (due == null ? "" : " -" + c.getString(R.string.DuePrompt) + formatter.format(due.toJavaDate()))
-				+ (completed != null ? (due != null || dtstart != null ? ", " : "") + c.getString(R.string.CompletedPrompt) + formatter.format(completed.toJavaDate()):"")
+		return (dtstart == null ? "" : c.getString(R.string.FromPrompt) + formatter.format(dtstart.toJavaDate())) +
+				(dtstart != null && due != null ? " - " : "") +
+				(due == null ? "" : c.getString(R.string.DuePrompt) + formatter.format(due.toJavaDate())) +
+				(completed != null ? (due != null || dtstart != null ? ", " : "") + 
+						c.getString(R.string.CompletedPrompt) + formatter.format(completed.toJavaDate()):"")
 				;
 	}
 	
