@@ -52,7 +52,7 @@ public abstract class DatabaseTableManager {
 	}
 	protected void printStackTraceInfo() {
 		int base = 3;
-		int depth = 5;
+		int depth = 10;
 		StackTraceElement[] stack = Thread.currentThread().getStackTrace();
 		String info = "\t"+stack[base].toString();
 		for (int i = base+1; i < stack.length && i< base+depth; i++)
@@ -112,6 +112,7 @@ public abstract class DatabaseTableManager {
 			printStackTraceInfo();
 			inTx = true;
 			db = dbHelper.getReadableDatabase();
+			db.beginTransaction();
 			break;
 		case OPEN_WRITETX:
 			if (Constants.debugDatabaseManager) Log.d(TAG,"DB:"+this.getTableName()+" OPEN_WRITETX:");
