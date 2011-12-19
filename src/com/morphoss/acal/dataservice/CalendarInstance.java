@@ -2,6 +2,9 @@ package com.morphoss.acal.dataservice;
 
 import java.util.ArrayList;
 
+import android.util.Log;
+
+import com.morphoss.acal.Constants;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.davacal.AcalAlarm;
@@ -16,6 +19,9 @@ import com.morphoss.acal.davacal.VTodo;
 
 public abstract class CalendarInstance {
 
+	private static final String TAG = "aCal CalendarInstance";
+	private static final boolean DEBUG = true & Constants.DEBUG_MODE;
+	
 	protected long collectionId;
 	protected long resourceId;
 	protected AcalDateTime dtstart;
@@ -59,11 +65,18 @@ public abstract class CalendarInstance {
 		
 	}
 
-	public CalendarInstance(Masterable vEvent, AcalDateTime dtstart, AcalDuration duration) {
-		this(vEvent.getCollectionId(), vEvent.getResourceId(), dtstart,
-				(duration == null || dtstart == null ? null : AcalDateTime.addDuration(dtstart, duration)),
-				vEvent.getAlarms(), vEvent.getRRule(), dtstart.toPropertyString(PropertyName.RECURRENCE_ID),
-				vEvent.getSummary(), vEvent.getLocation(), vEvent.getDescription(),vEvent.getResource().getEtag());
+	public CalendarInstance(Masterable masterInstance, AcalDateTime dtstart, AcalDateTime dtend) {
+		this(masterInstance.getCollectionId(),
+				masterInstance.getResourceId(),
+				dtstart,
+				dtend,
+				masterInstance.getAlarms(),
+				masterInstance.getRRule(),
+				(dtstart == null ? (dtend == null ? null : dtend.toPropertyString(PropertyName.RECURRENCE_ID)) : dtstart.toPropertyString(PropertyName.RECURRENCE_ID)),
+				masterInstance.getSummary(), 
+				masterInstance.getLocation(),
+				masterInstance.getDescription(),
+				masterInstance.getResource().getEtag());
 	}
 
 	public AcalDateTime getEnd() {
@@ -128,10 +141,11 @@ public abstract class CalendarInstance {
 				obj = ((VCalendar)comp).getMasterChild();
 			else
 				obj = ((VCalendar)comp).getChildFromRecurrenceId(RecurrenceId.fromString(rrid));
+
 			if (obj instanceof VEvent) {
-				return new EventInstance((VEvent)obj, obj.getStart(), obj.getDuration());
+				return new EventInstance((VEvent)obj, obj.getStart(), obj.getEnd());
 			} else if (obj instanceof VTodo) {
-				return new TodoInstance((VTodo)obj, obj.getStart(), obj.getDuration());
+				return new TodoInstance((VTodo)obj, obj.getStart(), obj.getEnd());
 			} else {
 				throw new IllegalArgumentException("Resource does not map to a known Componant Type");
 			}

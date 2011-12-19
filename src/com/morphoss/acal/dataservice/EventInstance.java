@@ -10,12 +10,15 @@ import com.morphoss.acal.davacal.VEvent;
 
 public class EventInstance extends CalendarInstance {
 
-
 	public EventInstance(VEvent vEvent, AcalDateTime dtstart, AcalDuration duration) {
 		super(vEvent.getCollectionId(), vEvent.getResourceId(), dtstart, AcalDateTime.addDuration(dtstart, duration),
 				vEvent.getAlarms(), vEvent.getRRule(), dtstart.toPropertyString(PropertyName.RECURRENCE_ID),
 				vEvent.getSummary(), vEvent.getLocation(), vEvent.getDescription(),vEvent.getResource().getEtag());
 
+	}
+
+	public EventInstance(VEvent vEvent, AcalDateTime dtstart, AcalDateTime dtend ) {
+		super(vEvent,dtstart,dtend);
 	}
 	
 	private EventInstance(EVENT_BUILDER builder) throws BadlyConstructedEventException {
