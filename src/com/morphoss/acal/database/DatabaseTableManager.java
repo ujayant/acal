@@ -24,6 +24,7 @@ import com.morphoss.acal.Constants;
 public abstract class DatabaseTableManager {
 
 	protected boolean inTx = false;
+	protected boolean inReadTx = false;
 	private boolean sucTx = false;
 
 	public static final int OPEN_READ = 1;
@@ -52,7 +53,7 @@ public abstract class DatabaseTableManager {
 	}
 	protected void printStackTraceInfo() {
 		int base = 3;
-		int depth = 5;
+		int depth = 10;
 		StackTraceElement[] stack = Thread.currentThread().getStackTrace();
 		String info = "\t"+stack[base].toString();
 		for (int i = base+1; i < stack.length && i< base+depth; i++)
@@ -86,13 +87,6 @@ public abstract class DatabaseTableManager {
 
 
 	protected void openDB(final int type) {
-		if ( db != null && db.isOpen() ) {
-			if ( type == OPEN_READTX || type == OPEN_WRITETX ) {
-				inTx = true;
-				if ( type == OPEN_WRITETX && !db.inTransaction() ) db.beginTransaction();
-			}
-			return;
-		}
 		if (inTx || sucTx ) throw new SQLiteMisuseException("Tried to open DB when already open");
 		dbHelper = new AcalDBHelper(context);
 		changes = new ArrayList<DataChangeEvent>();
@@ -111,6 +105,7 @@ public abstract class DatabaseTableManager {
 			if (Constants.debugDatabaseManager) Log.d(TAG,"DB:"+this.getTableName()+" OPEN_READTX:");
 			printStackTraceInfo();
 			inTx = true;
+			inReadTx = true;
 			db = dbHelper.getReadableDatabase();
 			break;
 		case OPEN_WRITETX:
@@ -144,6 +139,7 @@ public abstract class DatabaseTableManager {
 			printStackTraceInfo();
 			if (!inTx) throw new IllegalStateException("Tried to close a db transaction when not in one!");
 			inTx = false;
+			inReadTx = false;
 			sucTx = false;
 			break;
 		default:
@@ -154,15 +150,20 @@ public abstract class DatabaseTableManager {
 	}
 
 	protected void beginReadQuery() {
-		if (!inTx || db == null || !db.isOpen()) openDB(OPEN_READ);
+		if (!inTx && !inReadTx && db == null) 
+			openDB(OPEN_READ);
+		else if (!inTx && !inReadTx && db != null) throw new IllegalStateException("BeginRead Query called in invalid state");
 	}
 
 	protected void endQuery() {
-		if (!inTx) closeDB(CLOSE);
+		if (db == null) throw new IllegalStateException("End query called on closed db");
+		if (!inTx && !inReadTx) closeDB(CLOSE);
 	}
 
 	protected void beginWriteQuery() {
-		if (!inTx) openDB(OPEN_WRITE);
+		if (!inTx && db == null) openDB(OPEN_WRITE);
+		else if (inReadTx) throw new IllegalStateException("Can not begin write query while in ReadOnly tx");
+		else if (!inTx && db != null) throw new IllegalStateException("BeginWrite called when db already open and not in tx");
 	}
 
 
@@ -175,15 +176,14 @@ public abstract class DatabaseTableManager {
 	}
 
 	public void setTxSuccessful() {
-		if (!inTx || db == null || !db.isOpen()) throw new IllegalStateException("Tried to set Tx Successful when not in TX");
+		if (!inTx || inReadTx || db == null) throw new IllegalStateException("Tried to set Tx Successful when not in (writeable) TX");
 		db.setTransactionSuccessful();
 		this.sucTx = true;
 	}
 
 	public void endTransaction() {
 		if (!inTx)  throw new IllegalStateException("Tried to end Tx when not in TX");
-		//if ( db.inTransaction() )
-		db.endTransaction();
+		if (!inReadTx) db.endTransaction();
 		closeDB(CLOSE_TX);
 	}
 
@@ -229,6 +229,7 @@ public abstract class DatabaseTableManager {
 		private ArrayList<DMAction> actions = new ArrayList<DMAction>();
 		public void addAction(DMAction action) { actions.add(action); }
 		public boolean process(DatabaseTableManager dm) {
+			if (inReadTx) throw new IllegalStateException("Can not process a query list if we are in a read only transaction!");
 			boolean res = false;
 			boolean openDb = false;
 			try {
