@@ -15,13 +15,9 @@ import android.util.Log;
 
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.acaltime.AcalDateTime;
-import com.morphoss.acal.database.DatabaseTableManager.DMDeleteQuery;
-import com.morphoss.acal.database.DatabaseTableManager.DMInsertQuery;
-import com.morphoss.acal.database.DatabaseTableManager.DMQueryBuilder;
-import com.morphoss.acal.database.DatabaseTableManager.DMQueryList;
-import com.morphoss.acal.database.DatabaseTableManager.DMUpdateQuery;
+import com.morphoss.acal.database.DMQueryBuilder;
+import com.morphoss.acal.database.DMQueryList;
 import com.morphoss.acal.database.DatabaseTableManager.QUERY_ACTION;
-import com.morphoss.acal.database.resourcesmanager.ResourceManager;
 import com.morphoss.acal.database.resourcesmanager.ResourceProcessingException;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager.WriteableResourceTableManager;
@@ -352,7 +348,7 @@ public class RRInitialCollectionSync implements ResourceRequest {
 		}
 
 		//ResourceModification.commitChangeList(acalService, changeList, processor.getTableName());
-		processor.doList(queryList);
+		processor.processActions(queryList);
 
 	}
 

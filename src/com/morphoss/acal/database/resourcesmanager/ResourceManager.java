@@ -20,14 +20,14 @@ import android.util.Log;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
+import com.morphoss.acal.database.DMAction;
+import com.morphoss.acal.database.DMDeleteQuery;
+import com.morphoss.acal.database.DMInsertQuery;
+import com.morphoss.acal.database.DMQueryBuilder;
+import com.morphoss.acal.database.DMQueryList;
+import com.morphoss.acal.database.DMUpdateQuery;
 import com.morphoss.acal.database.DataChangeEvent;
 import com.morphoss.acal.database.DatabaseTableManager;
-import com.morphoss.acal.database.DatabaseTableManager.DMAction;
-import com.morphoss.acal.database.DatabaseTableManager.DMDeleteQuery;
-import com.morphoss.acal.database.DatabaseTableManager.DMInsertQuery;
-import com.morphoss.acal.database.DatabaseTableManager.DMQueryBuilder;
-import com.morphoss.acal.database.DatabaseTableManager.DMQueryList;
-import com.morphoss.acal.database.DatabaseTableManager.DMUpdateQuery;
 import com.morphoss.acal.database.cachemanager.CacheManager;
 import com.morphoss.acal.database.resourcesmanager.requesttypes.BlockingResourceRequestWithResponse;
 import com.morphoss.acal.database.resourcesmanager.requesttypes.ReadOnlyBlockingRequestWithResponse;
@@ -43,7 +43,7 @@ public class ResourceManager implements Runnable {
 	// The current instance
 	private static ResourceManager instance = null;
 	public static boolean DEBUG = false && Constants.DEBUG_MODE;
-	
+
 	private volatile int numReadsProcessing = 0;
 
 	// Get an instance
@@ -54,7 +54,7 @@ public class ResourceManager implements Runnable {
 	}
 
 	public static final String TAG = "aCal ResourceManager";
-	
+
 	// get and instance and add a callback handler to receive notfications of
 	// change
 	// It is vital that classes remove their handlers when terminating
@@ -118,16 +118,16 @@ public class ResourceManager implements Runnable {
 		while (running) {
 			// do stuff
 			if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG,"Thread Opened...");
-			
+
 			while ( !readQueue.isEmpty() || !writeQueue.isEmpty() ){
-			
+
 				//process reads first
 				if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG,readQueue.size()+" items in read queue, "+writeQueue.size()+" items in write queue");
 
 				if (!readQueue.isEmpty()) {
 					//Tell the processor that we are about to send a buch of reads.
 					getRPInstance().beginReadTransaction();
-					
+
 					//Start all read processes
 					while (!readQueue.isEmpty()) {
 						if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG,readQueue.size()+" items in read queue.");
@@ -148,19 +148,19 @@ public class ResourceManager implements Runnable {
 							Log.e(TAG, "Error processing read request: "+Log.getStackTraceString(e));
 						}
 					}
-	
+
 					//Wait until all processes have finished
 					while (this.numReadsProcessing > 0) {
 						try {
 							Thread.sleep(10);
 						} catch (Exception e) {
-							
+
 						}
 					}
-					
+
 					//tell processor that we are done
 					getRPInstance().endTransaction();
-					
+
 				}
 				else {
 					//process writes
@@ -212,7 +212,7 @@ public class ResourceManager implements Runnable {
 		writeQueue.offer(request);
 		threadHolder.open();
 	}
-	
+
 	public <E> ResourceResponse<E> sendBlockingRequest(BlockingResourceRequestWithResponse<E> request) {
 		if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG, "Received Blocking Request: "+request.getClass());
 		writeQueue.offer(request);
@@ -225,14 +225,14 @@ public class ResourceManager implements Runnable {
 		Thread.currentThread().setPriority(priority);
 		return request.getResponse();
 	}
-	
+
 	// Request handlers
 	public void sendRequest(ReadOnlyResourceRequest request) {
 		if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG, "Received Read Request: "+request.getClass());
 		readQueue.offer(request);
 		threadHolder.open();
 	}
-	
+
 	public <E> ResourceResponse<E> sendBlockingRequest(ReadOnlyBlockingRequestWithResponse<E> request) {
 		if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG, "Received Blocking Read Request: "+request.getClass());
 		readQueue.offer(request);
@@ -245,8 +245,8 @@ public class ResourceManager implements Runnable {
 		Thread.currentThread().setPriority(priority);
 		return request.getResponse();
 	}
-	
-	
+
+
 	public interface WriteableResourceTableManager extends ReadOnlyResourceTableManager {
 		public long insert(String nullColumnHack, ContentValues values);
 		public int update(ContentValues values, String whereClause,	String[] whereArgs);
@@ -261,9 +261,9 @@ public class ResourceManager implements Runnable {
 		public DMInsertQuery getNewInsertQuery(String nullColumnHack, ContentValues values);
 		public DMUpdateQuery getNewUpdateQuery(ContentValues values, String whereClause, String[] whereArgs);
 		public DMQueryBuilder getNewQueryBuilder();
-		public void doList(DMQueryList queryList);
+		public boolean processActions(DMQueryList queryList);
 	}
-	
+
 	public interface ReadOnlyResourceTableManager {
 		public void process(ResourceRequest r);
 		public ConnectivityManager getConectivityService();
@@ -300,9 +300,9 @@ public class ResourceManager implements Runnable {
 		public static final String EARLIEST_START = "earliest_start";
 		public static final String LATEST_END = "latest_end";
 		public static final String EFFECTIVE_TYPE = "effective_type";
-		
+
 		public static final String IS_PENDING = "is_pending";	//this is a quasi field that tells use weather a resource came from the pending
-																//table or the resource table
+		//table or the resource table
 
 
 		//PendingChanges Table Constants
@@ -327,12 +327,12 @@ public class ResourceManager implements Runnable {
 
 		public static final String TAG = "acal Resources RequestProccessor";
 
-		
+
 		private ResourceTableManager() {
 			super(ResourceManager.this.context);
 		}
 
-		
+
 		public void processRead(ReadOnlyResourceRequest request) {
 			try {
 				request.process(this);
@@ -404,15 +404,15 @@ public class ResourceManager implements Runnable {
 			String effectiveType = null;
 			if ( values.getAsString(RESOURCE_DATA) != null ) {
 				try {
-	
+
 					VComponent comp = VComponent.createComponentFromResource(Resource.fromContentValues(values));
-					
+
 					if ( comp == null ) {
 						Log.w(TAG, "Unable to parse VComponent from:\n"+values.getAsString(RESOURCE_DATA));
 					}
 					else {
 						effectiveType = comp.getEffectiveType();
-						
+
 						if (comp instanceof VCalendar) {
 							VCalendar vCal = (VCalendar)comp;
 							AcalRepeatRule rrule = AcalRepeatRule.fromVCalendar(vCal);
@@ -442,7 +442,7 @@ public class ResourceManager implements Runnable {
 			if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG, "Resource Insert Begin");
 			return super.insert(nullColumnHack, preProcessValues(values));
 		}
-		
+
 		/**
 		 * This override is important to ensure earliest start and latest end are always set
 		 */
@@ -534,7 +534,7 @@ public class ResourceManager implements Runnable {
 
 		public boolean doSyncListAndToken(DMQueryList newChangeList, long collectionId, String syncToken) {
 			this.beginTransaction();
-			boolean success = newChangeList.process(this);
+			boolean success = this.processActions(newChangeList);
 
 			if ( syncToken != null && success) {
 				//Update sync token
@@ -603,97 +603,88 @@ public class ResourceManager implements Runnable {
 			cursor.close();
 			return false;
 		}
-	
-	
-	public boolean marshallChangesToSync(ArrayList<ContentValues> pendingChangesList) {
-		this.beginReadQuery();
-		Cursor pendingCursor = db.query(PENDING_DATABASE_TABLE, null, null, null, null, null, null);
-		
-		if ( pendingCursor.getCount() == 0 ) {
+
+
+		public boolean marshallChangesToSync(ArrayList<ContentValues> pendingChangesList) {
+			this.beginReadQuery();
+			Cursor pendingCursor = db.query(PENDING_DATABASE_TABLE, null, null, null, null, null, null);
+
+			if ( pendingCursor.getCount() == 0 ) {
+				pendingCursor.close();
+				return false;
+			}
+			pendingCursor.moveToFirst();
+			while( pendingCursor.moveToNext() ) {
+				ContentValues cv = new ContentValues();
+				DatabaseUtils.cursorRowToContentValues(pendingCursor, cv);
+				pendingChangesList.add(cv);
+			}
+
 			pendingCursor.close();
-			return false;
+			this.endQuery();
+			return ( pendingChangesList.size() != 0 );
 		}
-		pendingCursor.moveToFirst();
-		while( pendingCursor.moveToNext() ) {
-			ContentValues cv = new ContentValues();
-			DatabaseUtils.cursorRowToContentValues(pendingCursor, cv);
-			pendingChangesList.add(cv);
+
+		public void deletePendingChange(Integer pendingId) {
+			this.beginWriteQuery();
+			db.delete(PENDING_DATABASE_TABLE, PENDING_ID+" = ?", new String[]{pendingId+""});
+			this.endQuery();
 		}
-		
-		pendingCursor.close();
-		this.endQuery();
-		return ( pendingChangesList.size() != 0 );
-	}
 
-	public void deletePendingChange(Integer pendingId) {
-		this.beginWriteQuery();
-		db.delete(PENDING_DATABASE_TABLE, PENDING_ID+" = ?", new String[]{pendingId+""});
-		this.endQuery();
-	}
+		public void updateCollection(long collectionId, ContentValues collectionData) {
+			this.beginWriteQuery();
+			db.update(DavCollections.DATABASE_TABLE, collectionData, DavCollections._ID+" =?", new String[]{collectionId+""});
+			this.endQuery();
 
-	public void updateCollection(long collectionId, ContentValues collectionData) {
-		this.beginWriteQuery();
-		db.update(DavCollections.DATABASE_TABLE, collectionData, DavCollections._ID+" =?", new String[]{collectionId+""});
-		this.endQuery();
-		
-	}
-	public boolean marshallCollectionsToSync(ArrayList<ContentValues> pendingChangesList) {
-		Cursor pendingCursor = context.getContentResolver().query(DavCollections.CONTENT_URI, null,
+		}
+		public boolean marshallCollectionsToSync(ArrayList<ContentValues> pendingChangesList) {
+			Cursor pendingCursor = context.getContentResolver().query(DavCollections.CONTENT_URI, null,
 					DavCollections.SYNC_METADATA+"=1 AND ("+DavCollections.ACTIVE_EVENTS
-						+"=1 OR "+DavCollections.ACTIVE_TASKS
-						+"=1 OR "+DavCollections.ACTIVE_JOURNAL
-						+"=1 OR "+DavCollections.ACTIVE_ADDRESSBOOK+"=1) "
-						,
+					+"=1 OR "+DavCollections.ACTIVE_TASKS
+					+"=1 OR "+DavCollections.ACTIVE_JOURNAL
+					+"=1 OR "+DavCollections.ACTIVE_ADDRESSBOOK+"=1) "
+					,
 					null, null);
-		if ( pendingCursor.getCount() == 0 ) {
+			if ( pendingCursor.getCount() == 0 ) {
+				pendingCursor.close();
+				return false;
+			}
+
+			pendingChangesList = new ArrayList<ContentValues>();
+			while( pendingCursor.moveToNext() ) {
+				ContentValues cv = new ContentValues();
+				DatabaseUtils.cursorRowToContentValues(pendingCursor, cv);
+				pendingChangesList.add(cv);
+			}
+
 			pendingCursor.close();
-			return false;
+
+			return ( pendingChangesList.size() != 0 );
 		}
 
-		pendingChangesList = new ArrayList<ContentValues>();
-		while( pendingCursor.moveToNext() ) {
-			ContentValues cv = new ContentValues();
-			DatabaseUtils.cursorRowToContentValues(pendingCursor, cv);
-			pendingChangesList.add(cv);
+		@Override
+		public DMDeleteQuery getNewDeleteQuery(String whereClause, String[] whereArgs) {
+			return new DMDeleteQuery(whereClause, whereArgs);
 		}
-		
-		pendingCursor.close();
-		
-		return ( pendingChangesList.size() != 0 );
-	}
 
-	@Override
-	public DMDeleteQuery getNewDeleteQuery(String whereClause, String[] whereArgs) {
-		return new DMDeleteQuery(whereClause, whereArgs);
-	}
+		@Override
+		public DMInsertQuery getNewInsertQuery(String nullColumnHack, ContentValues values) {
+			return new DMInsertQuery(nullColumnHack, values);
+		}
 
-	@Override
-	public DMInsertQuery getNewInsertQuery(String nullColumnHack, ContentValues values) {
-		return new DMInsertQuery(nullColumnHack, values);
-	}
+		@Override
+		public DMQueryBuilder getNewQueryBuilder() {
+			return new DMQueryBuilder();
+		}
 
-	@Override
-	public DMQueryBuilder getNewQueryBuilder() {
-		return new DMQueryBuilder();
-	}
+		@Override
+		public DMQueryList getNewQueryList() {
+			return new DMQueryList();
+		}
 
-	@Override
-	public DMQueryList getNewQueryList() {
-		return new DMQueryList();
-	}
-
-	@Override
-	public DMUpdateQuery getNewUpdateQuery(ContentValues values, String whereClause, String[] whereArgs) {
-		return new DMUpdateQuery(values, whereClause, whereArgs);
-	}
-
-	@Override
-	public void doList(DMQueryList queryList) {
-		queryList.process(this);
-	}
-
-	
-	
-	
+		@Override
+		public DMUpdateQuery getNewUpdateQuery(ContentValues values, String whereClause, String[] whereArgs) {
+			return new DMUpdateQuery(values, whereClause, whereArgs);
+		}
 	}
 }

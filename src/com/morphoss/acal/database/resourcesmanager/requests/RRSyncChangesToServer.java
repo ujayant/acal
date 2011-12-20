@@ -19,12 +19,12 @@ import android.util.Log;
 
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.StaticHelpers;
-import com.morphoss.acal.database.DatabaseTableManager.DMAction;
-import com.morphoss.acal.database.DatabaseTableManager.DMQueryBuilder;
+import com.morphoss.acal.database.DMAction;
+import com.morphoss.acal.database.DMQueryBuilder;
 import com.morphoss.acal.database.DatabaseTableManager.QUERY_ACTION;
+import com.morphoss.acal.database.resourcesmanager.ResourceProcessingException;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager.WriteableResourceTableManager;
-import com.morphoss.acal.database.resourcesmanager.ResourceProcessingException;
 import com.morphoss.acal.database.resourcesmanager.requesttypes.ResourceRequest;
 import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VCard;

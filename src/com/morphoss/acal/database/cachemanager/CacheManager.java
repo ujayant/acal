@@ -18,9 +18,11 @@ import com.morphoss.acal.Constants;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.database.AcalDBHelper;
+import com.morphoss.acal.database.DMDeleteQuery;
+import com.morphoss.acal.database.DMQueryBuilder;
+import com.morphoss.acal.database.DMQueryList;
 import com.morphoss.acal.database.DataChangeEvent;
 import com.morphoss.acal.database.DatabaseTableManager;
-import com.morphoss.acal.database.DatabaseTableManager.DMQueryList;
 import com.morphoss.acal.database.DatabaseTableManager.QUERY_ACTION;
 import com.morphoss.acal.database.resourcesmanager.ResourceChangedEvent;
 import com.morphoss.acal.database.resourcesmanager.ResourceChangedListener;
@@ -409,12 +411,12 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 			
 			//put new data on the process queue
 			
-			DMQueryList inserts = CTMinstance.new DMQueryList();
+			DMQueryList inserts = new DMQueryList();
 			
 			Log.println(Constants.LOGD,TAG, "Have response from Resource manager for range request.");
 			//We should have exclusive DB access at this point
 			Log.println(Constants.LOGD,TAG, "Queueing delete of events in "+range);
-			inserts.addAction(CTMinstance.new DMQueryBuilder()
+			inserts.addAction(new DMQueryBuilder()
 							.setAction(QUERY_ACTION.DELETE)
 							.setWhereClause(FIELD_START+" >= ? AND "+FIELD_START+" <= ?")
 							.setwhereArgs(new String[]{range.start.getMillis()+"", range.end.getMillis()+""})
@@ -424,14 +426,14 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 			for (CacheObject event : events) {
 				if ( event.getStart() == Long.MAX_VALUE || event.getEnd() == Long.MAX_VALUE ) {
 					// Single instance tasks with a null start date can get included multiple times 
-					inserts.addAction(CTMinstance.new DMDeleteQuery(
+					inserts.addAction(new DMDeleteQuery(
 							CacheTableManager.FIELD_RESOURCE_ID+"="+event.getResourceId() +
 							" AND "+CacheTableManager.FIELD_DTSTART+"="+event.getStart() +
 							" AND "+CacheTableManager.FIELD_DTEND+"="+event.getEnd()
 							, null));
 				}
 				ContentValues toInsert = event.getCacheCVs();
-				inserts.addAction(CTMinstance.new DMQueryBuilder().setAction(QUERY_ACTION.INSERT).setValues(toInsert).build());
+				inserts.addAction(new DMQueryBuilder().setAction(QUERY_ACTION.INSERT).setValues(toInsert).build());
 			}
 
 			this.sendRequest(new CRAddRangeResult(inserts, range));
@@ -617,7 +619,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 
 		AcalDateRange windowRange = window.getCurrentWindow();
 		if (windowRange == null) return; // dont care 
-		DMQueryList queries = CTMinstance.new DMQueryList();
+		DMQueryList queries = new DMQueryList();
 		Resource r;
 		VComponent comp;
 		ArrayList<CacheObject> newData;
@@ -642,11 +644,11 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 							((VCalendar) comp).appendCacheEventInstancesBetween(newData, windowRange);
 
 							// Delete existing first
-							queries.addAction(CTMinstance.new DMDeleteQuery(CacheTableManager.FIELD_RESOURCE_ID+"="+r.getResourceId(), null));
+							queries.addAction(new DMDeleteQuery(CacheTableManager.FIELD_RESOURCE_ID+"="+r.getResourceId(), null));
 
 							// Then add all instances
 							for (CacheObject co : newData)
-								queries.addAction(CTMinstance.new DMQueryBuilder().setAction(QUERY_ACTION.INSERT)
+								queries.addAction(new DMQueryBuilder().setAction(QUERY_ACTION.INSERT)
 										.setValues(co.getCacheCVs()).build());
 						}
 
@@ -661,7 +663,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 					break;
 				case DELETE:
 					long rid = change.getData().getAsLong(ResourceManager.ResourceTableManager.RESOURCE_ID);
-					queries.addAction(CTMinstance.new DMDeleteQuery(CacheTableManager.FIELD_RESOURCE_ID+"="+rid, null));
+					queries.addAction(new DMDeleteQuery(CacheTableManager.FIELD_RESOURCE_ID+"="+rid, null));
 					break;
 			}
 		}

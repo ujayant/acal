@@ -25,12 +25,12 @@ import com.morphoss.acal.Constants;
 import com.morphoss.acal.DatabaseChangedEvent;
 import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.acaltime.AcalDateTime;
-import com.morphoss.acal.database.DatabaseTableManager.DMQueryBuilder;
-import com.morphoss.acal.database.DatabaseTableManager.DMQueryList;
+import com.morphoss.acal.database.DMQueryBuilder;
+import com.morphoss.acal.database.DMQueryList;
 import com.morphoss.acal.database.DatabaseTableManager.QUERY_ACTION;
+import com.morphoss.acal.database.resourcesmanager.ResourceProcessingException;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager.WriteableResourceTableManager;
-import com.morphoss.acal.database.resourcesmanager.ResourceProcessingException;
 import com.morphoss.acal.database.resourcesmanager.requesttypes.ResourceRequest;
 import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.providers.Servers;
@@ -441,7 +441,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 			Log.println(Constants.LOGD,TAG,"Found sync token of '"+syncToken+"' in sync-report response." );
 		
 		//ResourceModification.commitChangeList(context, changeList, processor.getTableName(this));
-		processor.doList(queryList);
+		processor.processActions(queryList);
 	
 		return needSyncAfterwards;
 	}
@@ -548,7 +548,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 		}
 
 		//ResourceModification.commitChangeList(context, changeList, processor.getTableName(this));
-		processor.doList(queryList);
+		processor.processActions(queryList);
 		
 		return needSyncAfterwards;
 	}
@@ -745,7 +745,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 			}
 
 			//ResourceModification.commitChangeList(context, changeList, processor.getTableName(this));
-			processor.doList(queryList);
+			processor.processActions(queryList);
 			try { Thread.sleep(300); } catch ( InterruptedException e ) { }
 		}
 
@@ -924,7 +924,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 		}
 
 		//ResourceModification.commitChangeList(context, changeList, processor.getTableName(this));
-		processor.doList(queryList);
+		processor.processActions(queryList);
 
 		if (Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents )
 			Log.println(Constants.LOGV,TAG, "syncWithGet() for " + hrefs.length + " resources took "

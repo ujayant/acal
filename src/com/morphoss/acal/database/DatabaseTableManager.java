@@ -1,6 +1,7 @@
 package com.morphoss.acal.database;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -225,143 +226,27 @@ public abstract class DatabaseTableManager {
 		return count;
 	}
 
-	public class DMQueryList {
-		private ArrayList<DMAction> actions = new ArrayList<DMAction>();
-		public void addAction(DMAction action) { actions.add(action); }
-		public boolean process(DatabaseTableManager dm) {
-			if (inReadTx) throw new IllegalStateException("Can not process a query list if we are in a read only transaction!");
-			boolean res = false;
-			boolean openDb = false;
-			try {
-				//Queries are always done as in a transaction - we need to see if we are already in one or not.
-				if (DatabaseTableManager.this.inTx) {
-					for (DMAction action : actions) { action.process(dm); db.yieldIfContendedSafely(); }
-				} else {
-					dm.beginTransaction();
-					openDb = true;
-					for (DMAction action : actions) { action.process(dm); db.yieldIfContendedSafely(); }
-					dm.setTxSuccessful();
-					
-				}
-				res = true;
-			} catch (Exception e) {
-				Log.e(TAG, "Exception processing request: "+e+Log.getStackTraceString(e));
-			} finally { if (openDb) dm.endTransaction(); }
-			return res;
-		}
-		public boolean isEmpty() {
-			return actions.isEmpty();
-		}
-	}
-
-
-	public interface DMAction {
-		public void process(DatabaseTableManager dm);
-	}
-
-	public final class DMInsertQuery implements DMAction {
-
-		private final String nullColumnHack;
-		private final ContentValues values;
-
-		public DMInsertQuery(String nullColumnHack, ContentValues values) {
-			this.nullColumnHack = nullColumnHack;
-			this.values = values;
-		}
-
-		public void process(DatabaseTableManager dm) {
-			dm.insert(nullColumnHack, values);
-		}
-	}
-
-	public final class DMUpdateQuery implements DMAction {
-
-		private final ContentValues values;
-		private final String whereClause;
-		private final String[] whereArgs;
-
-		public DMUpdateQuery(ContentValues values, String whereClause, String[] whereArgs) {
-			this.values = values;
-			this.whereClause = whereClause;
-			this.whereArgs = whereArgs;
-		}
-
-		@Override
-		public void process(DatabaseTableManager dm) {
-			dm.update(values, whereClause, whereArgs);
-		}
-	}
-
-	public final class DMDeleteQuery implements DMAction {
-
-		private final String whereClause;
-		private final String[] whereArgs;
-
-		public DMDeleteQuery(String whereClause, String[] whereArgs) {
-			this.whereClause = whereClause;
-			this.whereArgs = whereArgs;
-		}
-
-		@Override
-		public void process(DatabaseTableManager dm) {
-			dm.delete(whereClause, whereArgs);			
-		}
-	}
-
-	public final class DMQueryBuilder {
-		private QUERY_ACTION action = null;
-		private String nullColumnHack = null;
-		private ContentValues values = null;
-		private String whereClause = null;
-		private String[] whereArgs = null;
-
-		public DMQueryBuilder setAction(QUERY_ACTION action) {
-			this.action = action;
-			return this;
-		}
-
-		public QUERY_ACTION getAction() {
-			return this.action;
-		}
-
-		public DMQueryBuilder setNullColumnHack(String nullColumnHack) {
-			this.nullColumnHack = nullColumnHack;
-			return this;
-		}
-
-		public DMQueryBuilder setValues(ContentValues values) {
-			this.values = values;
-			return this;
-		}
-
-		public DMQueryBuilder setWhereClause(String whereClause) {
-			this.whereClause = whereClause;
-			return this;
-		}
-
-		public DMQueryBuilder setwhereArgs(String whereArgs[]) {
-			this.whereArgs = whereArgs;
-			return this;
-		}
-
-		public DMAction build() throws IllegalArgumentException {
-			if (action == null) throw new IllegalArgumentException("Can not build query without action set.");
-			switch (action) {
-			case INSERT:
-				if (values == null) throw new IllegalArgumentException("Can not build INSERT query without content values");
-				return new DMInsertQuery(nullColumnHack,values);
-			case UPDATE:
-				if (values == null) throw new IllegalArgumentException("Can not build UPDATE query without content values");
-				return new DMUpdateQuery(values, whereClause, whereArgs);
-			case DELETE:
-				return new DMDeleteQuery(whereClause, whereArgs);
-			default:
-				throw new IllegalStateException("Invalid action specified!");
+	
+	public boolean processActions(DMQueryList queryList) {
+		if (inReadTx) throw new IllegalStateException("Can not process a query list if we are in a read only transaction!");
+		List<DMAction> actions = queryList.getActions();
+		boolean res = false;
+		boolean openDb = false;
+		try {
+			//Queries are always done as in a transaction - we need to see if we are already in one or not.
+			if (DatabaseTableManager.this.inTx) {
+				for (DMAction action : actions) { action.process(this); db.yieldIfContendedSafely(); }
+			} else {
+				beginTransaction();
+				openDb = true;
+				for (DMAction action : actions) { action.process(this); db.yieldIfContendedSafely(); }
+				setTxSuccessful();
+				
 			}
-		}
+			res = true;
+		} catch (Exception e) {
+			Log.e(TAG, "Exception processing request: "+e+Log.getStackTraceString(e));
+		} finally { if (openDb) endTransaction(); }
+		return res;
 	}
-	
-	
-	
-	
 }
