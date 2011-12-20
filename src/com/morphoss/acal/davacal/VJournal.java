@@ -27,4 +27,9 @@ public class VJournal extends Masterable {
 	public VJournal(ComponentParts splitter, Resource r, VComponent parent) {
 		super(splitter, r, parent);
 	}
+
+	public VJournal( VCalendar parent ) {
+		super(VComponent.VJOURNAL, parent );
+	}
+
 }

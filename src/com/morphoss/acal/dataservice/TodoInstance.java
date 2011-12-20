@@ -1,6 +1,5 @@
 package com.morphoss.acal.dataservice;
 
-import com.morphoss.acal.Constants;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.davacal.VTodo;
 
@@ -18,11 +17,15 @@ public class TodoInstance extends CalendarInstance {
 	 * @param dtstart
 	 * @param due
 	 */
-	public TodoInstance(VTodo vTodo, AcalDateTime dtstart, AcalDateTime due) {
+	public TodoInstance( VTodo vTodo, AcalDateTime dtstart, AcalDateTime due ) {
 		super(vTodo, dtstart, due);
 
 		completed = vTodo.getCompleted();
 		percentComplete = vTodo.getPercentComplete();
+	}
+
+	public AcalDateTime getDue() {
+		return dtend;
 	}
 
 	public AcalDateTime getCompleted() {

@@ -27,23 +27,27 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
+import android.widget.Spinner;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.CompoundButton.OnCheckedChangeListener;
-import android.widget.SeekBar.OnSeekBarChangeListener;
 
 import com.morphoss.acal.AcalTheme;
 import com.morphoss.acal.Constants;
@@ -52,15 +56,24 @@ import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDateTimeFormatter;
 import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
+import com.morphoss.acal.database.cachemanager.CacheObject;
+import com.morphoss.acal.database.resourcesmanager.ResourceChangedEvent;
+import com.morphoss.acal.database.resourcesmanager.ResourceChangedListener;
+import com.morphoss.acal.database.resourcesmanager.ResourceManager;
+import com.morphoss.acal.database.resourcesmanager.ResourceResponse;
+import com.morphoss.acal.database.resourcesmanager.ResourceResponseListener;
+import com.morphoss.acal.database.resourcesmanager.requests.RRRequestInstance;
+import com.morphoss.acal.dataservice.CalendarInstance;
 import com.morphoss.acal.dataservice.Collection;
 import com.morphoss.acal.dataservice.MethodsRequired;
+import com.morphoss.acal.dataservice.TodoInstance;
 import com.morphoss.acal.davacal.AcalAlarm;
+import com.morphoss.acal.davacal.AcalAlarm.ActionType;
+import com.morphoss.acal.davacal.AcalAlarm.RelateWith;
 import com.morphoss.acal.davacal.SimpleAcalTodo;
 import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VComponent;
 import com.morphoss.acal.davacal.VTodo;
-import com.morphoss.acal.davacal.AcalAlarm.ActionType;
-import com.morphoss.acal.davacal.AcalAlarm.RelateWith;
 import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.service.aCalService;
 import com.morphoss.acal.widget.AlarmDialog;
@@ -68,7 +81,8 @@ import com.morphoss.acal.widget.DateTimeDialog;
 import com.morphoss.acal.widget.DateTimeSetListener;
 
 public class TodoEdit extends AcalActivity
-	implements OnCheckedChangeListener, OnSeekBarChangeListener {
+	implements OnCheckedChangeListener, OnSeekBarChangeListener,
+				ResourceChangedListener, ResourceResponseListener<CalendarInstance> {
 
 	public static final String TAG = "aCal TodoEdit";
 
@@ -96,6 +110,7 @@ public class TodoEdit extends AcalActivity
 	private static final int SET_REPEAT_RULE_DIALOG = 21;
 	private static final int SELECT_COLLECTION_DIALOG = 22;
 	private static final int INSTANCES_TO_CHANGE_DIALOG = 30;
+	private static final int LOADING_DIALOG = 0xfeed;
 
 	boolean prefer24hourFormat = false;
 	
@@ -139,7 +154,7 @@ public class TodoEdit extends AcalActivity
 	private RelativeLayout alarmsLayout;
 	private Button btnAddAlarm;
 	private LinearLayout collectionsLayout;
-	private Button btnCollection;
+	private Spinner spinnerCollection;
 	private Button btnSaveChanges;	
 	private Button btnCancelChanges;
 	
@@ -149,9 +164,8 @@ public class TodoEdit extends AcalActivity
 	private TextView percentCompleteText;
 	
 	//Active collections for create mode
-	private ContentValues[] activeCollections;
-	private ContentValues currentCollection;	//currently selected collection
-	private String[] collectionsArray;
+	private Collection currentCollection;	//currently selected collection
+	private CollectionForArrayAdapter[] collectionsArray;
 
 	private List<AcalAlarm> alarmList;
 	
@@ -159,7 +173,57 @@ public class TodoEdit extends AcalActivity
 	private String originalOccurence = "";
 
 	private int	currentOperation;
+	private static final int REFRESH = 0;
+	private static final int FAIL = 1;
+	private static final int CONFLICT = 2;
+	private static final int SHOW_LOADING = 3;
+	private static final int GIVE_UP = 4;
+	
+	private Dialog loadingDialog = null;
+	private ResourceManager	resourceManager;
 
+	
+	private Handler mHandler = new Handler() {
+		public void handleMessage(Message msg) {
+			if ( msg.what == REFRESH ) {
+				if ( loadingDialog != null ) {
+					loadingDialog.dismiss();
+					loadingDialog = null;
+				}
+				updateLayout();
+			}
+			else if ( msg.what == CONFLICT ) {
+				Toast.makeText(
+						TodoEdit.this,
+						"The resource you are editing has been changed or deleted on the server.",
+						5).show();
+			}
+			else if ( msg.what == SHOW_LOADING ) {
+				if ( todo == null ) showDialog(LOADING_DIALOG);
+			}
+			else if ( msg.what == FAIL ) {
+				Toast.makeText(TodoEdit.this,
+						"Error loading data.", 5)
+						.show();
+				finish();
+				return;
+			}
+			else if ( msg.what == GIVE_UP ) {
+				if ( loadingDialog != null ) {
+					loadingDialog.dismiss();
+					Toast.makeText(
+							TodoEdit.this,
+							"Error loading event data.",
+							Toast.LENGTH_LONG).show();
+					finish();
+					return;
+				}
+			}
+			
+		}
+	};
+
+	
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		this.setContentView(R.layout.todo_edit);
@@ -167,117 +231,117 @@ public class TodoEdit extends AcalActivity
 		//Ensure service is actually running
 		startService(new Intent(this, aCalService.class));
 
+		resourceManager = ResourceManager.getInstance(this,this);
+		requestTodoResource();
+
 		// Get time display preference
 		prefer24hourFormat = prefs.getBoolean(getString(R.string.prefTwelveTwentyfour), false);
 
 		alarmRelativeTimeStrings = getResources().getStringArray(R.array.RelativeAlarmTimes);
 		todoChangeRanges = getResources().getStringArray(R.array.TodoChangeAffecting);
-		
-		Bundle b = this.getIntent().getExtras();
-		getTodoAction(b);
-		if ( this.todo == null ) {
-			Log.d(TAG,"Unable to create VTodo object");
+
+		ContentValues[] taskCollections = DavCollections.getCollections( getContentResolver(), DavCollections.INCLUDE_TASKS );
+		if ( taskCollections.length == 0 ) {
+			Toast.makeText(this, getString(R.string.errorMustHaveActiveCalendar), Toast.LENGTH_LONG);
+			this.finish();	// can't work if no active collections
 			return;
 		}
+
+		this.collectionsArray = new CollectionForArrayAdapter[taskCollections.length];
+		int count = 0;
+		long collectionId;
+		Collection col;
+		for (ContentValues cv : taskCollections ) {
+			collectionId = cv.getAsLong(DavCollections._ID);
+			collectionsArray[count++] = new CollectionForArrayAdapter(this,collectionId);
+		}
+
 		this.populateLayout();
 	}
 
 	
-	private VTodo getTodoAction(Bundle b) {
+	private void requestTodoResource() {
 		currentOperation = ACTION_EDIT;
-		if ( b != null && b.containsKey("SimpleAcalTodo") ) {
-			
-			//TODO Fix this code to the new system
-			
-			return null;
-			/**this.sat = (SimpleAcalTodo) b.getParcelable("SimpleAcalTodo");
-			currentOperation = sat.operation;
-			try {
-				if (Constants.LOG_DEBUG)
-					Log.d(TAG, "Loading Todo: "+sat.summary );
-				VCalendar vc = (VCalendar) VComponent.fromDatabase(this, sat.resource.getResourceId());
-				vc.setEditable();
-				this.todo = (VTodo) ((VCalendar) vc).getMasterChild();
+		try {
+			Bundle b = this.getIntent().getExtras();
+			if ( b.containsKey(KEY_OPERATION) ) {
+				currentOperation = b.getInt(KEY_OPERATION);
 			}
-			catch( Exception e ) {
-				Log.e(TAG,Log.getStackTraceString(e));
-			} */
+			if ( b.containsKey(KEY_CACHE_OBJECT) ) {
+				CacheObject cacheTodo = (CacheObject) b.getParcelable(KEY_CACHE_OBJECT);
+				resourceManager.sendRequest(new RRRequestInstance(this, cacheTodo.getResourceId(), cacheTodo.getRecurrenceId()));
+				mHandler.sendMessageDelayed(mHandler.obtainMessage(SHOW_LOADING), 50);
+				mHandler.sendMessageDelayed(mHandler.obtainMessage(GIVE_UP), 10000);
+			}
+		}
+		catch (Exception e) {
+			Log.e(TAG, "No bundle from caller.", e);
 		}
 
-		//Get collection data
-		currentCollection = null;
-		activeCollections = DavCollections.getCollections( getContentResolver(), DavCollections.INCLUDE_TASKS );
-		long collectionId = -1;
-		if ( activeCollections.length > 0 )
-			collectionId = activeCollections[0].getAsInteger(DavCollections._ID);
-		else {
-			Toast.makeText(this, getString(R.string.errorMustHaveActiveCalendar), Toast.LENGTH_LONG);
-			this.finish();	// can't work if no active collections
-			return null;
+		if ( this.todo == null && currentOperation == ACTION_CREATE ) {
+			long preferredCollectionId = prefs.getLong(getString(R.string.DefaultCollection_PrefKey), -1);
+			if ( Collection.getInstance(preferredCollectionId, this) == null )
+				preferredCollectionId = collectionsArray[0].getCollectionId();
+
+			this.todo = new VTodo(preferredCollectionId);
+			this.todo.setSummary(getString(R.string.NewTaskTitle));
+			this.action = ACTION_CREATE;
 		}
-		this.collectionsArray = new String[activeCollections.length];
-		
+	}
+
+	
+	private void setTodo( VTodo newTodo ) {
+		this.todo = newTodo;
+		long collectionId = -1;		
 		if ( currentOperation == ACTION_EDIT ) {
-			try {
-				collectionId = todo.getCollectionId();
-				this.action = ACTION_MODIFY_ALL;
-				if ( isModifyAction() ) {
-					String rr = (String)  this.todo.getRRule();
-					if (rr != null && !rr.equals("") && !rr.equals(AcalRepeatRule.SINGLE_INSTANCE)) {
-						this.originalHasOccurrence = true;
-						this.originalOccurence = rr;
-					}
-					if (this.originalHasOccurrence) {
-						this.action = ACTION_MODIFY_SINGLE;
-					}
-					else {
-						this.action = ACTION_MODIFY_ALL;
-					}
+			collectionId = todo.getCollectionId();
+			this.action = ACTION_MODIFY_ALL;
+			if ( isModifyAction() ) {
+				String rr = (String)  this.todo.getRRule();
+				if (rr != null && !rr.equals("") && !rr.equals(AcalRepeatRule.SINGLE_INSTANCE)) {
+					this.originalHasOccurrence = true;
+					this.originalOccurence = rr;
 				}
-			}
-			catch (Exception e) {
-				if (Constants.LOG_DEBUG) Log.d(TAG, "No data from caller ");
+				if (this.originalHasOccurrence) {
+					this.action = ACTION_MODIFY_SINGLE;
+				}
+				else {
+					this.action = ACTION_MODIFY_ALL;
+				}
 			}
 		}
 		else if ( currentOperation == ACTION_COPY ) {
-			// Duplicate the todo into a new one.
-			try {
-				collectionId = todo.getCollectionId();
-			}
-			catch (Exception e) {
-				if (Constants.LOG_DEBUG)Log.d(TAG, "Error getting data from caller: "+e.getMessage());
-			}
+			collectionId = todo.getCollectionId();
 			this.action = ACTION_CREATE;
 		}
 
-		if ( this.todo == null ) {
+		if ( Collection.getInstance(collectionId,this) != null )
+			currentCollection = Collection.getInstance(collectionId,this);
 
-			Integer preferredCollectionId = Integer.parseInt(prefs.getString(getString(R.string.DefaultCollection_PrefKey), "-1"));
-			if ( preferredCollectionId != -1 ) {
-				for( ContentValues aCollection : activeCollections ) {
-					if ( preferredCollectionId == aCollection.getAsInteger(DavCollections._ID) ) {
-						collectionId = preferredCollectionId;
-						break;
-					}
-				}
-			}
-			this.todo = new VTodo(collectionId);
-			this.todo.setSummary(getString(R.string.NewTaskTitle));
-			this.action = ACTION_CREATE;
-
-		}
-
-		int count = 0;
-		for (ContentValues cv : activeCollections) {
-			if (cv.getAsInteger(DavCollections._ID) == collectionId) currentCollection = cv;
-			collectionsArray[count++] = cv.getAsString(DavCollections.DISPLAYNAME);
-		}
 		if ( todo.getCompleted() != null ) todo.setPercentComplete( 100 );
-		
-		return todo;
 	}
 
+	
+	/**
+	 * The ArrayAdapter needs something which can return a displayed value on toString() and it's
+	 * not really reasonable to add that sort of oddity to Collection itself.
+	 */
+	private class CollectionForArrayAdapter {
+		Collection c;
+		public CollectionForArrayAdapter(Context cx, long id) {
+			c = Collection.getInstance(id, cx);
+		}
 
+		public long getCollectionId() {
+			return c.getCollectionId();
+		}
+
+		public String toString() {
+			return c.getDisplayName();
+		}
+	}
+
+	
 	/**
 	 * Populate the screen initially.
 	 */
@@ -293,16 +357,12 @@ public class TodoEdit extends AcalActivity
 
 		//Collection
 		collectionsLayout = (LinearLayout)this.findViewById(R.id.TodoCollectionLayout);
-		btnCollection = (Button) this.findViewById(R.id.TodoEditCollectionButton);
-		if (activeCollections.length < 2) {
-			btnCollection.setEnabled(false);
+		spinnerCollection = (Spinner) this.findViewById(R.id.TodoEditCollectionSelect);
+		if (collectionsArray.length < 2) {
+			spinnerCollection.setEnabled(false);
 			collectionsLayout.setVisibility(View.GONE);
 		}
-		if ( action != ACTION_CREATE ) {
-			btnCollection.setEnabled(false);
-		}
-		
-		
+
 		//date/time fields
 		btnStartDate = (Button) this.findViewById(R.id.TodoFromDateTime);
 		btnDueDate = (Button) this.findViewById(R.id.TodoDueDateTime);
@@ -329,7 +389,6 @@ public class TodoEdit extends AcalActivity
 		setButtonDialog(btnCompleteDate, COMPLETED_DIALOG);
 		setButtonDialog(btnAddAlarm, ADD_ALARM_DIALOG);
 		setButtonDialog(btnAddRepeat, SET_REPEAT_RULE_DIALOG);
-		setButtonDialog(btnCollection, SELECT_COLLECTION_DIALOG);
 
 		AcalTheme.setContainerFromTheme(btnSaveChanges, AcalTheme.BUTTON);
 		AcalTheme.setContainerFromTheme(btnCancelChanges, AcalTheme.BUTTON);
@@ -349,8 +408,6 @@ public class TodoEdit extends AcalActivity
 
 		percentCompleteText = (TextView) this.findViewById(R.id.TodoPercentCompleteText);
 		percentCompleteBar = (SeekBar) this.findViewById(R.id.TodoPercentCompleteBar);
-		percentComplete = todo.getPercentComplete();
-		percentComplete = (percentComplete < 0 ? 0 : (percentComplete > 100 ? 100 : percentComplete));
 		percentCompleteBar.setIndeterminate(false);
 		percentCompleteBar.setMax(100);
 		percentCompleteBar.setKeyProgressIncrement(5);
@@ -358,16 +415,6 @@ public class TodoEdit extends AcalActivity
 		percentCompleteText.setText(Integer.toString(percentComplete)+"%");
 		percentCompleteBar.setProgress(percentComplete);
 		
-		String title = todo.getSummary();
-		todoName.setText(title);
-
-		String location = todo.getLocation();
-		locationView.setText(location);
-
-		String description = todo.getDescription();
-		notesView.setText(description);
-		
-		updateLayout();
 	}
 
 
@@ -378,6 +425,18 @@ public class TodoEdit extends AcalActivity
 		AcalDateTime start = todo.getStart();
 		AcalDateTime due = todo.getDue();
 		AcalDateTime completed = todo.getCompleted();
+
+		percentComplete = todo.getPercentComplete();
+		percentComplete = (percentComplete < 0 ? 0 : (percentComplete > 100 ? 100 : percentComplete));
+		String title = todo.getSummary();
+		todoName.setText(title);
+
+		String location = todo.getLocation();
+		locationView.setText(location);
+
+		String description = todo.getDescription();
+		notesView.setText(description);
+		
 		
 		Collection todoCollection = Collection.getInstance(todo.getTopParent().getCollectionId(), this);
 
@@ -385,10 +444,29 @@ public class TodoEdit extends AcalActivity
 		if ( colour == null ) colour = 0x70a0a0a0;
 		sidebar.setBackgroundColor(colour);
 		sidebarBottom.setBackgroundColor(colour);
-		AcalTheme.setContainerColour(btnCollection,colour);
-		btnCollection.setTextColor(AcalTheme.pickForegroundForBackground(colour));
+		AcalTheme.setContainerColour(spinnerCollection,colour);
+
+		try {
+			// Attempt to set text colour that works with (hopefully) background colour. 
+			((TextView) spinnerCollection
+						.getSelectedView())
+						.setTextColor(AcalTheme.pickForegroundForBackground(colour));
+		}
+		catch( Exception e ) {
+			// Oh well.  Some other way then... @todo.
+		}
 		todoName.setTextColor(colour);
-		btnCollection.setText(todoCollection.getDisplayName());
+
+		ArrayAdapter<CollectionForArrayAdapter> collectionAdapter = new ArrayAdapter(this,android.R.layout.select_dialog_item, collectionsArray);
+		int spinnerPosition = 0;
+		while( spinnerPosition < collectionsArray.length && collectionsArray[spinnerPosition].getCollectionId() != currentCollection.getCollectionId())
+			spinnerPosition++;
+
+		spinnerCollection.setAdapter(collectionAdapter);
+		if ( spinnerPosition < collectionsArray.length )
+			//set the default according to value
+			spinnerCollection.setSelection(spinnerPosition);
+		
 		
 		btnStartDate.setText( AcalDateTimeFormatter.fmtFull( start, prefer24hourFormat) );
 		btnDueDate.setText( AcalDateTimeFormatter.fmtFull( due, prefer24hourFormat) );
@@ -508,14 +586,14 @@ public class TodoEdit extends AcalActivity
 		}
 	}
 
-	private void setSelectedCollection(String name) {
-		for (ContentValues cv : activeCollections) {
-			if (cv.getAsString(DavCollections.DISPLAYNAME).equals(name)) {
-				this.currentCollection = cv; break;
-			}
-		}
+
+	private void setSelectedCollection(long collectionId) {
+
+		if ( Collection.getInstance(collectionId,this) != null )
+			currentCollection = Collection.getInstance(collectionId,this);
+
 		VCalendar vc = (VCalendar) this.todo.getTopParent();
-		vc.setCollection(this.currentCollection.getAsLong(DavCollections._ID));
+		vc.setCollection(this.currentCollection.getCollectionId());
 
 		this.updateLayout();
 	}
@@ -606,6 +684,17 @@ public class TodoEdit extends AcalActivity
 
 	//Dialogs
 	protected Dialog onCreateDialog(int id) {
+		switch ( id ) {
+			case LOADING_DIALOG:
+				AlertDialog.Builder builder = new AlertDialog.Builder(this);
+				builder.setTitle("Loading...");
+				builder.setCancelable(false);
+				loadingDialog = builder.create();
+				return loadingDialog;
+		}
+		if ( todo == null ) return null;
+
+		// Any dialogs after this point depend on todo having been initialised
 		AcalDateTime start = todo.getStart();
 		AcalDateTime due = todo.getDue();
 		AcalDateTime completed = todo.getCompleted();
@@ -672,18 +761,8 @@ public class TodoEdit extends AcalActivity
 						});
 
 
-			case SELECT_COLLECTION_DIALOG:
-				AlertDialog.Builder builder = new AlertDialog.Builder( this );
-				builder.setTitle( getString( R.string.ChooseACollection ) );
-				builder.setItems( this.collectionsArray, new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int item) {
-						setSelectedCollection( collectionsArray[item] );
-					}
-				} );
-				return builder.create();
-			
 			case ADD_ALARM_DIALOG:
-				builder = new AlertDialog.Builder( this );
+				AlertDialog.Builder builder = new AlertDialog.Builder( this );
 				builder.setTitle( getString( R.string.ChooseAlarmTime ) );
 				builder.setItems( alarmRelativeTimeStrings, new DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int item) {
@@ -840,6 +919,24 @@ public class TodoEdit extends AcalActivity
 			percentComplete = seekBar.getProgress();
 			percentCompleteText.setText(Integer.toString(percentComplete)+"%");
 		}
+	}
+
+
+	@Override
+	public void resourceChanged(ResourceChangedEvent event) {
+		// @todo Auto-generated method stub
+		
+	}
+
+
+	@Override
+	public void resourceResponse(ResourceResponse<CalendarInstance> response) {
+		int msg = FAIL;
+		if (response.wasSuccessful()) {
+			setTodo( VTodo.createComponentFromInstance((TodoInstance) response.result()) );
+			msg = REFRESH;
+		}
+		mHandler.sendMessage(mHandler.obtainMessage(msg));
 	}
 
 }

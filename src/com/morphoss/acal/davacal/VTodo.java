@@ -19,8 +19,8 @@
 package com.morphoss.acal.davacal;
 
 import com.morphoss.acal.acaltime.AcalDateTime;
-import com.morphoss.acal.dataservice.Collection;
 import com.morphoss.acal.dataservice.Resource;
+import com.morphoss.acal.dataservice.TodoInstance;
 
 
 
@@ -86,6 +86,22 @@ public class VTodo extends Masterable {
 
 	public void setStatus(Status newValue) {
 		setUniqueProperty(new AcalProperty(PropertyName.STATUS, newValue.toString()));
+	}
+
+	public static VTodo createComponentFromInstance(TodoInstance result) {
+		VTodo instance = new VTodo(result.getCollectionId());
+
+		if ( result.getStart() != null ) instance.setStart(result.getStart());
+		if ( result.getDue() != null ) instance.setStart(result.getDue());
+		if ( result.getCompleted() != null ) instance.setStart(result.getCompleted());
+
+		if ( result.getSummary() != null ) instance.setSummary(result.getSummary());
+		if ( result.getDescription() != null ) instance.setDescription(result.getDescription());
+		if ( result.getRRule() != null ) instance.setRepetition(result.getRRule());
+		if ( result.getLocation() != null ) instance.setLocation(result.getLocation());
+		if ( !result.getAlarms().isEmpty() ) instance.addAlarmTimes(result.getAlarms(), null);
+
+		return instance;
 	}
 
 }

@@ -286,8 +286,8 @@
 						android:layout_height="wrap_content"
 						android:layout_marginRight="15sp"
 						android:background="@color/themed_button_colour" >
-						<Button
-							android:id="@+id/TodoEditCollectionButton"
+						<Spinner
+							android:id="@+id/TodoEditCollectionSelect"
 							style="@style/themed_button_big"
 							android:layout_width="fill_parent"
 							android:layout_height="wrap_content" />
