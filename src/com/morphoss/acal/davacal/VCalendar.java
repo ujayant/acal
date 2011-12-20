@@ -39,8 +39,24 @@ import com.morphoss.acal.dataservice.Resource;
 
 public class VCalendar extends VComponent {
 	public static final String TAG = "aCal VCalendar";
-	private AcalDateRange dateRange = null;
+	
+	/**
+	 * This holds the range of time which instances of this overlap, from the start of the
+	 * earliest instance through to the end of the last instance (or null if it continues
+	 * forever).
+	 */
+	private AcalDateRange calendarRange = null;
+	
+	/**
+	 * This holds the repeat rule.
+	 */
 	private AcalRepeatRule repeatRule = null;
+	
+	/**
+	 * This indicates whether the masterInstance has any overrides.  A single instance calendar
+	 * will never have this set.  A repeating calendar will not have this set unless there are
+	 * multiple VEVENT(/VTODO/VJOURNAL) in the VCALENDAR which override some of the repeats.
+	 */
 	private Boolean masterHasOverrides = null;
 	private Boolean hasAlarms = null;
 	private Boolean hasRepeatRule = null;
@@ -56,7 +72,7 @@ public class VCalendar extends VComponent {
 		this.earliestStart = earliestStart;
 		this.latestEnd = latestEnd;
 		if ( earliestStart != null ) {
-			this.dateRange = new AcalDateRange(AcalDateTime.fromMillis(earliestStart),
+			this.calendarRange = new AcalDateRange(AcalDateTime.fromMillis(earliestStart),
 					(latestEnd == null ? null : AcalDateTime.fromMillis(latestEnd)));
 		}
 	}
@@ -70,6 +86,10 @@ public class VCalendar extends VComponent {
 		addProperty(new AcalProperty("VERSION","2.0"));
 	}
 
+	public static VCalendar createEmptyCalendar( long collectionId ) {
+		VCalendar vcal = new VCalendar(collectionId);
+		return vcal;
+	}
 
 	public static VCalendar getGenericCalendar( long collectionId, EventInstance newEventData) {
 		VCalendar vcal = new VCalendar(collectionId);
@@ -289,14 +309,11 @@ public class VCalendar extends VComponent {
 				else {
 					Log.println(Constants.LOGD,TAG, "Building CacheObject instances from RepeatRule.");
 
-					if ( dateRange != null ) {
-						AcalDateRange intersection = rangeRequested.getIntersection(this.dateRange);
+					if ( calendarRange != null ) {
+						AcalDateRange intersection = rangeRequested.getIntersection(this.calendarRange);
 						if ( intersection != null ) {
 							if ( hasRepeatRule == null && repeatRule == null ) checkRepeatRule();
 							if ( hasRepeatRule ) {
-								// Log.d(TAG,"Processing event: Summary="+new
-								// UnModifiableAcalEvent(thisEvent,new AcalCalendar(),
-								// new AcalCalendar()).summary);
 								this.repeatRule.appendCacheEventInstancesBetween(eventList, intersection);
 								return true;
 							}
@@ -348,8 +365,8 @@ public class VCalendar extends VComponent {
 	}
 
 	public AcalDateTime getRangeEnd() {
-		if ( dateRange == null ) return null;
-		return dateRange.end;
+		if ( calendarRange == null ) return null;
+		return calendarRange.end;
 	}
 
 	@Override
