@@ -30,6 +30,7 @@ import com.morphoss.acal.database.DatabaseTableManager.DMInsertQuery;
 import com.morphoss.acal.database.DatabaseTableManager.DMQueryBuilder;
 import com.morphoss.acal.database.DatabaseTableManager.DMQueryList;
 import com.morphoss.acal.database.DatabaseTableManager.DMUpdateQuery;
+import com.morphoss.acal.database.cachemanager.CacheManager;
 import com.morphoss.acal.database.resourcesmanager.requesttypes.BlockingResourceRequestWithResponse;
 import com.morphoss.acal.database.resourcesmanager.requesttypes.ReadOnlyBlockingRequestWithResponse;
 import com.morphoss.acal.database.resourcesmanager.requesttypes.ReadOnlyResourceRequest;
@@ -126,7 +127,7 @@ public class ResourceManager implements Runnable {
 
 				if (!readQueue.isEmpty()) {
 					//Tell the processor that we are about to send a buch of reads.
-					getRPInstance().beginReads();
+					getRPInstance().beginReadTransaction();
 					
 					//Start all read processes
 					while (!readQueue.isEmpty()) {
@@ -159,11 +160,12 @@ public class ResourceManager implements Runnable {
 					}
 					
 					//tell processor that we are done
-					getRPInstance().endReads();
+					getRPInstance().endTransaction();
 					
 				}
 				else {
 					//process writes
+					CacheManager.setResourceInTx(context, true);
 					while (!writeQueue.isEmpty()) {
 						Log.println(Constants.LOGD,TAG,writeQueue.size()+" items in write queue.");
 						final ResourceRequest request = writeQueue.poll();
@@ -174,6 +176,7 @@ public class ResourceManager implements Runnable {
 							Log.e(TAG, "Error processing write request: "+Log.getStackTraceString(e));
 						}
 					}
+					CacheManager.setResourceInTx(context, false);
 				}
 			}
 			// do stuff
@@ -330,13 +333,6 @@ public class ResourceManager implements Runnable {
 			super(ResourceManager.this.context);
 		}
 
-		public void beginReads() {
-			this.beginReadTransaction();
-		}
-
-		public void endReads() {
-			this.endTransaction();
-		}
 		
 		public void processRead(ReadOnlyResourceRequest request) {
 			try {
@@ -554,7 +550,6 @@ public class ResourceManager implements Runnable {
 		}
 
 		public boolean syncToServer(DMAction action, long resourceId, Integer pendingId) {
-			// TODO Auto-generated method stub
 			this.beginTransaction();
 			action.process(this);
 			if ( pendingId != null ) {
