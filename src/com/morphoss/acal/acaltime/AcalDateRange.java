@@ -133,7 +133,7 @@ public class AcalDateRange implements Parcelable, Cloneable {
 	}
 
 	public AcalDateRange clone() {
-		return new AcalDateRange(start,end);
+		return new AcalDateRange(start.clone(),end.clone());
 	}
 	
 	@Override
@@ -156,5 +156,45 @@ public class AcalDateRange implements Parcelable, Cloneable {
 		if ( start == null || !start.after(someDate) )
 			if ( end == null || end.after(someDate) ) return true;
 		return false;
+	}
+
+	
+	/**
+	 * Returns true if 'this' range completely overlaps 'someRange'
+	 * 
+	 * Null for either end of either range is considered to mean -infinity or +infinity
+	 * 
+	 * @param someRange
+	 * @return
+	 */
+	public boolean contains(AcalDateRange someRange) {
+		if ( start == null || !start.after(someRange.end) )
+			if ( end == null || end.after(someRange.start) ) return true;
+		return false;
+	}
+
+	/**
+	 * Returns a new range which will include this and a new range.  If there are gaps between the
+	 * two ranges then the will also be part of the new range. 
+	 * 
+	 * Null for either end of either range is considered to mean -infinity or +infinity
+	 * 
+	 * @param someRange
+	 * @return
+	 */
+	public AcalDateRange extendTo(AcalDateRange someRange) {
+		AcalDateTime newStart = start;
+		if ( start != null && someRange.start == null )
+			newStart = null;
+		else if ( start != null && someRange.start.before(start) )
+			newStart = someRange.start;
+		
+		AcalDateTime newEnd = end;
+		if ( end != null && someRange.end == null )
+			newEnd = null;
+		else if ( end != null && someRange.end.after(end) )
+			newEnd = someRange.end;
+
+		return new AcalDateRange(newStart.clone(),newEnd.clone());
 	}
 }
