@@ -41,7 +41,7 @@ public abstract class Masterable extends VComponent {
 
 	protected Masterable(String typeName, VComponent parent) {
 		super(typeName, parent);
-		parent.addChild(this);
+		if ( parent != null ) parent.addChild(this);
 		setEditable();
 		addProperty(new AcalProperty(PropertyName.UID, UUID.randomUUID().toString()));
 		AcalDateTime creation = new AcalDateTime();
@@ -53,6 +53,7 @@ public abstract class Masterable extends VComponent {
 	}
 
 	public VCalendar getTopParent() {
+		if ( parent == null ) return null;
 		return (VCalendar) super.getTopParent();
 	}
 

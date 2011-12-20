@@ -104,7 +104,7 @@ public abstract class VComponent implements Parcelable {
 	protected VComponent(String typeName, VComponent parent) {
 		this.name = typeName;
 		this.parent = parent;
-		this.collectionId = parent.collectionId;
+		if ( parent != null ) this.collectionId = parent.collectionId;
 		this.content = null;
 		this.children = new ArrayList<VComponent>();
 		this.properties = new HashMap<String,AcalProperty>();
