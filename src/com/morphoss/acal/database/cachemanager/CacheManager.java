@@ -108,7 +108,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 	}
 	
 	//Settings
-	private static final int DEF_MONTHS_BEFORE = 3;		//these 2 represent the default window size
+	private static final int DEF_MONTHS_BEFORE = -3;	//these 2 represent the default window size
 	private static final int DEF_MONTHS_AFTER = 6;		//relative to todays date
 	
 	
