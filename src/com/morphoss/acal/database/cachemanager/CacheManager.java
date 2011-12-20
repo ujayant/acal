@@ -3,6 +3,7 @@ package com.morphoss.acal.database.cachemanager;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.Semaphore;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -43,12 +44,12 @@ import com.morphoss.acal.davacal.VComponentCreationException;
  * 
  * WARNING: Only the worker thread should access the DB directly. Everything else MUST create a request and put it on the queue
  * adding methods that directly access the db in this enclosing class could lead to race conditions and cause the db or the cache
- * to enter an inconsistant state.
+ * to enter an inconsistent state.
  *
  * @author Chris Noldus
  *
  */
-public class CacheManager implements Runnable, ResourceChangedListener,  ResourceResponseListener<ArrayList<CacheObject>> {
+public class CacheManager implements Runnable, ResourceChangedListener,  ResourceResponseListener<ArrayList<Resource>> {
 
 
 
@@ -66,23 +67,24 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 	//get and instance and add a callback handler to receive notfications of change
 	//It is vital that classes remove their handlers when terminating
 	public synchronized static CacheManager getInstance(Context context, CacheChangedListener listener) {
-		if (instance == null) instance = new CacheManager(context);
+		if (instance == null) {
+			instance = new CacheManager(context);
+			instance.checkDefaultWindow();
+		}
 		instance.addListener(listener);
 		return instance;
 	}
 
 	private Context context;
 
-	private AcalDateTime start; //Current Start time of window
-	private AcalDateTime end; //Current End time of window
-	private long metaRow; //Current End time of window
+	private CacheWindow window;
+	private long metaRow = 0;
 
 	//ThreadManagement
 	private ConditionVariable threadHolder = new ConditionVariable();
 	private Thread workerThread;
 	private boolean running = true;
 	private final ConcurrentLinkedQueue<CacheRequest> queue = new ConcurrentLinkedQueue<CacheRequest>();
-
 
 	//DB Constants
 	private static final String META_TABLE = "event_cache_meta";
@@ -106,8 +108,8 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 	}
 	
 	//Settings
-	private static final int DEF_MONTHS_BEFORE = 1;		//these 2 represent the default window size
-	private static final int DEF_MONTHS_AFTER = 4;		//relative to todays date
+	private static final int DEF_MONTHS_BEFORE = 3;		//these 2 represent the default window size
+	private static final int DEF_MONTHS_AFTER = 6;		//relative to todays date
 	
 	
 	/**
@@ -122,6 +124,21 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		loadState();
 		workerThread = new Thread(this);
 		workerThread.start();
+
+	}
+	
+	private void checkDefaultWindow() {
+		//ensure window contains the minimum range
+		AcalDateRange defaultRange = null;
+		AcalDateTime st  = new AcalDateTime();
+		st.setMonthDay(1);
+		st.setDaySecond(0);
+		AcalDateTime en = st.clone();
+		st.addMonths(DEF_MONTHS_BEFORE);
+		en.addMonths(DEF_MONTHS_AFTER);
+		defaultRange = new AcalDateRange(st,en);
+		this.sendRequest(new CRObjectsInRange(defaultRange,null));
+
 		
 	}
 
@@ -146,7 +163,70 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		}
 	}
 
-
+	private static volatile boolean resourceInTransaction = false;
+	private static Semaphore lockSem = new Semaphore(1, true);
+	
+	private static volatile boolean lockdb = false;
+	public synchronized static void setResourceInTx(Context c, boolean inTx) {
+		resourceInTransaction = inTx;
+		if (inTx) {
+			setDBisDirty(c,true);
+		} else {
+			if (instance != null && instance.queue.isEmpty())
+				setDBisDirty(c,false);
+		}
+	}
+	
+	private synchronized static void acquireMetaLock() {
+		try { lockSem.acquire(); } catch (InterruptedException e1) {}
+		while (lockdb) try { Thread.sleep(10); } catch (Exception e) { }
+		lockdb = true;
+		lockSem.release();
+	}
+	
+	private synchronized static void releaseMetaLock() {
+		if (!lockdb) throw new IllegalStateException("Cant release a lock that hasnt been obtained!");
+		lockdb = false;
+	}
+	
+	private synchronized static void setDBisDirty(Context c, boolean dirty) {
+		acquireMetaLock();
+		ContentValues data = new ContentValues();
+		AcalDBHelper dbHelper = new AcalDBHelper(c);
+		SQLiteDatabase db = dbHelper.getWritableDatabase();
+		db.beginTransaction();
+		//get current values
+		Cursor mCursor = db.query(META_TABLE, null, null, null, null, null, null);
+		try {
+			if (mCursor.getCount() >= 1) {
+				mCursor.moveToFirst();
+				DatabaseUtils.cursorRowToContentValues(mCursor, data);
+				mCursor.close();
+				data.put(FIELD_CLOSED, !dirty);
+				if (!dirty && instance != null) {
+					AcalDateRange currentRange = instance.window.getCurrentWindow();
+					if (currentRange == null) currentRange = new AcalDateRange(new AcalDateTime(), new AcalDateTime());
+					data.put(FIELD_START, currentRange.start.getMillis());
+					data.put(FIELD_END, currentRange.end.getMillis());
+				}
+				db.update(META_TABLE, data, FIELD_ID+" = ?", new String[]{data.getAsLong(FIELD_ID)+""});
+				db.setTransactionSuccessful();
+			}
+			
+		 db.endTransaction();
+		}
+		catch( Exception e ) {
+			Log.i(TAG,Log.getStackTraceString(e));
+		}
+		finally {
+			if ( mCursor != null && !mCursor.isClosed()) mCursor.close();
+			db.close();
+			releaseMetaLock();
+		}
+	}
+	
+	
+	
 	/**
 	 * Ensures that this classes closes properly. MUST be called before it is terminated
 	 */
@@ -169,9 +249,16 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 	 */
 	private void saveState() {
 		//save start/end range to meta table
+		acquireMetaLock();
 		ContentValues data = new ContentValues();
-		data.put(FIELD_START, start.getMillis());
-		data.put(FIELD_END, end.getMillis());
+		AcalDateRange windowRange = window.getCurrentWindow(); 
+		if (windowRange != null) {
+			data.put(FIELD_START, windowRange.start.getMillis());
+			data.put(FIELD_END, windowRange.end.getMillis());
+		} else {
+			data.put(FIELD_START, -1);
+			data.put(FIELD_END, -1);
+		}
 		data.put(FIELD_CLOSED, true);
 
 		AcalDBHelper dbHelper = new AcalDBHelper(context);
@@ -186,12 +273,14 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		this.CTMinstance = null;
 		rm.removeListener(this);
 		rm = null;
+		releaseMetaLock();
 	}
 
 	/**
 	 * Called on start up. if safe==false flush cache. set safe to false regardless.
 	 */
 	private void loadState() {
+		acquireMetaLock();
 		ContentValues data = new ContentValues();
 		AcalDBHelper dbHelper = new AcalDBHelper(context);
 		SQLiteDatabase db = dbHelper.getWritableDatabase();
@@ -217,28 +306,29 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 			if ( mCursor != null ) mCursor.close();
 		}
 
-		if (!data.getAsBoolean(FIELD_CLOSED)) {
+		if (!(data.getAsInteger(FIELD_CLOSED) == 1)) {
 			Log.println(Constants.LOGD,TAG, "Application not closed correctly last time. Resetting cache.");
 			Toast.makeText(context, "aCal was not correctly shutdown last time.\nRebuilding cache - It may take some time before events are visible.",Toast.LENGTH_LONG).show();
-			db.close();
 			this.CTMinstance.clearCache();
 			data.put(FIELD_COUNT, 0);
 			data.put(FIELD_START,  defaultWindow.getMillis());
 			data.put(FIELD_END,  defaultWindow.getMillis());
-			db = dbHelper.getWritableDatabase();
 		}
-		else data.put(FIELD_CLOSED, false);
-
-		//set CLOSED to false
+		data.put(FIELD_CLOSED, true);
 		db.delete(META_TABLE, null, null);
 		data.remove(FIELD_ID);
 		this.metaRow = db.insert(META_TABLE, null, data);
 		db.close();
 		dbHelper.close();
-		this.start = AcalDateTime.fromMillis(data.getAsLong(FIELD_START));
-		this.end = AcalDateTime.fromMillis(data.getAsLong(FIELD_END));
+		long start = data.getAsLong(FIELD_START);
+		long end = data.getAsLong(FIELD_END);
+		AcalDateRange range = null;
+		if (start >= 0 && end >= 0 ) range = new AcalDateRange(AcalDateTime.fromMillis(start), AcalDateTime.fromMillis(end));
 		
+		window = new CacheWindow(range);
+				
 		rm.addListener(this);
+		releaseMetaLock();
 
 	}
 
@@ -254,6 +344,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 				CacheRequest request = queue.poll();
 				CTMinstance.process(request);
 			}
+			if (!CacheManager.resourceInTransaction) setDBisDirty(context,false);
 			//Wait till next time
 			threadHolder.close();
 			threadHolder.block();
@@ -273,25 +364,52 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		threadHolder.open();
 	}
 	
-	//Request events (FROM RESOURCES) that start within the range provided. Expand window on result.
-	private void retrieveRange(long start, long end) {
-		AcalDateRange range = new AcalDateRange(AcalDateTime.fromMillis(start), AcalDateTime.fromMillis(end));
-		if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD,TAG,"Retrieving events in "+range);
-		ResourceManager.getInstance(context).sendRequest(new RRGetCacheEventsInRange(range, this));
+	//Request events (FROM RESOURCES) that
+	private void retrieveRange() {
+		if (window.getRequestedWindow() == null) return;
+		if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD,TAG,"Sending resourceRequest");
+		ResourceManager.getInstance(context).sendRequest(new RRGetCacheEventsInRange(window, this));
 	}
 	
 	@Override
-	public void resourceResponse(ResourceResponse<ArrayList<CacheObject>> response) {
+	public void resourceResponse(ResourceResponse<ArrayList<Resource>> response) {
 		if (response instanceof RREventsInRangeResponse<?>) {
-			RREventsInRangeResponse<ArrayList<CacheObject>> res = (RREventsInRangeResponse<ArrayList<CacheObject>>) response;
+			RREventsInRangeResponse<ArrayList<Resource>> res = (RREventsInRangeResponse<ArrayList<Resource>>) response;
+			//calculate events
+
+			AcalDateRange range = window.getRequestedWindow();
+			if (range == null) {
+				Log.w(TAG, "Have response from range request but window says no range requested? aborting.");
+				return;
+			}
+			
+			
+			ArrayList<CacheObject> events = new ArrayList<CacheObject>();
+			//step 3 - foreach resource, Vcomps
+			//This is very CPU intensive, so lower our priority to prevent interfering with other parts of the app.
+			int currentPri = Thread.currentThread().getPriority();
+			Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
+			for (Resource r : res.result()) {
+				//if VComp is VCalendar
+				try {
+					VComponent comp = VComponent.createComponentFromResource(r);
+					if (comp instanceof VCalendar) {
+						((VCalendar)comp).appendCacheEventInstancesBetween(events, range);
+					}
+				} catch (VComponentCreationException e) {
+					Log.i(TAG,Log.getStackTraceString(e));
+				}
+			}
+			Thread.currentThread().setPriority(currentPri);
+			Log.println(Constants.LOGD,TAG,events.size()+"Event Instances obtained. Posting Response.");
+
+			
 			//put new data on the process queue
 			
 			DMQueryList inserts = CTMinstance.new DMQueryList();
 			
 			Log.println(Constants.LOGD,TAG, "Have response from Resource manager for range request.");
 			//We should have exclusive DB access at this point
-			AcalDateRange range = res.requestedRange();
-			ArrayList<CacheObject> events = res.result();
 			Log.println(Constants.LOGD,TAG, "Queueing delete of events in "+range);
 			inserts.addAction(CTMinstance.new DMQueryBuilder()
 							.setAction(QUERY_ACTION.DELETE)
@@ -414,47 +532,24 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		public boolean checkWindow(AcalDateRange requestedRange) {
 			if ( Constants.LOG_DEBUG ) {
 				Log.println(Constants.LOGD,TAG,"Checking Cache Window: Request "+requestedRange);
-				Log.println(Constants.LOGD,TAG,"Checking Cache Window: Current Window:"+ CacheManager.this.start+" --> "+CacheManager.this.end);
+				Log.println(Constants.LOGD,TAG,"Checking Cache Window: Current Window:"+ window);
 			}
-			//get current window size
-			AcalDateTime currentStart = AcalDateTime.fromMillis(CacheManager.this.start.getMillis());
-			AcalDateTime currentEnd = AcalDateTime.fromMillis(CacheManager.this.end.getMillis());
-			AcalDateTime start;
-			AcalDateTime end;
-			boolean covered = false;
-			if (requestedRange != null) {
-				start = requestedRange.start.clone();
-				end = requestedRange.end.clone();
-				//set this to true if the requested range is within the covered range.
-				covered = start.after(currentStart) && end.before(currentEnd);
-				
-				//we always work in whole month windows
-				start.setMonthDay(1);
-				start.setDaySecond(0);
-				
-				end.setMonthDay(1);
-				end.setDaySecond(0);
-				
-			} else {
-				start = new AcalDateTime();
-				end = new AcalDateTime().clone().addMonths(1);
-			}
-			
-			//increase requested window to default miniumums
-			start.addMonths(-DEF_MONTHS_BEFORE);
-			end.addMonths(DEF_MONTHS_AFTER);
-			
+			boolean ret = false;
+			if (window.isWithinWindow(requestedRange))
+				ret = true;
+
+			//we might as well look a bit beyond the requested range just to be safe.
+			AcalDateRange preCache = new AcalDateRange(
+					requestedRange.start.clone().addMonths(DEF_MONTHS_BEFORE),
+					requestedRange.end.clone().addMonths(DEF_MONTHS_AFTER)
+			);
+
+			window.addToRequestedRange(preCache);
+
 			//expand as needed
-			if (start.before(currentStart)) {
-				if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD,TAG, "Expanding Cache Window Left to "+start);
-				retrieveRange(start.getMillis(), currentStart.getMillis()-1);
-			}
-			if (end.after(currentEnd)) {
-				if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD,TAG, "Expanding Cache Window Right to "+end);
-				retrieveRange(currentEnd.getMillis()+1, end.getMillis());
-			}
+			retrieveRange();
 			
-			return covered;
+			return ret;
 		}
 
 		//Never ever ever ever call cacheChanged on listeners anywhere else.
@@ -475,9 +570,8 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		}
 
 		public void updateWindowToInclude(AcalDateRange range) {
-			if (range.start.before(CacheManager.this.start)) CacheManager.this.start = range.start.clone();
-			if (range.end.after(CacheManager.this.end)) CacheManager.this.end = range.end.clone();
-			Log.println(Constants.LOGD,TAG, "Cache window extended, now: "+start+" -> "+end);
+			window.expandWindow(range);
+			
 		}	
 		
 		/**
@@ -511,10 +605,15 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 	 */
 	@Override
 	public void resourceChanged(ResourceChangedEvent event) {
+		//this processing can be fairly heavy duty, so we lower our thread priority to keep
+		//gui responsive
+		int priority = Thread.currentThread().getPriority();
+		Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
 		ArrayList<DataChangeEvent> changes = event.getChanges();
 		if (changes == null || changes.isEmpty()) return;	//dont care
 
-		AcalDateRange window = new AcalDateRange(start,end);
+		AcalDateRange windowRange = window.getCurrentWindow();
+		if (windowRange == null) return; // dont care 
 		DMQueryList queries = CTMinstance.new DMQueryList();
 		Resource r;
 		VComponent comp;
@@ -537,7 +636,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 
 						newData = new ArrayList<CacheObject>();
 						if ( comp instanceof VCalendar ) {
-							((VCalendar) comp).appendCacheEventInstancesBetween(newData, window);
+							((VCalendar) comp).appendCacheEventInstancesBetween(newData, windowRange);
 
 							// Delete existing first
 							queries.addAction(CTMinstance.new DMDeleteQuery(CacheTableManager.FIELD_RESOURCE_ID+"="+r.getResourceId(), null));
@@ -572,8 +671,8 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 				Log.e(TAG,Log.getStackTraceString(e));
 			}
 		}
+	
+		Thread.currentThread().setPriority(priority);
 
 	}
-
-	
 }

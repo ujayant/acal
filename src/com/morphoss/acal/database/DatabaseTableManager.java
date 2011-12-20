@@ -235,11 +235,11 @@ public abstract class DatabaseTableManager {
 			try {
 				//Queries are always done as in a transaction - we need to see if we are already in one or not.
 				if (DatabaseTableManager.this.inTx) {
-					for (DMAction action : actions) action.process(dm);
+					for (DMAction action : actions) { action.process(dm); db.yieldIfContendedSafely(); }
 				} else {
 					dm.beginTransaction();
 					openDb = true;
-					for (DMAction action : actions) action.process(dm);
+					for (DMAction action : actions) { action.process(dm); db.yieldIfContendedSafely(); }
 					dm.setTxSuccessful();
 					
 				}
