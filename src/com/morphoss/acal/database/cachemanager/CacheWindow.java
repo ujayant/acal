@@ -24,11 +24,9 @@ public class CacheWindow {
 	 * Returns true if the requested range is within the window. otherwise false
 	 */
 	public boolean isWithinWindow(AcalDateRange range) {
-		if (windowStart == null) return false;
-		long rrStart = range.start.getMillis();
-		long rrEnd = range.end.getMillis();
-		if (windowStart.getMillis() > rrStart) return false;
-		if (windowEnd.getMillis() < rrEnd) return false;
+		if (windowStart == null || windowEnd == null ) return false;
+		if ( windowStart.after(range.start) ) return false;
+		if ( windowEnd.before(range.end) ) return false;
 		return true;
 	}
 	
@@ -37,11 +35,16 @@ public class CacheWindow {
 	 * @param range
 	 */
 	public void addToRequestedRange(AcalDateRange range) {
-		if (requestedWindow == null) this.requestedWindow = new AcalDateRange(range.start.clone(), range.end.clone());
+		if (requestedWindow == null) {
+			this.requestedWindow = range.clone();
+		}
+		else if ( requestedWindow.start.before(range.start) && requestedWindow.end.after(range.end) )
+			return;
 		else {
-			long start = Math.min(range.start.getMillis(), requestedWindow.start.getMillis());
-			long end = Math.max(range.end.getMillis(), requestedWindow.end.getMillis());
-			this.requestedWindow = new AcalDateRange(AcalDateTime.fromMillis(start),AcalDateTime.fromMillis(end));
+			this.requestedWindow = new AcalDateRange(
+					(requestedWindow.start.before(range.start) ? requestedWindow.start : range.start.clone()),
+					(requestedWindow.end.after(range.end) ? requestedWindow.end : range.end.clone())
+				);
 		}
 		
 		//check requested ranges validity
@@ -120,7 +123,7 @@ public class CacheWindow {
 	
 	@Override
 	public String toString() {
-		//TODO
-		return "CacheWindow toString method to be written!";
+		return "CacheWindow is ("+(windowStart==null?"<null<":windowStart.fmtIcal())+","+(windowEnd==null?">null>":windowEnd.fmtIcal())+") " +
+				(requestedWindow == null ? "" : " requested "+requestedWindow);
 	}
 }
