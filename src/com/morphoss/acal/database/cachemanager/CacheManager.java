@@ -287,10 +287,11 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		//load start/end range from meta table
 		AcalDateTime defaultWindow = new AcalDateTime();
 		Cursor mCursor = db.query(META_TABLE, null, null, null, null, null, null);
+		int closedState = 0;
 		try {
 			if (mCursor.getCount() < 1) {
 				Log.println(Constants.LOGD,TAG, "Initializing cache for first use.");
-				data.put(FIELD_CLOSED, true);
+				data.put(FIELD_CLOSED, 1);
 				data.put(FIELD_COUNT, 0);
 				data.put(FIELD_START,  defaultWindow.getMillis());
 				data.put(FIELD_END,  defaultWindow.getMillis());
@@ -298,6 +299,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 				mCursor.moveToFirst();
 				DatabaseUtils.cursorRowToContentValues(mCursor, data);
 			}
+			closedState = data.getAsInteger(FIELD_CLOSED);
 		}
 		catch( Exception e ) {
 			Log.i(TAG,Log.getStackTraceString(e));
@@ -306,7 +308,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 			if ( mCursor != null ) mCursor.close();
 		}
 
-		if (!(data.getAsInteger(FIELD_CLOSED) == 1)) {
+		if ( !(closedState == 1)) {
 			Log.println(Constants.LOGD,TAG, "Application not closed correctly last time. Resetting cache.");
 			Toast.makeText(context, "aCal was not correctly shutdown last time.\nRebuilding cache - It may take some time before events are visible.",Toast.LENGTH_LONG).show();
 			this.CTMinstance.clearCache();
@@ -314,7 +316,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 			data.put(FIELD_START,  defaultWindow.getMillis());
 			data.put(FIELD_END,  defaultWindow.getMillis());
 		}
-		data.put(FIELD_CLOSED, true);
+		data.put(FIELD_CLOSED, 1);
 		db.delete(META_TABLE, null, null);
 		data.remove(FIELD_ID);
 		this.metaRow = db.insert(META_TABLE, null, data);
