@@ -45,7 +45,7 @@ import com.morphoss.acal.xml.DavNode;
 
 public class RRSyncCollectionContents implements ResourceRequest {
 
-	public static final String	TAG					= "aCal ResourceRequest: SyncCollectionContents";
+	public static final String	TAG					= "aCal RRSyncCollectionContents";
 	private static final int	nPerMultiget		= 30;
 	
 	private long timeToWait = 0;

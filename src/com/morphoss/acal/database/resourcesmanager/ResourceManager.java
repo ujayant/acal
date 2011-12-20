@@ -2,8 +2,6 @@ package com.morphoss.acal.database.resourcesmanager;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -44,6 +42,7 @@ import com.morphoss.acal.providers.Servers;
 public class ResourceManager implements Runnable {
 	// The current instance
 	private static ResourceManager instance = null;
+	public static boolean DEBUG = false && Constants.DEBUG_MODE;
 	
 	private volatile int numReadsProcessing = 0;
 
@@ -118,12 +117,12 @@ public class ResourceManager implements Runnable {
 		Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
 		while (running) {
 			// do stuff
-			Log.println(Constants.LOGD,TAG,"Thread Opened...");
+			if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG,"Thread Opened...");
 			
 			while ( !readQueue.isEmpty() || !writeQueue.isEmpty() ){
 			
 				//process reads first
-				Log.println(Constants.LOGD,TAG,readQueue.size()+" items in read queue, "+writeQueue.size()+" items in write queue");
+				if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG,readQueue.size()+" items in read queue, "+writeQueue.size()+" items in write queue");
 
 				if (!readQueue.isEmpty()) {
 					//Tell the processor that we are about to send a buch of reads.
@@ -131,9 +130,9 @@ public class ResourceManager implements Runnable {
 					
 					//Start all read processes
 					while (!readQueue.isEmpty()) {
-						Log.println(Constants.LOGD,TAG,readQueue.size()+" items in read queue.");
+						if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG,readQueue.size()+" items in read queue.");
 						final ReadOnlyResourceRequest request = readQueue.poll();
-						Log.println(Constants.LOGD,TAG,"Processing Read Request: "+request.getClass());
+						if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG,"Processing Read Request: "+request.getClass());
 						this.numReadsProcessing++;
 						try {
 							new Thread(new Runnable() {
@@ -167,9 +166,9 @@ public class ResourceManager implements Runnable {
 					//process writes
 					CacheManager.setResourceInTx(context, true);
 					while (!writeQueue.isEmpty()) {
-						Log.println(Constants.LOGD,TAG,writeQueue.size()+" items in write queue.");
+						if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG,writeQueue.size()+" items in write queue.");
 						final ResourceRequest request = writeQueue.poll();
-						Log.println(Constants.LOGD,TAG,"Processing Write Request: "+request.getClass());
+						if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG,"Processing Write Request: "+request.getClass());
 						try {
 							getRPInstance().process(request);
 						} catch (Exception e) {
@@ -180,7 +179,7 @@ public class ResourceManager implements Runnable {
 				}
 			}
 			// do stuff
-			Log.println(Constants.LOGD,TAG,"Finished processing, closing & blocking.");
+			if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG,"Finished processing, closing & blocking.");
 
 			// Wait till next time
 			threadHolder.close();
@@ -209,13 +208,13 @@ public class ResourceManager implements Runnable {
 
 	// Request handlers
 	public void sendRequest(ResourceRequest request) {
-		Log.println(Constants.LOGD,TAG, "Received Write Request: "+request.getClass());
+		if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG, "Received Write Request: "+request.getClass());
 		writeQueue.offer(request);
 		threadHolder.open();
 	}
 	
 	public <E> ResourceResponse<E> sendBlockingRequest(BlockingResourceRequestWithResponse<E> request) {
-		Log.println(Constants.LOGD,TAG, "Received Blocking Request: "+request.getClass());
+		if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG, "Received Blocking Request: "+request.getClass());
 		writeQueue.offer(request);
 		threadHolder.open();
 		int priority = Thread.currentThread().getPriority();
@@ -229,13 +228,13 @@ public class ResourceManager implements Runnable {
 	
 	// Request handlers
 	public void sendRequest(ReadOnlyResourceRequest request) {
-		Log.println(Constants.LOGD,TAG, "Received Read Request: "+request.getClass());
+		if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG, "Received Read Request: "+request.getClass());
 		readQueue.offer(request);
 		threadHolder.open();
 	}
 	
 	public <E> ResourceResponse<E> sendBlockingRequest(ReadOnlyBlockingRequestWithResponse<E> request) {
-		Log.println(Constants.LOGD,TAG, "Received Blocking Read Request: "+request.getClass());
+		if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG, "Received Blocking Read Request: "+request.getClass());
 		readQueue.offer(request);
 		threadHolder.open();
 		int priority = Thread.currentThread().getPriority();
@@ -355,7 +354,7 @@ public class ResourceManager implements Runnable {
 		}
 
 		public void process(ResourceRequest r) {
-			Log.println(Constants.LOGD,TAG,"Begin Processing");
+			if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG,"Begin Processing");
 			try {
 				r.process(this);
 				if (this.inTx) {
@@ -378,7 +377,7 @@ public class ResourceManager implements Runnable {
 					} catch (Exception e) {
 					}
 			}
-			Log.println(Constants.LOGD,TAG,"End Processing");
+			if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG,"End Processing");
 		}
 
 		public ConnectivityManager getConectivityService() {
@@ -440,7 +439,7 @@ public class ResourceManager implements Runnable {
 		 */
 		@Override
 		public long insert(String nullColumnHack, ContentValues values) {
-			Log.println(Constants.LOGD,TAG, "Resource Insert Begin");
+			if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG, "Resource Insert Begin");
 			return super.insert(nullColumnHack, preProcessValues(values));
 		}
 		
@@ -448,7 +447,7 @@ public class ResourceManager implements Runnable {
 		 * This override is important to ensure earliest start and latest end are always set
 		 */
 		public int update(ContentValues values, String whereClause,	String[] whereArgs) {
-			Log.println(Constants.LOGD,TAG, "Resource Update Begin");
+			if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG, "Resource Update Begin");
 			return super.update(preProcessValues(values), whereClause, whereArgs);
 		}
 
@@ -494,7 +493,7 @@ public class ResourceManager implements Runnable {
 			mCursor.close();
 			endQuery();
 			if (Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents)
-				Log.println(Constants.LOGV, TAG,
+				if ( ResourceManager.DEBUG ) Log.println(Constants.LOGV, TAG,
 						"DavCollections ContentQueryMap retrieved in "
 						+ (System.currentTimeMillis() - start) + "ms");
 			return originalData;
@@ -557,8 +556,7 @@ public class ResourceManager implements Runnable {
 				int removed = db.delete(PENDING_DATABASE_TABLE,
 						PENDING_ID+"=?",
 						new String[] { Integer.toString(pendingId) });
-				if ( Constants.LOG_DEBUG )
-					Log.println(Constants.LOGD,TAG, "Deleted "+removed+" one pending_change record ID="+pendingId+" for resourceId="+resourceId);
+				if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG, "Deleted "+removed+" one pending_change record ID="+pendingId+" for resourceId="+resourceId);
 
 				ContentValues pending = new ContentValues();
 				pending.put(PENDING_ID, pendingId);

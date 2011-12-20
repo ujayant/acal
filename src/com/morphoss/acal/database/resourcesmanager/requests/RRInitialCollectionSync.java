@@ -38,7 +38,7 @@ import com.morphoss.acal.xml.DavNode;
 
 public class RRInitialCollectionSync implements ResourceRequest {
 
-	private static final String TAG = "aCal ResourcesRequest: InitialCollectionSync";
+	private static final String TAG = "aCal RRInitialCollectionSync";
 	
 	private int collectionId = -2;
 	private int serverId = -2;
@@ -120,7 +120,7 @@ public class RRInitialCollectionSync implements ResourceRequest {
 
 		collectionNeedsSync = false;
 
-		if (Constants.LOG_DEBUG) Log.d(TAG, "Starting initial sync process for server " + serverId + ", Collection: " + collectionPath);
+		if (Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG, "Starting initial sync process for server " + serverId + ", Collection: " + collectionPath);
 		ContentValues serverData;
 		try {
 			// get serverData
@@ -312,7 +312,7 @@ public class RRInitialCollectionSync implements ResourceRequest {
 		AcalDateTime until = new AcalDateTime().applyLocalTimeZone().addDays(+68).shiftTimeZone("UTC");
 
 		if (Constants.LOG_DEBUG)
-			Log.d(TAG, "Doing a recent sync of events from "+from.toString()+" to "+until.toString());			
+			Log.println(Constants.LOGD,TAG, "Doing a recent sync of events from "+from.toString()+" to "+until.toString());			
 
 		DavNode root = requestor.doXmlRequest("REPORT", collectionPath, SynchronisationJobs.getReportHeaders(1),
 				String.format(calendarQuery, from.fmtIcal(), until.fmtIcal()));

@@ -2,6 +2,7 @@ package com.morphoss.acal.database.cachemanager;
 
 import android.util.Log;
 
+import com.morphoss.acal.Constants;
 import com.morphoss.acal.database.DatabaseTableManager.DMQueryList;
 import com.morphoss.acal.database.cachemanager.CacheManager.CacheTableManager;
 
@@ -16,9 +17,9 @@ public class CRResourceChanged implements CacheRequest {
 	
 	@Override
 	public void process(CacheTableManager processor) throws CacheProcessingException {
-		Log.d(TAG, "Processing query set");
+		if ( CacheManager.DEBUG ) Log.println(Constants.LOGD, TAG, "Processing query set");
 		queries.process(processor);
-		Log.d(TAG,"Done");
+		if ( CacheManager.DEBUG ) Log.println(Constants.LOGD, TAG,"Done");
 	}
 
 }

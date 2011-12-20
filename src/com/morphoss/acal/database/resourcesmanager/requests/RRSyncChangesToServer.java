@@ -22,10 +22,9 @@ import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.database.DatabaseTableManager.DMAction;
 import com.morphoss.acal.database.DatabaseTableManager.DMQueryBuilder;
 import com.morphoss.acal.database.DatabaseTableManager.QUERY_ACTION;
-import com.morphoss.acal.database.resourcesmanager.ResourceManager;
-import com.morphoss.acal.database.resourcesmanager.ResourceProcessingException;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager.WriteableResourceTableManager;
+import com.morphoss.acal.database.resourcesmanager.ResourceProcessingException;
 import com.morphoss.acal.database.resourcesmanager.requesttypes.ResourceRequest;
 import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VCard;
@@ -41,7 +40,7 @@ import com.morphoss.acal.service.connector.SendRequestFailedException;
 
 public class RRSyncChangesToServer implements ResourceRequest {
 
-	public static final String	TAG = "aCal ResourceRequest: SyncChangesToServer";
+	public static final String	TAG = "aCal RRSyncChangesToServer";
 	
 	private long timeToWait = 90000;
 	private aCalService acalService;

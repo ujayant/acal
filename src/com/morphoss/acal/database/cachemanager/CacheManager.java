@@ -110,6 +110,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 	//Settings
 	private static final int DEF_MONTHS_BEFORE = -3;	//these 2 represent the default window size
 	private static final int DEF_MONTHS_AFTER = 6;		//relative to todays date
+	public static final boolean	DEBUG	= false && Constants.DEBUG_MODE;
 	
 	
 	/**
@@ -290,7 +291,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		int closedState = 0;
 		try {
 			if (mCursor.getCount() < 1) {
-				Log.println(Constants.LOGD,TAG, "Initializing cache for first use.");
+				if ( CacheManager.DEBUG ) Log.println(Constants.LOGD,TAG, "Initializing cache for first use.");
 				data.put(FIELD_CLOSED, 1);
 				data.put(FIELD_COUNT, 0);
 				data.put(FIELD_START,  defaultWindow.getMillis());
@@ -309,7 +310,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		}
 
 		if ( !(closedState == 1)) {
-			Log.println(Constants.LOGD,TAG, "Application not closed correctly last time. Resetting cache.");
+			if ( CacheManager.DEBUG ) Log.println(Constants.LOGD,TAG, "Application not closed correctly last time. Resetting cache.");
 			Toast.makeText(context, "aCal was not correctly shutdown last time.\nRebuilding cache - It may take some time before events are visible.",Toast.LENGTH_LONG).show();
 			this.CTMinstance.clearCache();
 			data.put(FIELD_COUNT, 0);

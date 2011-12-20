@@ -7,6 +7,7 @@ import java.util.TimeZone;
 import android.content.ContentValues;
 import android.util.Log;
 
+import com.morphoss.acal.Constants;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.database.cachemanager.CacheManager.CacheTableManager;
@@ -102,11 +103,8 @@ public class CRObjectsInMonthByDay extends CacheRequestWithResponse<HashMap<Shor
 		long process = pend-pstart;
 		long queuetime = pstart-construct;
 		long query = qend-qstart;
-		Log.d(TAG,
-				"Metrics:\n\tQueue Time: "+queuetime+"\t ProcessTime: "+process+
-				(query==0?" Query not executed. ":" Query Time: "+query)+
-				"\n\tTotal Time: "+total
-				);
+		if ( CacheManager.DEBUG ) Log.println(Constants.LOGD, TAG,
+				String.format("Metrics: Queue Time:%5d, Process Time:%5d,  Query Time:%4d,  Total Time:%6d", queuetime, process, query, total) );
 	}
 	
 
