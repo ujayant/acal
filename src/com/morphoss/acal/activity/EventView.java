@@ -371,7 +371,7 @@ public class EventView extends AcalActivity implements  OnClickListener, Resourc
 				AcalDateTime dateTime = new AcalDateTime();
 				if (event != null) dateTime = event.getStart();
 				else if (cacheObject != null) dateTime =  AcalDateTime.fromMillis(cacheObject.getStart());
-				bundle.putInt(EventEdit.ACTION_KEY, EventEdit.ACTION_ADD);
+				bundle.putInt(EventEdit.ACTION_KEY, EventEdit.ACTION_CREATE);
 				bundle.putParcelable(EventEdit.NEW_EVENT_DATE_TIME_KEY, dateTime);
 				eventEditIntent.putExtras(bundle);
 				this.startActivityForResult(eventEditIntent,EDIT_ADD);

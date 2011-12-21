@@ -34,17 +34,17 @@ import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.CompoundButton;
-import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 
 import com.morphoss.acal.AcalTheme;
 import com.morphoss.acal.Constants;
@@ -59,21 +59,21 @@ import com.morphoss.acal.database.resourcesmanager.ResourceManager;
 import com.morphoss.acal.database.resourcesmanager.ResourceResponse;
 import com.morphoss.acal.database.resourcesmanager.ResourceResponseListener;
 import com.morphoss.acal.database.resourcesmanager.requests.RRRequestInstance;
-import com.morphoss.acal.dataservice.CalendarInstance;
 import com.morphoss.acal.dataservice.Collection;
 import com.morphoss.acal.dataservice.EventInstance;
 import com.morphoss.acal.dataservice.EventInstance.BadlyConstructedEventException;
 import com.morphoss.acal.dataservice.EventInstance.EVENT_BUILDER;
 import com.morphoss.acal.davacal.AcalAlarm;
-import com.morphoss.acal.davacal.AcalAlarm.ActionType;
+import com.morphoss.acal.davacal.PropertyName;
 import com.morphoss.acal.davacal.VComponent;
+import com.morphoss.acal.davacal.AcalAlarm.ActionType;
 import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.service.aCalService;
 import com.morphoss.acal.widget.AlarmDialog;
 import com.morphoss.acal.widget.DateTimeDialog;
 import com.morphoss.acal.widget.DateTimeSetListener;
 
-public class EventEdit extends AcalActivity implements  OnClickListener, OnCheckedChangeListener, ResourceChangedListener, ResourceResponseListener<CalendarInstance> {
+public class EventEdit extends AcalActivity implements  OnClickListener, OnCheckedChangeListener, ResourceChangedListener, ResourceResponseListener {
 
 	public static final String TAG = "aCal EventEdit";
 	public static final int APPLY = 0;
@@ -90,7 +90,9 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 	public static final String NEW_EVENT_DATE_TIME_KEY = "datetime";
 	
 	public static final int ACTION_EDIT = 1;
-	public static final int ACTION_ADD = 2;
+	public static final int ACTION_CREATE = 2;
+	public static final int ACTION_COPY = 3;
+	public static final int ACTION_DELETE = 4;
 	
 	
 	
@@ -148,7 +150,7 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 	
 	private static final int INSTANCES_SINGLE = 0;
 	private static final int INSTANCES_ALL = 1;
-	private static final int INSTANCES_THIS_FURTURE = 2;
+	private static final int INSTANCES_THIS_FUTURE = 2;
 	
 	
 	private static final int REFRESH = 0;
@@ -156,6 +158,7 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 	private static final int CONFLICT = 2;
 	private static final int SHOW_LOADING = 3;
 	private static final int GIVE_UP = 4;
+
 	
 	private Dialog loadingDialog = null;
 	
@@ -222,6 +225,7 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 	}
 
 
+	@SuppressWarnings("unchecked")
 	private void getEventAction() {
 		Bundle b = this.getIntent().getExtras();
 		if ( b.containsKey(ACTION_KEY) ) {
@@ -240,7 +244,7 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 					mHandler.sendMessageDelayed(mHandler.obtainMessage(SHOW_LOADING), 50);
 					mHandler.sendMessageDelayed(mHandler.obtainMessage(GIVE_UP), 10000);
 					break;
-				case ACTION_ADD:
+				case ACTION_CREATE:
 					AcalDateTime start;
 					if (b.containsKey(NEW_EVENT_DATE_TIME_KEY))
 						start = b.getParcelable(NEW_EVENT_DATE_TIME_KEY);
@@ -315,7 +319,7 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 
 		//Title
 		this.eventName = (TextView) this.findViewById(R.id.EventName);
-		if ( action == ACTION_ADD ) {
+		if ( action == ACTION_CREATE ) {
 			eventName.setSelectAllOnFocus(true);
 		}
 
@@ -559,36 +563,34 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 	}
 
 	private boolean saveChanges() {
-		/**
+		
+		
 		try {
 			if ( Constants.LOG_DEBUG ) Log.d(TAG,"saveChanges: dtstart = "+event.getStart().toPropertyString(PropertyName.DTSTART));
-			this.dataRequest.eventChanged(event);
-
-			if ( Constants.LOG_DEBUG ) Log.d(TAG,"Saving event with action " + event.getAction() );
-			if (event.getAction() == WriteableEventInstance.ACTION_CREATE)
-				Toast.makeText(this, getString(R.string.EventSaved), Toast.LENGTH_LONG).show();
-			else if (event.getAction() == WriteableEventInstance.ACTION_MODIFY_ALL)
-				Toast.makeText(this, getString(R.string.ModifiedAllInstances), Toast.LENGTH_LONG).show();
-			else if (event.getAction() == WriteableEventInstance.ACTION_MODIFY_SINGLE)
-				Toast.makeText(this, getString(R.string.ModifiedOneInstance), Toast.LENGTH_LONG).show();
-			else if (event.getAction() == WriteableEventInstance.ACTION_MODIFY_ALL_FUTURE)
-				Toast.makeText(this, getString(R.string.ModifiedThisAndFuture), Toast.LENGTH_LONG).show();
-
+			ResourceManager.getInstance(this).sendRequest(new RREventEditedRequest(this, event, action, instances));
+			
+			//display savingdialog
+			
+			//set message for 10 seconds to fail.
+			
+			//move below to resourceresponse
+			/**
+			 * dismiss dialog
 			Intent ret = new Intent();
 			Bundle b = new Bundle();
 			b.putParcelable(resultAcalEvent, event);
 			b.putLong(resultCollectionId, currentCollection.getAsInteger(DavCollections._ID));
 			ret.putExtras(b);
 			this.setResult(RESULT_OK, ret);
-
 			this.finish();
+			*/
 		}
 		catch (Exception e) {
 			if ( e.getMessage() != null ) Log.d(TAG,e.getMessage());
 			if (Constants.LOG_DEBUG)Log.d(TAG,Log.getStackTraceString(e));
 			Toast.makeText(this, getString(R.string.ErrorSavingEvent), Toast.LENGTH_LONG).show();
 		}
-		*/
+		
 		return true;
 	}
 	
@@ -691,7 +693,7 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 								saveChanges();
 								return;
 							case 2:
-								instances = INSTANCES_THIS_FURTURE;
+								instances = INSTANCES_THIS_FUTURE;
 								saveChanges();
 								return;
 						}
@@ -787,15 +789,18 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 	}
 
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public void resourceResponse(ResourceResponse<CalendarInstance> response) {
-		int msg = FAIL;
-		if (response.wasSuccessful()) {
-			this.event = (EventInstance) response.result();
-			msg = REFRESH;
+	public void resourceResponse(ResourceResponse response) {
+		Object result = response.result();
+		if (result instanceof EventInstance) {
+			int msg = FAIL;
+			if (response.wasSuccessful()) {
+				this.event = (EventInstance) result;
+				msg = REFRESH;
+			}
+			mHandler.sendMessage(mHandler.obtainMessage(msg));		
 		}
-		mHandler.sendMessage(mHandler.obtainMessage(msg));
-		
 		
 	}
 }

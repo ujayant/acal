@@ -262,6 +262,7 @@ public class ResourceManager implements Runnable {
 		public DMUpdateQuery getNewUpdateQuery(ContentValues values, String whereClause, String[] whereArgs);
 		public DMQueryBuilder getNewQueryBuilder();
 		public boolean processActions(DMQueryList queryList);
+		public Resource addPending(String oldBlob, String newBlob);
 	}
 
 	public interface ReadOnlyResourceTableManager {
@@ -685,6 +686,15 @@ public class ResourceManager implements Runnable {
 		@Override
 		public DMUpdateQuery getNewUpdateQuery(ContentValues values, String whereClause, String[] whereArgs) {
 			return new DMUpdateQuery(values, whereClause, whereArgs);
+		}
+
+
+		@Override
+		public Resource addPending(String oldBlob, String newBlob) {
+			//add a new pending resource and return the resultant resource.
+			//if oldBlob == null then this is a create not an edit
+			
+			return null;
 		}
 	}
 }

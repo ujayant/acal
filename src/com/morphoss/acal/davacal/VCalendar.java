@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,6 +34,7 @@ import com.morphoss.acal.Constants;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
+import com.morphoss.acal.activity.EventEdit;
 import com.morphoss.acal.database.cachemanager.CacheObject;
 import com.morphoss.acal.dataservice.EventInstance;
 import com.morphoss.acal.dataservice.Resource;
@@ -91,9 +93,8 @@ public class VCalendar extends VComponent {
 		return vcal;
 	}
 
-	public static VCalendar getGenericCalendar( long collectionId, EventInstance newEventData) {
+	public static VCalendar getGenericCalendar( long collectionId) {
 		VCalendar vcal = new VCalendar(collectionId);
-		new VEvent(vcal);
 		return vcal;
 	}
 
@@ -108,12 +109,9 @@ public class VCalendar extends VComponent {
 		return new VCalendar(this.content, this.getResource(), this.earliestStart, this.latestEnd, this.parent);
 	}
 
-	public String applyEventAction(EventInstance action) {
-		//TODO
-		//needs to be refactored
-		/**try {
+	public String applyEventAction(EventInstance event, int action, int instances) {
+		try {
 			this.setEditable();
-
 			VEvent vEvent = (VEvent) this.getMasterChild();
 
 			// first, strip any existing properties which we always modify
@@ -126,8 +124,15 @@ public class VCalendar extends VComponent {
 
 			vEvent.addProperty(AcalProperty.fromString(lastModified.toPropertyString(PropertyName.DTSTAMP)));
 			vEvent.addProperty(AcalProperty.fromString(lastModified.toPropertyString(PropertyName.LAST_MODIFIED)));
+			
+			switch (action) {
+				case EventEdit.ACTION_CREATE:
+				case EventEdit.ACTION_EDIT:
+				case EventEdit.ACTION_DELETE:
+				
+			}
 
-			if ( action.getAction() == WriteableEventInstance.ACTION_DELETE_SINGLE) {
+			/**if ( action.getAction() == WriteableEventInstance.ACTION_DELETE_SINGLE) {
 				AcalProperty exDate = vEvent.getProperty("EXDATE");
 				if ( exDate == null || exDate.getValue().equals("") ) 
 					exDate = AcalProperty.fromString(action.getStart().toPropertyString(PropertyName.EXDATE));
@@ -154,12 +159,13 @@ public class VCalendar extends VComponent {
 
 			String ret = this.getCurrentBlob();
 			return ret;
+			*/
 		}
 		catch (Exception e) {
 			Log.w(TAG,Log.getStackTraceString(e));
 			return "";
 		}
-	*/
+	
 		return null;
 	}
 
