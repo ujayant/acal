@@ -35,6 +35,11 @@ public class VTimezone extends VComponent {
 	protected TimeZone tz = null;
 	protected String tzid = null;
 	
+	public VTimezone(ComponentParts splitter, VComponent parent) {
+		super(splitter, parent);
+	}
+
+	@Deprecated
 	public VTimezone(ComponentParts splitter, Resource r, VComponent parent) {
 		super(splitter, r, parent);
 	}

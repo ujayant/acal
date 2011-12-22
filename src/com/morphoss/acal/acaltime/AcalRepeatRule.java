@@ -68,6 +68,10 @@ public class AcalRepeatRule {
 
 	private VCalendar					sourceVCalendar		= null;
 
+	public final static long VALUE_NOT_ASSIGNED = -1L;
+	private long	collectionId = VALUE_NOT_ASSIGNED;
+	private long	resourceId = VALUE_NOT_ASSIGNED;
+
 	final public static AcalRepeatRuleParser SINGLE_INSTANCE = AcalRepeatRuleParser.parseRepeatRule("FREQ=DAILY;COUNT=1");
 	
 	final private static int			MAX_REPEAT_INSTANCES	= 100;
@@ -101,8 +105,15 @@ public class AcalRepeatRule {
 		repeatRule.setUntil(newUntil);
 	}	
 
-	
-	public static AcalRepeatRule fromVCalendar( VCalendar vCal ) {
+
+	/**
+	 * 
+	 * @param vCal
+	 * @param collectionId The collectionId to include in any returned CalendarInstance object.
+	 * @param resourceId The resourceId to include in any returned CalendarInstance object.
+	 * @return
+	 */
+	public static AcalRepeatRule fromVCalendar( VCalendar vCal, long collectionId, long resourceId ) {
 		Masterable masterComponent = vCal.getMasterChild();
 		if ( masterComponent == null ) {
 			if ( Constants.debugRepeatRule && Constants.LOG_VERBOSE ) {
@@ -132,6 +143,8 @@ public class AcalRepeatRule {
 
 		AcalRepeatRule ret = new AcalRepeatRule( repeatFromDate, masterComponent.getProperty(PropertyName.RRULE) );
 		ret.sourceVCalendar = vCal;
+		ret.collectionId = collectionId;
+		ret.resourceId = resourceId;
 		
 		ret.baseDuration = masterComponent.getDuration();
 
@@ -588,20 +601,23 @@ public class AcalRepeatRule {
 			if ( Constants.debugRepeatRule && duration.days > 10 ) {
 				throw new IllegalArgumentException();
 			}
+			if ( collectionId == VALUE_NOT_ASSIGNED || resourceId == VALUE_NOT_ASSIGNED ) {
+				throw new IllegalArgumentException("To retrieve CalendarInstances the RepeatRule must have valid collectionId and resourceId");
+			}
 			this.dtend = AcalDateTime.addDuration(dtstart, duration);
 		}
 
 		EventInstance getEventInstance() {
-			return new EventInstance( (VEvent) masterInstance, dtstart, duration);
+			return new EventInstance( (VEvent) masterInstance, collectionId, resourceId, dtstart, duration);
 			//return DefaultEventInstance.getInstance((VEvent) VEvent, dtstart, duration, isPending );
 		}
 		
 		CacheObject getCacheObject() {
 			Thread.yield();
 			if ( masterInstance instanceof VEvent )
-				return new CacheObject( (VEvent) masterInstance, dtstart, duration);
+				return new CacheObject( (VEvent) masterInstance, collectionId, resourceId, dtstart, duration);
 			else
-				return new CacheObject(masterInstance, dtstart, dtend, null);
+				return new CacheObject(masterInstance, collectionId, resourceId, dtstart, dtend, null);
 		}
 	}
 /*

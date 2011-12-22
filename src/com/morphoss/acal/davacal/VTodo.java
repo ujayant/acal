@@ -41,14 +41,24 @@ public class VTodo extends Masterable {
 	}
 
 	
-	public VTodo(ComponentParts splitter, Resource r, VComponent parent) {
-		super(splitter, r, parent);
+	public VTodo(ComponentParts splitter, VComponent parent) {
+		super(splitter, parent);
 	}
 
 	public VTodo( VCalendar parent ) {
 		super(VComponent.VTODO, parent );
 	}
 
+	public VTodo() {
+		this( new VCalendar() );
+	}
+
+	@Deprecated
+	public VTodo(ComponentParts splitter, Resource r, VComponent parent) {
+		super(splitter, r, parent);
+	}
+
+	@Deprecated
 	public VTodo( long collectionId ) {
 		this( new VCalendar(collectionId) );
 	}
@@ -89,7 +99,7 @@ public class VTodo extends Masterable {
 	}
 
 	public static VTodo createComponentFromInstance(TodoInstance result) {
-		VTodo instance = new VTodo(result.getCollectionId());
+		VTodo instance = new VTodo();
 
 		if ( result.getStart() != null ) instance.setStart(result.getStart());
 		if ( result.getDue() != null ) instance.setStart(result.getDue());

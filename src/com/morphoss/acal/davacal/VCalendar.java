@@ -64,13 +64,16 @@ public class VCalendar extends VComponent {
 	private Boolean hasRepeatRule = null;
 	private Long earliestStart;
 	private Long latestEnd;
-	private boolean isPending = false;
+
+	private Long collectionId = AcalRepeatRule.VALUE_NOT_ASSIGNED;
+	private Long resourceId = AcalRepeatRule.VALUE_NOT_ASSIGNED;
+	
 	public static final Pattern tzOlsonExtractor = Pattern.compile(".*((?:Antarctica|America|Africa|Atlantic|Asia|Australia|Indian|Europe|Pacific|US)/(?:(?:[^/\"]+)/)?[^/\"]+)\"?");
 	private static final String	TZNAME_UTC	= "UTC";
 
 
-	public VCalendar(ComponentParts splitter, Resource r, Long earliestStart, Long latestEnd,VComponent parent) {
-		super(splitter, r,parent);
+	public VCalendar(ComponentParts splitter, long collectionId, long resourceId, Long earliestStart, Long latestEnd, VComponent parent) {
+		super(splitter, parent);
 		this.earliestStart = earliestStart;
 		this.latestEnd = latestEnd;
 		if ( earliestStart != null ) {
@@ -80,6 +83,29 @@ public class VCalendar extends VComponent {
 	}
 
 
+	public VCalendar() {
+		super( VComponent.VCALENDAR, null );
+		try { setPersistentOn(); } catch (YouMustSurroundThisMethodInTryCatchOrIllEatYouException e) { }
+		addProperty(new AcalProperty("CALSCALE","GREGORIAN"));
+		addProperty(new AcalProperty("PRODID","-//morphoss.com//aCal 1.0//EN"));
+		addProperty(new AcalProperty("VERSION","2.0"));
+	}
+
+
+	public VCalendar(ComponentParts splitter, Resource r, VComponent parent) {
+		super(splitter, parent);
+		this.collectionId = r.getCollectionId();
+		this.resourceId = r.getResourceId();
+		this.earliestStart = r.getEarliestStart();
+		this.latestEnd = r.getLatestEnd();
+		if ( earliestStart != null ) {
+			this.calendarRange = new AcalDateRange(AcalDateTime.fromMillis(earliestStart),
+					(latestEnd == null ? null : AcalDateTime.fromMillis(latestEnd)));
+		}
+	}
+
+
+	@Deprecated
 	protected VCalendar(long collectionId) {
 		super( VComponent.VCALENDAR, collectionId, null );
 		try { setPersistentOn(); } catch (YouMustSurroundThisMethodInTryCatchOrIllEatYouException e) { }
@@ -88,25 +114,31 @@ public class VCalendar extends VComponent {
 		addProperty(new AcalProperty("VERSION","2.0"));
 	}
 
+	/**
+	 * Use new VCalendar() instead.
+	 * @param collectionId
+	 * @return
+	 */
+	@Deprecated
 	public static VCalendar createEmptyCalendar( long collectionId ) {
 		VCalendar vcal = new VCalendar(collectionId);
 		return vcal;
 	}
 
-	public static VCalendar getGenericCalendar( long collectionId) {
+	/**
+	 * Use new VCalendar() instead.
+	 * @param collectionId
+	 * @return
+	 */
+	@Deprecated
+	public static VCalendar getGenxericCalendar( long collectionId) {
 		VCalendar vcal = new VCalendar(collectionId);
 		return vcal;
 	}
 
-	public void setPending(boolean isPending) {
-		this.isPending = isPending;
-	}
-	public boolean isPending() {
-		return this.isPending;
-	}
-	
 	public VCalendar clone() {
-		return new VCalendar(this.content, this.getResource(), this.earliestStart, this.latestEnd, this.parent);
+		// parent is null, since a VCalendar is a top-level object.
+		return new VCalendar(this.content, this.resourceId, this.collectionId, this.earliestStart, this.latestEnd, null);
 	}
 
 	public String applyEventAction(EventInstance event, int action, int instances) throws InvalidCalendarActionException {
@@ -312,7 +344,7 @@ public class VCalendar extends VComponent {
 					Log.println(Constants.LOGD,TAG,"New timezone for '"+tzId+"'");
 					Log.println(Constants.LOGD,TAG,tzBlob);
 				}
-				vtz = (VTimezone) VComponent.createComponentFromBlob(tzBlob, null);
+				vtz = (VTimezone) VComponent.createComponentFromBlob(tzBlob);
 				vtz.setEditable();
 				this.addChild(vtz);
 			}
@@ -326,7 +358,7 @@ public class VCalendar extends VComponent {
 
 	public void checkRepeatRule() {
 		try {
-			if (repeatRule == null) repeatRule = AcalRepeatRule.fromVCalendar(this);
+			if (repeatRule == null) repeatRule = AcalRepeatRule.fromVCalendar(this,collectionId,resourceId);
 		}
 		catch ( Exception e ) {
 			Log.e(TAG,"Exception getting repeat rule from VCalendar", e);
@@ -351,7 +383,7 @@ public class VCalendar extends VComponent {
 					rProperty = m.getProperty(PropertyName.RDATE);
 				if ( rProperty == null ) {
 					Log.println(Constants.LOGD,TAG, "Individual instance CacheObject being created.");
-					eventList.add(new CacheObject(m));
+					eventList.add(new CacheObject(m,collectionId,resourceId));
 					return true;
 				}
 				else {

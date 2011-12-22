@@ -1,12 +1,10 @@
 package com.morphoss.acal.activity;
 
-import android.os.ConditionVariable;
-
+import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
+import com.morphoss.acal.database.resourcesmanager.ResourceManager.WriteableResourceTableManager;
 import com.morphoss.acal.database.resourcesmanager.ResourceProcessingException;
 import com.morphoss.acal.database.resourcesmanager.ResourceResponse;
 import com.morphoss.acal.database.resourcesmanager.ResourceResponseListener;
-import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
-import com.morphoss.acal.database.resourcesmanager.ResourceManager.WriteableResourceTableManager;
 import com.morphoss.acal.database.resourcesmanager.requesttypes.ResourceRequestWithResponse;
 import com.morphoss.acal.dataservice.EventInstance;
 import com.morphoss.acal.dataservice.Resource;
@@ -40,7 +38,7 @@ public class RREventEditedRequest extends ResourceRequestWithResponse<Long> {
 						processor.query(null, ResourceTableManager.RESOURCE_ID+" = ?", new String[]{event.getResourceId()+""},null,null,null)
 						.get(0));
 				oldBlob = res.getBlob();
-				VCalendar vc = ((VCalendar)VComponent.createComponentFromResource(res));
+				VCalendar vc = ((VCalendar)VComponent.createComponentFromBlob(res.getBlob()));
 				newBlob = vc.applyEventAction(event, action, instances);
 				uid = vc.getMasterChild().getUID();
 				

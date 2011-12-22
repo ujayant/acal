@@ -35,6 +35,11 @@ import com.morphoss.acal.dataservice.Resource;
 
 public abstract class Masterable extends VComponent {
 
+	protected Masterable(ComponentParts splitter, VComponent parent) {
+		super(splitter,parent);
+	}
+
+	@Deprecated
 	protected Masterable(ComponentParts splitter, Resource r, VComponent parent) {
 		super(splitter,r,parent);
 	}

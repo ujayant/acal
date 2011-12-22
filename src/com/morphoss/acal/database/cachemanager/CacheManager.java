@@ -396,14 +396,10 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 			Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
 			for (Resource r : res.result()) {
 				//if VComp is VCalendar
-				try {
-					VComponent comp = VComponent.createComponentFromResource(r);
-					if (comp instanceof VCalendar) {
-						((VCalendar)comp).appendCacheEventInstancesBetween(events, range);
-					}
-				} catch (VComponentCreationException e) {
-					Log.i(TAG,Log.getStackTraceString(e));
-				}
+				VComponent comp = VComponent.createComponentFromBlob(r.getBlob());
+				if (comp instanceof VCalendar)
+					((VCalendar)comp).appendCacheEventInstancesBetween(events, range);
+
 			}
 			Thread.currentThread().setPriority(currentPri);
 			Log.println(Constants.LOGD,TAG,events.size()+"Event Instances obtained. Posting Response.");
@@ -632,7 +628,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 
 					// Construct resource
 					try {
-						comp = VComponent.createComponentFromResource(r);
+						comp = VComponent.createComponentFromBlob(r.getBlob());
 						if ( comp == null ) continue;
 						// get instances within window
 
@@ -652,9 +648,6 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 										.setValues(co.getCacheCVs()).build());
 						}
 
-					}
-					catch ( VComponentCreationException e ) {
-						Log.e(TAG, "Error Handling Resoure Change:" + Log.getStackTraceString(e));
 					}
 					catch ( Exception e ) {
 						Log.e(TAG, "Error Handling Resoure Change:" + Log.getStackTraceString(e));

@@ -26,13 +26,13 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View.OnClickListener;
 import android.view.View.OnCreateContextMenuListener;
+import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -48,11 +48,11 @@ import com.morphoss.acal.database.cachemanager.CRObjectsInRange;
 import com.morphoss.acal.database.cachemanager.CacheChangedEvent;
 import com.morphoss.acal.database.cachemanager.CacheChangedListener;
 import com.morphoss.acal.database.cachemanager.CacheManager;
+import com.morphoss.acal.database.cachemanager.CacheManager.CacheTableManager;
 import com.morphoss.acal.database.cachemanager.CacheObject;
 import com.morphoss.acal.database.cachemanager.CacheRequest;
 import com.morphoss.acal.database.cachemanager.CacheResponse;
 import com.morphoss.acal.database.cachemanager.CacheResponseListener;
-import com.morphoss.acal.database.cachemanager.CacheManager.CacheTableManager;
 import com.morphoss.acal.dataservice.Collection;
 
 /**
@@ -187,16 +187,9 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 		
 		Collection eventCollection = Collection.getInstance(event.getCollectionId(), this.context);
 		
-		final boolean isPending = event.isPending();
-		if (isPending) {
-			sideBar.setBackgroundColor(eventCollection.getColour()|0xa0000000); title.setTextColor(eventCollection.getColour()|0xa0000000);
-			((LinearLayout) rowLayout.findViewById(R.id.EventListItemText)).setBackgroundColor(0x44000000);
-		}
-		else {
-			rowLayout.findViewById(R.id.EventListItemIcons).setBackgroundColor(eventCollection.getColour());
-			sideBar.setBackgroundColor(eventCollection.getColour()); 
-			title.setTextColor(eventCollection.getColour());
-		}
+		rowLayout.findViewById(R.id.EventListItemIcons).setBackgroundColor(eventCollection.getColour());
+		sideBar.setBackgroundColor(eventCollection.getColour()); 
+		title.setTextColor(eventCollection.getColour());
 
 		title.setText((event.getSummary() == null  || event.getSummary().length() <= 0 ) ? "Untitled" : event.getSummary());
 
@@ -212,7 +205,7 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 		
 		time.setText(AcalDateTimeFormatter.getDisplayTimeText(context, viewDate.getMillis(), viewDateEnd.getMillis(),
 					event.getStart(), event.getEnd(),MonthView.prefs.getBoolean(context.getString(R.string.prefTwelveTwentyfour), false), event.isAllDay())
-					+ (isPending ? " (saving)" : "") );
+					 );
 
 		if (event.getLocation() != null && event.getLocation().length() > 0 )
 			location.setText(event.getLocation());
@@ -233,8 +226,7 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 
 			@Override
 			public void onCreateContextMenu(ContextMenu menu, View view, ContextMenuInfo info) {
-				menu.setHeaderTitle("Event");
-				if ( !isPending ) menu.add(0, position, 0, context.getString(R.string.Edit));
+				menu.setHeaderTitle(context.getString(R.string.Event));
 
 				menu.add(0, CONTEXT_COPY + position, 0, context.getString(R.string.newEventFromThis));
 				if (repeats) {

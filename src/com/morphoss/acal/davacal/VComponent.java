@@ -60,10 +60,11 @@ public abstract class VComponent implements Parcelable {
 	public static final String			VJOURNAL			= "VJOURNAL";
 	public static final String			VALARM				= "VALARM";
 	public static final String			VTIMEZONE			= "VTIMEZONE";
+	
+	public static long VALUE_NOT_ASSIGNED = -1L;
 
 	public final String					name;
 
-	protected long			collectionId;
 	protected ComponentParts			content;	
 	
 	protected VComponent 				parent;
@@ -82,17 +83,38 @@ public abstract class VComponent implements Parcelable {
 	private Map<String, AcalProperty> properties;
 	protected boolean propertiesSet = false;
 	private int persistenceCount = 0;
+	
+	@Deprecated
 	protected Resource resource;
+
+	@Deprecated
+	protected long	collectionId = VALUE_NOT_ASSIGNED;
 	
 	//Constructors and factory methods
+	/**
+	 * Constructor for child classes. Creates the VComponent and all its children from supplied ComponentParts
+	 * and (optional) parent.
+	 * 
+	 * A null value for parent is reasonable and indicates that this is the root of this particular tree.
+	 * 
+	 * @param splitter
+	 * @param parent
+	 */
+	protected VComponent(ComponentParts splitter, VComponent parent) {
+		this.content = splitter;
+		this.name = splitter.thisComponent;
+		this.parent = parent;
+	}
+
 	/**
 	 * Constructor for child classes. Creates the VComponent and all its children from supplied ComponentParts
 	 * and data.
 	 * 
 	 * @param splitter
-	 * @param resourceRow
+	 * @param resource data
 	 * @param collectionObject
 	 */
+	@Deprecated
 	protected VComponent(ComponentParts splitter, Resource resource, VComponent parent) {
 		this.resource = resource;
 		this.collectionId = resource.getCollectionId();
@@ -104,7 +126,10 @@ public abstract class VComponent implements Parcelable {
 	protected VComponent(String typeName, VComponent parent) {
 		this.name = typeName;
 		this.parent = parent;
-		if ( parent != null ) this.collectionId = parent.collectionId;
+		if ( parent != null ) {
+			this.collectionId = parent.collectionId;
+			this.resource = parent.resource;
+		}
 		this.content = null;
 		this.children = new ArrayList<VComponent>();
 		this.properties = new HashMap<String,AcalProperty>();
@@ -112,6 +137,7 @@ public abstract class VComponent implements Parcelable {
 		this.propertiesSet = true;
 	}
 
+	@Deprecated
 	protected VComponent(String typeName, long collectionId, VComponent parent) {
 		this.collectionId = collectionId;
 		this.name = typeName;
@@ -123,15 +149,8 @@ public abstract class VComponent implements Parcelable {
 		this.propertiesSet = true;
 	}
 
-	
-	public synchronized static VComponent createComponentFromResource(Resource resource) throws VComponentCreationException {
-		String blob = resource.getBlob();
-		if ( blob == null ) return null;
-		return createComponentFromBlob(blob,resource);
-	}
-
-	
-	public synchronized static VComponent createComponentFromBlob(String blob, Resource r) {
+		
+	public synchronized static VComponent createComponentFromBlob(String blob) {
 		
 		// Remove all line spacing
 		// Very probably we should do this when we write it into the local database.
@@ -140,40 +159,55 @@ public abstract class VComponent implements Parcelable {
 
 		ComponentParts splitter = new ComponentParts(blob);
 		if ( splitter.thisComponent.equals(VCALENDAR) )
-			return new VCalendar(splitter, r, null,null, null);
+			return new VCalendar(splitter,VALUE_NOT_ASSIGNED,VALUE_NOT_ASSIGNED, null,null, null);
 		else if (splitter.thisComponent.equals(VCARD))
-			return new VCard(splitter,r,null);
+			return new VCard(splitter,null);
 		else if (splitter.thisComponent.equals(VEVENT))
-			return new VEvent(splitter,r,null);
+			return new VEvent(splitter,null);
 		else if (splitter.thisComponent.equals(VTODO))
-			return new VTodo(splitter,r,null);
+			return new VTodo(splitter,null);
 		else if (splitter.thisComponent.equals(VALARM))
-			return new VAlarm(splitter,r,null);
+			return new VAlarm(splitter,null);
 		else if (splitter.thisComponent.equals(VTIMEZONE))
-			return new VTimezone(splitter,r,null);
+			return new VTimezone(splitter,null);
 		else if (splitter.thisComponent.equals(VJOURNAL))
-			return new VJournal(splitter,r,null);
+			return new VJournal(splitter,null);
 		else
-			return new VGenericComponent(splitter,r,null);
+			return new VGenericComponent(splitter,null);
+	}
+	
+	public synchronized static VComponent createComponentFromResource(Resource r) {
+		
+		// Remove all line spacing
+		// Very probably we should do this when we write it into the local database.
+		String blob = r.getBlob();
+		if ( blob == null ) return null;
+		Matcher m = Constants.rfc5545UnWrapper.matcher(blob);
+		blob = m.replaceAll("");
+
+		ComponentParts splitter = new ComponentParts(blob);
+		if ( splitter.thisComponent.equals(VCALENDAR) )
+			return new VCalendar(splitter, r.getCollectionId(),r.getResourceId(), r.getEarliestStart(), r.getLatestEnd(), null);
+		else if (splitter.thisComponent.equals(VCARD))
+			return new VCard(splitter,null);
+		else if (splitter.thisComponent.equals(VEVENT))
+			return new VEvent(splitter,null);
+		else if (splitter.thisComponent.equals(VTODO))
+			return new VTodo(splitter,null);
+		else if (splitter.thisComponent.equals(VALARM))
+			return new VAlarm(splitter,null);
+		else if (splitter.thisComponent.equals(VTIMEZONE))
+			return new VTimezone(splitter,null);
+		else if (splitter.thisComponent.equals(VJOURNAL))
+			return new VJournal(splitter,null);
+		else
+			return new VGenericComponent(splitter,null);
 	}
 	
 	/************************************
 	 * 			Public Methods			*
 	 ************************************/
 	 
-	
-	public synchronized long getResourceId() {
-		if (resource != null) return resource.getResourceId();
-		return -1;
-	}
-	
-	public synchronized long getCollectionId() {
-		return this.collectionId;
-	}
-
-	public synchronized void setCollection(long newCollectionId) {
-			this.collectionId = newCollectionId;
-	}
 
 	public synchronized int size() {
 		if ( content != null ) return content.partInfo.size();
@@ -243,7 +277,9 @@ public abstract class VComponent implements Parcelable {
 	}
 
 	
+	@Deprecated
 	public Resource getResource() {
+		if ( Constants.LOG_DEBUG ) Log.e(TAG,"Deprecated call to getResource() method.  Resource should reference VComponent, not vice-versa", new Exception());
 		return this.resource;
 	}
 	
@@ -624,7 +660,6 @@ public abstract class VComponent implements Parcelable {
 
 
 	public VComponent(Parcel in) {
-		this.resource = new Resource(in);
 		this.name = in.readString();
 		String original = in.readString();
 		ComponentParts origParts = null;
@@ -636,7 +671,6 @@ public abstract class VComponent implements Parcelable {
 
 	@Override
 	public void writeToParcel(Parcel dest, int flags) {
-		dest.writeLong(resource.getResourceId());
 		dest.writeString(name);
 		dest.writeString(content == null ? null : content.componentString);
 		dest.writeString(getCurrentBlob());

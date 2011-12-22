@@ -26,7 +26,13 @@ public class VCard extends VComponent {
 	public static final String TAG = "aCal VCard";
 	protected final String name = "VCard";
 	
-	
+
+	public VCard(ComponentParts splitter, VComponent parent) {
+		super(splitter, parent);
+	}
+
+
+	@Deprecated
 	public VCard(ComponentParts splitter, Resource r, VComponent parent) {
 		super(splitter, r, parent);
 	}

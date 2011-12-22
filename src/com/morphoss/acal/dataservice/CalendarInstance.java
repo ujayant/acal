@@ -2,8 +2,6 @@ package com.morphoss.acal.dataservice;
 
 import java.util.ArrayList;
 
-import android.util.Log;
-
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDuration;
@@ -13,7 +11,6 @@ import com.morphoss.acal.davacal.PropertyName;
 import com.morphoss.acal.davacal.RecurrenceId;
 import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VComponent;
-import com.morphoss.acal.davacal.VComponentCreationException;
 import com.morphoss.acal.davacal.VEvent;
 import com.morphoss.acal.davacal.VTodo;
 
@@ -32,7 +29,6 @@ public abstract class CalendarInstance {
 	protected String summary;
 	protected String location;
 	protected String description;
-	protected String etag;
 	
 
 	/**
@@ -48,7 +44,7 @@ public abstract class CalendarInstance {
 	 * @param description
 	 */
 	protected CalendarInstance(long cid, long rid, AcalDateTime start, AcalDateTime end, ArrayList<AcalAlarm> alarms, String rrule,
-			String rrid, String summary, String location, String description, String etag) {
+			String rrid, String summary, String location, String description) {
 		
 		this.collectionId = cid; if (cid < 0) throw new IllegalArgumentException("Collection ID must be a valid collection!");
 		this.resourceId = (rid<0) ? -1 : rid;
@@ -60,14 +56,13 @@ public abstract class CalendarInstance {
 		this.summary = (summary == null) ? "" : summary; 
 		this.location = (location == null) ? "" : location; 
 		this.description = (description == null) ? "" : description; 
-		this.etag = (etag == null) ? "" : etag;
 		
 		
 	}
 
-	public CalendarInstance(Masterable masterInstance, AcalDateTime dtstart, AcalDateTime dtend) {
-		this(masterInstance.getCollectionId(),
-				masterInstance.getResourceId(),
+	public CalendarInstance(Masterable masterInstance, long collectionId, long resourceId, AcalDateTime dtstart, AcalDateTime dtend) {
+		this(collectionId,
+				resourceId,
 				dtstart,
 				dtend,
 				masterInstance.getAlarms(),
@@ -75,8 +70,7 @@ public abstract class CalendarInstance {
 				(dtstart == null ? (dtend == null ? null : dtend.toPropertyString(PropertyName.RECURRENCE_ID)) : dtstart.toPropertyString(PropertyName.RECURRENCE_ID)),
 				masterInstance.getSummary(), 
 				masterInstance.getLocation(),
-				masterInstance.getDescription(),
-				masterInstance.getResource().getEtag());
+				masterInstance.getDescription());
 	}
 
 	public AcalDateTime getEnd() {
@@ -133,32 +127,27 @@ public abstract class CalendarInstance {
 	
 
 	public static CalendarInstance fromResourceAndRRId(Resource res, String rrid) throws IllegalArgumentException {
-		try {
-			VComponent comp = VComponent.createComponentFromResource(res);
-			if (!(comp instanceof VCalendar)) throw new IllegalArgumentException("Resource provided is not a VCalendar");
-			Masterable obj;
-			if ( rrid == null )
-				obj = ((VCalendar)comp).getMasterChild();
-			else
-				obj = ((VCalendar)comp).getChildFromRecurrenceId(RecurrenceId.fromString(rrid));
+		VComponent comp = VComponent.createComponentFromBlob(res.getBlob());
+		if (!(comp instanceof VCalendar)) throw new IllegalArgumentException("Resource provided is not a VCalendar");
+		Masterable obj;
+		if ( rrid == null )
+			obj = ((VCalendar)comp).getMasterChild();
+		else
+			obj = ((VCalendar)comp).getChildFromRecurrenceId(RecurrenceId.fromString(rrid));
 
-			if (obj instanceof VEvent) {
-				return new EventInstance((VEvent)obj, obj.getStart(), obj.getEnd());
-			} else if (obj instanceof VTodo) {
-				return new TodoInstance((VTodo)obj, obj.getStart(), obj.getEnd());
-			} else {
-				throw new IllegalArgumentException("Resource does not map to a known Componant Type");
-			}
-		} catch (VComponentCreationException e) {
-			throw new IllegalArgumentException(e);
+		if ( obj instanceof VEvent ) {
+			return new EventInstance((VEvent) obj, res.getCollectionId(), res.getResourceId(), obj.getStart(),
+					obj.getEnd());
 		}
-		
+		else if ( obj instanceof VTodo ) {
+			return new TodoInstance((VTodo) obj, res.getCollectionId(), res.getResourceId(), obj.getStart(),
+					obj.getEnd());
+		}
+		else {
+			throw new IllegalArgumentException("Resource does not map to a known Componant Type");
+		}
 	}
 	
-	public String getEtag() {
-		return this.etag;
-	}
-
 	public static CalendarInstance fromBlobAndRRID(String blob, String rrid2) {
 		// TODO Auto-generated method stub
 		return null;

@@ -24,6 +24,11 @@ import com.morphoss.acal.dataservice.Resource;
 public class VAlarm extends VComponent {
 	public static final String TAG = "aCal VAlarm";
 	
+	public VAlarm(ComponentParts splitter, VComponent parent) {
+		super(splitter, parent);
+	}
+
+	@Deprecated
 	public VAlarm(ComponentParts splitter, Resource r, VComponent parent) {
 		super(splitter, r,parent);
 	}

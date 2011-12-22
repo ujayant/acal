@@ -70,7 +70,6 @@ import com.morphoss.acal.dataservice.TodoInstance;
 import com.morphoss.acal.davacal.AcalAlarm;
 import com.morphoss.acal.davacal.AcalAlarm.ActionType;
 import com.morphoss.acal.davacal.AcalAlarm.RelateWith;
-import com.morphoss.acal.davacal.SimpleAcalTodo;
 import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VComponent;
 import com.morphoss.acal.davacal.VTodo;
@@ -86,7 +85,6 @@ public class TodoEdit extends AcalActivity
 
 	public static final String TAG = "aCal TodoEdit";
 
-	private SimpleAcalTodo sat;
 	private VTodo todo;
 
 	public static final int ACTION_NONE = -1;
@@ -108,7 +106,6 @@ public class TodoEdit extends AcalActivity
 	private static final int COMPLETED_DIALOG = 12;
 	private static final int ADD_ALARM_DIALOG = 20;
 	private static final int SET_REPEAT_RULE_DIALOG = 21;
-	private static final int SELECT_COLLECTION_DIALOG = 22;
 	private static final int INSTANCES_TO_CHANGE_DIALOG = 30;
 	private static final int LOADING_DIALOG = 0xfeed;
 
@@ -250,7 +247,6 @@ public class TodoEdit extends AcalActivity
 		this.collectionsArray = new CollectionForArrayAdapter[taskCollections.length];
 		int count = 0;
 		long collectionId;
-		Collection col;
 		for (ContentValues cv : taskCollections ) {
 			collectionId = cv.getAsLong(DavCollections._ID);
 			collectionsArray[count++] = new CollectionForArrayAdapter(this,collectionId);
@@ -283,7 +279,7 @@ public class TodoEdit extends AcalActivity
 			if ( Collection.getInstance(preferredCollectionId, this) == null )
 				preferredCollectionId = collectionsArray[0].getCollectionId();
 
-			this.todo = new VTodo(preferredCollectionId);
+			this.todo = new VTodo();
 			this.todo.setSummary(getString(R.string.NewTaskTitle));
 			this.action = ACTION_CREATE;
 		}
@@ -294,7 +290,6 @@ public class TodoEdit extends AcalActivity
 		this.todo = newTodo;
 		long collectionId = -1;		
 		if ( currentOperation == ACTION_EDIT ) {
-			collectionId = todo.getCollectionId();
 			this.action = ACTION_MODIFY_ALL;
 			if ( isModifyAction() ) {
 				String rr = (String)  this.todo.getRRule();
@@ -311,7 +306,6 @@ public class TodoEdit extends AcalActivity
 			}
 		}
 		else if ( currentOperation == ACTION_COPY ) {
-			collectionId = todo.getCollectionId();
 			this.action = ACTION_CREATE;
 		}
 
@@ -437,10 +431,7 @@ public class TodoEdit extends AcalActivity
 		String description = todo.getDescription();
 		notesView.setText(description);
 		
-		
-		Collection todoCollection = Collection.getInstance(todo.getTopParent().getCollectionId(), this);
-
-		Integer colour = todoCollection.getColour();
+		Integer colour = currentCollection.getColour();
 		if ( colour == null ) colour = 0x70a0a0a0;
 		sidebar.setBackgroundColor(colour);
 		sidebarBottom.setBackgroundColor(colour);
@@ -454,6 +445,7 @@ public class TodoEdit extends AcalActivity
 		}
 		catch( Exception e ) {
 			// Oh well.  Some other way then... @todo.
+			Log.i(TAG,"Think of another solution...",e);
 		}
 		todoName.setTextColor(colour);
 
@@ -592,9 +584,6 @@ public class TodoEdit extends AcalActivity
 		if ( Collection.getInstance(collectionId,this) != null )
 			currentCollection = Collection.getInstance(collectionId,this);
 
-		VCalendar vc = (VCalendar) this.todo.getTopParent();
-		vc.setCollection(this.currentCollection.getCollectionId());
-
 		this.updateLayout();
 	}
 
@@ -644,10 +633,11 @@ public class TodoEdit extends AcalActivity
 		
 		try {
 			VCalendar vc = (VCalendar) todo.getTopParent();
-			
+
+			// @todo This call will also need to send collectionId (and resourceId for updates) 
 			this.dataRequest.todoChanged(vc, action);
 
-			Log.i(TAG,"Saving todo to collection "+todo.getCollectionId()+" with action " + action );
+			Log.i(TAG,"Saving todo to collection "+currentCollection.getCollectionId()+" with action " + action );
 			if ( action == ACTION_CREATE )
 				Toast.makeText(this, getString(R.string.TaskSaved), Toast.LENGTH_LONG).show();
 			else if (action == ACTION_MODIFY_ALL)
@@ -659,7 +649,6 @@ public class TodoEdit extends AcalActivity
 
 			Intent ret = new Intent();
 			Bundle b = new Bundle();
-			b.putParcelable(KEY_CACHE_OBJECT, sat);
 			b.putString(KEY_VCALENDAR_BLOB, vc.getCurrentBlob());
 			/*
 			b.putLong(KEY_RESOURCE, currentCollection.getAsInteger(DavCollections._ID));
