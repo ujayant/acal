@@ -22,3 +22,8 @@ design/screenshot*
 local.properties
 secure.properties
 proguard/*
+design/*.odt
+design/*.gnumeric
+design/*.ods
+traces.txt
+Constants.debug
