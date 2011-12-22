@@ -51,7 +51,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 	private long timeToWait = 0;
 	private boolean scheduleNextInstance = false;
 
-	private int					collectionId		= -5;
+	private long				collectionId		= -5;
 	private int					serverId			= -5;
 	private String				collectionPath		= null;
 	private String				syncToken			= null;
@@ -105,7 +105,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 	 *            The context to use for all those things contexts are used for.
 	 *            </p>
 	 */
-	public RRSyncCollectionContents(int collectionId) {
+	public RRSyncCollectionContents(long collectionId) {
 		this.collectionId = collectionId;
 	}
 

@@ -42,7 +42,7 @@ public class SyncCollectionContents extends ServiceJob {
 	 *            The context to use for all those things contexts are used for.
 	 *            </p>
 	 */
-	public SyncCollectionContents(int collectionId) {
+	public SyncCollectionContents(long collectionId) {
 		this.collectionId = collectionId;
 		request = new RRSyncCollectionContents(collectionId);
 		this.TIME_TO_EXECUTE = 0;

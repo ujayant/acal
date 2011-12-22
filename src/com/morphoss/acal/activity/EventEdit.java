@@ -21,6 +21,7 @@ package com.morphoss.acal.activity;
 import java.util.ArrayList;
 import java.util.TimeZone;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.ContentValues;
@@ -94,6 +95,9 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 	public static final int ACTION_COPY = 3;
 	public static final int ACTION_DELETE = 4;
 	
+	public static final int INSTANCES_SINGLE = 0;
+	public static final int INSTANCES_ALL = 1;
+	public static final int INSTANCES_THIS_FUTURE = 2;
 	
 	
 	private EventInstance event;
@@ -104,6 +108,7 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 	private static final int SET_REPEAT_RULE_DIALOG = 6;
 	private static final int WHICH_EVENT_DIALOG = 7;
 	private static final int LOADING_EVENT_DIALOG = 8;
+	private static final int SAVING_DIALOG = 9;
 
 	boolean prefer24hourFormat = false;
 	
@@ -148,9 +153,6 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 	private int action;
 	private int instances = -1;
 	
-	private static final int INSTANCES_SINGLE = 0;
-	private static final int INSTANCES_ALL = 1;
-	private static final int INSTANCES_THIS_FUTURE = 2;
 	
 	
 	private static final int REFRESH = 0;
@@ -158,33 +160,74 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 	private static final int CONFLICT = 2;
 	private static final int SHOW_LOADING = 3;
 	private static final int GIVE_UP = 4;
+	private static final int SAVE_RESULT = 5;
+	private static final int SAVE_FAILED = 6;
+	private static final int SHOW_SAVING = 7;
+
 
 	
 	private Dialog loadingDialog = null;
+	private Dialog savingDialog = null;
 	
 	private Handler mHandler = new Handler() {
 		public void handleMessage(Message msg) {
-			if (msg.what == REFRESH) {
+			
+			switch (msg.what) {
+			case REFRESH: 
 				if (loadingDialog != null) {
 					loadingDialog.dismiss();
 					loadingDialog = null;
 				}
 				updateLayout();
-			} else if(msg.what == CONFLICT) {
+				break;
+			
+			case  CONFLICT: 
 				Toast.makeText(EventEdit.this, "The resource you are editing has been changed or deleted on the server.", 5).show();
-			} else if(msg.what == SHOW_LOADING) {
-				if (event == null) showDialog(LOADING_EVENT_DIALOG);
-			} else if(msg.what == FAIL) {
+				break;
+			
+			case SHOW_LOADING: 
+					if (event == null) showDialog(LOADING_EVENT_DIALOG);
+					break;
+					
+			case FAIL:
 				Toast.makeText(EventEdit.this, "Error loading data.", 5).show();
 				finish();
-				return;
-			} else if(msg.what == GIVE_UP) {
+				break;
+				
+			case GIVE_UP:
 				if (loadingDialog != null) {
 					loadingDialog.dismiss();
 					Toast.makeText(EventEdit.this, "Error loading event data.", Toast.LENGTH_LONG).show();
 					finish();
-					return;
 				}
+				break;
+			case SHOW_SAVING: 
+				showDialog(SAVING_DIALOG);
+				break;
+				
+			case SAVE_RESULT:
+				//dismiss dialog
+				if (savingDialog != null) savingDialog.dismiss();
+				long res = (Long)msg.obj;
+				if (res >= 0) {
+					Intent ret = new Intent();
+					Bundle b = new Bundle();
+					b.putLong(EventView.RESOURCE_ID_KEY, (Long)msg.obj);
+					b.putLong(EventView.DTSTART_KEY, event.getStart().getMillis());
+					ret.putExtras(b);			
+					setResult(RESULT_OK, ret);
+					finish();
+					
+				} else {
+					Toast.makeText(EventEdit.this, "Error saving event data.", Toast.LENGTH_LONG).show();
+				}
+				break;
+			case SAVE_FAILED:
+				if (savingDialog != null) savingDialog.dismiss();
+				Toast.makeText(EventEdit.this, "Something went wrong trying to save data.", Toast.LENGTH_LONG).show();
+				setResult(Activity.RESULT_CANCELED, null);
+				finish();
+				break;
 			}
 			
 		}
@@ -562,33 +605,31 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private boolean saveChanges() {
 		
 		
 		try {
 			if ( Constants.LOG_DEBUG ) Log.d(TAG,"saveChanges: dtstart = "+event.getStart().toPropertyString(PropertyName.DTSTART));
-			ResourceManager.getInstance(this).sendRequest(new RREventEditedRequest(this, event, action, instances));
-			
 			//display savingdialog
 			
-			//set message for 10 seconds to fail.
 			
-			//move below to resourceresponse
-			/**
-			 * dismiss dialog
-			Intent ret = new Intent();
-			Bundle b = new Bundle();
-			b.putParcelable(resultAcalEvent, event);
-			b.putLong(resultCollectionId, currentCollection.getAsInteger(DavCollections._ID));
-			ret.putExtras(b);
-			this.setResult(RESULT_OK, ret);
-			this.finish();
-			*/
+			
+			ResourceManager.getInstance(this).sendRequest(new RREventEditedRequest(this, event, action, instances));
+			
+			//set message for 10 seconds to fail.
+			mHandler.sendEmptyMessageDelayed(SAVE_FAILED, 100000);
+			
+			//showDialog(SAVING_DIALOG);
+			mHandler.sendEmptyMessageDelayed(SHOW_SAVING,50);
+			
+			
 		}
 		catch (Exception e) {
 			if ( e.getMessage() != null ) Log.d(TAG,e.getMessage());
 			if (Constants.LOG_DEBUG)Log.d(TAG,Log.getStackTraceString(e));
 			Toast.makeText(this, getString(R.string.ErrorSavingEvent), Toast.LENGTH_LONG).show();
+			return false;
 		}
 		
 		return true;
@@ -596,6 +637,14 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 	
 	//Dialogs
 	protected Dialog onCreateDialog(int id) { 
+		switch (id) {
+			case SAVING_DIALOG:
+				AlertDialog.Builder builder = new AlertDialog.Builder(this);
+				builder.setTitle("Saving...");
+				builder.setCancelable(false);
+				savingDialog = builder.create();
+				return savingDialog;
+		}
 		if (event != null) {
 			AcalDateTime start = event.getStart();
 			AcalDateTime end = event.getEnd();
@@ -686,14 +735,17 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 						switch ( item ) {
 							case 0:
 								instances = INSTANCES_SINGLE;
+								//dialog.dismiss();
 								saveChanges();
 								return;
 							case 1:
 								instances = INSTANCES_ALL;
+								//dialog.dismiss();
 								saveChanges();
 								return;
 							case 2:
 								instances = INSTANCES_THIS_FUTURE;
+								//dialog.dismiss();
 								saveChanges();
 								return;
 						}
@@ -720,24 +772,18 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 					}
 				});
 				return builder.create();
-				default:
-				return null;
 			}
-		}
-		else {
-		
-			if (id == LOADING_EVENT_DIALOG) {
+		} else {
+			switch (id) {
+			case LOADING_EVENT_DIALOG:
 				AlertDialog.Builder builder = new AlertDialog.Builder(this);
 				builder.setTitle("Loading...");
 				builder.setCancelable(false);
 				loadingDialog = builder.create();
 				return loadingDialog;
 			}
-			
-			return null;
 		}
-			
-		
+		return null;
 	}
 
 	protected void customAlarmDialog() {
@@ -800,6 +846,8 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 				msg = REFRESH;
 			}
 			mHandler.sendMessage(mHandler.obtainMessage(msg));		
+		} else if (result instanceof Long) {
+			mHandler.sendMessage(mHandler.obtainMessage(SAVE_RESULT, result));
 		}
 		
 	}

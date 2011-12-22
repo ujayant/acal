@@ -39,18 +39,35 @@ public class RRRequestInstance extends ReadOnlyResourceRequestWithResponse<Calen
 	@Override
 	public void process(ReadOnlyResourceTableManager processor) throws ResourceProcessingException {
 		ArrayList<ContentValues> cv = processor.query(null, ResourceTableManager.RESOURCE_ID+" = ?", new String[]{rid+""}, null,null,null);
-		
+		ArrayList<ContentValues> pcv = processor.getPendingResources();
 		try {
-			Resource res = Resource.fromContentValues(cv.get(0));
-			CalendarInstance ci = CalendarInstance.fromResourceAndRRId(res, rrid);
-			this.postResponse(new RRRequestInstanceResponse<CalendarInstance>(ci));
+			
+			//check pending first
+			for (ContentValues val : pcv) {
+				if (val.getAsLong(ResourceTableManager.PEND_RESOURCE_ID) == this.rid) {
+					String blob = val.getAsString(ResourceTableManager.NEW_DATA);
+					if (blob == null || blob.equals("")) {
+						//this resource has been deleted
+						throw new Exception("Resource deleted.");
+					} else {
+						CalendarInstance ci = CalendarInstance.fromBlobAndRRID(blob, rid, rrid);
+						this.postResponse(new RRRequestInstanceResponse<CalendarInstance>(ci));
+						this.processed = true;
+					}
+				}
+			}
+			if (!processed) {
+				Resource res = Resource.fromContentValues(cv.get(0));
+				CalendarInstance ci = CalendarInstance.fromResourceAndRRId(res, rrid);
+				this.postResponse(new RRRequestInstanceResponse<CalendarInstance>(ci));
+				this.processed = true;
+			}
 		}
 		catch ( Exception e ) {
 			Log.e(TAG, e.getMessage() + Log.getStackTraceString(e));
 			this.postResponse(new RRRequestInstanceResponse<CalendarInstance>(e));
+			this.processed = true;
 		}
-		
-		this.processed = true;
 		
 	}
 
