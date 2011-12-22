@@ -11,11 +11,11 @@ import java.util.regex.Pattern;
 
 import android.accounts.Account;
 import android.content.ContentProviderOperation;
-import android.content.ContentProviderOperation.Builder;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.OperationApplicationException;
+import android.content.ContentProviderOperation.Builder;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.net.Uri;

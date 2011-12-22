@@ -114,10 +114,6 @@ public class Resource implements Parcelable {
 		return this.pending;
 	}
 
-	public ComponentResource getComponentResource() {
-		return new ComponentResource(collectionId, resourceId, name, etag, contentType, data, needsSync, earliestStart, latestEnd, effectiveType, pending);
-	}
-
 	public Long getEarliestStart() {
 		return earliestStart;
 	}

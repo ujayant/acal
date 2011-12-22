@@ -1,10 +1,10 @@
 package com.morphoss.acal.activity;
 
-import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
-import com.morphoss.acal.database.resourcesmanager.ResourceManager.WriteableResourceTableManager;
 import com.morphoss.acal.database.resourcesmanager.ResourceProcessingException;
 import com.morphoss.acal.database.resourcesmanager.ResourceResponse;
 import com.morphoss.acal.database.resourcesmanager.ResourceResponseListener;
+import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
+import com.morphoss.acal.database.resourcesmanager.ResourceManager.WriteableResourceTableManager;
 import com.morphoss.acal.database.resourcesmanager.requesttypes.ResourceRequestWithResponse;
 import com.morphoss.acal.dataservice.EventInstance;
 import com.morphoss.acal.dataservice.Resource;

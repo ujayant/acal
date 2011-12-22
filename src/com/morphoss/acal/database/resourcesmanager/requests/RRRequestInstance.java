@@ -6,11 +6,11 @@ import android.content.ContentValues;
 import android.util.Log;
 
 import com.morphoss.acal.database.cachemanager.CacheObject;
-import com.morphoss.acal.database.resourcesmanager.ResourceManager.ReadOnlyResourceTableManager;
-import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
 import com.morphoss.acal.database.resourcesmanager.ResourceProcessingException;
 import com.morphoss.acal.database.resourcesmanager.ResourceResponse;
 import com.morphoss.acal.database.resourcesmanager.ResourceResponseListener;
+import com.morphoss.acal.database.resourcesmanager.ResourceManager.ReadOnlyResourceTableManager;
+import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
 import com.morphoss.acal.database.resourcesmanager.requesttypes.ReadOnlyResourceRequestWithResponse;
 import com.morphoss.acal.dataservice.CalendarInstance;
 import com.morphoss.acal.dataservice.Resource;
