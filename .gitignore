@@ -20,3 +20,5 @@ timezones/vtimezones
 timezones/tzdata
 design/screenshot*
 local.properties
+secure.properties
+proguard/*
