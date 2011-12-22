@@ -22,10 +22,11 @@ import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.database.DMAction;
 import com.morphoss.acal.database.DMQueryBuilder;
 import com.morphoss.acal.database.DatabaseTableManager.QUERY_ACTION;
-import com.morphoss.acal.database.resourcesmanager.ResourceProcessingException;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager.WriteableResourceTableManager;
+import com.morphoss.acal.database.resourcesmanager.ResourceProcessingException;
 import com.morphoss.acal.database.resourcesmanager.requesttypes.ResourceRequest;
+import com.morphoss.acal.davacal.PropertyName;
 import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VCard;
 import com.morphoss.acal.davacal.VComponent;
@@ -214,11 +215,11 @@ public class RRSyncChangesToServer implements ResourceRequest {
 				contentExtension = ".txt";
 			
 			try {
-				VComponent vc = VComponent.createComponentFromBlob(newData,null);
+				VComponent vc = VComponent.createComponentFromBlob(newData);
 				if ( vc instanceof VCard )
-					resourcePath = StaticHelpers.rTrim(vc.getProperty("UID").getValue()) + ".vcf";
+					resourcePath = StaticHelpers.rTrim(vc.getProperty(PropertyName.UID).getValue()) + ".vcf";
 				else if ( vc instanceof VCalendar )
-					resourcePath = StaticHelpers.rTrim(((VCalendar) vc).getMasterChild().getProperty("UID").getValue()) + ".ics";
+					resourcePath = StaticHelpers.rTrim(((VCalendar) vc).getMasterChild().getProperty(PropertyName.UID).getValue()) + ".ics";
 			}
 			catch ( Exception e ) {
 				if ( Constants.debugSyncChangesToServer )

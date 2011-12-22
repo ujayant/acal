@@ -25,25 +25,35 @@ import com.morphoss.acal.dataservice.Resource;
 public class VEvent extends Masterable {
 	public static final String TAG = "aCal VEvent";
 
-	public VEvent(ComponentParts splitter, Resource r, VComponent parent) {
-		super(splitter, r, parent);
+	public VEvent(ComponentParts splitter, VComponent parent) {
+		super(splitter, parent);
 	}
 
 	public VEvent( VCalendar parent ) {
 		super( VComponent.VEVENT, parent );
 	}
 	
+	public VEvent() {
+		this( new VCalendar() );
+	}
+
+	@Deprecated
+	public VEvent(ComponentParts splitter, Resource r, VComponent parent) {
+		super(splitter, r, parent);
+	}
+
+	@Deprecated
 	public VEvent( long collectionId ) {
 		this( new VCalendar(collectionId) );
 	}
 
-	public VEvent fromMasterEvent( VEvent master ) {
-		return (VEvent) VComponent.createComponentFromBlob(master.getCurrentBlob(),
-															master.getResource());
+	private VEvent fromMasterEvent( VEvent master ) {
+		// Isn't this a clone?
+		return (VEvent) VComponent.createComponentFromBlob(master.getCurrentBlob());
 	}
 	
 	public static VEvent createComponentFromInstance(EventInstance event) {
-		VEvent instance = new VEvent(event.getCollectionId());
+		VEvent instance = new VEvent();
 		if ( event.getStart() != null ) instance.setStart(event.getStart());
 		if ( event.getEnd() != null )	instance.setEnd(event.getEnd());
 		if ( event.getSummary() != null ) instance.setSummary(event.getSummary());

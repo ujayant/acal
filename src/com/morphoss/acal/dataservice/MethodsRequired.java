@@ -6,7 +6,6 @@ import java.util.List;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.davacal.AcalAlarm;
-import com.morphoss.acal.davacal.SimpleAcalTodo;
 import com.morphoss.acal.davacal.VCalendar;
 
 public class MethodsRequired {
@@ -51,20 +50,9 @@ public class MethodsRequired {
 		
 	}
 
-	public ArrayList<SimpleAcalTodo> getTodos(boolean listCompleted,
-			boolean listFuture) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	public int getNumberTodos() {
 		// TODO Auto-generated method stub
 		return 0;
-	}
-
-	public SimpleAcalTodo getNthTodo(int n) {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 	public void flushCache() {

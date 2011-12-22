@@ -6,8 +6,7 @@
 	<ScrollView
 		android:id="@+id/DateTimeInputScroller"
 		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
-		android:layout_above="@id/OkCancelLayout"
+		android:layout_height="0dp"
 		android:layout_weight="1"
 		android:fillViewport="false" >
 		<!-- android:layout_alignParentTop="true" -->

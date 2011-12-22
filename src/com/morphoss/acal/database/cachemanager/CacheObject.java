@@ -36,7 +36,7 @@ public class CacheObject implements Parcelable, Comparable<CacheObject> {
 	
 	public static final int HAS_ALARM_FLAG = 		1;
 	public static final int RECURS_FLAG =			1<<1;
-	public static final int DIRTY_FLAG = 			1<<2;
+//	public static final int DIRTY_FLAG = 			1<<2;  // Re-use for some other flag.
 	public static final int FLAG_ALL_DAY = 			1<<3;
 	
 
@@ -55,15 +55,15 @@ public class CacheObject implements Parcelable, Comparable<CacheObject> {
 		this.completeFloating = cfloat;
 		this.flags = flags;
 	}
-	
+
 	//Generate a cacheObject from a VEvent
-	public CacheObject( VEvent event, AcalDateTime dtstart, AcalDuration duration) {
-		this.rid = event.getResourceId();
+	public CacheObject( VEvent event, long collectionId, long resourceId, AcalDateTime dtstart, AcalDuration duration) {
+		this.rid = resourceId;
 		this.resourceType = CacheTableManager.RESOURCE_TYPE_VEVENT;
 		this.completed = Long.MAX_VALUE;
 		this.completeFloating = false;
 		this.rrid = dtstart.toPropertyString(PropertyName.RECURRENCE_ID);
-		this.cid = event.getCollectionId();
+		this.cid = collectionId;
 		this.summary = event.getSummary();
 		this.location = event.getLocation();
 		this.start = dtstart.getMillis();
@@ -72,7 +72,6 @@ public class CacheObject implements Parcelable, Comparable<CacheObject> {
 		int flags = 0;
 		if (!event.getAlarms().isEmpty()) flags+=HAS_ALARM_FLAG;
 		if (event.getProperty(PropertyName.RRULE) != null) flags+=RECURS_FLAG;
-		if (event.getResource().isPending()) flags+=DIRTY_FLAG;
 		if (dtstart.isFloating()) {
 			startFloating = true;
 			endFloating = true;
@@ -85,12 +84,13 @@ public class CacheObject implements Parcelable, Comparable<CacheObject> {
 	}
 
 	
+	
 	//Generate a cacheObject from a VTodo
-	public CacheObject( VTodo masterInstance, AcalDateTime dtstart, AcalDateTime due, AcalDateTime completed) {
-		this.rid = masterInstance.getResourceId();
+	public CacheObject( VTodo masterInstance, long collectionId, long resourceId, AcalDateTime dtstart, AcalDateTime due, AcalDateTime completed) {
+		this.rid = resourceId;
 		this.resourceType = CacheTableManager.RESOURCE_TYPE_VTODO;
 		this.rrid = dtstart.toPropertyString(PropertyName.RECURRENCE_ID);
-		this.cid = masterInstance.getCollectionId();
+		this.cid = collectionId;
 		this.summary = masterInstance.getSummary();
 		this.location = masterInstance.getLocation();
 		this.start = dtstart.getMillis();
@@ -100,7 +100,6 @@ public class CacheObject implements Parcelable, Comparable<CacheObject> {
 		int flags = 0;
 		if (!masterInstance.getAlarms().isEmpty()) flags+=HAS_ALARM_FLAG;
 		if (masterInstance.getProperty(PropertyName.RRULE) != null) flags+=RECURS_FLAG;
-		if (masterInstance.getResource().isPending()) flags+=DIRTY_FLAG;
 		startFloating = dtstart.isFloating();
 		endFloating = due.isFloating();
 		completeFloating = completed.isFloating();
@@ -109,10 +108,10 @@ public class CacheObject implements Parcelable, Comparable<CacheObject> {
 		this.flags = flags;
 	}
 
-	public CacheObject( Masterable masterInstance ) {
-		this.rid = masterInstance.getResourceId();
+	public CacheObject( Masterable masterInstance, long collectionId, long resourceId ) {
+		this.rid = resourceId;
 		this.resourceType = masterInstance.name;
-		this.cid = masterInstance.getCollectionId();
+		this.cid = collectionId;
 		this.summary = masterInstance.getSummary();
 		this.location = masterInstance.getLocation();
 
@@ -142,16 +141,15 @@ public class CacheObject implements Parcelable, Comparable<CacheObject> {
 		
 		if (!masterInstance.getAlarms().isEmpty()) flags+=HAS_ALARM_FLAG;
 		if (masterInstance.getProperty(PropertyName.RRULE) != null) flags+=RECURS_FLAG;
-		if (masterInstance.getResource().isPending()) flags+=DIRTY_FLAG;
 
 		this.flags = flags;
 	}
 	
 	//Generate a cacheObject from a Masterable with dates
-	public CacheObject( Masterable masterInstance, AcalDateTime dtstart, AcalDateTime dtend, AcalDateTime completed) {
-		this.rid = masterInstance.getResourceId();
+	public CacheObject( Masterable masterInstance, long collectionId, long resourceId, AcalDateTime dtstart, AcalDateTime dtend, AcalDateTime completed) {
+		this.rid = resourceId;
 		this.resourceType = masterInstance.getEffectiveType();
-		this.cid = masterInstance.getCollectionId();
+		this.cid = collectionId;
 		this.summary = masterInstance.getSummary();
 		this.location = masterInstance.getLocation();
 
@@ -177,7 +175,6 @@ public class CacheObject implements Parcelable, Comparable<CacheObject> {
 		
 		if (!masterInstance.getAlarms().isEmpty()) flags+=HAS_ALARM_FLAG;
 		if (masterInstance.getProperty(PropertyName.RRULE) != null) flags+=RECURS_FLAG;
-		if (masterInstance.getResource().isPending()) flags+=DIRTY_FLAG;
 
 		this.flags = flags;
 	}
@@ -231,13 +228,6 @@ public class CacheObject implements Parcelable, Comparable<CacheObject> {
 			return new CacheObject[size];
 		}
 	};
-
-	/**
-	 * @return whether this resource is marked as pending
-	 */
-	public boolean isPending() {
-		return (flags&DIRTY_FLAG)>0;
-	}
 
 	/**
 	 * The summary of this resource

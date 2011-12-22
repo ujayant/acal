@@ -33,7 +33,6 @@ import com.morphoss.acal.database.resourcesmanager.requesttypes.BlockingResource
 import com.morphoss.acal.database.resourcesmanager.requesttypes.ReadOnlyBlockingRequestWithResponse;
 import com.morphoss.acal.database.resourcesmanager.requesttypes.ReadOnlyResourceRequest;
 import com.morphoss.acal.database.resourcesmanager.requesttypes.ResourceRequest;
-import com.morphoss.acal.dataservice.Resource;
 import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VComponent;
 import com.morphoss.acal.providers.DavCollections;
@@ -404,20 +403,21 @@ public class ResourceManager implements Runnable {
 			if (toWrite.containsKey(IS_PENDING)) toWrite.remove(IS_PENDING);
 			values = toWrite;
 			String effectiveType = null;
-			if ( values.getAsString(RESOURCE_DATA) != null ) {
+			String resourceData = values.getAsString(RESOURCE_DATA); 
+			if ( resourceData != null ) {
 				try {
 
-					VComponent comp = VComponent.createComponentFromResource(Resource.fromContentValues(values));
+					VComponent comp = VComponent.createComponentFromBlob(resourceData);
 
 					if ( comp == null ) {
-						Log.w(TAG, "Unable to parse VComponent from:\n"+values.getAsString(RESOURCE_DATA));
+						Log.w(TAG, "Unable to parse VComponent from:\n"+resourceData);
 					}
 					else {
 						effectiveType = comp.getEffectiveType();
 
 						if (comp instanceof VCalendar) {
 							VCalendar vCal = (VCalendar)comp;
-							AcalRepeatRule rrule = AcalRepeatRule.fromVCalendar(vCal);
+							AcalRepeatRule rrule = AcalRepeatRule.fromVCalendar(vCal,AcalRepeatRule.VALUE_NOT_ASSIGNED,AcalRepeatRule.VALUE_NOT_ASSIGNED);
 							if ( rrule != null ) {
 								AcalDateRange range = rrule.getInstancesRange();
 								values.put(EARLIEST_START, range.start.getMillis());

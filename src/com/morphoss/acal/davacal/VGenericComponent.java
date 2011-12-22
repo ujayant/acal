@@ -24,6 +24,11 @@ import com.morphoss.acal.dataservice.Resource;
 public class VGenericComponent extends VComponent {
 	public static final String TAG = "aCal VGeneric";
 	
+	public VGenericComponent(ComponentParts splitter, VComponent parent) {
+		super(splitter, parent);
+	}
+
+	@Deprecated
 	public VGenericComponent(ComponentParts splitter, Resource r, VComponent parent) {
 		super(splitter, r, parent);
 	}

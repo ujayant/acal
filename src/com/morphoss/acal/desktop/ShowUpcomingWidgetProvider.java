@@ -45,7 +45,6 @@ public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 	
 	public static final String FIELD_ID = "_id";
 	public static final String FIELD_RESOURCE_ID = "resource_id";
-	public static final String FIELD_ETAG = "etag";
 	public static final String FIELD_COLOUR = "colour";
 	public static final String FIELD_DTSTART = "dtstart";
 	public static final String FIELD_DTEND = "dtend";
@@ -270,7 +269,6 @@ public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 
 			//check all fields for change
 			if (		oldData[i].getAsInteger(FIELD_RESOURCE_ID) != newData[i].getAsInteger(FIELD_RESOURCE_ID) ||  
-						!oldData[i].getAsString(FIELD_ETAG).equals(newData[i].getAsString(FIELD_ETAG)) ||
 						oldData[i].getAsInteger(FIELD_COLOUR) != newData[i].getAsInteger(FIELD_COLOUR) ||
 						oldData[i].getAsLong(FIELD_DTSTART) != newData[i].getAsLong(FIELD_DTSTART) ||
 						oldData[i].getAsLong(FIELD_DTEND) != newData[i].getAsLong(FIELD_DTEND) ||
@@ -319,7 +317,6 @@ public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 	public synchronized static ContentValues getCVFromEvent(Context context, EventInstance event) {
 		ContentValues cv = new ContentValues();
 		cv.put(FIELD_RESOURCE_ID, event.getResourceId());
-		cv.put(FIELD_ETAG, event.getEtag());
 		cv.put(FIELD_COLOUR, Collection.getInstance(event.getCollectionId(), context).getColour());
 		cv.put(FIELD_DTSTART, event.getStart().getMillis());
 		cv.put(FIELD_DTEND, event.getEnd().getMillis());

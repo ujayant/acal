@@ -6,8 +6,7 @@
 	<ScrollView
 		android:id="@+id/DateTimeInputScroller"
 		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
-		android:layout_above="@id/OkCancelLayout"
+		android:layout_height="0dp"
 		android:layout_weight="1"
 		android:fillViewport="false" >
 		<LinearLayout
@@ -46,11 +45,10 @@
 					android:id="@+id/DateTimeIsDate"
 					android:layout_width="wrap_content"
 					android:layout_height="wrap_content"
-					android:layout_alignParentLeft="true"
 					android:text="@string/IsADate" />
 				<Spinner
 					android:id="@+id/DateTimeZoneSelect"
-					android:layout_width="fill_parent"
+					android:layout_width="0dp"
 					android:layout_height="wrap_content"
 					android:layout_weight="1" />
 			</LinearLayout>

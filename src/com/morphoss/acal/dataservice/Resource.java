@@ -21,7 +21,7 @@ public class Resource implements Parcelable {
 	private final long latestEnd;
 	private final String effectiveType;
 	private final boolean pending;
-
+	
 	public Resource(long cid, long rid, String name, String etag, String cType, 
 			String data, boolean sync, Long earliestStart, Long latestEnd, String eType, boolean pending) {
 		this.collectionId = cid;
@@ -114,5 +114,15 @@ public class Resource implements Parcelable {
 		return this.pending;
 	}
 
-	
+	public ComponentResource getComponentResource() {
+		return new ComponentResource(collectionId, resourceId, name, etag, contentType, data, needsSync, earliestStart, latestEnd, effectiveType, pending);
+	}
+
+	public Long getEarliestStart() {
+		return earliestStart;
+	}
+
+	public Long getLatestEnd() {
+		return latestEnd;
+	}
 }

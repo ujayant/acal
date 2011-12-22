@@ -332,7 +332,7 @@ public class HomeSetsUpdate extends ServiceJob {
 		String tzid = null;	//Standard time offset in HH:mm format
 		String tzVcalendar = propstat.getFirstNodeText("prop/calendar-timezone");
 		try {
-			VComponent vc = VComponent.createComponentFromBlob(tzVcalendar, null);
+			VComponent vc = VComponent.createComponentFromBlob(tzVcalendar);
 			((VTimezone) vc.getChildren().get(0)).getTZID();
 		} catch( Exception e) {};
 		if (tzid != null) cv.put(DavCollections.DEFAULT_TIMEZONE, tzid);

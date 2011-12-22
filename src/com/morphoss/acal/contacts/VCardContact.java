@@ -54,7 +54,7 @@ public class VCardContact {
 	public VCardContact( Resource resourceRow ) throws VComponentCreationException {
 		vCardRow = resourceRow;
 		try {
-			sourceCard = (VCard) VComponent.createComponentFromResource(resourceRow);
+			sourceCard = (VCard) VComponent.createComponentFromBlob(resourceRow.getBlob());
 		}
 		catch ( Exception e ) {
 			Log.w(TAG,"Could not build VCard from resource", e);
