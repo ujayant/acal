@@ -1,7 +1,5 @@
 package com.morphoss.acal.activity;
 
-import android.os.ConditionVariable;
-
 import com.morphoss.acal.database.resourcesmanager.ResourceProcessingException;
 import com.morphoss.acal.database.resourcesmanager.ResourceResponse;
 import com.morphoss.acal.database.resourcesmanager.ResourceResponseListener;
