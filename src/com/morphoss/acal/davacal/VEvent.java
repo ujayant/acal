@@ -18,6 +18,7 @@
 
 package com.morphoss.acal.davacal;
 
+import com.morphoss.acal.dataservice.EventInstance;
 import com.morphoss.acal.dataservice.Resource;
 
 
@@ -31,9 +32,27 @@ public class VEvent extends Masterable {
 	public VEvent( VCalendar parent ) {
 		super( VComponent.VEVENT, parent );
 	}
+	
+	public VEvent( long collectionId ) {
+		this( new VCalendar(collectionId) );
+	}
 
 	public VEvent fromMasterEvent( VEvent master ) {
 		return (VEvent) VComponent.createComponentFromBlob(master.getCurrentBlob(),
 															master.getResource());
 	}
+	
+	public static VEvent createComponentFromInstance(EventInstance event) {
+		VEvent instance = new VEvent(event.getCollectionId());
+		if ( event.getStart() != null ) instance.setStart(event.getStart());
+		if ( event.getEnd() != null )	instance.setEnd(event.getEnd());
+		if ( event.getSummary() != null ) instance.setSummary(event.getSummary());
+		if ( event.getDescription() != null ) instance.setDescription(event.getDescription());
+		if ( event.getRRule() != null ) instance.setRepetition(event.getRRule());
+		if ( event.getLocation() != null ) instance.setLocation(event.getLocation());
+		if ( !event.getAlarms().isEmpty() ) instance.addAlarmTimes(event.getAlarms(), null);
+
+		return instance;
+	}
+	
 }

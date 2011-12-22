@@ -38,6 +38,8 @@ import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VComponent;
 import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.providers.Servers;
+import com.morphoss.acal.service.SyncChangesToServer;
+import com.morphoss.acal.service.WorkerClass;
 
 public class ResourceManager implements Runnable {
 	// The current instance
@@ -251,7 +253,7 @@ public class ResourceManager implements Runnable {
 		public long insert(String nullColumnHack, ContentValues values);
 		public int update(ContentValues values, String whereClause,	String[] whereArgs);
 		public void deleteByCollectionId(long id);
-		public void deleteInvalidCollectionRecord(int collectionId);
+		public void deleteInvalidCollectionRecord(long collectionId);
 		public void deletePendingChange(Integer pendingId);
 		public void updateCollection(long collectionId, ContentValues collectionData);
 		public boolean doSyncListAndToken(DMQueryList newChangeList, long collectionId, String syncToken);
@@ -262,6 +264,7 @@ public class ResourceManager implements Runnable {
 		public DMUpdateQuery getNewUpdateQuery(ContentValues values, String whereClause, String[] whereArgs);
 		public DMQueryBuilder getNewQueryBuilder();
 		public boolean processActions(DMQueryList queryList);
+		public long addPending(long l, long m, String oldBlob, String newBlob, String uid);
 	}
 
 	public interface ReadOnlyResourceTableManager {
@@ -273,12 +276,13 @@ public class ResourceManager implements Runnable {
 		public Map<String, ContentValues> findSyncNeededResources(long collectionId);
 		public Map<String, ContentValues> getCurrentResourceMap(long collectionId);
 		public ContentValues getServerData(int serverId);
-		public ContentValues getCollectionRow(int collectionId);
+		public ContentValues getCollectionRow(long collectionId);
 		public boolean getCollectionIdByPath(ContentValues values, long serverId, String collectionPath );
 		public boolean marshallChangesToSync(ArrayList<ContentValues> pendingChangesList);
 		public boolean marshallCollectionsToSync(ArrayList<ContentValues> pendingChangesList);
 		public ArrayList<ContentValues> query(String[] columns, String selection, String[] selectionArgs,
 				String groupBy, String having, String orderBy);
+		public ArrayList<ContentValues> getPendingResources();
 
 	}
 
@@ -311,8 +315,6 @@ public class ResourceManager implements Runnable {
 		public static final String		PENDING_ID					= "_id";
 		public static final String		PEND_COLLECTION_ID			= "collection_id";
 		public static final String		PEND_RESOURCE_ID			= "resource_id";
-		public static final String		MODIFICATION_TIME			= "modification_time";
-		public static final String		AWAITING_SYNC_SINCE			= "awaiting_sync_since";
 		public static final String		OLD_DATA					= "old_data";
 		public static final String		NEW_DATA					= "new_data";
 		public static final String		UID							= "uid";
@@ -583,11 +585,11 @@ public class ResourceManager implements Runnable {
 			return Servers.getRow(serverId, context.getContentResolver());
 		}
 
-		public void deleteInvalidCollectionRecord(int collectionId) {
+		public void deleteInvalidCollectionRecord(long collectionId) {
 			context.getContentResolver().delete(Uri.withAppendedPath(DavCollections.CONTENT_URI,Long.toString(collectionId)), null, null);
 		}
 
-		public ContentValues getCollectionRow(int collectionId) {
+		public ContentValues getCollectionRow(long collectionId) {
 			return DavCollections.getRow(collectionId, context.getContentResolver());
 		}
 
@@ -685,6 +687,89 @@ public class ResourceManager implements Runnable {
 		@Override
 		public DMUpdateQuery getNewUpdateQuery(ContentValues values, String whereClause, String[] whereArgs) {
 			return new DMUpdateQuery(values, whereClause, whereArgs);
+		}
+
+
+		@Override
+		public long addPending(long cid, long rid, String oldBlob, String newBlob, String uid) {
+			//add a new pending resource and return the resultant resource.
+			//if oldBlob == null then this is a create not an edit
+			long row = rid;
+			Cursor mCursor = null;
+			try {
+				
+				this.beginTransaction();				
+				if (oldBlob == null || oldBlob.equals("")) row = createNewPending(cid,newBlob,uid);
+				else {
+					ContentValues newResource = new ContentValues();
+					//Check if this resource already exists
+					mCursor = db.query(PENDING_DATABASE_TABLE, null, 
+							PEND_RESOURCE_ID+" = ? AND "+PEND_COLLECTION_ID+" = ?", 
+							new String[]{rid+"",cid+""}, null,null,null);
+					
+					if (mCursor.getColumnCount() > 1) {
+						DatabaseUtils.cursorRowToContentValues(mCursor, newResource);
+						newResource.put(NEW_DATA, newBlob);
+						newResource.put(UID, uid);
+						db.update(PENDING_DATABASE_TABLE, newResource,
+									PEND_RESOURCE_ID+" = ? AND "+PEND_COLLECTION_ID+" = ?", 
+									new String[] {rid+"",cid+""});
+					} else {
+						newResource.put(PEND_COLLECTION_ID, cid);
+						newResource.put(PEND_RESOURCE_ID, row);
+						newResource.put(OLD_DATA, oldBlob);
+						newResource.put(NEW_DATA, newBlob);
+						newResource.put(UID, uid);
+						db.insert(PENDING_DATABASE_TABLE, null, newResource);
+					}
+					mCursor.close();
+					
+				}
+				this.setTxSuccessful();
+			} catch (Exception e) {
+				Log.e(TAG, "Error updating pending resource: "+e);
+			} finally {
+				if (mCursor != null && !mCursor.isClosed()) mCursor.close();
+				this.endTransaction();
+			}
+			
+			WorkerClass.getExistingInstance().addJobAndWake(new SyncChangesToServer());
+			
+			return row;
+		}
+		
+		private long createNewPending(long cid, String blob, String uid) {
+			ContentValues newResource = new ContentValues();
+			newResource.put(COLLECTION_ID, cid);
+			long row = this.insert(null, newResource);
+			newResource = new ContentValues();
+			newResource.put(PEND_COLLECTION_ID, cid);
+			newResource.put(PEND_RESOURCE_ID, row);
+			newResource.putNull(OLD_DATA);
+			newResource.put(NEW_DATA, blob);
+			newResource.put(UID, uid);
+			db.insert(PENDING_DATABASE_TABLE, null, newResource);
+			return row;
+			
+		}
+
+
+		@Override
+		public ArrayList<ContentValues> getPendingResources() {
+			ArrayList<ContentValues> res = new ArrayList<ContentValues>();
+			beginReadQuery();
+			Cursor mCursor = db.query(PENDING_DATABASE_TABLE, null, null, null, null, null, null);
+			if (mCursor.getCount() > 0) {
+				for (mCursor.moveToFirst(); !mCursor.isAfterLast(); mCursor.moveToNext()) {
+					ContentValues vals = new ContentValues();
+					DatabaseUtils.cursorRowToContentValues(mCursor, vals);
+					res.add(vals);
+				}
+					
+			}
+			mCursor.close();
+			endQuery();
+			return res;
 		}
 	}
 }

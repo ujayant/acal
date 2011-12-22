@@ -371,7 +371,7 @@ public class EventView extends AcalActivity implements  OnClickListener, Resourc
 				AcalDateTime dateTime = new AcalDateTime();
 				if (event != null) dateTime = event.getStart();
 				else if (cacheObject != null) dateTime =  AcalDateTime.fromMillis(cacheObject.getStart());
-				bundle.putInt(EventEdit.ACTION_KEY, EventEdit.ACTION_ADD);
+				bundle.putInt(EventEdit.ACTION_KEY, EventEdit.ACTION_CREATE);
 				bundle.putParcelable(EventEdit.NEW_EVENT_DATE_TIME_KEY, dateTime);
 				eventEditIntent.putExtras(bundle);
 				this.startActivityForResult(eventEditIntent,EDIT_ADD);
@@ -394,13 +394,10 @@ public class EventView extends AcalActivity implements  OnClickListener, Resourc
 			this.event = null;
 			if (b.containsKey(DTSTART_KEY))
 				this.rrid = AcalDateTime.fromMillis(b.getLong(DTSTART_KEY)).toPropertyString(PropertyName.RECURRENCE_ID);
-			resourceManager.sendRequest(new RRRequestInstance(this,rid, this.rrid));
-
-    	}
-    	else if (requestCode == EDIT_ADD && resultCode == RESULT_OK) {
-			Intent res = new Intent();
-			this.setResult(RESULT_OK, res);
-			this.finish();
+			if (b.containsKey(RESOURCE_ID_KEY))
+				this.rid = b.getLong(RESOURCE_ID_KEY);
+			if (this.rrid == null)
+			finish(); 
     	}
     }
 

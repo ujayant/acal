@@ -159,4 +159,14 @@ public abstract class CalendarInstance {
 		return this.etag;
 	}
 
+	public static CalendarInstance fromBlobAndRRID(String blob, String rrid2) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public static CalendarInstance fromBlobAndRRID(String blob, long rid ,String rrid) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,6 +34,7 @@ import com.morphoss.acal.Constants;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
+import com.morphoss.acal.activity.EventEdit;
 import com.morphoss.acal.database.cachemanager.CacheObject;
 import com.morphoss.acal.dataservice.EventInstance;
 import com.morphoss.acal.dataservice.Resource;
@@ -91,9 +93,8 @@ public class VCalendar extends VComponent {
 		return vcal;
 	}
 
-	public static VCalendar getGenericCalendar( long collectionId, EventInstance newEventData) {
+	public static VCalendar getGenericCalendar( long collectionId) {
 		VCalendar vcal = new VCalendar(collectionId);
-		new VEvent(vcal);
 		return vcal;
 	}
 
@@ -108,26 +109,79 @@ public class VCalendar extends VComponent {
 		return new VCalendar(this.content, this.getResource(), this.earliestStart, this.latestEnd, this.parent);
 	}
 
-	public String applyEventAction(EventInstance action) {
+	public String applyEventAction(EventInstance event, int action, int instances) throws InvalidCalendarActionException {
+
+		this.setEditable();
+		VEvent vEvent = (VEvent) this.getMasterChild();
+
+		// first, strip any existing properties which we always modify
+		vEvent.removeProperties( new PropertyName[] {PropertyName.DTSTAMP, PropertyName.LAST_MODIFIED } );
+
+		// change DTStamp
+		AcalDateTime lastModified = new AcalDateTime();
+		lastModified.setTimeZone(TimeZone.getDefault().getID());
+		lastModified.shiftTimeZone("UTC");
+
+		vEvent.addProperty(AcalProperty.fromString(lastModified.toPropertyString(PropertyName.DTSTAMP)));
+		vEvent.addProperty(AcalProperty.fromString(lastModified.toPropertyString(PropertyName.LAST_MODIFIED)));
+			
+		switch (action) {
+			case EventEdit.ACTION_EDIT:	  return doEdit(event, instances);
+			case EventEdit.ACTION_DELETE: return doDelete(event, instances);
+			default: throw new InvalidCalendarActionException();
+		}
+	}
+		
+	private String doEdit(EventInstance event, int instances) throws InvalidCalendarActionException {
+		switch (instances) {
+		case EventEdit.INSTANCES_SINGLE:
+		case EventEdit.INSTANCES_THIS_FUTURE: return this.getCurrentBlob(); //TODO not implemented
+		
+		case EventEdit.INSTANCES_ALL:
+			Masterable mast = this.getMasterChild();
+			mast.removeProperties( new PropertyName[] {PropertyName.DTSTART, PropertyName.DTEND, PropertyName.DURATION,
+					PropertyName.SUMMARY, PropertyName.LOCATION, PropertyName.DESCRIPTION, PropertyName.RRULE } );
+
+			AcalDateTime dtStart = event.getStart();
+			mast.addProperty( dtStart.asProperty(PropertyName.DTSTART));
+
+			AcalDateTime dtEnd = event.getEnd();
+			if ( (dtEnd.getTimeZoneId() == null && dtStart.getTimeZoneId() == null) || 
+					(dtEnd.getTimeZoneId() != null && dtEnd.getTimeZoneId().equals(dtStart.getTimeZoneId())) )
+				mast.addProperty(event.getDuration().asProperty(PropertyName.DURATION) );
+			else
+				mast.addProperty( dtEnd.asProperty( PropertyName.DTEND ) );
+
+			mast.addProperty(new AcalProperty(PropertyName.SUMMARY, event.getSummary()));
+
+			String location = event.getLocation();
+			if ( !location.equals("") )
+				mast.addProperty(new AcalProperty(PropertyName.LOCATION,location));
+
+			String description = event.getDescription();
+			if ( !description.equals("") )
+				mast.addProperty(new AcalProperty(PropertyName.DESCRIPTION,description));
+
+			String rrule = event.getRRule();
+			if ( rrule != null && !rrule.equals(""))
+				mast.addProperty(new AcalProperty(PropertyName.RRULE,rrule));
+
+			mast.updateAlarmComponents( event.getAlarms() );
+			return this.getCurrentBlob();
+			
+		default: throw new InvalidCalendarActionException("Invalid action/instances combination.");
+		}
+	}
+	private String doDelete(EventInstance event, int instances ) throws InvalidCalendarActionException {
 		//TODO
-		//needs to be refactored
-		/**try {
-			this.setEditable();
-
-			VEvent vEvent = (VEvent) this.getMasterChild();
-
-			// first, strip any existing properties which we always modify
-			vEvent.removeProperties( new PropertyName[] {PropertyName.DTSTAMP, PropertyName.LAST_MODIFIED } );
-
-			// change DTStamp
-			AcalDateTime lastModified = new AcalDateTime();
-			lastModified.setTimeZone(TimeZone.getDefault().getID());
-			lastModified.shiftTimeZone("UTC");
-
-			vEvent.addProperty(AcalProperty.fromString(lastModified.toPropertyString(PropertyName.DTSTAMP)));
-			vEvent.addProperty(AcalProperty.fromString(lastModified.toPropertyString(PropertyName.LAST_MODIFIED)));
-
-			if ( action.getAction() == WriteableEventInstance.ACTION_DELETE_SINGLE) {
+		switch (instances) {
+			case EventEdit.INSTANCES_SINGLE:
+			case EventEdit.INSTANCES_THIS_FUTURE:
+			default: throw new InvalidCalendarActionException("Invalid action/instances combination.");
+		}
+	}
+			
+			/**if ( action.getAction() == WriteableEventInstance.ACTION_DELETE_SINGLE) {
 				AcalProperty exDate = vEvent.getProperty("EXDATE");
 				if ( exDate == null || exDate.getValue().equals("") ) 
 					exDate = AcalProperty.fromString(action.getStart().toPropertyString(PropertyName.EXDATE));
@@ -154,14 +208,8 @@ public class VCalendar extends VComponent {
 
 			String ret = this.getCurrentBlob();
 			return ret;
-		}
-		catch (Exception e) {
-			Log.w(TAG,Log.getStackTraceString(e));
-			return "";
-		}
-	*/
-		return null;
-	}
+			*/
+		
 
 	/**
 	 * TODO - needs to be refactored

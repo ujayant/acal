@@ -48,7 +48,7 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 	/**
 	 * The version of this database. Used to determine if an upgrade is required.
 	 */
-	public static final int DB_VERSION = 17;
+	public static final int DB_VERSION = 18;
 	
 	/**
 	 * <p>The dav_server Table as stated in the specification.</p>
@@ -175,8 +175,6 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 		        +"_id INTEGER PRIMARY KEY AUTOINCREMENT"
 				+",collection_id INTEGER REFERENCES dav_collection(_id)"
 				+",resource_id INTEGER REFERENCES dav_resource(_id)"
-				+",modification_time DATETIME"
-				+",awaiting_sync_since DATETIME"
 				+",old_data BLOB"
 				+",new_data BLOB"
 				+",uid TEXT"
@@ -335,6 +333,12 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 		if (oldVersion == 16) {
 			db.execSQL("DROP TABLE event_cache");
 			db.execSQL(RESOURCE_CACHE_TABLE_SQL);
+			oldVersion++;
+		}
+		
+		if (oldVersion == 17) {
+			db.execSQL("DROP TABLE pending_change");
+			db.execSQL(PENDING_CHANGE_TABLE_SQL);
 			oldVersion++;
 		}
 		
