@@ -33,7 +33,6 @@ import android.view.View.MeasureSpec;
 import android.widget.TextView;
 
 import com.morphoss.acal.R;
-import com.morphoss.acal.dataservice.Resource;
 
 public class WeekViewImageCache {
 

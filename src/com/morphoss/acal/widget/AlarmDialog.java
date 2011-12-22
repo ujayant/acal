@@ -28,8 +28,8 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
-import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
+import android.widget.SeekBar.OnSeekBarChangeListener;
 
 import com.morphoss.acal.AcalTheme;
 import com.morphoss.acal.R;
@@ -37,9 +37,9 @@ import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDateTimeFormatter;
 import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.davacal.AcalAlarm;
+import com.morphoss.acal.davacal.VComponent;
 import com.morphoss.acal.davacal.AcalAlarm.ActionType;
 import com.morphoss.acal.davacal.AcalAlarm.RelateWith;
-import com.morphoss.acal.davacal.VComponent;
 
 /**
  * @author Morphoss Ltd

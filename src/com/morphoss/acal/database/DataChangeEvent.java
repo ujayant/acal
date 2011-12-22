@@ -3,6 +3,7 @@ package com.morphoss.acal.database;
 import android.content.ContentValues;
 import android.os.Parcel;
 import android.os.Parcelable;
+
 import com.morphoss.acal.database.DatabaseTableManager.QUERY_ACTION;
 
 public class DataChangeEvent  implements Parcelable {

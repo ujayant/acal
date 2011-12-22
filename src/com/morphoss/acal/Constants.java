@@ -20,11 +20,11 @@ package com.morphoss.acal;
 
 import java.util.regex.Pattern;
 
-import com.morphoss.acal.xml.DavParserFactory;
-import com.morphoss.acal.xml.DavParserFactory.PARSEMETHOD;
-
 import android.os.Environment;
 import android.util.Log;
+
+import com.morphoss.acal.xml.DavParserFactory;
+import com.morphoss.acal.xml.DavParserFactory.PARSEMETHOD;
 
 /**
  * Constants class for keeping Global constant values.

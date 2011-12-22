@@ -21,8 +21,6 @@ package com.morphoss.acal;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.morphoss.acal.desktop.ShowUpcomingWidgetProvider;
-
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
@@ -30,6 +28,8 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Parcel;
+
+import com.morphoss.acal.desktop.ShowUpcomingWidgetProvider;
 
 
 public final class StaticHelpers {

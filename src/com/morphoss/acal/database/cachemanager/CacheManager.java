@@ -34,7 +34,6 @@ import com.morphoss.acal.database.resourcesmanager.requests.RRGetCacheEventsInRa
 import com.morphoss.acal.dataservice.Resource;
 import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VComponent;
-import com.morphoss.acal.davacal.VComponentCreationException;
 
 /**
  * 	
