@@ -38,6 +38,7 @@ import com.morphoss.acal.davacal.Masterable;
 import com.morphoss.acal.davacal.PropertyName;
 import com.morphoss.acal.davacal.RecurrenceId;
 import com.morphoss.acal.davacal.VCalendar;
+import com.morphoss.acal.davacal.VComponent;
 import com.morphoss.acal.davacal.VEvent;
 
 /**
@@ -68,9 +69,8 @@ public class AcalRepeatRule {
 
 	private VCalendar					sourceVCalendar		= null;
 
-	public final static long VALUE_NOT_ASSIGNED = -1L;
-	private long	collectionId = VALUE_NOT_ASSIGNED;
-	private long	resourceId = VALUE_NOT_ASSIGNED;
+	private long	collectionId = VComponent.VALUE_NOT_ASSIGNED;
+	private long	resourceId = VComponent.VALUE_NOT_ASSIGNED;
 
 	final public static AcalRepeatRuleParser SINGLE_INSTANCE = AcalRepeatRuleParser.parseRepeatRule("FREQ=DAILY;COUNT=1");
 	
@@ -601,7 +601,7 @@ public class AcalRepeatRule {
 			if ( Constants.debugRepeatRule && duration.days > 10 ) {
 				throw new IllegalArgumentException();
 			}
-			if ( collectionId == VALUE_NOT_ASSIGNED || resourceId == VALUE_NOT_ASSIGNED ) {
+			if ( collectionId == VComponent.VALUE_NOT_ASSIGNED || resourceId == VComponent.VALUE_NOT_ASSIGNED ) {
 				throw new IllegalArgumentException("To retrieve CalendarInstances the RepeatRule must have valid collectionId and resourceId");
 			}
 			this.dtend = AcalDateTime.addDuration(dtstart, duration);

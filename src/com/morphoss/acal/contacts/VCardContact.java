@@ -58,7 +58,7 @@ public class VCardContact {
 		}
 		catch ( Exception e ) {
 			Log.w(TAG,"Could not build VCard from resource", e);
-			throw new VComponentCreationException("Could not build VCard from resource", e); 
+			throw new VComponentCreationException("Could not build VCard from resource."); 
 		}
  
 		try {

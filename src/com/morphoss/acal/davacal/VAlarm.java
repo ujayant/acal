@@ -18,7 +18,6 @@
 
 package com.morphoss.acal.davacal;
 
-import com.morphoss.acal.dataservice.Resource;
 
 
 public class VAlarm extends VComponent {
@@ -28,13 +27,8 @@ public class VAlarm extends VComponent {
 		super(splitter, parent);
 	}
 
-	@Deprecated
-	public VAlarm(ComponentParts splitter, Resource r, VComponent parent) {
-		super(splitter, r,parent);
-	}
-
 	public VAlarm( VComponent parent ) {
-		super( "VALARM", parent.collectionId, parent );
+		super( "VALARM", parent );
 		try { setPersistentOn(); } catch (YouMustSurroundThisMethodInTryCatchOrIllEatYouException e) { }
 	}
 

@@ -417,7 +417,7 @@ public class ResourceManager implements Runnable {
 
 						if (comp instanceof VCalendar) {
 							VCalendar vCal = (VCalendar)comp;
-							AcalRepeatRule rrule = AcalRepeatRule.fromVCalendar(vCal,AcalRepeatRule.VALUE_NOT_ASSIGNED,AcalRepeatRule.VALUE_NOT_ASSIGNED);
+							AcalRepeatRule rrule = AcalRepeatRule.fromVCalendar(vCal,VComponent.VALUE_NOT_ASSIGNED,VComponent.VALUE_NOT_ASSIGNED);
 							if ( rrule != null ) {
 								AcalDateRange range = rrule.getInstancesRange();
 								values.put(EARLIEST_START, range.start.getMillis());

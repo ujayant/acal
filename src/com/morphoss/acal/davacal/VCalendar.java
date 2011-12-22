@@ -65,8 +65,8 @@ public class VCalendar extends VComponent {
 	private Long earliestStart;
 	private Long latestEnd;
 
-	private Long collectionId = AcalRepeatRule.VALUE_NOT_ASSIGNED;
-	private Long resourceId = AcalRepeatRule.VALUE_NOT_ASSIGNED;
+	private Long collectionId = VComponent.VALUE_NOT_ASSIGNED;
+	private Long resourceId = VComponent.VALUE_NOT_ASSIGNED;
 	
 	public static final Pattern tzOlsonExtractor = Pattern.compile(".*((?:Antarctica|America|Africa|Atlantic|Asia|Australia|Indian|Europe|Pacific|US)/(?:(?:[^/\"]+)/)?[^/\"]+)\"?");
 	private static final String	TZNAME_UTC	= "UTC";
@@ -105,42 +105,12 @@ public class VCalendar extends VComponent {
 	}
 
 
-	@Deprecated
-	protected VCalendar(long collectionId) {
-		super( VComponent.VCALENDAR, collectionId, null );
-		try { setPersistentOn(); } catch (YouMustSurroundThisMethodInTryCatchOrIllEatYouException e) { }
-		addProperty(new AcalProperty("CALSCALE","GREGORIAN"));
-		addProperty(new AcalProperty("PRODID","-//morphoss.com//aCal 1.0//EN"));
-		addProperty(new AcalProperty("VERSION","2.0"));
-	}
-
-	/**
-	 * Use new VCalendar() instead.
-	 * @param collectionId
-	 * @return
-	 */
-	@Deprecated
-	public static VCalendar createEmptyCalendar( long collectionId ) {
-		VCalendar vcal = new VCalendar(collectionId);
-		return vcal;
-	}
-
-	/**
-	 * Use new VCalendar() instead.
-	 * @param collectionId
-	 * @return
-	 */
-	@Deprecated
-	public static VCalendar getGenxericCalendar( long collectionId) {
-		VCalendar vcal = new VCalendar(collectionId);
-		return vcal;
-	}
-
 	public VCalendar clone() {
 		// parent is null, since a VCalendar is a top-level object.
-		return new VCalendar(this.content, this.resourceId, this.collectionId, this.earliestStart, this.latestEnd, null);
+		return new VCalendar(this.content, this.collectionId, this.resourceId, this.earliestStart, this.latestEnd, null);
 	}
 
+	
 	public String applyEventAction(EventInstance event, int action, int instances) throws InvalidCalendarActionException {
 
 		this.setEditable();
@@ -366,7 +336,7 @@ public class VCalendar extends VComponent {
 		hasRepeatRule = ( repeatRule != null );
 	}
 
-	private boolean appendAlarmInstancesBetween(List<AcalAlarm> alarmList, AcalDateRange rangeRequested) {
+	public boolean appendAlarmInstancesBetween(List<AcalAlarm> alarmList, AcalDateRange rangeRequested) {
 		if ( hasRepeatRule == null && repeatRule == null ) checkRepeatRule();
 		if ( !hasRepeatRule ) return false;
 		this.repeatRule.appendAlarmInstancesBetween(alarmList, rangeRequested);
@@ -429,16 +399,13 @@ public class VCalendar extends VComponent {
 		}
 		for( PartInfo childInfo : content.partInfo ) {
 			if ( childInfo.type.equals(VEVENT) ) {
-				return new VEvent(new ComponentParts(childInfo.getComponent(content.componentString)),
-						resource, this);
+				return new VEvent(new ComponentParts(childInfo.getComponent(content.componentString)), this);
 			}
 			else if ( childInfo.type.equals(VTODO) ) {
-				return new VTodo(new ComponentParts(childInfo.getComponent(content.componentString)),
-						resource, this);
+				return new VTodo(new ComponentParts(childInfo.getComponent(content.componentString)), this);
 			}
 			else if ( childInfo.type.equals(VJOURNAL) ) {
-				return new VJournal(new ComponentParts(childInfo.getComponent(content.componentString)),
-						resource, this);
+				return new VJournal(new ComponentParts(childInfo.getComponent(content.componentString)), this);
 			}
 		}
 		return null;
@@ -654,8 +621,7 @@ public class VCalendar extends VComponent {
 		if ( this.hasAlarms != null ) return this.hasAlarms;
 		for( PartInfo childInfo : content.partInfo ) {
 			if ( childInfo.type.equals(VEVENT) ) {
-				VEvent vc = new VEvent(new ComponentParts(childInfo.getComponent(content.componentString)),
-						resource, this);
+				VEvent vc = new VEvent(new ComponentParts(childInfo.getComponent(content.componentString)), this);
 				for( PartInfo childChildInfo : vc.content.partInfo ) {
 					if ( childChildInfo.type.equals(VALARM)) {
 						this.hasAlarms = true;
@@ -664,8 +630,7 @@ public class VCalendar extends VComponent {
 				}
 			}
 			else if ( childInfo.type.equals(VTODO) ) {
-				VTodo vc = new VTodo(new ComponentParts(childInfo.getComponent(content.componentString)),
-						resource, this);
+				VTodo vc = new VTodo(new ComponentParts(childInfo.getComponent(content.componentString)), this);
 				for( PartInfo childChildInfo : vc.content.partInfo ) {
 					if ( childChildInfo.type.equals(VALARM))  {
 						this.hasAlarms = true;

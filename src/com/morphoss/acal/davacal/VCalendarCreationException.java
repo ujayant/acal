@@ -24,7 +24,7 @@ public class VCalendarCreationException extends VComponentCreationException {
 	 */
 	private static final long serialVersionUID = 1L;
 
-	public VCalendarCreationException(String message,Exception e) {
-		super(message,e);
+	public VCalendarCreationException(String message) {
+		super(message);
 	}
 }

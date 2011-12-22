@@ -18,7 +18,6 @@
 
 package com.morphoss.acal.davacal;
 
-import com.morphoss.acal.dataservice.Resource;
 
 
 public class VCard extends VComponent {
@@ -29,12 +28,6 @@ public class VCard extends VComponent {
 
 	public VCard(ComponentParts splitter, VComponent parent) {
 		super(splitter, parent);
-	}
-
-
-	@Deprecated
-	public VCard(ComponentParts splitter, Resource r, VComponent parent) {
-		super(splitter, r, parent);
 	}
 
 

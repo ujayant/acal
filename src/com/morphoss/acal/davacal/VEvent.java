@@ -19,7 +19,6 @@
 package com.morphoss.acal.davacal;
 
 import com.morphoss.acal.dataservice.EventInstance;
-import com.morphoss.acal.dataservice.Resource;
 
 
 public class VEvent extends Masterable {
@@ -37,21 +36,6 @@ public class VEvent extends Masterable {
 		this( new VCalendar() );
 	}
 
-	@Deprecated
-	public VEvent(ComponentParts splitter, Resource r, VComponent parent) {
-		super(splitter, r, parent);
-	}
-
-	@Deprecated
-	public VEvent( long collectionId ) {
-		this( new VCalendar(collectionId) );
-	}
-
-	private VEvent fromMasterEvent( VEvent master ) {
-		// Isn't this a clone?
-		return (VEvent) VComponent.createComponentFromBlob(master.getCurrentBlob());
-	}
-	
 	public static VEvent createComponentFromInstance(EventInstance event) {
 		VEvent instance = new VEvent();
 		if ( event.getStart() != null ) instance.setStart(event.getStart());

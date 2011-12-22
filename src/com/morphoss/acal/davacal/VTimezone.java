@@ -23,8 +23,6 @@ import java.util.List;
 import java.util.SimpleTimeZone;
 import java.util.TimeZone;
 
-import com.morphoss.acal.dataservice.Resource;
-
 
 
 public class VTimezone extends VComponent {
@@ -37,11 +35,6 @@ public class VTimezone extends VComponent {
 	
 	public VTimezone(ComponentParts splitter, VComponent parent) {
 		super(splitter, parent);
-	}
-
-	@Deprecated
-	public VTimezone(ComponentParts splitter, Resource r, VComponent parent) {
-		super(splitter, r, parent);
 	}
 
 	public String getTZID() {
