@@ -46,6 +46,9 @@ public class YearView extends AcalActivity implements OnGestureListener, OnTouch
 	public static final int ADD = 3;
 
 	public static final String TAG = "aCal YearView";
+
+	private static String KEY_START_YEAR = "StartYear";
+	private static String KEY_SELECTED_MILLIS = "SelectedMillis";
 	
 	private CustomYearDrawable view;
 
@@ -58,8 +61,18 @@ public class YearView extends AcalActivity implements OnGestureListener, OnTouch
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		gestureDetector = new GestureDetector(this);
-		int year = this.getIntent().getExtras().getInt("StartYear");
-		this.selectedDate = new AcalDateTime(year,1,1,0,0,0,null);
+		Intent ourIntent = this.getIntent();
+		int year = ourIntent.getIntExtra(KEY_START_YEAR, -1);
+		if ( year == -1 ) {
+			long selectedMillis = ourIntent.getLongExtra(KEY_SELECTED_MILLIS, -1L);
+			if ( selectedMillis == -1L )
+				selectedDate = AcalDateTime.getInstance();
+			else
+				selectedDate = AcalDateTime.getInstance().setMillis(selectedMillis);
+		}
+		else {
+			this.selectedDate = new AcalDateTime(year,1,1,0,0,0,null);
+		}
 		this.setContentView(R.layout.year_view);
 		view = (CustomYearDrawable) this.findViewById(R.id.year_view_custom);
 		
