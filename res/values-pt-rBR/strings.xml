@@ -11,7 +11,6 @@
 <string name="A_name_for_this_server_configuration">Um nome para esta configuração de servidor</string>
 <string name="Authentication_Type">Tipo de autenticação</string>
 <string name="Simple_Path">Caminho simples</string>
-<string name="Simple_Domain">Domínio</string>
 <string name="Enter_a_brief_summary_of_the_event">Entre uma breve descrição do compromisso</string>
 <string name="Name">Nome</string>
 <string name="Force_full_resync">Forçar sincronização completa</string>
@@ -32,7 +31,6 @@
 <string name="The_authentication_type_used">O tipo de autenticação utilizado pelo servidor</string>
 <string name="The_password_to_use">A senha para autenticação no servidor</string>
 <string name="The_path_on_the_server">O caminho no servidor, como &quot;/caldav.php/user/&quot;</string>
-<string name="The_domain_for_your_organisation">O nome do domínio de sua organização, como &quot;morphoss.com&quot;</string>
 <string name="The_servers_hostname">O nome completo do servidor, como &quot;calendar.davical.com&quot;</string>
 <string name="The_username_to_use">O nome de usuário para autenticação no servidor</string>
 <string name="Username">Usuário</string>
@@ -103,7 +101,8 @@
 <string name="thSep">Set</string>
 <string name="thOct">Out</string>
 <string name="thDec">Dez</string>
-<!-- If the user is displaying AM/PM we need a single character to display e.g. 1p for 1:00pm -->
+	<!-- If the user is displaying AM/PM we need a single character to display e.g. 9a for 9:00am in the morning -->
+	<!-- If the user is displaying AM/PM we need a single character to display e.g. 1p for 1:00pm in the afternoon -->
 <string name="YearViewSize_PrefTitle">Número de meses na visualização anual</string>
 <string name="YearViewSize_PrefSummary">O número de meses presentes na visualização anual</string>
 <string name="Snooze_PrefTitle">Tempo de espera</string>
