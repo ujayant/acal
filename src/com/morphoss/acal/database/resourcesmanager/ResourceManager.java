@@ -707,7 +707,8 @@ public class ResourceManager implements Runnable {
 							PEND_RESOURCE_ID+" = ? AND "+PEND_COLLECTION_ID+" = ?", 
 							new String[]{rid+"",cid+""}, null,null,null);
 					
-					if (mCursor.getColumnCount() > 1) {
+					if (mCursor.getCount() >= 1) {
+						mCursor.moveToFirst();
 						DatabaseUtils.cursorRowToContentValues(mCursor, newResource);
 						newResource.put(NEW_DATA, newBlob);
 						newResource.put(UID, uid);
@@ -758,7 +759,10 @@ public class ResourceManager implements Runnable {
 		public ArrayList<ContentValues> getPendingResources() {
 			ArrayList<ContentValues> res = new ArrayList<ContentValues>();
 			beginReadQuery();
-			Cursor mCursor = db.query(PENDING_DATABASE_TABLE, null, null, null, null, null, null);
+			Cursor mCursor = db.query(PENDING_DATABASE_TABLE+" JOIN "+RESOURCE_DATABASE_TABLE+
+					" ON ("+
+					PENDING_DATABASE_TABLE+"."+PEND_RESOURCE_ID+" = "+RESOURCE_DATABASE_TABLE+"."+RESOURCE_ID+
+					")", null, null, null, null, null, null);
 			if (mCursor.getCount() > 0) {
 				for (mCursor.moveToFirst(); !mCursor.isAfterLast(); mCursor.moveToNext()) {
 					ContentValues vals = new ContentValues();

@@ -178,7 +178,7 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 				+",old_data BLOB"
 				+",new_data BLOB"
 				+",uid TEXT"
-				+",UNIQUE(collection_id,resource_id,modification_time)"
+				+",UNIQUE(collection_id,resource_id)"
 			+");";
 
 	

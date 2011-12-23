@@ -91,16 +91,29 @@ public class Resource implements Parcelable {
 	
 	public static Resource fromContentValues(ContentValues cv) {
 		long rid = -1;
-		if (cv.containsKey(ResourceTableManager.RESOURCE_ID)) rid = cv.getAsLong(ResourceTableManager.RESOURCE_ID);
 		boolean pending = false;
-		if (cv.containsKey(ResourceTableManager.IS_PENDING)) pending = cv.getAsBoolean(ResourceTableManager.IS_PENDING);
+		String blob = null;
+		if (cv.containsKey(ResourceTableManager.PEND_RESOURCE_ID)) {
+			rid = cv.getAsLong(ResourceTableManager.PEND_RESOURCE_ID);
+			blob = cv.getAsString(ResourceTableManager.NEW_DATA);
+			if (blob == null || blob.equals("")) throw new IllegalArgumentException("Can not create resource out of pending deleted.");
+			pending = true;
+		}
+		else if (cv.containsKey(ResourceTableManager.RESOURCE_ID)) {
+			rid = cv.getAsLong(ResourceTableManager.RESOURCE_ID);
+			blob = cv.getAsString(ResourceTableManager.RESOURCE_DATA);
+		}
+		else throw new IllegalArgumentException("Resource ID Required");
+				
+		
+		
 		return new Resource(
 				cv.getAsLong(ResourceTableManager.COLLECTION_ID),
 				rid,
 				cv.getAsString(ResourceTableManager.RESOURCE_NAME),
 				cv.getAsString(ResourceTableManager.ETAG),
 				cv.getAsString(ResourceTableManager.CONTENT_TYPE),
-				cv.getAsString(ResourceTableManager.RESOURCE_DATA),
+				blob,
 				cv.getAsInteger(ResourceTableManager.NEEDS_SYNC) == 1,
 				cv.getAsLong(ResourceTableManager.EARLIEST_START),
 				cv.getAsLong(ResourceTableManager.LATEST_END),

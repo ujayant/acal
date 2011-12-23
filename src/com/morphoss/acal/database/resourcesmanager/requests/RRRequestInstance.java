@@ -50,7 +50,7 @@ public class RRRequestInstance extends ReadOnlyResourceRequestWithResponse<Calen
 						//this resource has been deleted
 						throw new Exception("Resource deleted.");
 					} else {
-						CalendarInstance ci = CalendarInstance.fromBlobAndRRID(blob, rid, rrid);
+						CalendarInstance ci = CalendarInstance.fromPendingRowAndRRID(val,rrid);
 						this.postResponse(new RRRequestInstanceResponse<CalendarInstance>(ci));
 						this.processed = true;
 					}

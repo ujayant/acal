@@ -24,12 +24,14 @@ import android.os.RemoteException;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
-import android.widget.AdapterView.OnItemClickListener;
 
 import com.morphoss.acal.ServiceManager;
+import com.morphoss.acal.database.cachemanager.CRClearCacheRequest;
+import com.morphoss.acal.database.cachemanager.CacheManager;
 
 public class DebugSettings extends ListActivity {
 public static final String TAG = "aCal Settings";
@@ -41,7 +43,8 @@ public static final String TAG = "aCal Settings";
 		"Full System Sync",
 		"Home Set Discovery",
 		"Update Home DavCollections",
-		"Sync All DavCollections"
+		"Sync All DavCollections",
+		"Clear Cache"
 	};
 	
 	private ServiceManager serviceManager;
@@ -133,6 +136,8 @@ public static final String TAG = "aCal Settings";
 	    			Log.e(TAG, "Unable to send Update Home DavCollections request to server: "+re.getMessage());
 	    			Toast.makeText(DebugSettings.this, "Request failed: "+re.getMessage(), Toast.LENGTH_SHORT).show();
 	    		}
+	    	} else if (task.equals("ClearCache")) {
+	    		CacheManager.getInstance(DebugSettings.this).sendRequest(new CRClearCacheRequest());
 	    	}
 		}
 	}

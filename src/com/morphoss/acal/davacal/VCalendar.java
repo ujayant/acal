@@ -74,6 +74,8 @@ public class VCalendar extends VComponent {
 
 	public VCalendar(ComponentParts splitter, long collectionId, long resourceId, Long earliestStart, Long latestEnd, VComponent parent) {
 		super(splitter, parent);
+		this.collectionId = collectionId;
+		this.resourceId = resourceId;
 		this.earliestStart = earliestStart;
 		this.latestEnd = latestEnd;
 		if ( earliestStart != null ) {

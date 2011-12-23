@@ -34,6 +34,7 @@ import com.morphoss.acal.database.resourcesmanager.requests.RRGetCacheEventsInRa
 import com.morphoss.acal.dataservice.Resource;
 import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VComponent;
+import com.morphoss.acal.davacal.VComponentCreationException;
 
 /**
  * 	
@@ -394,10 +395,15 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 			int currentPri = Thread.currentThread().getPriority();
 			Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
 			for (Resource r : res.result()) {
+				try {
 				//if VComp is VCalendar
-				VComponent comp = VComponent.createComponentFromBlob(r.getBlob());
+				VComponent comp = VComponent.createComponentFromResource(r);
 				if (comp instanceof VCalendar)
 					((VCalendar)comp).appendCacheEventInstancesBetween(events, range);
+				} catch (VComponentCreationException e) {
+					//not a vcal
+					
+				}
 
 			}
 			Thread.currentThread().setPriority(currentPri);
@@ -518,7 +524,13 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 			this.delete(null, null);
 			this.setTxSuccessful();
 			this.endTransaction();
+			window = new CacheWindow(null);
 			Log.println(Constants.LOGW,TAG,"Cache cleared of possibly corrupt data.");
+		}
+		
+		public void rebuildCache() {
+			clearCache();
+			checkDefaultWindow();
 		}
 		
 		
@@ -627,7 +639,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 
 					// Construct resource
 					try {
-						comp = VComponent.createComponentFromBlob(r.getBlob());
+						comp = VComponent.createComponentFromResource(r);
 						if ( comp == null ) continue;
 						// get instances within window
 

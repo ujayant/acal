@@ -2,6 +2,8 @@ package com.morphoss.acal.dataservice;
 
 import java.util.ArrayList;
 
+import android.content.ContentValues;
+
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDuration;
@@ -148,14 +150,9 @@ public abstract class CalendarInstance {
 		}
 	}
 	
-	public static CalendarInstance fromBlobAndRRID(String blob, String rrid2) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public static CalendarInstance fromBlobAndRRID(String blob, long rid ,String rrid) {
-		// TODO Auto-generated method stub
-		return null;
+	public static CalendarInstance fromPendingRowAndRRID(ContentValues val,	String rrid) {
+		Resource res = Resource.fromContentValues(val);
+		return fromResourceAndRRId(res,rrid);
 	}
 
 }
