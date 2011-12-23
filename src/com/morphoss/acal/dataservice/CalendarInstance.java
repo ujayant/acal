@@ -62,7 +62,7 @@ public abstract class CalendarInstance {
 		
 	}
 
-	public CalendarInstance(Masterable masterInstance, long collectionId, long resourceId, AcalDateTime dtstart, AcalDateTime dtend) {
+	protected CalendarInstance(Masterable masterInstance, long collectionId, long resourceId, AcalDateTime dtstart, AcalDateTime dtend) {
 		this(collectionId,
 				resourceId,
 				dtstart,
@@ -128,6 +128,19 @@ public abstract class CalendarInstance {
 	}
 	
 
+	static public CalendarInstance getInstance(Masterable masterInstance, long collectionId, long resourceId, AcalDateTime dtstart, AcalDateTime dtend ) {
+		if ( masterInstance instanceof VEvent ) {
+			return new EventInstance((VEvent) masterInstance, collectionId, resourceId, dtstart, dtend);
+		}
+		else if ( masterInstance instanceof VTodo ) {
+			return new TodoInstance((VTodo) masterInstance, collectionId, resourceId, dtstart, dtend);
+		}
+		else {
+			throw new IllegalArgumentException("Resource does not map to a known Componant Type");
+		}
+	}
+
+	
 	public static CalendarInstance fromResourceAndRRId(Resource res, String rrid) throws IllegalArgumentException {
 		VComponent comp = VComponent.createComponentFromBlob(res.getBlob());
 		if (!(comp instanceof VCalendar)) throw new IllegalArgumentException("Resource provided is not a VCalendar");
@@ -137,18 +150,9 @@ public abstract class CalendarInstance {
 		else
 			obj = ((VCalendar)comp).getChildFromRecurrenceId(RecurrenceId.fromString(rrid));
 
-		if ( obj instanceof VEvent ) {
-			return new EventInstance((VEvent) obj, res.getCollectionId(), res.getResourceId(), obj.getStart(),
-					obj.getEnd());
-		}
-		else if ( obj instanceof VTodo ) {
-			return new TodoInstance((VTodo) obj, res.getCollectionId(), res.getResourceId(), obj.getStart(),
-					obj.getEnd());
-		}
-		else {
-			throw new IllegalArgumentException("Resource does not map to a known Componant Type");
-		}
+		return getInstance(obj, res.getCollectionId(), res.getResourceId(), obj.getStart(), obj.getEnd() );
 	}
+
 	
 	public static CalendarInstance fromPendingRowAndRRID(ContentValues val,	String rrid) {
 		Resource res = Resource.fromContentValues(val);

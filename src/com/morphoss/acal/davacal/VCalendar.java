@@ -33,6 +33,7 @@ import android.util.Log;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
+import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
 import com.morphoss.acal.activity.EventEdit;
 import com.morphoss.acal.database.cachemanager.CacheObject;
@@ -94,7 +95,7 @@ public class VCalendar extends VComponent {
 	}
 
 
-	public VCalendar(ComponentParts splitter, Resource r, VComponent parent) {
+	private VCalendar(ComponentParts splitter, Resource r, VComponent parent) {
 		super(splitter, parent);
 		this.collectionId = r.getCollectionId();
 		this.resourceId = r.getResourceId();
@@ -448,8 +449,24 @@ public class VCalendar extends VComponent {
 	}
 
 
+	/**
+	 * Will return a Masterable based on the master instance for this VCalendar, or the last overriding master
+	 * with a RANGE=THISANDFUTURE which is prior to the specified recurrence.  An exact override will always
+	 * be preferred.
+	 * 
+	 * No check is made to ensure that the repetition rule for the master instance actually specifies whether
+	 * a recurrence should occur on the given time.  You're expected to know that already :-)
+	 *  
+	 * @param recurrenceProperty
+	 * @return
+	 */
 	public Masterable getChildFromRecurrenceId(RecurrenceId recurrenceProperty) {
-		if ( !masterHasOverrides() ) return this.getMasterChild();
+		Masterable masterInstance = this.getMasterChild();
+		if ( !masterHasOverrides() ) return masterInstance;
+
+		RecurrenceId testRecurrence = null;
+		boolean recalculateTimes = true;
+		Masterable override = null;
 		try {
 			this.setPersistentOn();
 			List<Masterable> matchingChildren = new ArrayList<Masterable>();
@@ -462,12 +479,18 @@ public class VCalendar extends VComponent {
 				return this.getMasterChild();
 			}
 			Collections.sort(matchingChildren, RecurrenceId.getVComponentComparatorByRecurrenceId());
-			for (int i = matchingChildren.size()-1; i>= 0; i--) {
-				RecurrenceId cur = (RecurrenceId) matchingChildren.get(i).getProperty("RECURRENCE-ID");
-				if (cur.notAfter(recurrenceProperty)) {
-					this.setPersistentOff();
-					return matchingChildren.get(i);
+			for ( int i = 0; i < matchingChildren.size(); i++ ) {
+				testRecurrence = matchingChildren.get(i).getRecurrenceId();
+				if ( testRecurrence.equals(recurrenceProperty) ) {
+					recalculateTimes = false;
+					override = matchingChildren.get(i);
+					break;
 				}
+				if ( testRecurrence.overrides(recurrenceProperty) ) {
+					override = matchingChildren.get(i);
+					recalculateTimes = true;
+				}
+				override = matchingChildren.get(i);
 			}
 		} catch (YouMustSurroundThisMethodInTryCatchOrIllEatYouException e) {
 			Log.w(TAG,Log.getStackTraceString(e));
@@ -475,10 +498,36 @@ public class VCalendar extends VComponent {
 			this.setPersistentOff();	
 		}
 
-		return this.getMasterChild();
+		if ( override != null ) {
+			if ( !recalculateTimes ) return override;
+			masterInstance = override;
+		}
+
+		try {
+			override.setPersistentOn();
+			testRecurrence = override.getRecurrenceId();
+			AcalDateTime recurrenceTime = AcalDateTime.fromAcalProperty(recurrenceProperty);
+			AcalDuration adjustmentDuration = recurrenceTime.getDurationTo(AcalDateTime.fromAcalProperty(testRecurrence)); 
+
+			AcalProperty startProp = override.getProperty(PropertyName.DTSTART); 
+			AcalProperty endProp = override.getProperty((override instanceof VTodo ? PropertyName.DUE : PropertyName.DTEND));
+			if ( startProp != null ) {
+				recurrenceTime = AcalDateTime.fromAcalProperty(startProp).addDuration(adjustmentDuration);
+				override.setUniqueProperty(recurrenceTime.asProperty(PropertyName.DTSTART));
+			}
+			if ( endProp != null ) {
+				recurrenceTime = AcalDateTime.fromAcalProperty(endProp).addDuration(adjustmentDuration);
+				override.setUniqueProperty(recurrenceTime.asProperty((override instanceof VTodo ? PropertyName.DUE : PropertyName.DTEND)));
+			}
+		}
+		catch ( YouMustSurroundThisMethodInTryCatchOrIllEatYouException e ) { }
+		finally {
+			override.setPersistentOff();
+		}
+		return override;
 	}
 
-
+	
 	private static String checkKnownAliases( String tzId ) {
 		if ( tzId.equals(TZNAME_UTC) ) return tzId;
 		if ( tzId.equals("GMT") ) return TZNAME_UTC;

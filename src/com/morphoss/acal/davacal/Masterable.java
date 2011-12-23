@@ -123,6 +123,21 @@ public abstract class Masterable extends VComponent {
 	}
 
 	
+	public RecurrenceId getRecurrenceId() {
+		AcalProperty aProp = getProperty(PropertyName.RECURRENCE_ID);
+		if ( aProp == null ) {
+			aProp = getProperty(PropertyName.DTSTART);
+			if ( aProp == null && this instanceof VTodo )
+				aProp = getProperty(PropertyName.DUE);
+			if ( aProp == null ) return null;
+		}
+		if ( aProp instanceof RecurrenceId )
+			return (RecurrenceId) aProp;
+
+		return new RecurrenceId(aProp.getName(),aProp.getValue(),aProp.paramsBlob);
+	}
+
+	
 	public ArrayList<AcalAlarm> getAlarms() {
 		ArrayList<AcalAlarm> alarms = new ArrayList<AcalAlarm>(); 
 		try {

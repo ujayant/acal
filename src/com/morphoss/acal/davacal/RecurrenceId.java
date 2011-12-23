@@ -25,12 +25,12 @@ import com.morphoss.acal.acaltime.AcalDateTime;
 public class RecurrenceId extends AcalProperty implements Comparable<RecurrenceId>{
 	
 	public final AcalDateTime	when;
-	public final boolean		andFuture;
+	public final boolean		thisAndFuture;
 
 	protected RecurrenceId(String name, String value, String[] paramsBlob) {
 		super(name,value,paramsBlob);
 		when = AcalDateTime.fromIcalendar(getValue(),getParam("VALUE"), getParam("TZID"));
-		andFuture = (getParam("RANGE") != null && getParam("RANGE").equalsIgnoreCase("THISANDFUTURE"));
+		thisAndFuture = (getParam("RANGE") != null && getParam("RANGE").equalsIgnoreCase("THISANDFUTURE"));
 	}
 
 	public static RecurrenceId fromString(String blob) {
@@ -53,10 +53,15 @@ public class RecurrenceId extends AcalProperty implements Comparable<RecurrenceI
 		if ( when == null && rid.when == null ) return true;
 		return when.equals(rid.when);
 	}
-	
-	public boolean notAfter(RecurrenceId rid) {
-		if ( rid.andFuture && !when.after(rid.when) ) return true;
-		return when.equals(rid.when);
+
+	/**
+	 * Check whether this overrides an instance at rid, by checking if this has a "RANGE=THISANDFUTURE" property and is not after rid.
+	 * 
+	 * @param rid
+	 * @return
+	 */
+	public boolean overrides(RecurrenceId rid) {
+		return ( (thisAndFuture && !when.after(rid.when)) || when.equals(rid.when) );
 	}
 	
 	public static class VComponentComparatorByRecurrenceId implements Comparator<VComponent> {

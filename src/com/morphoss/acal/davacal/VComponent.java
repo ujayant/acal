@@ -135,6 +135,7 @@ public abstract class VComponent implements Parcelable {
 		else
 			return new VGenericComponent(splitter,null);
 	}
+
 	
 	public synchronized static VComponent createComponentFromResource(Resource r) throws VComponentCreationException {
 		
