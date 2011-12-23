@@ -42,7 +42,7 @@ public abstract class DatabaseTableManager {
 	protected AcalDBHelper dbHelper;
 	protected Context context;
 
-	public enum QUERY_ACTION { INSERT, UPDATE, DELETE };
+	public enum QUERY_ACTION { INSERT, UPDATE, DELETE, PENDING_RESOURCE };
 	
 	public static final String TAG = "aCal DatabaseManager";
 
@@ -86,6 +86,10 @@ public abstract class DatabaseTableManager {
 		return result;
 	}
 
+	protected void addChange(DataChangeEvent e) {
+		if (changes != null) changes.add(e);
+		else throw new IllegalStateException("Can not add change when db is closed!");
+	}
 
 	protected void openDB(final int type) {
 		if (inTx || sucTx ) throw new SQLiteMisuseException("Tried to open DB when already open");

@@ -147,6 +147,9 @@ public abstract class VComponent implements Parcelable {
 
 		ComponentParts splitter = new ComponentParts(blob);
 		if ( splitter.thisComponent.equals(VCALENDAR) )
+			if (r.isPending())
+			return new VCalendar(splitter, r.getCollectionId(),r.getResourceId(), null, null, null);
+			else
 			return new VCalendar(splitter, r.getCollectionId(),r.getResourceId(), r.getEarliestStart(), r.getLatestEnd(), null);
 		else if (splitter.thisComponent.equals(VCARD))
 			return new VCard(splitter,null);

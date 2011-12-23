@@ -1,6 +1,9 @@
 package com.morphoss.acal.database.resourcesmanager.requests;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map.Entry;
 
 import android.content.ContentValues;
 import android.util.Log;
@@ -9,10 +12,10 @@ import com.morphoss.acal.Constants;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.database.cachemanager.CacheManager;
 import com.morphoss.acal.database.cachemanager.CacheWindow;
-import com.morphoss.acal.database.resourcesmanager.ResourceResponse;
-import com.morphoss.acal.database.resourcesmanager.ResourceResponseListener;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager.ReadOnlyResourceTableManager;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
+import com.morphoss.acal.database.resourcesmanager.ResourceResponse;
+import com.morphoss.acal.database.resourcesmanager.ResourceResponseListener;
 import com.morphoss.acal.database.resourcesmanager.requesttypes.ReadOnlyResourceRequestWithResponse;
 import com.morphoss.acal.dataservice.Resource;
 import com.morphoss.acal.davacal.VComponent;
@@ -57,7 +60,37 @@ public class RRGetCacheEventsInRange extends ReadOnlyResourceRequestWithResponse
 				,
 				new String[]{ VComponent.VEVENT, VComponent.VTODO, start+"", end+""},
 				null,null,null);
-		if ( CacheManager.DEBUG ) Log.println(Constants.LOGD,TAG,rValues.size()+" Rows retreived. Converting into Resource Objects");
+		
+		//also need pendings
+		ArrayList<ContentValues> pValues = processor.getPendingResources();
+		HashMap<Long,ContentValues> pendingMap = new HashMap<Long, ContentValues>();
+		
+		if (!pValues.isEmpty()) {
+			//we need to remove from rValues, any values that have a corresponding entry in pValues
+			for (ContentValues cv : pValues) {
+				pendingMap.put(cv.getAsLong(ResourceTableManager.PEND_RESOURCE_ID),cv);	
+			}
+			Iterator<ContentValues> it = rValues.iterator();
+			while(it.hasNext()) {
+				ContentValues rValue = it.next();
+				long rid = rValue.getAsLong(ResourceTableManager.RESOURCE_ID);
+				if (pendingMap.containsKey(rid)) {
+					ContentValues pValue = pendingMap.get(rid);
+					it.remove();
+					String data = pValue.getAsString(ResourceTableManager.NEW_DATA);
+					if (data == null || data.equals("")) pendingMap.remove(rid);
+				}
+			}
+		}
+		
+		//Merge the lists
+		if ( CacheManager.DEBUG ) Log.println(Constants.LOGD,TAG,rValues.size()+" Resource Rows retreived. and "+pValues.size()+" pending values. Converting into Resource Objects");
+		for (Entry<Long, ContentValues> ent : pendingMap.entrySet()) {
+			Resource r = Resource.fromContentValues(ent.getValue()); 
+			r.setPending(true);
+			result.add(r);
+			
+		}
 		for (ContentValues cv : rValues) result.add(Resource.fromContentValues(cv));
 		if ( CacheManager.DEBUG ) Log.println(Constants.LOGD,TAG, "Conversion complete. Populating VCalendars and appending events.");
 		

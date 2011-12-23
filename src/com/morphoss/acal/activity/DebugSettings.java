@@ -136,7 +136,7 @@ public static final String TAG = "aCal Settings";
 	    			Log.e(TAG, "Unable to send Update Home DavCollections request to server: "+re.getMessage());
 	    			Toast.makeText(DebugSettings.this, "Request failed: "+re.getMessage(), Toast.LENGTH_SHORT).show();
 	    		}
-	    	} else if (task.equals("ClearCache")) {
+	    	} else if (task.equals("Clear Cache")) {
 	    		CacheManager.getInstance(DebugSettings.this).sendRequest(new CRClearCacheRequest());
 	    	}
 		}

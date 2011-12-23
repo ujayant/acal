@@ -633,6 +633,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		for (DataChangeEvent change : changes) {
 			switch ( change.action ) {
 				case INSERT:
+				case PENDING_RESOURCE:
 				case UPDATE:
 					r = event.getResource(change);
 					// If this resource in our window?

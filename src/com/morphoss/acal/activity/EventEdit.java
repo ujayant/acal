@@ -164,6 +164,8 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 	private static final int SAVE_FAILED = 6;
 	private static final int SHOW_SAVING = 7;
 
+	private boolean isSaving = false;
+	private boolean isLoading = false;
 
 	
 	private Dialog loadingDialog = null;
@@ -174,6 +176,7 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 			
 			switch (msg.what) {
 			case REFRESH: 
+				isLoading = false;
 				if (loadingDialog != null) {
 					loadingDialog.dismiss();
 					loadingDialog = null;
@@ -186,15 +189,27 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 				break;
 			
 			case SHOW_LOADING: 
+					isLoading = true;
 					if (event == null) showDialog(LOADING_EVENT_DIALOG);
 					break;
 					
 			case FAIL:
-				Toast.makeText(EventEdit.this, "Error loading data.", 5).show();
+				if (isLoading) {
+					Toast.makeText(EventEdit.this, "Error loading data.", 5).show();
+					isLoading = false;
+				} else if (isSaving) {
+					isSaving = false;
+					if (savingDialog != null) savingDialog.dismiss();
+					Toast.makeText(EventEdit.this, "Something went wrong trying to save data.", Toast.LENGTH_LONG).show();
+					setResult(Activity.RESULT_CANCELED, null);
+					finish();
+					break;
+				}
 				finish();
 				break;
 				
 			case GIVE_UP:
+				isLoading = false;
 				if (loadingDialog != null) {
 					loadingDialog.dismiss();
 					Toast.makeText(EventEdit.this, "Error loading event data.", Toast.LENGTH_LONG).show();
@@ -202,11 +217,13 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 				}
 				break;
 			case SHOW_SAVING: 
+				isSaving = true;
 				showDialog(SAVING_DIALOG);
 				break;
 				
 			case SAVE_RESULT:
 				//dismiss dialog
+				isSaving = false;
 				if (savingDialog != null) savingDialog.dismiss();
 				long res = (Long)msg.obj;
 				if (res >= 0) {
@@ -223,6 +240,7 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 				}
 				break;
 			case SAVE_FAILED:
+				isSaving = false;
 				if (savingDialog != null) savingDialog.dismiss();
 				Toast.makeText(EventEdit.this, "Something went wrong trying to save data.", Toast.LENGTH_LONG).show();
 				setResult(Activity.RESULT_CANCELED, null);
@@ -839,6 +857,10 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 	@Override
 	public void resourceResponse(ResourceResponse response) {
 		Object result = response.result();
+		if (result == null) {
+			int msg = FAIL;
+			mHandler.sendMessage(mHandler.obtainMessage(msg));
+		}
 		if (result instanceof EventInstance) {
 			int msg = FAIL;
 			if (response.wasSuccessful()) {

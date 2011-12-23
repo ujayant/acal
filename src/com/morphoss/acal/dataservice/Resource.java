@@ -3,12 +3,14 @@ package com.morphoss.acal.dataservice;
 import android.content.ContentValues;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
 import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
 
 
 public class Resource implements Parcelable {
 
+	private static final String TAG = "acal Resource";
 	//This class is immutable!
 	private final long collectionId;
 	private final long resourceId;
@@ -20,7 +22,7 @@ public class Resource implements Parcelable {
 	private final long earliestStart;
 	private final long latestEnd;
 	private final String effectiveType;
-	private final boolean pending;
+	private boolean pending;
 	
 	public Resource(long cid, long rid, String name, String etag, String cType, 
 			String data, boolean sync, Long earliestStart, Long latestEnd, String eType, boolean pending) {
@@ -89,10 +91,28 @@ public class Resource implements Parcelable {
 		return this.etag;
 	}
 	
+	public ContentValues toContentValues() {
+		ContentValues cv = new ContentValues();
+		cv.put(ResourceTableManager.RESOURCE_ID,resourceId);
+		cv.put(ResourceTableManager.COLLECTION_ID,collectionId);
+		cv.put(ResourceTableManager.RESOURCE_NAME,name);
+		cv.put(ResourceTableManager.ETAG,etag);
+		cv.put(ResourceTableManager.CONTENT_TYPE,contentType);
+		cv.put(ResourceTableManager.RESOURCE_DATA,data);
+		cv.put(ResourceTableManager.NEEDS_SYNC,needsSync);
+		cv.put(ResourceTableManager.EARLIEST_START, earliestStart);
+		cv.put(ResourceTableManager.LATEST_END, latestEnd);
+		cv.put(ResourceTableManager.EFFECTIVE_TYPE, effectiveType);
+		return cv;
+	}
 	public static Resource fromContentValues(ContentValues cv) {
 		long rid = -1;
 		boolean pending = false;
 		String blob = null;
+		long es = 0;
+		long le = 0;
+		boolean needsSync = false;
+		String effectiveType = "";
 		if (cv.containsKey(ResourceTableManager.PEND_RESOURCE_ID)) {
 			rid = cv.getAsLong(ResourceTableManager.PEND_RESOURCE_ID);
 			blob = cv.getAsString(ResourceTableManager.NEW_DATA);
@@ -100,10 +120,17 @@ public class Resource implements Parcelable {
 			pending = true;
 		}
 		else if (cv.containsKey(ResourceTableManager.RESOURCE_ID)) {
-			rid = cv.getAsLong(ResourceTableManager.RESOURCE_ID);
-			blob = cv.getAsString(ResourceTableManager.RESOURCE_DATA);
-		}
-		else throw new IllegalArgumentException("Resource ID Required");
+			try {
+				rid = cv.getAsLong(ResourceTableManager.RESOURCE_ID);
+				blob = cv.getAsString(ResourceTableManager.RESOURCE_DATA);
+				if (cv.containsKey(ResourceTableManager.EARLIEST_START));
+					es = cv.getAsLong(ResourceTableManager.EARLIEST_START);
+				if (cv.containsKey(ResourceTableManager.LATEST_END) && cv.getAsLong(ResourceTableManager.LATEST_END) != null);
+					le = cv.getAsLong(ResourceTableManager.LATEST_END);
+				needsSync = cv.getAsBoolean(ResourceTableManager.NEEDS_SYNC);// == 1;
+				effectiveType = cv.getAsString(ResourceTableManager.EFFECTIVE_TYPE);
+			} catch (Exception e) { Log.d(TAG,"Error in Resource: "+e+Log.getStackTraceString(e)); }
+		} else throw new IllegalArgumentException("Resource ID Required");
 				
 		
 		
@@ -114,10 +141,10 @@ public class Resource implements Parcelable {
 				cv.getAsString(ResourceTableManager.ETAG),
 				cv.getAsString(ResourceTableManager.CONTENT_TYPE),
 				blob,
-				cv.getAsInteger(ResourceTableManager.NEEDS_SYNC) == 1,
-				cv.getAsLong(ResourceTableManager.EARLIEST_START),
-				cv.getAsLong(ResourceTableManager.LATEST_END),
-				cv.getAsString(ResourceTableManager.EFFECTIVE_TYPE),
+				needsSync,
+				es,
+				le,
+				effectiveType,
 				pending
 		);
 		
@@ -133,5 +160,9 @@ public class Resource implements Parcelable {
 
 	public Long getLatestEnd() {
 		return latestEnd;
+	}
+
+	public void setPending(boolean b) {
+		this.pending = b;
 	}
 }

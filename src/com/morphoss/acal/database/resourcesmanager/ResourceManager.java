@@ -33,6 +33,7 @@ import com.morphoss.acal.database.resourcesmanager.requesttypes.BlockingResource
 import com.morphoss.acal.database.resourcesmanager.requesttypes.ReadOnlyBlockingRequestWithResponse;
 import com.morphoss.acal.database.resourcesmanager.requesttypes.ReadOnlyResourceRequest;
 import com.morphoss.acal.database.resourcesmanager.requesttypes.ResourceRequest;
+import com.morphoss.acal.dataservice.Resource;
 import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VComponent;
 import com.morphoss.acal.providers.DavCollections;
@@ -694,38 +695,64 @@ public class ResourceManager implements Runnable {
 		public long addPending(long cid, long rid, String oldBlob, String newBlob, String uid) {
 			//add a new pending resource and return the resultant resource.
 			//if oldBlob == null then this is a create not an edit
-			long row = rid;
+			long row = -1;
+			QUERY_ACTION action = null;
 			Cursor mCursor = null;
+			ContentValues newResource = new ContentValues();
 			try {
 				
 				this.beginTransaction();				
-				if (oldBlob == null || oldBlob.equals("")) row = createNewPending(cid,newBlob,uid);
+				if (oldBlob == null || oldBlob.equals("")) {
+					//Create New
+					newResource.put(COLLECTION_ID, cid);
+					rid = this.insert(null, newResource);
+					newResource = new ContentValues();
+					newResource.put(PEND_COLLECTION_ID, cid);
+					newResource.put(PEND_RESOURCE_ID, row);
+					newResource.putNull(OLD_DATA);
+					newResource.put(NEW_DATA, newBlob);
+					newResource.put(UID, uid);
+					row = db.insert(PENDING_DATABASE_TABLE, null, newResource);
+					action = QUERY_ACTION.PENDING_RESOURCE;
+					
+				}
 				else {
-					ContentValues newResource = new ContentValues();
 					//Check if this resource already exists
 					mCursor = db.query(PENDING_DATABASE_TABLE, null, 
 							PEND_RESOURCE_ID+" = ? AND "+PEND_COLLECTION_ID+" = ?", 
 							new String[]{rid+"",cid+""}, null,null,null);
 					
 					if (mCursor.getCount() >= 1) {
+						//Update existing pending entry
 						mCursor.moveToFirst();
 						DatabaseUtils.cursorRowToContentValues(mCursor, newResource);
+						row = newResource.getAsLong(PENDING_ID);
 						newResource.put(NEW_DATA, newBlob);
 						newResource.put(UID, uid);
 						db.update(PENDING_DATABASE_TABLE, newResource,
 									PEND_RESOURCE_ID+" = ? AND "+PEND_COLLECTION_ID+" = ?", 
 									new String[] {rid+"",cid+""});
+						action = QUERY_ACTION.PENDING_RESOURCE;
+						
 					} else {
+						//create new pending entry from existing resource
 						newResource.put(PEND_COLLECTION_ID, cid);
 						newResource.put(PEND_RESOURCE_ID, row);
 						newResource.put(OLD_DATA, oldBlob);
 						newResource.put(NEW_DATA, newBlob);
 						newResource.put(UID, uid);
-						db.insert(PENDING_DATABASE_TABLE, null, newResource);
+						row = db.insert(PENDING_DATABASE_TABLE, null, newResource);
+						action = QUERY_ACTION.PENDING_RESOURCE;
 					}
 					mCursor.close();
 					
 				}
+				//trigger resource change event
+				ContentValues toReport = Resource.fromContentValues(newResource).toContentValues();
+				if (newBlob == null || newBlob == "") this.addChange(new DataChangeEvent(QUERY_ACTION.DELETE,toReport));
+				else this.addChange(new DataChangeEvent(action,toReport));
+				
+				//done
 				this.setTxSuccessful();
 			} catch (Exception e) {
 				Log.e(TAG, "Error updating pending resource: "+e);
@@ -736,23 +763,9 @@ public class ResourceManager implements Runnable {
 			
 			WorkerClass.getExistingInstance().addJobAndWake(new SyncChangesToServer());
 			
-			return row;
+			return rid;
 		}
 		
-		private long createNewPending(long cid, String blob, String uid) {
-			ContentValues newResource = new ContentValues();
-			newResource.put(COLLECTION_ID, cid);
-			long row = this.insert(null, newResource);
-			newResource = new ContentValues();
-			newResource.put(PEND_COLLECTION_ID, cid);
-			newResource.put(PEND_RESOURCE_ID, row);
-			newResource.putNull(OLD_DATA);
-			newResource.put(NEW_DATA, blob);
-			newResource.put(UID, uid);
-			db.insert(PENDING_DATABASE_TABLE, null, newResource);
-			return row;
-			
-		}
 
 
 		@Override
