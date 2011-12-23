@@ -135,6 +135,7 @@ public abstract class VComponent implements Parcelable {
 		else
 			return new VGenericComponent(splitter,null);
 	}
+
 	
 	public synchronized static VComponent createComponentFromResource(Resource r) throws VComponentCreationException {
 		
@@ -147,7 +148,7 @@ public abstract class VComponent implements Parcelable {
 
 		ComponentParts splitter = new ComponentParts(blob);
 		if ( splitter.thisComponent.equals(VCALENDAR) )
-			return new VCalendar(splitter, r.getCollectionId(),r.getResourceId(), r.getEarliestStart(), r.getLatestEnd(), null);
+			return new VCalendar(splitter, r.getCollectionId(), r.getResourceId(), r.getEarliestStart(), r.getLatestEnd(), null);
 		else if (splitter.thisComponent.equals(VCARD))
 			return new VCard(splitter,null);
 		else
