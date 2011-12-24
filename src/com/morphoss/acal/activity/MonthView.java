@@ -923,7 +923,8 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 				break;
 			case ADD:
 				Bundle bundle = new Bundle();
-				bundle.putParcelable("DATE", this.selectedDate);
+				bundle.putParcelable(EventEdit.NEW_EVENT_DATE_TIME_KEY, this.selectedDate.clone().applyLocalTimeZone().setHour(9).setMinute(0));
+				bundle.putInt(EventEdit.ACTION_KEY, EventEdit.ACTION_CREATE);
 				Intent eventEditIntent = new Intent(this, EventEdit.class);
 				eventEditIntent.putExtras(bundle);
 				this.startActivity(eventEditIntent);
