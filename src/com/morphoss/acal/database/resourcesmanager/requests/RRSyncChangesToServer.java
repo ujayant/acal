@@ -22,9 +22,9 @@ import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.database.DMAction;
 import com.morphoss.acal.database.DMQueryBuilder;
 import com.morphoss.acal.database.DatabaseTableManager.QUERY_ACTION;
-import com.morphoss.acal.database.resourcesmanager.ResourceProcessingException;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager.WriteableResourceTableManager;
+import com.morphoss.acal.database.resourcesmanager.ResourceProcessingException;
 import com.morphoss.acal.database.resourcesmanager.requesttypes.ResourceRequest;
 import com.morphoss.acal.davacal.PropertyName;
 import com.morphoss.acal.davacal.VCalendar;
@@ -42,6 +42,7 @@ import com.morphoss.acal.service.connector.SendRequestFailedException;
 public class RRSyncChangesToServer implements ResourceRequest {
 
 	public static final String	TAG = "aCal RRSyncChangesToServer";
+	private static boolean DEBUG = true && Constants.DEBUG_MODE;
 	
 	private long timeToWait = 90000;
 	private aCalService acalService;
@@ -98,15 +99,15 @@ public class RRSyncChangesToServer implements ResourceRequest {
 		pendingChangesList = new ArrayList<ContentValues>();
 		if ( processor.marshallChangesToSync(pendingChangesList) ) {
 			pendingPos = -1;
-			if (Constants.debugSyncChangesToServer) Log.println(Constants.LOGD,TAG, "No local changes to synchronise.");
+			if (DEBUG) Log.println(Constants.LOGD,TAG, "No local changes to synchronise.");
 			running = false;
 			return; // without rescheduling
 		}
 		else if ( !connectivityAvailable() ) {
-			if (Constants.debugSyncChangesToServer) Log.println(Constants.LOGD,TAG, "No connectivity available to sync local changes.");
+			if (DEBUG) Log.println(Constants.LOGD,TAG, "No connectivity available to sync local changes.");
 		}
 		else {
-			if (Constants.debugSyncChangesToServer)
+			if (DEBUG)
 				Log.println(Constants.LOGD,TAG, "Starting sync of local changes");
 			
 			collectionsToSync = new HashSet<Integer>();
@@ -222,7 +223,7 @@ public class RRSyncChangesToServer implements ResourceRequest {
 					resourcePath = StaticHelpers.rTrim(((VCalendar) vc).getMasterChild().getProperty(PropertyName.UID).getValue()) + ".ics";
 			}
 			catch ( Exception e ) {
-				if ( Constants.debugSyncChangesToServer )
+				if ( DEBUG )
 					Log.println(Constants.LOGD,TAG,"Unable to get UID from resource");
 				if ( Constants.LOG_VERBOSE )
 					Log.println(Constants.LOGV,TAG,Log.getStackTraceString(e));
@@ -261,7 +262,7 @@ public class RRSyncChangesToServer implements ResourceRequest {
 
 		Header[] headers = new Header[] { eTagHeader, contentHeader};
 		
-		if (Constants.debugSyncChangesToServer)	
+		if (DEBUG)	
 			//Log.println(Constants.LOGD,TAG,	"Making "+action.toString()+" request to "+path);
 			Log.println(Constants.LOGD,TAG,	"Making "+builder.getAction().toString()+" request to "+path);
 
@@ -290,7 +291,7 @@ public class RRSyncChangesToServer implements ResourceRequest {
 			case 201: // Status Created (normal for INSERT).
 			case 204: // Status No Content (normal for DELETE).
 			case 200: // Status OK. (normal for UPDATE)
-				if (Constants.debugSyncChangesToServer) Log.println(Constants.LOGD,TAG, "Response "+status+" against "+path);
+				if (DEBUG) Log.println(Constants.LOGD,TAG, "Response "+status+" against "+path);
 				resourceData.put(ResourceTableManager.RESOURCE_DATA, newData);
 				resourceData.put(ResourceTableManager.NEEDS_SYNC, true);
 				resourceData.put(ResourceTableManager.ETAG, "unknown etag after PUT before sync");
@@ -307,7 +308,7 @@ public class RRSyncChangesToServer implements ResourceRequest {
 				}
 */
 				
-				if ( Constants.debugSyncChangesToServer ) Log.println(Constants.LOGD,TAG, 
+				if ( DEBUG ) Log.println(Constants.LOGD,TAG, 
 						"Applying resource modification to local database");
 				builder.setValues(resourceData);
 				if (builder.getAction() != QUERY_ACTION.INSERT) {

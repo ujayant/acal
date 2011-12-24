@@ -177,6 +177,7 @@ public class VCalendar extends VComponent {
 		default: throw new InvalidCalendarActionException("Invalid action/instances combination.");
 		}
 	}
+
 	private String doDelete(EventInstance event, int instances ) throws InvalidCalendarActionException {
 		//TODO
 		switch (instances) {
@@ -386,8 +387,10 @@ public class VCalendar extends VComponent {
 					
 		}
 		catch(Exception e) {
-			if (Constants.LOG_DEBUG)Log.d(TAG,"Exception in RepeatRule handling");
-			if (Constants.LOG_DEBUG)Log.d(TAG,Log.getStackTraceString(e));
+			if (Constants.LOG_DEBUG) {
+				Log.println(Constants.LOGD,TAG,"Exception in RepeatRule handling");
+				Log.println(Constants.LOGD,TAG,Log.getStackTraceString(e));
+			}
 		}
 		return false;
 	}
@@ -712,5 +715,24 @@ public class VCalendar extends VComponent {
 			return new VCalendar[size];
 		}
 	};
+
+
+	public AcalDateRange getInstancesRange() {
+		if ( calendarRange != null ) return calendarRange;
+		
+		if ( hasRepeatRule == null && repeatRule == null ) checkRepeatRule();
+		if ( !hasRepeatRule ) {
+			Masterable m = getMasterChild();
+			AcalDateTime dtStart = m.getStart(); 
+			earliestStart = (dtStart == null ? null : dtStart.applyLocalTimeZone().getMillis());
+			AcalDateTime dtEnd = m.getEnd();
+			latestEnd = (dtEnd == null ? null : dtEnd.applyLocalTimeZone().getMillis());
+			calendarRange = new AcalDateRange(dtStart,dtEnd);
+		}
+		else {
+			calendarRange = repeatRule.getInstancesRange();
+		}
+		return calendarRange;
+	}
 
 }

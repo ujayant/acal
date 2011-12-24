@@ -1,5 +1,9 @@
 package com.morphoss.acal.activity;
 
+import android.util.Log;
+
+import com.morphoss.acal.Constants;
+import com.morphoss.acal.database.resourcesmanager.ResourceManager;
 import com.morphoss.acal.database.resourcesmanager.ResourceProcessingException;
 import com.morphoss.acal.database.resourcesmanager.ResourceResponse;
 import com.morphoss.acal.database.resourcesmanager.ResourceResponseListener;
@@ -15,6 +19,7 @@ import com.morphoss.acal.davacal.VEvent;
 
 public class RREventEditedRequest extends ResourceRequestWithResponse<Long> {
 
+	private static final String TAG = "aCal RREventEditedRequest"; 
 	private EventInstance event;
 	private int action;
 	private int instances;
@@ -48,14 +53,18 @@ public class RREventEditedRequest extends ResourceRequestWithResponse<Long> {
 				uid = comp.getUID();
 			}
 			
-			long result = processor.addPending(event.getCollectionId(),event.getResourceId(),oldBlob,newBlob, uid);
-			if (result < 0) 
+			if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD, TAG, 
+					"Adding Pending Table row for collection ID:"+event.getCollectionId()+", resource ID: "+event.getResourceId());
+			long result = processor.addPending(event.getCollectionId(), event.getResourceId(), oldBlob, newBlob, uid);
+			if ( result < 0 ) 
 				this.fail();
 			else 
 				this.postResponse(new RREventEditedResponse(result));
 			
-		} catch (Exception e) {
-			//TODO log failure
+		}
+		catch ( Exception e ) {
+			Log.w(TAG, "Failed to add to Pending Table row for collection ID:" + event.getCollectionId()
+					+ ", resource ID: " + event.getResourceId(), e);
 			this.fail();
 			return;
 		}

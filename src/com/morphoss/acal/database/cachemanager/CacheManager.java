@@ -631,6 +631,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		VComponent comp;
 		ArrayList<CacheObject> newData;
 		for (DataChangeEvent change : changes) {
+			if ( change.action == null ) continue;
 			switch ( change.action ) {
 				case INSERT:
 				case PENDING_RESOURCE:
@@ -640,6 +641,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 
 					// Construct resource
 					try {
+						if ( r == null ) continue;
 						comp = VComponent.createComponentFromResource(r);
 						if ( comp == null ) continue;
 						// get instances within window

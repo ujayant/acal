@@ -35,17 +35,17 @@ import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.CompoundButton.OnCheckedChangeListener;
 
 import com.morphoss.acal.AcalTheme;
 import com.morphoss.acal.Constants;
@@ -60,21 +60,24 @@ import com.morphoss.acal.database.resourcesmanager.ResourceManager;
 import com.morphoss.acal.database.resourcesmanager.ResourceResponse;
 import com.morphoss.acal.database.resourcesmanager.ResourceResponseListener;
 import com.morphoss.acal.database.resourcesmanager.requests.RRRequestInstance;
+import com.morphoss.acal.dataservice.CalendarInstance;
 import com.morphoss.acal.dataservice.Collection;
 import com.morphoss.acal.dataservice.EventInstance;
 import com.morphoss.acal.dataservice.EventInstance.BadlyConstructedEventException;
 import com.morphoss.acal.dataservice.EventInstance.EVENT_BUILDER;
+import com.morphoss.acal.dataservice.Resource;
 import com.morphoss.acal.davacal.AcalAlarm;
+import com.morphoss.acal.davacal.AcalAlarm.ActionType;
 import com.morphoss.acal.davacal.PropertyName;
 import com.morphoss.acal.davacal.VComponent;
-import com.morphoss.acal.davacal.AcalAlarm.ActionType;
 import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.service.aCalService;
 import com.morphoss.acal.widget.AlarmDialog;
 import com.morphoss.acal.widget.DateTimeDialog;
 import com.morphoss.acal.widget.DateTimeSetListener;
 
-public class EventEdit extends AcalActivity implements  OnClickListener, OnCheckedChangeListener, ResourceChangedListener, ResourceResponseListener {
+public class EventEdit extends AcalActivity implements  OnClickListener, OnCheckedChangeListener,
+				ResourceChangedListener, ResourceResponseListener {
 
 	public static final String TAG = "aCal EventEdit";
 	public static final int APPLY = 0;
@@ -250,6 +253,7 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 			
 		}
 	};
+
 	
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -301,7 +305,7 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 					}
 					long rid = b.getLong(RESOURCE_ID_KEY);
 					String rrid = b.getString(RECCURENCE_ID_KEY);
-					resourceManager.sendRequest(new RRRequestInstance(this,rid, rrid));
+					resourceManager.sendRequest(new RRRequestInstance(this, rid, rrid));
 					mHandler.sendMessageDelayed(mHandler.obtainMessage(SHOW_LOADING), 50);
 					mHandler.sendMessageDelayed(mHandler.obtainMessage(GIVE_UP), 10000);
 					break;
@@ -352,9 +356,11 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 					}
 				break;
 			}
-		} else {
-			//no action! bye bye
-			this.finish(); return;
+		}
+		else {
+			Log.e(TAG,"EventEdit started without an ACTION.");
+			this.finish();
+			return;
 		}
 	}
 
@@ -613,12 +619,13 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 			event.setEndDate(end);
 		}
 		
-		if (action == ACTION_EDIT && instances <0)
+		if (action == ACTION_EDIT && instances < 0)
 			this.showDialog(WHICH_EVENT_DIALOG);
-		else if ( !this.saveChanges() ){
-				Toast.makeText(this, "Save failed: retrying!", Toast.LENGTH_LONG).show();
-				this.saveChanges();
-		} else {
+		else if ( !this.saveChanges() ) {
+			Toast.makeText(this, "Save failed: retrying!", Toast.LENGTH_LONG).show();
+			this.saveChanges();
+		}
+		else {
 			Toast.makeText(this, "Event(s) Saved.", Toast.LENGTH_LONG).show();
 		}
 	}
@@ -628,10 +635,9 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 		
 		
 		try {
-			if ( Constants.LOG_DEBUG ) Log.d(TAG,"saveChanges: dtstart = "+event.getStart().toPropertyString(PropertyName.DTSTART));
+			if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,
+					"saveChanges: dtstart = "+event.getStart().toPropertyString(PropertyName.DTSTART));
 			//display savingdialog
-			
-			
 			
 			ResourceManager.getInstance(this).sendRequest(new RREventEditedRequest(this, event, action, instances));
 			
@@ -654,7 +660,9 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 	}
 	
 	//Dialogs
-	protected Dialog onCreateDialog(int id) { 
+	protected Dialog onCreateDialog(int id) {
+		
+		// These dialogs don't depend on 'event' having been initialised.
 		switch (id) {
 			case SAVING_DIALOG:
 				AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -662,89 +670,12 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 				builder.setCancelable(false);
 				savingDialog = builder.create();
 				return savingDialog;
-		}
-		if (event != null) {
-			AcalDateTime start = event.getStart();
-			AcalDateTime end = event.getEnd();
-			switch (id) {
-				case START_DATE_DIALOG:
-					return new DateTimeDialog( this, start.clone(), prefer24hourFormat, true, true,
-							new DateTimeSetListener() { public void onDateTimeSet(AcalDateTime newDateTime) {
-								AcalDateTime oldStart = event.getStart();
-								AcalDuration delta = oldStart.getDurationTo(newDateTime);
-								AcalDateTime newEnd = event.getEnd();
-								String endTzId = newEnd.getTimeZoneId();
-								newEnd.addDuration(delta);
-								if ( oldStart.isDate() != newDateTime.isDate() ) {
-									newEnd.setAsDate(newDateTime.isDate() );
-								}
-								String oldTzId = oldStart.getTimeZoneId();
-								String newTzId = newDateTime.getTimeZoneId();
-								if ( oldTzId == null && newTzId != null ) {
-									if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,
-											"The timezone changed from floating to "+newTzId+", EndTzId was "+endTzId);
-									if ( endTzId == null ) newEnd.shiftTimeZone(newTzId);
-								}
-								else if ( oldTzId != null && !oldTzId.equals(newTzId) ) {
-									if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,
-											"The timezone changed from "+oldTzId+" to "+newTzId+", EndTzId was "+endTzId);
-									if ( oldTzId.equals(endTzId) ) newEnd.shiftTimeZone(newTzId);
-								}
-								else {
-									if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,"The timezone did not change from "+oldTzId+" to "+newTzId+", EndTzId was "+endTzId);
-								}
-								event.setDates(newDateTime, newEnd);
-								updateLayout();
-						}
-				});
-
-			case END_DATE_DIALOG:
-				end.setAsDate(start.isDate());
-				if ( end.before(start) ) end = start.clone();
-				if ( end.isDate() ) {
-					// People expect an event starting on the 13th and ending on the 14th to be for
-					// two days.  For iCalendar it is one day, so we display the end date to be
-					// one day earlier than the actual setting, if we're viewing 
-					end.addDays(-1);
-				}
-				return new DateTimeDialog( this, end, prefer24hourFormat, false, true,
-						new DateTimeSetListener() { public void onDateTimeSet(AcalDateTime newDateTime) {
-							if ( newDateTime.isDate() ) newDateTime.addDays(1);
-							event.setEndDate(newDateTime);
-							updateLayout();
-						}
-				});
-
-			case SELECT_COLLECTION_DIALOG:
-				AlertDialog.Builder builder = new AlertDialog.Builder(this);
-				builder.setTitle(getString(R.string.ChooseACollection));
-				builder.setItems(this.collectionsArray, new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int item) {
-						setSelectedCollection(collectionsArray[item]);
-					}
-				});
-				return builder.create();
-
-			case ADD_ALARM_DIALOG:
+			case LOADING_EVENT_DIALOG:
 				builder = new AlertDialog.Builder(this);
-				builder.setTitle(getString(R.string.ChooseAlarmTime));
-				builder.setItems(alarmRelativeTimeStrings, new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int item) {
-						if ( item < 0 || item > alarmValues.length ) return;
-						if ( item == alarmValues.length ) {
-							customAlarmDialog();
-						}
-						else {
-							alarmList.add(new AcalAlarm(AcalAlarm.RelateWith.START, event.getDescription(),
-									alarmValues[item], ActionType.AUDIO, event.getStart(), AcalDateTime.addDuration(
-											event.getStart(), alarmValues[item])));
-							event.setAlarms(alarmList);
-							updateLayout();
-						}
-					}
-				});
-				return builder.create();
-
+				builder.setTitle("Loading...");
+				builder.setCancelable(false);
+				loadingDialog = builder.create();
+				return loadingDialog;
 			case WHICH_EVENT_DIALOG:
 				builder = new AlertDialog.Builder(this);
 				builder.setTitle(getString(R.string.ChooseInstancesToChange));
@@ -753,53 +684,126 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 						switch ( item ) {
 							case 0:
 								instances = INSTANCES_SINGLE;
-								//dialog.dismiss();
-								saveChanges();
-								return;
+								break;
 							case 1:
 								instances = INSTANCES_ALL;
-								//dialog.dismiss();
-								saveChanges();
-								return;
+								break;
 							case 2:
 								instances = INSTANCES_THIS_FUTURE;
-								//dialog.dismiss();
-								saveChanges();
-								return;
+								break;
+							default:
+								return;	
 						}
+						saveChanges();
 					}
 				});
 				return builder.create();
 
-			case SET_REPEAT_RULE_DIALOG:
-				builder = new AlertDialog.Builder(this);
-				builder.setTitle(getString(R.string.ChooseRepeatFrequency));
-				builder.setItems(this.repeatRules, new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int item) {
-						String newRule = "";
-						if ( item != 0 ) {
-							item--;
-							newRule = repeatRulesValues[item];
-						}
-						if ( action == ACTION_EDIT && !newRule.equals(EventEdit.this.event.getRRule())) {
-							instances = INSTANCES_ALL;
-						}
-						event.setRepeatRule(newRule);
+		}
+
+		if (event == null) return null;
+		// This stuff all depends on 'event' having been initialised.
+		
+		AcalDateTime start = event.getStart();
+		AcalDateTime end = event.getEnd();
+		switch (id) {
+			case START_DATE_DIALOG:
+				return new DateTimeDialog( this, start.clone(), prefer24hourFormat, true, true,
+						new DateTimeSetListener() { public void onDateTimeSet(AcalDateTime newDateTime) {
+							AcalDateTime oldStart = event.getStart();
+							AcalDuration delta = oldStart.getDurationTo(newDateTime);
+							AcalDateTime newEnd = event.getEnd();
+							String endTzId = newEnd.getTimeZoneId();
+							newEnd.addDuration(delta);
+							if ( oldStart.isDate() != newDateTime.isDate() ) {
+								newEnd.setAsDate(newDateTime.isDate() );
+							}
+							String oldTzId = oldStart.getTimeZoneId();
+							String newTzId = newDateTime.getTimeZoneId();
+							if ( oldTzId == null && newTzId != null ) {
+								if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,
+										"The timezone changed from floating to "+newTzId+", EndTzId was "+endTzId);
+								if ( endTzId == null ) newEnd.shiftTimeZone(newTzId);
+							}
+							else if ( oldTzId != null && !oldTzId.equals(newTzId) ) {
+								if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,
+										"The timezone changed from "+oldTzId+" to "+newTzId+", EndTzId was "+endTzId);
+								if ( oldTzId.equals(endTzId) ) newEnd.shiftTimeZone(newTzId);
+							}
+							else {
+								if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,"The timezone did not change from "+oldTzId+" to "+newTzId+", EndTzId was "+endTzId);
+							}
+							event.setDates(newDateTime, newEnd);
+							updateLayout();
+					}
+			});
+
+		case END_DATE_DIALOG:
+			end.setAsDate(start.isDate());
+			if ( end.before(start) ) end = start.clone();
+			if ( end.isDate() ) {
+				// People expect an event starting on the 13th and ending on the 14th to be for
+				// two days.  For iCalendar it is one day, so we display the end date to be
+				// one day earlier than the actual setting, if we're viewing 
+				end.addDays(-1);
+			}
+			return new DateTimeDialog( this, end, prefer24hourFormat, false, true,
+					new DateTimeSetListener() { public void onDateTimeSet(AcalDateTime newDateTime) {
+						if ( newDateTime.isDate() ) newDateTime.addDays(1);
+						event.setEndDate(newDateTime);
 						updateLayout();
-
 					}
-				});
-				return builder.create();
-			}
-		} else {
-			switch (id) {
-			case LOADING_EVENT_DIALOG:
-				AlertDialog.Builder builder = new AlertDialog.Builder(this);
-				builder.setTitle("Loading...");
-				builder.setCancelable(false);
-				loadingDialog = builder.create();
-				return loadingDialog;
-			}
+			});
+
+		case SELECT_COLLECTION_DIALOG:
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			builder.setTitle(getString(R.string.ChooseACollection));
+			builder.setItems(this.collectionsArray, new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int item) {
+					setSelectedCollection(collectionsArray[item]);
+				}
+			});
+			return builder.create();
+
+		case ADD_ALARM_DIALOG:
+			builder = new AlertDialog.Builder(this);
+			builder.setTitle(getString(R.string.ChooseAlarmTime));
+			builder.setItems(alarmRelativeTimeStrings, new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int item) {
+					if ( item < 0 || item > alarmValues.length ) return;
+					if ( item == alarmValues.length ) {
+						customAlarmDialog();
+					}
+					else {
+						alarmList.add(new AcalAlarm(AcalAlarm.RelateWith.START, event.getDescription(),
+								alarmValues[item], ActionType.AUDIO, event.getStart(), AcalDateTime.addDuration(
+										event.getStart(), alarmValues[item])));
+						event.setAlarms(alarmList);
+						updateLayout();
+					}
+				}
+			});
+			return builder.create();
+
+		case SET_REPEAT_RULE_DIALOG:
+			builder = new AlertDialog.Builder(this);
+			builder.setTitle(getString(R.string.ChooseRepeatFrequency));
+			builder.setItems(this.repeatRules, new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int item) {
+					String newRule = "";
+					if ( item != 0 ) {
+						item--;
+						newRule = repeatRulesValues[item];
+					}
+					if ( action == ACTION_EDIT && !newRule.equals(EventEdit.this.event.getRRule())) {
+						instances = INSTANCES_ALL;
+					}
+					event.setRepeatRule(newRule);
+					updateLayout();
+
+				}
+			});
+			return builder.create();
 		}
 		return null;
 	}
@@ -853,7 +857,6 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 	}
 
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public void resourceResponse(ResourceResponse response) {
 		Object result = response.result();
@@ -868,7 +871,8 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 				msg = REFRESH;
 			}
 			mHandler.sendMessage(mHandler.obtainMessage(msg));		
-		} else if (result instanceof Long) {
+		}
+		else if (result instanceof Long) {
 			mHandler.sendMessage(mHandler.obtainMessage(SAVE_RESULT, result));
 		}
 		

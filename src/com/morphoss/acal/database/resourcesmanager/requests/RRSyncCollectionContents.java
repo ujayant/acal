@@ -677,6 +677,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 
 		ArrayList<String> toBeRemoved = new ArrayList<String>(hrefs.length);
 		for( Object o : hrefs ) {
+			if ( o == null ) continue;
 			Matcher m = Constants.matchSegmentName.matcher(o.toString());
 			if ( m.find() ) toBeRemoved.add(m.group(1));
 		}

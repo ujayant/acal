@@ -44,7 +44,7 @@ import com.morphoss.acal.service.WorkerClass;
 public class ResourceManager implements Runnable {
 	// The current instance
 	private static ResourceManager instance = null;
-	public static boolean DEBUG = false && Constants.DEBUG_MODE;
+	public static boolean DEBUG = true && Constants.DEBUG_MODE;
 
 	private volatile int numReadsProcessing = 0;
 
@@ -327,7 +327,7 @@ public class ResourceManager implements Runnable {
 
 
 
-		public static final String TAG = "acal Resources RequestProccessor";
+		public static final String TAG = "aCal ResourceTableManager";
 
 
 		private ResourceTableManager() {
@@ -417,16 +417,15 @@ public class ResourceManager implements Runnable {
 						effectiveType = comp.getEffectiveType();
 
 						if (comp instanceof VCalendar) {
-							VCalendar vCal = (VCalendar)comp;
-							AcalRepeatRule rrule = AcalRepeatRule.fromVCalendar(vCal,VComponent.VALUE_NOT_ASSIGNED,VComponent.VALUE_NOT_ASSIGNED);
-							if ( rrule != null ) {
-								AcalDateRange range = rrule.getInstancesRange();
+							AcalDateRange range = ((VCalendar)comp).getInstancesRange();
+							if ( range.start != null )
 								values.put(EARLIEST_START, range.start.getMillis());
-								if (range.end != null) values.put(LATEST_END, range.end.getMillis());
-								else values.putNull(LATEST_END); 
-							}  else {
+							else
 								values.putNull(EARLIEST_START);
-							}
+							if ( range.end != null )
+								values.put(LATEST_END, range.end.getMillis());
+							else
+								values.putNull(LATEST_END);
 						}
 					}
 				} catch (Exception e) {
@@ -693,9 +692,8 @@ public class ResourceManager implements Runnable {
 
 		@Override
 		public long addPending(long cid, long rid, String oldBlob, String newBlob, String uid) {
-			//add a new pending resource and return the resultant resource.
-			//if oldBlob == null then this is a create not an edit
-			long row = -1;
+			// add a new pending resource and return the resultant resource.
+			// if oldBlob == null then this is a create not an edit
 			QUERY_ACTION action = null;
 			Cursor mCursor = null;
 			ContentValues newResource = new ContentValues();
@@ -705,59 +703,64 @@ public class ResourceManager implements Runnable {
 				if (oldBlob == null || oldBlob.equals("")) {
 					//Create New
 					newResource.put(COLLECTION_ID, cid);
+					newResource.put(RESOURCE_DATA, newBlob); // So that effective_type, earliest_start & latest_end get set correctly
 					rid = this.insert(null, newResource);
+
 					newResource = new ContentValues();
 					newResource.put(PEND_COLLECTION_ID, cid);
-					newResource.put(PEND_RESOURCE_ID, row);
+					newResource.put(PEND_RESOURCE_ID, rid);
 					newResource.putNull(OLD_DATA);
 					newResource.put(NEW_DATA, newBlob);
 					newResource.put(UID, uid);
-					row = db.insert(PENDING_DATABASE_TABLE, null, newResource);
-					action = QUERY_ACTION.PENDING_RESOURCE;
+					if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG, "Inserting Pending Table row for new resource ID: "+rid);
+					db.insert(PENDING_DATABASE_TABLE, null, newResource);
 					
 				}
 				else {
 					//Check if this resource already exists
-					mCursor = db.query(PENDING_DATABASE_TABLE, null, 
-							PEND_RESOURCE_ID+" = ? AND "+PEND_COLLECTION_ID+" = ?", 
+					mCursor = db.query(PENDING_DATABASE_TABLE, null,  PEND_RESOURCE_ID+" = ? AND "+PEND_COLLECTION_ID+" = ?", 
 							new String[]{rid+"",cid+""}, null,null,null);
 					
 					if (mCursor.getCount() >= 1) {
 						//Update existing pending entry
 						mCursor.moveToFirst();
 						DatabaseUtils.cursorRowToContentValues(mCursor, newResource);
-						row = newResource.getAsLong(PENDING_ID);
 						newResource.put(NEW_DATA, newBlob);
 						newResource.put(UID, uid);
+						if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG, "Updating Pending Table row for existing resource ID: "+rid);
 						db.update(PENDING_DATABASE_TABLE, newResource,
 									PEND_RESOURCE_ID+" = ? AND "+PEND_COLLECTION_ID+" = ?", 
 									new String[] {rid+"",cid+""});
-						action = QUERY_ACTION.PENDING_RESOURCE;
 						
 					} else {
 						//create new pending entry from existing resource
 						newResource.put(PEND_COLLECTION_ID, cid);
-						newResource.put(PEND_RESOURCE_ID, row);
+						newResource.put(PEND_RESOURCE_ID, rid);
 						newResource.put(OLD_DATA, oldBlob);
 						newResource.put(NEW_DATA, newBlob);
 						newResource.put(UID, uid);
-						row = db.insert(PENDING_DATABASE_TABLE, null, newResource);
-						action = QUERY_ACTION.PENDING_RESOURCE;
+						if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG, "Inserting Pending Table row for existing resource ID: "+rid);
+						db.insert(PENDING_DATABASE_TABLE, null, newResource);
 					}
 					mCursor.close();
+					action = QUERY_ACTION.PENDING_RESOURCE;
 					
 				}
 				//trigger resource change event
 				ContentValues toReport = Resource.fromContentValues(newResource).toContentValues();
-				if (newBlob == null || newBlob == "") this.addChange(new DataChangeEvent(QUERY_ACTION.DELETE,toReport));
-				else this.addChange(new DataChangeEvent(action,toReport));
+				if ( newBlob == null || newBlob == "" )
+					this.addChange(new DataChangeEvent(QUERY_ACTION.DELETE, toReport));
+				else
+					this.addChange(new DataChangeEvent(action, toReport));
 				
 				//done
 				this.setTxSuccessful();
-			} catch (Exception e) {
-				Log.e(TAG, "Error updating pending resource: "+e);
-			} finally {
-				if (mCursor != null && !mCursor.isClosed()) mCursor.close();
+			}
+			catch ( Exception e ) {
+				Log.e(TAG, "Error updating pending resource: ", e);
+			}
+			finally {
+				if ( mCursor != null && !mCursor.isClosed() ) mCursor.close();
 				this.endTransaction();
 			}
 			

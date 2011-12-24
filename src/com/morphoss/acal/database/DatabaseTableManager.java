@@ -52,20 +52,24 @@ public abstract class DatabaseTableManager {
 	protected DatabaseTableManager(Context context) {
 		this.context = context;
 	}
+
 	protected void printStackTraceInfo() {
-		int base = 3;
-		int depth = 10;
-		StackTraceElement[] stack = Thread.currentThread().getStackTrace();
-		String info = "\t"+stack[base].toString();
-		for (int i = base+1; i < stack.length && i< base+depth; i++)
-			info += "\n\t\t"+stack[i].toString(); 
-		if (Constants.debugDatabaseManager) Log.println(Constants.LOGD, TAG, info);
+		if (Constants.debugDatabaseManager && Constants.LOG_VERBOSE) { 
+			int base = 3;
+			int depth = 10;
+			StackTraceElement[] stack = Thread.currentThread().getStackTrace();
+			String info = "\t"+stack[base].toString();
+			for (int i = base+1; i < stack.length && i< base+depth; i++)
+				info += "\n\t\t"+stack[i].toString(); 
+			Log.println(Constants.LOGV, TAG, info);
+		}
 	}
 	
 	public ArrayList<ContentValues> query(String[] columns, String selection, String[] selectionArgs, String groupBy, String having, String orderBy) {
 		ArrayList<ContentValues> result = new ArrayList<ContentValues>();
 		int count = 0;
-		if ( Constants.debugDatabaseManager ) printStackTraceInfo();
+		if (Constants.debugDatabaseManager) Log.println(Constants.LOGD,TAG,"DB: "+this.getTableName()+" query:");
+		printStackTraceInfo();
 		beginReadQuery();
 		Cursor c = db.query(getTableName(), columns, selection, selectionArgs, groupBy, having, orderBy);
 		try {
@@ -97,24 +101,24 @@ public abstract class DatabaseTableManager {
 		changes = new ArrayList<DataChangeEvent>();
 		switch (type) {
 		case OPEN_READ:
-			if (Constants.debugDatabaseManager) Log.d(TAG,"DB:"+this.getTableName()+" OPEN_READ:");
+			if (Constants.debugDatabaseManager) Log.println(Constants.LOGD,TAG,"DB:"+this.getTableName()+" OPEN_READ:");
 			printStackTraceInfo();
 			db = dbHelper.getReadableDatabase();
 			break;
 		case OPEN_WRITE:
-			if (Constants.debugDatabaseManager) Log.d(TAG,"DB:"+this.getTableName()+" OPEN_WRITE:");
+			if (Constants.debugDatabaseManager) Log.println(Constants.LOGD,TAG,"DB:"+this.getTableName()+" OPEN_WRITE:");
 			printStackTraceInfo();
 			db = dbHelper.getWritableDatabase();
 			break;
 		case OPEN_READTX:
-			if (Constants.debugDatabaseManager) Log.d(TAG,"DB:"+this.getTableName()+" OPEN_READTX:");
+			if (Constants.debugDatabaseManager) Log.println(Constants.LOGD,TAG,"DB:"+this.getTableName()+" OPEN_READTX:");
 			printStackTraceInfo();
 			inTx = true;
 			inReadTx = true;
 			db = dbHelper.getReadableDatabase();
 			break;
 		case OPEN_WRITETX:
-			if (Constants.debugDatabaseManager) Log.d(TAG,"DB:"+this.getTableName()+" OPEN_WRITETX:");
+			if (Constants.debugDatabaseManager) Log.println(Constants.LOGD,TAG,"DB:"+this.getTableName()+" OPEN_WRITETX:");
 			printStackTraceInfo();
 			inTx = true;
 			db = dbHelper.getWritableDatabase();
@@ -136,11 +140,11 @@ public abstract class DatabaseTableManager {
 		dbHelper = null;
 		switch (type) {
 		case CLOSE:
-			if (Constants.debugDatabaseManager) Log.d(TAG,"DB:"+this.getTableName()+" CLOSE:");
+			if (Constants.debugDatabaseManager) Log.println(Constants.LOGD,TAG,"DB:"+this.getTableName()+" CLOSE:");
 			printStackTraceInfo();
 			break;
 		case CLOSE_TX:
-			if (Constants.debugDatabaseManager) Log.d(TAG,"DB:"+this.getTableName()+" CLOSETX:");
+			if (Constants.debugDatabaseManager) Log.println(Constants.LOGD,TAG,"DB:"+this.getTableName()+" CLOSETX:");
 			printStackTraceInfo();
 			if (!inTx) throw new IllegalStateException("Tried to close a db transaction when not in one!");
 			inTx = false;
@@ -195,13 +199,13 @@ public abstract class DatabaseTableManager {
 	//Some useful generic methods
 
 	public int delete(String whereClause, String[] whereArgs) {
-		if (Constants.debugDatabaseManager) Log.d(TAG, "Deleting Row on "+this.getTableName()+":\n\tWhere: "+whereClause);
+		if (Constants.debugDatabaseManager) Log.println(Constants.LOGD,TAG, "Deleting Row on "+this.getTableName()+":\n\tWhere: "+whereClause);
 		beginWriteQuery();
 		//First select or the row i'ds
 		ArrayList<ContentValues> rows = this.query(null, whereClause, whereArgs, null,null,null);
 		int count = db.delete(getTableName(), whereClause, whereArgs);
 		if (count != rows.size()) {
-			if (Constants.debugDatabaseManager) Log.w(TAG, "Inconsistant number of rows deleted!");
+			if (Constants.debugDatabaseManager) Log.w(TAG, "Inconsistent number of rows deleted!");
 		}
 		for (ContentValues cv : rows) {
 			changes.add(new DataChangeEvent(QUERY_ACTION.DELETE,cv));
@@ -212,7 +216,8 @@ public abstract class DatabaseTableManager {
 
 	public int update(ContentValues values, String whereClause,
 			String[] whereArgs) {
-		if (Constants.debugDatabaseManager) Log.d(TAG, "Updating Row on "+this.getTableName()+":\n\t"+values.toString());
+		if (Constants.debugDatabaseManager) Log.println(Constants.LOGD,TAG,
+				"Updating Row on "+this.getTableName()+":\n\t"+values.toString());
 		beginWriteQuery();
 		int count = db.update(getTableName(), values, whereClause,
 				whereArgs);
@@ -222,12 +227,14 @@ public abstract class DatabaseTableManager {
 	}
 
 	public long insert(String nullColumnHack, ContentValues values) {
-		if (Constants.debugDatabaseManager) Log.d(TAG, "Inserting Row on "+this.getTableName()+":\n\t"+values.toString());
+		if (Constants.debugDatabaseManager) Log.println(Constants.LOGD, TAG, 
+				"Inserting Row on "+this.getTableName()+":\n\t"+values.toString());
 		beginWriteQuery();
-		long count = db.insert(getTableName(), nullColumnHack, values);
+		long newId = db.insert(getTableName(), nullColumnHack, values);
 		endQuery();
+		values.put("_id", newId);
 		changes.add(new DataChangeEvent(QUERY_ACTION.INSERT, new ContentValues(values)));
-		return count;
+		return newId;
 	}
 
 	
@@ -238,19 +245,29 @@ public abstract class DatabaseTableManager {
 		boolean openDb = false;
 		try {
 			//Queries are always done as in a transaction - we need to see if we are already in one or not.
-			if (DatabaseTableManager.this.inTx) {
-				for (DMAction action : actions) { action.process(this); db.yieldIfContendedSafely(); }
-			} else {
+			if ( DatabaseTableManager.this.inTx ) {
+				for (DMAction action : actions) {
+					action.process(this);
+					db.yieldIfContendedSafely();
+				}
+			}
+			else {
 				beginTransaction();
 				openDb = true;
-				for (DMAction action : actions) { action.process(this); db.yieldIfContendedSafely(); }
+				for (DMAction action : actions) {
+					action.process(this);
+					db.yieldIfContendedSafely();
+				}
 				setTxSuccessful();
-				
 			}
 			res = true;
-		} catch (Exception e) {
-			Log.e(TAG, "Exception processing request: "+e+Log.getStackTraceString(e));
-		} finally { if (openDb) endTransaction(); }
+		}
+		catch ( Exception e ) {
+			Log.e(TAG, "Exception processing request: " + e + Log.getStackTraceString(e));
+		}
+		finally {
+			if ( openDb ) endTransaction();
+		}
 		return res;
 	}
 }

@@ -1,10 +1,13 @@
 package com.morphoss.acal.dataservice;
 
+import java.util.Map.Entry;
+
 import android.content.ContentValues;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
 
+import com.morphoss.acal.Constants;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
 
 
@@ -106,44 +109,65 @@ public class Resource implements Parcelable {
 		return cv;
 	}
 	public static Resource fromContentValues(ContentValues cv) {
+		long cid = -1;
 		long rid = -1;
 		boolean pending = false;
 		String blob = null;
-		long es = 0;
-		long le = 0;
+		long earliestStart = 0;
+		long latestEnd = 0;
 		boolean needsSync = false;
 		String effectiveType = "";
-		if (cv.containsKey(ResourceTableManager.PEND_RESOURCE_ID)) {
+		if ( cv.containsKey(ResourceTableManager.PEND_RESOURCE_ID) ) {
+			cid = cv.getAsLong(ResourceTableManager.PEND_COLLECTION_ID);
 			rid = cv.getAsLong(ResourceTableManager.PEND_RESOURCE_ID);
 			blob = cv.getAsString(ResourceTableManager.NEW_DATA);
-			if (blob == null || blob.equals("")) throw new IllegalArgumentException("Can not create resource out of pending deleted.");
+			if (blob == null || blob.equals(""))
+				throw new IllegalArgumentException("Can not create resource out of pending deleted.");
 			pending = true;
 		}
 		else if (cv.containsKey(ResourceTableManager.RESOURCE_ID)) {
 			try {
+				cid = cv.getAsLong(ResourceTableManager.COLLECTION_ID);
 				rid = cv.getAsLong(ResourceTableManager.RESOURCE_ID);
 				blob = cv.getAsString(ResourceTableManager.RESOURCE_DATA);
 				if (cv.containsKey(ResourceTableManager.EARLIEST_START));
-					es = cv.getAsLong(ResourceTableManager.EARLIEST_START);
+					earliestStart = cv.getAsLong(ResourceTableManager.EARLIEST_START);
 				if (cv.containsKey(ResourceTableManager.LATEST_END) && cv.getAsLong(ResourceTableManager.LATEST_END) != null);
-					le = cv.getAsLong(ResourceTableManager.LATEST_END);
+					latestEnd = cv.getAsLong(ResourceTableManager.LATEST_END);
 				needsSync = cv.getAsBoolean(ResourceTableManager.NEEDS_SYNC);// == 1;
 				effectiveType = cv.getAsString(ResourceTableManager.EFFECTIVE_TYPE);
-			} catch (Exception e) { Log.d(TAG,"Error in Resource: "+e+Log.getStackTraceString(e)); }
-		} else throw new IllegalArgumentException("Resource ID Required");
+			}
+			catch (Exception e) {
+				Log.println(Constants.LOGD, TAG,"Error in Resource: "+e+Log.getStackTraceString(e)); 
+			}
+		}
+		else {
+			Log.println(Constants.LOGD, TAG,"Resource ID Required"); 
+			String v;
+			for( Entry<String,Object> entry : cv.valueSet() ) {
+				try {
+					v = entry.getValue().toString();
+				}
+				catch( Exception e ) {
+					v = "invalid";
+				}
+				Log.println(Constants.LOGD, TAG, entry.getKey()+"="+v);
+			}
+			throw new IllegalArgumentException("Resource ID Required");
+		}
 				
 		
 		
 		return new Resource(
-				cv.getAsLong(ResourceTableManager.COLLECTION_ID),
+				cid,
 				rid,
 				cv.getAsString(ResourceTableManager.RESOURCE_NAME),
 				cv.getAsString(ResourceTableManager.ETAG),
 				cv.getAsString(ResourceTableManager.CONTENT_TYPE),
 				blob,
 				needsSync,
-				es,
-				le,
+				earliestStart,
+				latestEnd,
 				effectiveType,
 				pending
 		);
