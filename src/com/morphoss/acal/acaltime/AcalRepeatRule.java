@@ -154,7 +154,7 @@ public class AcalRepeatRule {
 			if ( dateListProperty == null )	continue;
 		
 			String value = dateListProperty.getValue();
-			if ( value == null )	return null;
+			if ( value == null )	continue;
 		
 			String isDateParam = dateListProperty.getParam("VALUE");
 			String tzIdParam = dateListProperty.getParam("TZID");
@@ -601,18 +601,21 @@ public class AcalRepeatRule {
 			if ( Constants.debugRepeatRule && duration.days > 10 ) {
 				throw new IllegalArgumentException();
 			}
-			if ( collectionId == VComponent.VALUE_NOT_ASSIGNED || resourceId == VComponent.VALUE_NOT_ASSIGNED ) {
-				throw new IllegalArgumentException("To retrieve CalendarInstances the RepeatRule must have valid collectionId and resourceId");
-			}
 			this.dtend = AcalDateTime.addDuration(dtstart, duration);
 		}
 
 		EventInstance getEventInstance() {
+			if ( collectionId == VComponent.VALUE_NOT_ASSIGNED || resourceId == VComponent.VALUE_NOT_ASSIGNED ) {
+				throw new IllegalArgumentException("To retrieve CalendarInstances the RepeatRule must have valid collectionId and resourceId");
+			}
 			return new EventInstance( (VEvent) masterInstance, collectionId, resourceId, dtstart, duration);
 			//return DefaultEventInstance.getInstance((VEvent) VEvent, dtstart, duration, isPending );
 		}
 		
 		CacheObject getCacheObject() {
+			if ( collectionId == VComponent.VALUE_NOT_ASSIGNED || resourceId == VComponent.VALUE_NOT_ASSIGNED ) {
+				throw new IllegalArgumentException("To retrieve CacheObjects the RepeatRule must have valid collectionId and resourceId");
+			}
 			Thread.yield();
 			if ( masterInstance instanceof VEvent )
 				return new CacheObject( (VEvent) masterInstance, collectionId, resourceId, dtstart, duration);
