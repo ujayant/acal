@@ -4,11 +4,11 @@ import android.util.Log;
 
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager;
+import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
+import com.morphoss.acal.database.resourcesmanager.ResourceManager.WriteableResourceTableManager;
 import com.morphoss.acal.database.resourcesmanager.ResourceProcessingException;
 import com.morphoss.acal.database.resourcesmanager.ResourceResponse;
 import com.morphoss.acal.database.resourcesmanager.ResourceResponseListener;
-import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
-import com.morphoss.acal.database.resourcesmanager.ResourceManager.WriteableResourceTableManager;
 import com.morphoss.acal.database.resourcesmanager.requesttypes.ResourceRequestWithResponse;
 import com.morphoss.acal.dataservice.EventInstance;
 import com.morphoss.acal.dataservice.Resource;
@@ -48,8 +48,8 @@ public class RREventEditedRequest extends ResourceRequestWithResponse<Long> {
 				uid = vc.getMasterChild().getUID();
 				
 			} else {
-				VEvent comp = VEvent.createComponentFromInstance(event);
-				newBlob = comp.getCurrentBlob();
+				VEvent comp = new VEvent(event);
+				newBlob = comp.getTopParent().getCurrentBlob();  // We need to get the blob from the VCALENDAR not the VEVENT.
 				uid = comp.getUID();
 			}
 			

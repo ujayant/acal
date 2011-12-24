@@ -33,20 +33,11 @@ public class VEvent extends Masterable {
 	}
 	
 	public VEvent() {
-		this( new VCalendar() );
+		super( VComponent.VEVENT, new VCalendar() );
 	}
 
-	public static VEvent createComponentFromInstance(EventInstance event) {
-		VEvent instance = new VEvent();
-		if ( event.getStart() != null ) instance.setStart(event.getStart());
-		if ( event.getEnd() != null )	instance.setEnd(event.getEnd());
-		if ( event.getSummary() != null ) instance.setSummary(event.getSummary());
-		if ( event.getDescription() != null ) instance.setDescription(event.getDescription());
-		if ( event.getRRule() != null ) instance.setRepetition(event.getRRule());
-		if ( event.getLocation() != null ) instance.setLocation(event.getLocation());
-		if ( !event.getAlarms().isEmpty() ) instance.addAlarmTimes(event.getAlarms(), null);
-
-		return instance;
+	public VEvent(EventInstance instance) {
+		super(VComponent.VEVENT, instance);
 	}
 	
 }

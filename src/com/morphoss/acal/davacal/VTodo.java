@@ -87,20 +87,11 @@ public class VTodo extends Masterable {
 		setUniqueProperty(new AcalProperty(PropertyName.STATUS, newValue.toString()));
 	}
 
-	public static VTodo createComponentFromInstance(TodoInstance result) {
-		VTodo instance = new VTodo();
+	public  VTodo(TodoInstance todo) {
+		super(VComponent.VTODO,todo);
 
-		if ( result.getStart() != null ) instance.setStart(result.getStart());
-		if ( result.getDue() != null ) instance.setStart(result.getDue());
-		if ( result.getCompleted() != null ) instance.setStart(result.getCompleted());
-
-		if ( result.getSummary() != null ) instance.setSummary(result.getSummary());
-		if ( result.getDescription() != null ) instance.setDescription(result.getDescription());
-		if ( result.getRRule() != null ) instance.setRepetition(result.getRRule());
-		if ( result.getLocation() != null ) instance.setLocation(result.getLocation());
-		if ( !result.getAlarms().isEmpty() ) instance.addAlarmTimes(result.getAlarms(), null);
-
-		return instance;
+		if ( todo.getDue() != null ) setEnd(todo.getDue());
+		if ( todo.getCompleted() != null ) setCompleted(todo.getCompleted());
 	}
 
 }

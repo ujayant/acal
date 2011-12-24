@@ -103,6 +103,7 @@ public abstract class VComponent implements Parcelable {
 	protected VComponent(String typeName, VComponent parent) {
 		this.name = typeName;
 		this.parent = parent;
+		if ( this.parent != null ) this.parent.addChild(this);
 		this.content = null;
 		this.children = new ArrayList<VComponent>();
 		this.properties = new HashMap<String,AcalProperty>();
@@ -401,7 +402,10 @@ public abstract class VComponent implements Parcelable {
 
 	protected synchronized void destroyChildren() {
 		if ( this.persistenceCount > 0 ) return;
-		if ( content == null ) content = new ComponentParts(buildContent());
+		if ( content == null ) {
+			setEditable();
+			content = new ComponentParts(buildContent());
+		}
 		this.children = null;
 		this.childrenSet = false;
 	}

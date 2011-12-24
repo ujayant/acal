@@ -31,6 +31,9 @@ import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
+import com.morphoss.acal.dataservice.CalendarInstance;
+import com.morphoss.acal.dataservice.EventInstance;
+import com.morphoss.acal.dataservice.TodoInstance;
 
 public abstract class Masterable extends VComponent {
 
@@ -49,6 +52,32 @@ public abstract class Masterable extends VComponent {
 		addProperty(new AcalProperty(PropertyName.DTSTAMP, creation.fmtIcal()));
 		addProperty(new AcalProperty(PropertyName.CREATED, creation.fmtIcal()));
 		addProperty(new AcalProperty(PropertyName.LAST_MODIFIED, creation.fmtIcal()));
+	}
+
+	protected Masterable( String typeName ) {
+		super( typeName, new VCalendar() );
+		setEditable();
+	}
+
+	protected Masterable(String typeName, CalendarInstance instance ) {
+		this(typeName);
+		if ( instance.getStart() != null ) setStart(instance.getStart());
+		if ( instance.getEnd() != null )	setEnd(instance.getEnd());
+		if ( !instance.getSummary().equals("") ) setSummary(instance.getSummary());
+		if ( !instance.getDescription().equals("") ) setDescription(instance.getDescription());
+		if ( !instance.getLocation().equals("") ) setLocation(instance.getLocation());
+		if ( instance.getRRule() != null ) setRepetition(instance.getRRule());
+		if ( !instance.getAlarms().isEmpty() ) addAlarmTimes(instance.getAlarms(), null);
+		getTopParent().updateTimeZones();
+	}
+	
+	public static Masterable fromCalendarInstance( CalendarInstance instance ) {
+		if ( instance instanceof EventInstance )
+			return new VEvent((EventInstance) instance);
+		else if ( instance instanceof TodoInstance )
+			return new VTodo((TodoInstance) instance);
+		else
+			throw new IllegalArgumentException("fromCalendarInstance does not support "+instance.getClass());
 	}
 
 	public VCalendar getTopParent() {

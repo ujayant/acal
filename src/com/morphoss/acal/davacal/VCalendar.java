@@ -88,7 +88,7 @@ public class VCalendar extends VComponent {
 
 	public VCalendar() {
 		super( VComponent.VCALENDAR, null );
-		try { setPersistentOn(); } catch (YouMustSurroundThisMethodInTryCatchOrIllEatYouException e) { }
+		setEditable();
 		addProperty(new AcalProperty("CALSCALE","GREGORIAN"));
 		addProperty(new AcalProperty("PRODID","-//morphoss.com//aCal 1.0//EN"));
 		addProperty(new AcalProperty("VERSION","2.0"));
@@ -172,6 +172,7 @@ public class VCalendar extends VComponent {
 				mast.addProperty(new AcalProperty(PropertyName.RRULE,rrule));
 
 			mast.updateAlarmComponents( event.getAlarms() );
+			updateTimeZones();
 			return this.getCurrentBlob();
 			
 		default: throw new InvalidCalendarActionException("Invalid action/instances combination.");
@@ -266,16 +267,20 @@ public class VCalendar extends VComponent {
 		*/
 	}
 
-	private void updateTimeZones(VEvent vEvent) {
+	public void updateTimeZones() {
 		HashSet<String> tzIdSet = new HashSet<String>();
-		for( PropertyName pn : PropertyName.localisableDateProperties() ) {
-			AcalProperty p = vEvent.getProperty(pn);
-			if ( p != null ) {
-				String tzId = p.getParam("TZID");
-				if ( tzId != null ) {
-					tzIdSet.add(p.getParam("TZID"));
-					if ( Constants.LOG_DEBUG )
-						Log.println(Constants.LOGD,TAG,"Found reference to timezone '"+tzId+"' in event.");
+		for( VComponent comp : getChildren() ) {
+			if ( !(comp instanceof Masterable) ) continue;
+			Masterable mast = (Masterable) comp;
+			for( PropertyName pn : PropertyName.localisableDateProperties() ) {
+				AcalProperty p = mast.getProperty(pn);
+				if ( p != null ) {
+					String tzId = p.getParam("TZID");
+					if ( tzId != null ) {
+						tzIdSet.add(p.getParam("TZID"));
+						if ( Constants.LOG_DEBUG )
+							Log.println(Constants.LOGD,TAG,"Found reference to timezone '"+tzId+"' in event.");
+					}
 				}
 			}
 		}
@@ -337,7 +342,7 @@ public class VCalendar extends VComponent {
 		catch ( Exception e ) {
 			Log.e(TAG,"Exception getting repeat rule from VCalendar", e);
 		}
-		hasRepeatRule = ( repeatRule != null );
+		hasRepeatRule = ( repeatRule != null && repeatRule.repeatRule != AcalRepeatRule.SINGLE_INSTANCE );
 	}
 
 	public boolean appendAlarmInstancesBetween(List<AcalAlarm> alarmList, AcalDateRange rangeRequested) {

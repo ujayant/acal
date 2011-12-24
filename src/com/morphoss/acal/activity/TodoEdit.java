@@ -922,7 +922,7 @@ public class TodoEdit extends AcalActivity
 	public void resourceResponse(ResourceResponse<CalendarInstance> response) {
 		int msg = FAIL;
 		if (response.wasSuccessful()) {
-			setTodo( VTodo.createComponentFromInstance((TodoInstance) response.result()) );
+			setTodo( new VTodo((TodoInstance) response.result()) );
 			msg = REFRESH;
 		}
 		mHandler.sendMessage(mHandler.obtainMessage(msg));
