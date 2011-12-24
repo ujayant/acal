@@ -19,7 +19,7 @@
 			android:layout_weight="1" >
 			<com.morphoss.acal.widget.AcalViewFlipper
 				android:id="@+id/month_grid_flipper"
-				android:layout_width="0dp"
+				android:layout_width="fill_parent"
 				android:layout_height="fill_parent" />
 		</LinearLayout>
 		<LinearLayout

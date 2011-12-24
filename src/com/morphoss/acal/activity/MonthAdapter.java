@@ -213,7 +213,7 @@ public class MonthAdapter extends BaseAdapter implements CacheChangedListener, C
 			}
 			dayColumnHeader.setGravity(Gravity.CENTER_HORIZONTAL | Gravity.TOP);
 			dayColumnHeader.setText(colText);
-			dayColumnHeader.setTextSize( TypedValue.COMPLEX_UNIT_PX, (float) 0.50 * boxScaleFactor * headerHeight);
+			dayColumnHeader.setTextSize( TypedValue.COMPLEX_UNIT_PX, (float) 0.40 * boxScaleFactor * headerHeight);
 			
 			ViewParent vp = dayColumnHeader.getParent();
 			if ( vp instanceof View ) {

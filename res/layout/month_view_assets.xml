@@ -7,7 +7,7 @@
 		android:id="@+id/DayColumnHeader"
 		style="@style/MonthDayColumnHeader"
 		android:layout_width="fill_parent"
-		android:layout_height="24sp"
+		android:layout_height="wrap_content"
 		android:visibility="gone" />
 	<com.morphoss.acal.views.MonthDayBox
 		android:id="@+id/DayBoxInMonth"
