@@ -185,7 +185,7 @@ public class AcalRepeatRule {
 		currentPos = -1;
 	}
 
-	public AcalDateTime next() throws Exception {
+	public AcalDateTime next() {
 		if (currentPos > lastCalc && finished) return null;
 		currentPos++;
 		getMoreInstances();
@@ -198,7 +198,7 @@ public class AcalRepeatRule {
 		return recurrences.get(currentPos);
 	}
 
-	public boolean hasNext() throws Exception {
+	public boolean hasNext() {
 		if ( currentPos < lastCalc ) return true;
 		getMoreInstances();
 		if (currentPos >= lastCalc && finished) return false;
@@ -260,7 +260,7 @@ public class AcalRepeatRule {
 
 
 
-	private boolean getMoreInstances() throws Exception {
+	private boolean getMoreInstances() {
 	    if ( finished ) return false;
 	    if ( currentPos < lastCalc ) return true;
 	    
@@ -268,7 +268,7 @@ public class AcalRepeatRule {
 			Log.e(TAG,"Too many instances (3000):");
 			Log.e(TAG,"Too many " +baseDate.toPropertyString(PropertyName.DTSTART));
 			Log.e(TAG,"Too many " +repeatRule.toString());
-		    throw new Exception("ETOOTOOMUCHREPETITIONKTHXBAI");
+		    throw new RuntimeException("ETOOTOOMUCHREPETITIONKTHXBAI");
 		}
 
 	    boolean foundSome = false;
@@ -339,7 +339,7 @@ public class AcalRepeatRule {
 	}
 
 
-	public List<AcalDateTime> getInstancesInRange( AcalDateTime start, AcalDateTime end ) throws Exception {
+	public List<AcalDateTime> getInstancesInRange( AcalDateTime start, AcalDateTime end ) {
 		if ( end == null )
 			throw new IllegalArgumentException("getInstancesInRange: End of range may not be null.");
 
@@ -378,7 +378,7 @@ public class AcalRepeatRule {
 	 * @return
 	 * @throws Exception 
 	 */
-	public AcalDateRange getInstancesRange() throws Exception {
+	public AcalDateRange getInstancesRange() {
 		AcalDateTime endDate = null;
 		if ( repeatRule.until != null ) endDate = repeatRule.until;
 		else if ( repeatRule.count != AcalRepeatRuleParser.INFINITE_REPEAT_COUNT
