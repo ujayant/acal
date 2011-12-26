@@ -53,6 +53,17 @@ public abstract class DatabaseTableManager {
 		this.context = context;
 	}
 
+	private String openStackTraceInfo = null;
+	
+	protected void saveStackTraceInfo() {
+		int base = 3;
+		int depth = 12;
+		StackTraceElement[] stack = Thread.currentThread().getStackTrace();
+		openStackTraceInfo = "\t"+stack[base].toString();
+		for (int i = base+1; i < stack.length && i< base+depth; i++)
+			openStackTraceInfo += "\n\t\t"+stack[i].toString(); 
+	}
+	
 	protected void printStackTraceInfo() {
 		if (Constants.debugDatabaseManager && Constants.LOG_VERBOSE) { 
 			int base = 3;
@@ -96,7 +107,12 @@ public abstract class DatabaseTableManager {
 	}
 
 	protected void openDB(final int type) {
-		if (inTx || sucTx ) throw new SQLiteMisuseException("Tried to open DB when already open");
+		if (inTx) {
+			if ( openStackTraceInfo != null ) {
+				Log.e(TAG,"Tried to open DB when already open.  Database was previously opened here:\n"+openStackTraceInfo);
+			}
+			throw new SQLiteMisuseException("Tried to open DB when already open");
+		}
 		dbHelper = new AcalDBHelper(context);
 		changes = new ArrayList<DataChangeEvent>();
 		switch (type) {
@@ -112,6 +128,7 @@ public abstract class DatabaseTableManager {
 			break;
 		case OPEN_READTX:
 			if (Constants.debugDatabaseManager) Log.println(Constants.LOGD,TAG,"DB:"+this.getTableName()+" OPEN_READTX:");
+			saveStackTraceInfo();
 			printStackTraceInfo();
 			inTx = true;
 			inReadTx = true;
@@ -119,6 +136,7 @@ public abstract class DatabaseTableManager {
 			break;
 		case OPEN_WRITETX:
 			if (Constants.debugDatabaseManager) Log.println(Constants.LOGD,TAG,"DB:"+this.getTableName()+" OPEN_WRITETX:");
+			saveStackTraceInfo();
 			printStackTraceInfo();
 			inTx = true;
 			db = dbHelper.getWritableDatabase();
@@ -150,6 +168,7 @@ public abstract class DatabaseTableManager {
 			inTx = false;
 			inReadTx = false;
 			sucTx = false;
+			openStackTraceInfo = null;
 			break;
 		default:
 			throw new IllegalArgumentException("Invalid argument provided for openDB");
