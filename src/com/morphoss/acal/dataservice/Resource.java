@@ -113,9 +113,9 @@ public class Resource implements Parcelable {
 		long rid = -1;
 		boolean pending = false;
 		String blob = null;
-		long earliestStart = 0;
-		long latestEnd = 0;
-		boolean needsSync = false;
+		long earliestStart = Long.MIN_VALUE;
+		long latestEnd = Long.MAX_VALUE;
+		Boolean needsSync = false;
 		String effectiveType = "";
 		if ( cv.containsKey(ResourceTableManager.PEND_RESOURCE_ID) ) {
 			cid = cv.getAsLong(ResourceTableManager.PEND_COLLECTION_ID);
@@ -130,12 +130,16 @@ public class Resource implements Parcelable {
 				cid = cv.getAsLong(ResourceTableManager.COLLECTION_ID);
 				rid = cv.getAsLong(ResourceTableManager.RESOURCE_ID);
 				blob = cv.getAsString(ResourceTableManager.RESOURCE_DATA);
-				if (cv.containsKey(ResourceTableManager.EARLIEST_START));
-					earliestStart = cv.getAsLong(ResourceTableManager.EARLIEST_START);
-				if (cv.containsKey(ResourceTableManager.LATEST_END) && cv.getAsLong(ResourceTableManager.LATEST_END) != null);
-					latestEnd = cv.getAsLong(ResourceTableManager.LATEST_END);
-				needsSync = cv.getAsBoolean(ResourceTableManager.NEEDS_SYNC);// == 1;
 				effectiveType = cv.getAsString(ResourceTableManager.EFFECTIVE_TYPE);
+				try {
+					earliestStart = cv.getAsLong(ResourceTableManager.EARLIEST_START);
+				} catch( Exception e ) {}
+				try {
+					latestEnd = cv.getAsLong(ResourceTableManager.LATEST_END);
+				} catch( Exception e ) {}
+ 
+				needsSync = cv.getAsBoolean(ResourceTableManager.NEEDS_SYNC);
+				if ( needsSync == null ) needsSync = true;
 			}
 			catch (Exception e) {
 				Log.println(Constants.LOGD, TAG,"Error in Resource: "+e+Log.getStackTraceString(e)); 
