@@ -84,22 +84,8 @@ public class RRSyncChangesToServer implements ResourceRequest {
 		this.requestor = new AcalRequestor();
 		
 		pendingChangesList = new ArrayList<ContentValues>();
-		if ( processor.marshallCollectionsToSync(pendingChangesList) ) {
-			try {
-				ContentValues collectionValues;
-				while( (collectionValues = getChangeToSync()) != null ) {
-					updateCollectionProperties(collectionValues);
-				}
-			}
-			catch( Exception e ) {
-				Log.e(TAG,Log.getStackTraceString(e));
-			}
-		}
-
-		pendingChangesList = new ArrayList<ContentValues>();
-		if ( processor.marshallChangesToSync(pendingChangesList) ) {
-			pendingPos = -1;
-			if (DEBUG) Log.println(Constants.LOGD,TAG, "No local changes to synchronise.");
+		if ( !processor.marshallChangesToSync(pendingChangesList) ) {
+			if (DEBUG) Log.println(Constants.LOGD, TAG, "No local changes to synchronise.");
 			running = false;
 			return; // without rescheduling
 		}
@@ -110,6 +96,7 @@ public class RRSyncChangesToServer implements ResourceRequest {
 			if (DEBUG)
 				Log.println(Constants.LOGD,TAG, "Starting sync of local changes");
 			
+			pendingPos = -1;
 			collectionsToSync = new HashSet<Integer>();
 	
 			try {
@@ -139,6 +126,7 @@ public class RRSyncChangesToServer implements ResourceRequest {
 		updateSyncStatus = updateSyncStatus();
 		running = false;
 	}
+
 	
 	private boolean connectivityAvailable() {
 		try {
@@ -196,17 +184,19 @@ public class RRSyncChangesToServer implements ResourceRequest {
 		ContentValues resourceData = null;
 		String latestDbData = null;
 		String eTag = "*";
-		String resourcePath = null;
+
 		BasicHeader eTagHeader = null;
 		BasicHeader contentHeader = new BasicHeader("Content-type", getContentType(newData) );
 
 		Integer resourceId = pending.getAsInteger(ResourceTableManager.PEND_RESOURCE_ID);
 		Integer pendingId = pending.getAsInteger(ResourceTableManager.PENDING_ID);
-		if ( resourceId == null || resourceId < 1 ) {
+		resourceData = processor.getRow(resourceId);
+		String resourcePath = resourceData.getAsString(ResourceTableManager.RESOURCE_NAME);
+		if ( resourcePath == null || resourceId < 1 ) {
 			//action = WriteActions.INSERT;
 			builder.setAction(QUERY_ACTION.INSERT);
 			eTagHeader = new BasicHeader("If-None-Match", "*" );
-			resourcePath = null;
+
 			String contentExtension = getContentType(newData);
 			if ( contentExtension.length() > 14 && contentExtension.substring(0,13).equals("text/calendar") )
 				contentExtension = ".ics";
@@ -217,10 +207,8 @@ public class RRSyncChangesToServer implements ResourceRequest {
 			
 			try {
 				VComponent vc = VComponent.createComponentFromBlob(newData);
-				if ( vc instanceof VCard )
-					resourcePath = StaticHelpers.rTrim(vc.getProperty(PropertyName.UID).getValue()) + ".vcf";
-				else if ( vc instanceof VCalendar )
-					resourcePath = StaticHelpers.rTrim(((VCalendar) vc).getMasterChild().getProperty(PropertyName.UID).getValue()) + ".ics";
+				String uid = pending.getAsString(ResourceTableManager.UID);
+				resourcePath = uid + contentExtension;
 			}
 			catch ( Exception e ) {
 				if ( DEBUG )
@@ -231,12 +219,10 @@ public class RRSyncChangesToServer implements ResourceRequest {
 			if ( resourcePath == null ) {
 					resourcePath = UUID.randomUUID().toString() + ".ics";
 			}
-			resourceData = new ContentValues();
 			resourceData.put(ResourceTableManager.RESOURCE_NAME, resourcePath);
 			resourceData.put(ResourceTableManager.COLLECTION_ID, collectionId);
 		}
 		else {
-			resourceData = processor.getRow(resourceId);
 			if (resourceData == null) {
 				invalidPendingChange(pendingId, 
 							"Error getting resource data from DB - deleting invalid pending change record." );				
@@ -244,7 +230,6 @@ public class RRSyncChangesToServer implements ResourceRequest {
 			}
 			latestDbData = resourceData.getAsString(ResourceTableManager.RESOURCE_DATA);
 			eTag = resourceData.getAsString(ResourceTableManager.ETAG);
-			resourcePath = resourceData.getAsString(ResourceTableManager.RESOURCE_NAME);
 			eTagHeader = new BasicHeader("If-Match", eTag );
 
 			if ( newData == null ) {
@@ -405,7 +390,7 @@ public class RRSyncChangesToServer implements ResourceRequest {
 
 	
 
-	
+/*	
 	final private static Header[] proppatchHeaders = new Header[] {
 		new BasicHeader("Content-Type","text/xml; encoding=UTF-8")
 	};
@@ -442,5 +427,5 @@ public class RRSyncChangesToServer implements ResourceRequest {
 
 	}
 
-
+*/
 }

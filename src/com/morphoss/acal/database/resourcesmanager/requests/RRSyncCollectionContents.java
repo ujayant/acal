@@ -126,7 +126,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 	
 	@Override
 	public void process(WriteableResourceTableManager processor)	throws ResourceProcessingException {
-	this.processor = processor;
+		this.processor = processor;
 		if ( Constants.debugHeap ) AcalDebug.heapDebug(TAG, "SyncCollectionContents start");
 		if ( collectionId < 0 || !getCollectionInfo()) {
 			Log.w(TAG, "Could not read collection " + collectionId + " for server " + serverId
