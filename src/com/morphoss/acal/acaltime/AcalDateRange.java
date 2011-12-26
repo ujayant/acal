@@ -36,8 +36,7 @@ public class AcalDateRange implements Parcelable, Cloneable {
 	final public AcalDateTime end;
 
 	public AcalDateRange(AcalDateTime start, AcalDateTime end) {
-		if ( start == null ) throw new IllegalArgumentException();
-		this.start = start.clone();
+		this.start = (start==null? null : start.clone());
 		this.end = (end==null ? null : end.clone());
 	}
 	
