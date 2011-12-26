@@ -55,12 +55,12 @@ public abstract class Masterable extends VComponent {
 	}
 
 	protected Masterable( String typeName ) {
-		super( typeName, new VCalendar() );
-		setEditable();
+		this(typeName, new VCalendar());
 	}
 
+	
 	protected Masterable(String typeName, CalendarInstance instance ) {
-		this(typeName);
+		this(typeName, new VCalendar());
 		if ( instance.getStart() != null ) setStart(instance.getStart());
 		if ( instance.getEnd() != null )	setEnd(instance.getEnd());
 		if ( !instance.getSummary().equals("") ) setSummary(instance.getSummary());
@@ -70,6 +70,7 @@ public abstract class Masterable extends VComponent {
 		if ( !instance.getAlarms().isEmpty() ) addAlarmTimes(instance.getAlarms(), null);
 		getTopParent().updateTimeZones();
 	}
+
 	
 	public static Masterable fromCalendarInstance( CalendarInstance instance ) {
 		if ( instance instanceof EventInstance )
