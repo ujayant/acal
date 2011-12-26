@@ -19,7 +19,6 @@ import android.util.Log;
 
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.acaltime.AcalDateRange;
-import com.morphoss.acal.acaltime.AcalRepeatRule;
 import com.morphoss.acal.database.DMAction;
 import com.morphoss.acal.database.DMDeleteQuery;
 import com.morphoss.acal.database.DMInsertQuery;
@@ -339,7 +338,7 @@ public class ResourceManager implements Runnable {
 			try {
 				request.process(this);
 			} catch (ResourceProcessingException e) {
-				Log.e(TAG, "Error Procssing Resource Request: "
+				Log.e(TAG, "Error Processing Resource Request: "
 						+ Log.getStackTraceString(e));
 			} catch (Exception e) {
 				Log.e(TAG,
@@ -477,23 +476,34 @@ public class ResourceManager implements Runnable {
 		 * @return A map of String/Data which are the hrefs we need to sync
 		 */
 		public Map<String, ContentValues> findSyncNeededResources(long collectionId) {
-			beginReadQuery();
 			long start = System.currentTimeMillis();
 			Map<String, ContentValues> originalData = null;
 
 			// step 1a get list of resources from db
 			start = System.currentTimeMillis();
 
-			Cursor mCursor = db.query(RESOURCE_DATABASE_TABLE, null, COLLECTION_ID
-					+ " = ? AND " + NEEDS_SYNC + " = 1 OR " + RESOURCE_DATA
-					+ " IS NULL", new String[] { collectionId + "" }, null,
-					null, null);
-			ContentQueryMap cqm = new ContentQueryMap(mCursor,
-					ResourceTableManager.RESOURCE_NAME, false, null);
-			cqm.requery();
-			originalData = cqm.getRows();
-			mCursor.close();
-			endQuery();
+			beginReadQuery();
+			if ( db == null ) {
+				beginReadTransaction();
+			}
+			Cursor mCursor = db.query(RESOURCE_DATABASE_TABLE, null,
+					COLLECTION_ID + " = ? AND (" + NEEDS_SYNC + " = 1 OR " + RESOURCE_DATA + " IS NULL)",
+					new String[] { collectionId + "" }, null, null, null);
+			try {
+				ContentQueryMap cqm = new ContentQueryMap(mCursor,
+						ResourceTableManager.RESOURCE_NAME, false, null);
+				cqm.requery();
+				originalData = cqm.getRows();
+			}
+			catch( Exception e ) {
+				Log.i(TAG,Log.getStackTraceString(e));
+			}
+			finally {
+				if ( mCursor != null && !mCursor.isClosed() ) mCursor.close();
+				endQuery();
+				if (this.inTx) this.endTransaction();
+			}
+			
 			if (Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents)
 				if ( ResourceManager.DEBUG ) Log.println(Constants.LOGV, TAG,
 						"DavCollections ContentQueryMap retrieved in "
@@ -607,32 +617,42 @@ public class ResourceManager implements Runnable {
 		}
 
 
+		/**
+		 * Fills pendingChangesList with all records currently in the pending_changes table.
+		 * @return Whether there are any records.
+		 */
 		public boolean marshallChangesToSync(ArrayList<ContentValues> pendingChangesList) {
 			this.beginReadQuery();
+			
 			Cursor pendingCursor = db.query(PENDING_DATABASE_TABLE, null, null, null, null, null, null);
-
-			if ( pendingCursor.getCount() == 0 ) {
-				pendingCursor.close();
-				return false;
+			try {
+				if ( pendingCursor.getCount() > 0 ) {
+					pendingCursor.moveToFirst();
+					while( pendingCursor.moveToNext() ) {
+						ContentValues cv = new ContentValues();
+						DatabaseUtils.cursorRowToContentValues(pendingCursor, cv);
+						pendingChangesList.add(cv);
+					}
+				}
 			}
-			pendingCursor.moveToFirst();
-			while( pendingCursor.moveToNext() ) {
-				ContentValues cv = new ContentValues();
-				DatabaseUtils.cursorRowToContentValues(pendingCursor, cv);
-				pendingChangesList.add(cv);
+			catch( Exception e ) {
+				Log.w(TAG,"Error fetching pending changes",e);
 			}
-
-			pendingCursor.close();
+			finally {
+				if ( pendingCursor != null && !pendingCursor.isClosed() ) pendingCursor.close();
+			}
 			this.endQuery();
-			return ( pendingChangesList.size() != 0 );
+			return !pendingChangesList.isEmpty();
 		}
 
+		
 		public void deletePendingChange(Integer pendingId) {
 			this.beginWriteQuery();
 			db.delete(PENDING_DATABASE_TABLE, PENDING_ID+" = ?", new String[]{pendingId+""});
 			this.endQuery();
 		}
 
+		
 		public void updateCollection(long collectionId, ContentValues collectionData) {
 			this.beginWriteQuery();
 			db.update(DavCollections.DATABASE_TABLE, collectionData, DavCollections._ID+" =?", new String[]{collectionId+""});
