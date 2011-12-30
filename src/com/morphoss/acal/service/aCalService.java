@@ -66,13 +66,7 @@ public class aCalService extends Service {
 		cm = CacheManager.getInstance(this);
 		
 		worker = WorkerClass.getInstance(this);
-		
-		//start data service
-		Intent serviceIntent = new Intent();
-		serviceIntent.setAction("com.morphoss.acal.dataservice.CalendarDataService");
-		this.startService(serviceIntent);
-		
-		
+				
 		aCalVersion = getString(R.string.appName) + "/";
 		try {
 			aCalVersion += getPackageManager().getPackageInfo(this.getPackageName(), 0).versionName;
