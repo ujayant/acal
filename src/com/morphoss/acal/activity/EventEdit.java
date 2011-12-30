@@ -60,12 +60,10 @@ import com.morphoss.acal.database.resourcesmanager.ResourceManager;
 import com.morphoss.acal.database.resourcesmanager.ResourceResponse;
 import com.morphoss.acal.database.resourcesmanager.ResourceResponseListener;
 import com.morphoss.acal.database.resourcesmanager.requests.RRRequestInstance;
-import com.morphoss.acal.dataservice.CalendarInstance;
 import com.morphoss.acal.dataservice.Collection;
 import com.morphoss.acal.dataservice.EventInstance;
 import com.morphoss.acal.dataservice.EventInstance.BadlyConstructedEventException;
 import com.morphoss.acal.dataservice.EventInstance.EVENT_BUILDER;
-import com.morphoss.acal.dataservice.Resource;
 import com.morphoss.acal.davacal.AcalAlarm;
 import com.morphoss.acal.davacal.AcalAlarm.ActionType;
 import com.morphoss.acal.davacal.PropertyName;
@@ -288,7 +286,6 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 		getEventAction();
 		this.loadLayout();
 	}
-
 
 	@SuppressWarnings("unchecked")
 	private void getEventAction() {
@@ -702,7 +699,11 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 		}
 
 		if (event == null) return null;
-		// This stuff all depends on 'event' having been initialised.
+
+		// Make sure the text fields are all preserved before we start any dialogs.
+		event.setLocation(locationView.getText().toString());
+		event.setSummary(eventName.getText().toString());
+		event.setDescription(notesView.getText().toString());
 		
 		AcalDateTime start = event.getStart();
 		AcalDateTime end = event.getEnd();
