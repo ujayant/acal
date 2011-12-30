@@ -32,6 +32,8 @@ import android.widget.Toast;
 import com.morphoss.acal.ServiceManager;
 import com.morphoss.acal.database.cachemanager.CRClearCacheRequest;
 import com.morphoss.acal.database.cachemanager.CacheManager;
+import com.morphoss.acal.service.SyncChangesToServer;
+import com.morphoss.acal.service.WorkerClass;
 
 public class DebugSettings extends ListActivity {
 public static final String TAG = "aCal Settings";
@@ -44,7 +46,8 @@ public static final String TAG = "aCal Settings";
 		"Home Set Discovery",
 		"Update Home DavCollections",
 		"Sync All DavCollections",
-		"Clear Cache"
+		"Clear Cache",
+		"Sync local changes to server"
 	};
 	
 	private ServiceManager serviceManager;
@@ -138,6 +141,9 @@ public static final String TAG = "aCal Settings";
 	    		}
 	    	} else if (task.equals("Clear Cache")) {
 	    		CacheManager.getInstance(DebugSettings.this).sendRequest(new CRClearCacheRequest());
+	    	}
+	    	else if ( task.equals("Sync local changes to server") ) {
+				WorkerClass.getExistingInstance().addJobAndWake(new SyncChangesToServer());
 	    	}
 		}
 	}
