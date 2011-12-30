@@ -113,7 +113,7 @@ public class RRSyncChangesToServer implements ResourceRequest {
 					// Fallback hack to really make sure the updated event actually gets displayed.
 					// Push this out 30 seconds in the future to nag us to fix it properly!
 					ServiceJob job = new SynchronisationJobs(SynchronisationJobs.CACHE_RESYNC);
-					job.TIME_TO_EXECUTE = 30000L;
+					job.TIME_TO_EXECUTE = 3000L;
 					acalService.addWorkerJob(job);
 				}
 			}
@@ -194,7 +194,6 @@ public class RRSyncChangesToServer implements ResourceRequest {
 		String resourcePath = resourceData.getAsString(ResourceTableManager.RESOURCE_NAME);
 		if ( resourcePath == null || resourceId < 1 ) {
 			//action = WriteActions.INSERT;
-			builder.setAction(QUERY_ACTION.INSERT);
 			eTagHeader = new BasicHeader("If-None-Match", "*" );
 
 			String contentExtension = getContentType(newData);
@@ -206,9 +205,7 @@ public class RRSyncChangesToServer implements ResourceRequest {
 				contentExtension = ".txt";
 			
 			try {
-				VComponent vc = VComponent.createComponentFromBlob(newData);
-				String uid = pending.getAsString(ResourceTableManager.UID);
-				resourcePath = uid + contentExtension;
+				resourcePath = pending.getAsString(ResourceTableManager.UID) + contentExtension;
 			}
 			catch ( Exception e ) {
 				if ( DEBUG )
@@ -217,7 +214,7 @@ public class RRSyncChangesToServer implements ResourceRequest {
 					Log.println(Constants.LOGV,TAG,Log.getStackTraceString(e));
 			};
 			if ( resourcePath == null ) {
-					resourcePath = UUID.randomUUID().toString() + ".ics";
+					resourcePath = UUID.randomUUID().toString() + contentExtension;
 			}
 			resourceData.put(ResourceTableManager.RESOURCE_NAME, resourcePath);
 			resourceData.put(ResourceTableManager.COLLECTION_ID, collectionId);
