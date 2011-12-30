@@ -37,6 +37,7 @@ import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VComponent;
 import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.providers.Servers;
+import com.morphoss.acal.service.ServiceJob;
 import com.morphoss.acal.service.SyncChangesToServer;
 import com.morphoss.acal.service.WorkerClass;
 
@@ -623,16 +624,17 @@ public class ResourceManager implements Runnable {
 		 */
 		public boolean marshallChangesToSync(ArrayList<ContentValues> pendingChangesList) {
 			this.beginReadQuery();
-			
 			Cursor pendingCursor = db.query(PENDING_DATABASE_TABLE, null, null, null, null, null, null);
+			if ( DEBUG ) Log.println(Constants.LOGD, TAG, "Found "+pendingCursor.getCount()+" local rows to sync.");
 			try {
 				if ( pendingCursor.getCount() > 0 ) {
 					pendingCursor.moveToFirst();
-					while( pendingCursor.moveToNext() ) {
+					do {
 						ContentValues cv = new ContentValues();
 						DatabaseUtils.cursorRowToContentValues(pendingCursor, cv);
 						pendingChangesList.add(cv);
 					}
+					while( pendingCursor.moveToNext() );
 				}
 			}
 			catch( Exception e ) {
@@ -642,6 +644,7 @@ public class ResourceManager implements Runnable {
 				if ( pendingCursor != null && !pendingCursor.isClosed() ) pendingCursor.close();
 			}
 			this.endQuery();
+			if ( DEBUG ) Log.println(Constants.LOGD, TAG, "Found "+pendingChangesList.size()+" local changes to sync.");
 			return !pendingChangesList.isEmpty();
 		}
 
@@ -784,7 +787,9 @@ public class ResourceManager implements Runnable {
 				this.endTransaction();
 			}
 			
-			WorkerClass.getExistingInstance().addJobAndWake(new SyncChangesToServer());
+			ServiceJob syncChanges = new SyncChangesToServer();
+			syncChanges.TIME_TO_EXECUTE = 5000;	// Wait five seconds before trying to sync to server.
+			WorkerClass.getExistingInstance().addJobAndWake(syncChanges);
 			
 			return rid;
 		}
