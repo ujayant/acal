@@ -482,10 +482,11 @@ public class ResourceManager implements Runnable {
 
 			// step 1a get list of resources from db
 			start = System.currentTimeMillis();
+			boolean needEndTx = false;
 
-			beginReadQuery();
 			if ( db == null ) {
 				beginReadTransaction();
+				needEndTx = true;
 			}
 			Cursor mCursor = db.query(RESOURCE_DATABASE_TABLE, null,
 					COLLECTION_ID + " = ? AND (" + NEEDS_SYNC + " = 1 OR " + RESOURCE_DATA + " IS NULL)",
@@ -501,8 +502,7 @@ public class ResourceManager implements Runnable {
 			}
 			finally {
 				if ( mCursor != null && !mCursor.isClosed() ) mCursor.close();
-				endQuery();
-				if (this.inTx) this.endTransaction();
+				if (needEndTx) this.endTransaction();
 			}
 			
 			if (Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents)
