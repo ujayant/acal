@@ -249,11 +249,11 @@ public class AcalAlarm implements Serializable, Parcelable, Comparable<AcalAlarm
 		relativeTo = (b == 'A' ? RelateWith.ABSOLUTE : (b == 'S' ? RelateWith.START : RelateWith.END));
 		description = in.readString();
 		relativeTime = new AcalDuration(in);
-		timeToFire = AcalDateTime.unwrapParcel(in);
+		timeToFire = new AcalDateTime(in);
 	
 		isSnooze = (in.readByte() == 'T');
 		if (isSnooze) {
-			this.snoozeTime = AcalDateTime.unwrapParcel(in);
+			this.snoozeTime = new AcalDateTime(in);
 		}
 		hasEventAssociated = (in.readByte() == 'T');
 		if (hasEventAssociated) {

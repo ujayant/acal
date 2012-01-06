@@ -1282,10 +1282,14 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 
 	/**
 	 * <p>
-	 * Format the output as an iCalendar date / date-time string, with a trailling 'Z' if the zone is
+	 * Format the output as an iCalendar date / date-time string, with a trailing 'Z' if the zone is
 	 * UTC.  This happens a lot, so we're trying to be as fast as possible.
 	 * </p>
-	 * @return The string.
+	 * <p>
+	 * Note that timezones other than UTC are not represented in this format, as they are expected
+	 * to be included as a TZID parameter to the iCalendar property.
+	 * </p>
+	 * @return The string, e.g. 20110411T095030 or 20110410T215030Z
 	 */
 	public String fmtIcal() {
 		if ( year == YEAR_NOT_SET ) calculateDateTime();
@@ -1345,6 +1349,9 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	}
 
 
+	/**
+	 * Returns the data as for fmtIcal(), but with any non-UTC timezone name appended, like: "20110411T095030 Pacific/Auckland"
+	 */
 	public String toString() {
 		StringBuilder ret = new StringBuilder( (epoch == EPOCH_NOT_SET ? "EPOCH_NOT_SET" : Long.toString(epoch)) );
 		ret.append(" - ");
@@ -1356,6 +1363,18 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 		return ret.toString();
 	}
 
+
+	final private static String[] enWeekDayNames = new String[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
+	/**
+	 * Returns the aCalDateTime in a format for HTTP dates, i.e. a string like "Mon, 11 Apr 2011 09:50:30 GMT" 
+	 * @return
+	 */
+	public String httpDateString() {
+		// To look like: Mon, 11 Apr 2011 09:50:30 GMT
+		return enWeekDayNames[getWeekDay()] + ", " + toJavaDate().toGMTString();
+	}
+
+	
 	/**
 	 * Compare this AcalDateTime to another.  If this is earlier than the other return a negative
 	 * integer and if this is after return a positive integer.  If they are the same return 0.
@@ -1671,20 +1690,19 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 		}
 	}
 
-	public static AcalDateTime unwrapParcel( Parcel in ) {
-		AcalDateTime dt = new AcalDateTime();
-		dt.epoch = in.readLong();
-		dt.weekStart = (short) in.readInt();
-		dt.isDate = (in.readByte() == 'D');
+	public AcalDateTime(Parcel in) {
+		this();
+		epoch = in.readLong();
+		weekStart = (short) in.readInt();
+		isDate = (in.readByte() == 'D');
 		boolean tzIsSet = (in.readByte() == '1');
-		if ( tzIsSet ) dt.overwriteTimeZone(in.readString());
-		dt.year = AcalDateTime.YEAR_NOT_SET;
-		return dt;
+		if ( tzIsSet ) overwriteTimeZone(in.readString());
+		year = AcalDateTime.YEAR_NOT_SET;
 	}
 
 	public static final Parcelable.Creator<AcalDateTime> CREATOR = new Parcelable.Creator<AcalDateTime>() {
         public AcalDateTime createFromParcel(Parcel in) {
-            return unwrapParcel(in);
+            return new AcalDateTime(in);
         }
 
         public AcalDateTime[] newArray(int size) {

@@ -51,8 +51,8 @@ public class AcalDateRange implements Parcelable, Cloneable {
     };
 
     public AcalDateRange(Parcel in) {
-		this.start = AcalDateTime.unwrapParcel(in);
-		this.end = AcalDateTime.unwrapParcel(in);
+		this.start = new AcalDateTime(in);
+		this.end = new AcalDateTime(in);
     }
     
 	@Override
