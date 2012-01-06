@@ -1,7 +1,6 @@
 package com.morphoss.acal.contacts;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
@@ -18,7 +17,6 @@ import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.OperationApplicationException;
-import android.content.ContentProviderOperation.Builder;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.net.Uri;
@@ -30,6 +28,7 @@ import android.provider.ContactsContract.RawContacts.Data;
 import android.util.Log;
 
 import com.morphoss.acal.Constants;
+import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.dataservice.Resource;
 import com.morphoss.acal.davacal.AcalProperty;
 import com.morphoss.acal.davacal.PropertyName;
@@ -79,8 +78,7 @@ public class VCardContact {
 
 		AcalDateTime revisionTime = AcalDateTime.fromAcalProperty(sourceCard.getProperty(PropertyName.REV));
 		if ( revisionTime == null ) {
-			String modTime = vCardRow.getAsString(DavResources.LAST_MODIFIED);
-			revisionTime = AcalDateTime.fromMillis(Date.parse(modTime)).setTimeZone(AcalDateTime.UTC.getID());
+			revisionTime = vCardRow.getLastModified();
 		}
 		sequence = (int) ((revisionTime.getEpoch() - 1000000000L) % 2000000000L);
 		

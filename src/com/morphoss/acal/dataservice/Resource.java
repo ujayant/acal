@@ -1,5 +1,6 @@
 package com.morphoss.acal.dataservice;
 
+import java.util.Date;
 import java.util.Map.Entry;
 
 import android.content.ContentValues;
@@ -8,6 +9,7 @@ import android.os.Parcelable;
 import android.util.Log;
 
 import com.morphoss.acal.Constants;
+import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
 
 
@@ -26,9 +28,10 @@ public class Resource implements Parcelable {
 	private final long latestEnd;
 	private final String effectiveType;
 	private boolean pending;
+	private final AcalDateTime lastModified;
 	
 	public Resource(long cid, long rid, String name, String etag, String cType, 
-			String data, boolean sync, Long earliestStart, Long latestEnd, String eType, boolean pending) {
+			String data, boolean sync, Long earliestStart, Long latestEnd, String eType, boolean pending, AcalDateTime lastModified) {
 		this.collectionId = cid;
 		this.resourceId = rid;
 		this.name = name;
@@ -42,6 +45,7 @@ public class Resource implements Parcelable {
 		this.latestEnd = latestEnd;
 		this.effectiveType = eType;
 		this.pending = pending;
+		this.lastModified = lastModified;
 	}
 	
 	public Resource(Parcel in) {
@@ -56,6 +60,7 @@ public class Resource implements Parcelable {
 		this.latestEnd = in.readLong();
 		this.effectiveType = in.readString();
 		this.pending = in.readByte() == 'T';
+		this.lastModified = new AcalDateTime(in);
 	}
 	
 	public long getCollectionId() {
@@ -84,6 +89,7 @@ public class Resource implements Parcelable {
 		dest.writeLong(latestEnd);
 		dest.writeString(effectiveType);
 		dest.writeByte(this.pending ? (byte)'T' : (byte)'F');
+		lastModified.writeToParcel(dest, flags);
 	}
 
 	public String getBlob() {
@@ -106,8 +112,10 @@ public class Resource implements Parcelable {
 		cv.put(ResourceTableManager.EARLIEST_START, earliestStart);
 		cv.put(ResourceTableManager.LATEST_END, latestEnd);
 		cv.put(ResourceTableManager.EFFECTIVE_TYPE, effectiveType);
+		cv.put(ResourceTableManager.LAST_MODIFIED, lastModified.httpDateString());
 		return cv;
 	}
+
 	public static Resource fromContentValues(ContentValues cv) {
 		long cid = -1;
 		long rid = -1;
@@ -117,6 +125,7 @@ public class Resource implements Parcelable {
 		long latestEnd = Long.MAX_VALUE;
 		Boolean needsSync = false;
 		String effectiveType = "";
+		AcalDateTime modTime = new AcalDateTime();
 		if ( cv.containsKey(ResourceTableManager.PEND_RESOURCE_ID) ) {
 			cid = cv.getAsLong(ResourceTableManager.PEND_COLLECTION_ID);
 			rid = cv.getAsLong(ResourceTableManager.PEND_RESOURCE_ID);
@@ -137,7 +146,11 @@ public class Resource implements Parcelable {
 				try {
 					latestEnd = cv.getAsLong(ResourceTableManager.LATEST_END);
 				} catch( Exception e ) {}
- 
+
+				try {
+					modTime = AcalDateTime.fromMillis(Date.parse(cv.getAsString(ResourceTableManager.LAST_MODIFIED)));
+				} catch( Exception e ) {}
+				modTime.setTimeZone(AcalDateTime.UTC.getID());
 				needsSync = cv.getAsBoolean(ResourceTableManager.NEEDS_SYNC);
 				if ( needsSync == null ) needsSync = true;
 			}
@@ -173,7 +186,8 @@ public class Resource implements Parcelable {
 				earliestStart,
 				latestEnd,
 				effectiveType,
-				pending
+				pending,
+				modTime
 		);
 		
 	}
@@ -188,6 +202,10 @@ public class Resource implements Parcelable {
 
 	public Long getLatestEnd() {
 		return latestEnd;
+	}
+
+	public AcalDateTime getLastModified() {
+		return lastModified.clone();
 	}
 
 	public void setPending(boolean b) {
