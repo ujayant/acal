@@ -44,7 +44,7 @@ public class RREventEditedRequest extends ResourceRequestWithResponse<Long> {
 								new String[]{event.getResourceId()+""},null,null,null)
 								.get(0));
 				oldBlob = res.getBlob();
-				VCalendar vc = ((VCalendar)VComponent.createComponentFromBlob(res.getBlob()));
+				VCalendar vc = ((VCalendar)VComponent.createComponentFromBlob(oldBlob));
 				newBlob = vc.applyEventAction(event, action, instances);
 				uid = vc.getMasterChild().getUID();
 				

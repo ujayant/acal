@@ -28,8 +28,8 @@ public class VAlarm extends VComponent {
 	}
 
 	public VAlarm( VComponent parent ) {
-		super( "VALARM", parent );
-		try { setPersistentOn(); } catch (YouMustSurroundThisMethodInTryCatchOrIllEatYouException e) { }
+		super( VComponent.VALARM, parent );
+		setEditable();
 	}
 
 	public String toPrettyString() {
@@ -41,7 +41,7 @@ public class VAlarm extends VComponent {
 		String direction = null;
 		
 		try {
-		  description = getProperty("DESCRIPTION").getValue();
+		  description = getProperty(PropertyName.DESCRIPTION).getValue();
 		}
 		catch (Exception e) {
 		}

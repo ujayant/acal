@@ -36,6 +36,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnFocusChangeListener;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CompoundButton;
@@ -75,7 +76,7 @@ import com.morphoss.acal.widget.DateTimeDialog;
 import com.morphoss.acal.widget.DateTimeSetListener;
 
 public class EventEdit extends AcalActivity implements  OnClickListener, OnCheckedChangeListener,
-				ResourceChangedListener, ResourceResponseListener {
+				ResourceChangedListener, ResourceResponseListener, OnFocusChangeListener {
 
 	public static final String TAG = "aCal EventEdit";
 	public static final int APPLY = 0;
@@ -165,6 +166,7 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 	private static final int SAVE_FAILED = 6;
 	private static final int SHOW_SAVING = 7;
 
+	private boolean saveSucceeded = false;
 	private boolean isSaving = false;
 	private boolean isLoading = false;
 
@@ -217,6 +219,7 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 					finish();
 				}
 				break;
+
 			case SHOW_SAVING: 
 				isSaving = true;
 				showDialog(SAVING_DIALOG);
@@ -234,18 +237,26 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 					b.putLong(EventView.DTSTART_KEY, event.getStart().getMillis());
 					ret.putExtras(b);			
 					setResult(RESULT_OK, ret);
+					saveSucceeded = true;
 					finish();
 					
 				} else {
 					Toast.makeText(EventEdit.this, "Error saving event data.", Toast.LENGTH_LONG).show();
 				}
 				break;
+
 			case SAVE_FAILED:
 				isSaving = false;
 				if (savingDialog != null) savingDialog.dismiss();
-				Toast.makeText(EventEdit.this, "Something went wrong trying to save data.", Toast.LENGTH_LONG).show();
-				setResult(Activity.RESULT_CANCELED, null);
-				finish();
+				if ( saveSucceeded ) {
+					// Don't know why we get here, but we do!
+					Log.w(TAG,"This shouldn't happen, so lets log it to see why it does!",new Exception());
+				}
+				else {
+					Toast.makeText(EventEdit.this, "Something went wrong trying to save data.", Toast.LENGTH_LONG).show();
+					setResult(Activity.RESULT_CANCELED, null);
+					finish();
+				}
 				break;
 			}
 			
@@ -386,6 +397,7 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 		if ( action == ACTION_CREATE ) {
 			eventName.setSelectAllOnFocus(true);
 		}
+		eventName.setOnFocusChangeListener(this);
 
 		//Collection
 		llSelectCollection = (LinearLayout) this.findViewById(R.id.EventEditCollectionLayout);
@@ -404,9 +416,9 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 		btnEndDate = (Button) this.findViewById(R.id.EventUntilDate);
 
 		locationView = (TextView) this.findViewById(R.id.EventLocationContent);
-		
-
 		notesView = (TextView) this.findViewById(R.id.EventNotesContent);
+		locationView.setOnFocusChangeListener(this);
+		notesView.setOnFocusChangeListener(this);
 		
 
 		alarmsList = (TableLayout) this.findViewById(R.id.alarms_list_table);
@@ -437,6 +449,7 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 		this.locationView.setText(event.getLocation());
 		this.eventName.setText(event.getSummary());
 		this.notesView.setText(event.getDescription());
+
 		AcalDateTime start = event.getStart();
 		AcalDateTime end = event.getEnd();
 		end.setAsDate(start.isDate());
@@ -633,7 +646,9 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 		
 		try {
 			if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,
-					"saveChanges: dtstart = "+event.getStart().toPropertyString(PropertyName.DTSTART));
+					"saveChanges: "+event.getSummary()+
+					", starts "+event.getStart().toPropertyString(PropertyName.DTSTART)+
+					", with "+event.getAlarms().size()+" alarms.");
 			//display savingdialog
 			
 			ResourceManager.getInstance(this).sendRequest(new RREventEditedRequest(this, event, action, instances));
@@ -655,6 +670,14 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 		
 		return true;
 	}
+
+	private void checkpointCurrentValues() {
+		// Make sure the text fields are all preserved before we start any dialogs.
+		event.setLocation(locationView.getText().toString());
+		event.setSummary(eventName.getText().toString());
+		event.setDescription(notesView.getText().toString());
+	}
+	
 	
 	//Dialogs
 	protected Dialog onCreateDialog(int id) {
@@ -699,12 +722,8 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 		}
 
 		if (event == null) return null;
+		checkpointCurrentValues();
 
-		// Make sure the text fields are all preserved before we start any dialogs.
-		event.setLocation(locationView.getText().toString());
-		event.setSummary(eventName.getText().toString());
-		event.setDescription(notesView.getText().toString());
-		
 		AcalDateTime start = event.getStart();
 		AcalDateTime end = event.getEnd();
 		switch (id) {
@@ -817,6 +836,7 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 			public void onAlarmSet(AcalAlarm alarmValue) {
 				alarmList.add( alarmValue );
 		    	event.setAlarms(alarmList);
+				EventEdit.this.checkpointCurrentValues();
 		    	updateLayout();
 			}
 			
@@ -843,6 +863,7 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 		cancel.setOnClickListener(new OnClickListener(){
 			public void onClick(View v) {
 				alarmList.remove(alarm);
+				EventEdit.this.checkpointCurrentValues();
 				updateLayout();
 			}
 		});
@@ -877,5 +898,10 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 			mHandler.sendMessage(mHandler.obtainMessage(SAVE_RESULT, result));
 		}
 		
+	}
+
+	@Override
+	public void onFocusChange(View v, boolean hasFocus) {
+		if ( !hasFocus ) checkpointCurrentValues();
 	}
 }

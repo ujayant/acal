@@ -136,7 +136,8 @@ public class VCalendar extends VComponent {
 			default: throw new InvalidCalendarActionException();
 		}
 	}
-		
+
+	
 	private String doEdit(EventInstance event, int instances) throws InvalidCalendarActionException {
 		switch (instances) {
 		case EventEdit.INSTANCES_SINGLE:
@@ -144,6 +145,7 @@ public class VCalendar extends VComponent {
 		
 		case EventEdit.INSTANCES_ALL:
 			Masterable mast = this.getMasterChild();
+			mast.setEditable();
 			mast.removeProperties( new PropertyName[] {PropertyName.DTSTART, PropertyName.DTEND, PropertyName.DURATION,
 					PropertyName.SUMMARY, PropertyName.LOCATION, PropertyName.DESCRIPTION, PropertyName.RRULE } );
 
@@ -172,7 +174,12 @@ public class VCalendar extends VComponent {
 				mast.addProperty(new AcalProperty(PropertyName.RRULE,rrule));
 
 			mast.updateAlarmComponents( event.getAlarms() );
+
 			updateTimeZones();
+
+			if ( Constants.debugVComponent )
+				Log.println(Constants.LOGD, TAG, "Constructed Blob for\n"+this.getCurrentBlob());
+
 			return this.getCurrentBlob();
 			
 		default: throw new InvalidCalendarActionException("Invalid action/instances combination.");
@@ -319,9 +326,11 @@ public class VCalendar extends VComponent {
 			VTimezone vtz;
 			try {
 				String tzBlob = VTimezone.getZoneDefinition(tzId);
-				if ( Constants.LOG_DEBUG ) {
-					Log.println(Constants.LOGD,TAG,"New timezone for '"+tzId+"'");
-					Log.println(Constants.LOGD,TAG,tzBlob);
+				if ( Constants.debugVComponent ) {
+					Log.println(Constants.LOGD,TAG,"Including timezone for '"+tzId+"' in VCALENDAR.");
+					if ( Constants.LOG_VERBOSE )
+						Log.println(Constants.LOGV,TAG,tzBlob);
+					Log.i(TAG,Log.getStackTraceString(new Exception("not an error")));
 				}
 				vtz = (VTimezone) VComponent.createComponentFromBlob(tzBlob);
 				vtz.setEditable();

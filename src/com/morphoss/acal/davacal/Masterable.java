@@ -27,7 +27,6 @@ import java.util.UUID;
 import android.util.Log;
 
 import com.morphoss.acal.Constants;
-import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
@@ -66,8 +65,10 @@ public abstract class Masterable extends VComponent {
 		if ( !instance.getDescription().equals("") ) setDescription(instance.getDescription());
 		if ( !instance.getLocation().equals("") ) setLocation(instance.getLocation());
 		if ( instance.getRRule() != null ) setRepetition(instance.getRRule());
-		if ( !instance.getAlarms().isEmpty() ) addAlarmTimes(instance.getAlarms(), null);
+		if ( !instance.getAlarms().isEmpty() ) addAlarmTimes(instance.getAlarms());
 		getTopParent().updateTimeZones();
+		if ( Constants.debugVComponent )
+			Log.println(Constants.LOGD, TAG, "Constructed "+typeName+" blob\n"+getTopParent().getCurrentBlob());
 	}
 
 	
@@ -85,13 +86,6 @@ public abstract class Masterable extends VComponent {
 		return (VCalendar) super.getTopParent();
 	}
 
-	public void addAlarmTimes( List<AcalAlarm> alarmList, AcalDateRange instanceRange ) {
-		for( VComponent child : this.getChildren() ) {
-			if ( child instanceof VAlarm )
-				alarmList.add(new AcalAlarm((VAlarm) child, this, instanceRange.start, instanceRange.end));
-		}
-	}
-	
 	public AcalDuration getDuration() {
 		AcalDuration ret = null;
 
@@ -195,7 +189,7 @@ public abstract class Masterable extends VComponent {
 	 * Given a List of AcalAlarm's, make this Masterable have those as child components.
 	 * @param alarmList the list of alarms.
 	 */
-	public void updateAlarmComponents( List<?> alarmList ) {
+	public void updateAlarmComponents( List<AcalAlarm> alarmList ) {
 		setEditable();
 
 		List<VComponent> children = getChildren();
@@ -205,12 +199,20 @@ public abstract class Masterable extends VComponent {
 			if ( child instanceof VAlarm ) it.remove();
 		}
 
+		addAlarmTimes(alarmList);
+	}
+
+	public void addAlarmTimes( List<AcalAlarm> alarmList ) {
 		if ( alarmList != null && alarmList.size() > 0 ) {
-			for( Object alarm : alarmList ) {
-				if ( alarm instanceof AcalAlarm )
-					addChild(((AcalAlarm) alarm).getVAlarm(this));
+			for( AcalAlarm alarm : alarmList ) {
+				VAlarm vAlarm = ((AcalAlarm) alarm).getVAlarm(this);
+				if ( Constants.debugVComponent ) Log.println(Constants.LOGD, TAG,
+						"Adding alarm component:\n"+vAlarm.getCurrentBlob());
+//				addChild(vAlarm);
 			}
 		}
+		if ( Constants.debugVComponent ) Log.println(Constants.LOGD, TAG,
+				"Added "+alarmList.size()+" alarm components:\n"+getCurrentBlob());
 	}
 
 	public String getLocation() {
