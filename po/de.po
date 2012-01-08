@@ -4,8 +4,10 @@
 # 
 # Translators:
 # Andrew McMillan <andrew@mcmillan.net.nz>, 2011.
+#   <chrysn@fsfe.org>, 2011.
 # fmms <mail@felixmoeller.de>, 2011.
 # Joerg Knoche <transifex@roerch.ping.de>, 2011.
+#   <mail@felixmoeller.de>, 2011.
 # Matthias Althaus <contact@althaus.it>, 2011.
 # SunTsu <transifex.20.suntsu@spamgourmet.com>, 2011.
 #   <werner.heise@lessingstadt.de>, 2011.
@@ -13,9 +15,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: aCal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-11-28 00:18+1300\n"
-"PO-Revision-Date: 2011-11-27 11:18+0000\n"
-"Last-Translator: karora <andrew@mcmillan.net.nz>\n"
+"POT-Creation-Date: 2011-12-03 23:18+1300\n"
+"PO-Revision-Date: 2011-12-26 10:26+0000\n"
+"Last-Translator: chrysn <chrysn@fsfe.org>\n"
 "Language-Team: German (http://www.transifex.net/projects/p/acal/team/de/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -49,7 +51,7 @@ msgstr ""
 msgid "appDescriptionTasks"
 msgstr ""
 "Eine Aufgabenliste für Android, die Aufgaben auf einem CalDAV- bzw. CardDAV-"
-"Server -- bspw. DAViCal (siehe www.davical.org) speichert."
+"Server – bspw. DAViCal (siehe www.davical.org) speichert."
 
 msgid "Active"
 msgstr "aktiv"
@@ -67,7 +69,7 @@ msgid "Simple_Path"
 msgstr "Einfacher Pfad"
 
 msgid "Simple_User_URL"
-msgstr ""
+msgstr "Benutzer URL"
 
 msgid "Enter_a_brief_summary_of_the_event"
 msgstr "Geben Sie eine kurze Zusammenfassung des Ereignisses ein"
@@ -100,10 +102,10 @@ msgid "Colour"
 msgstr "Farbe"
 
 msgid "Default_timezone"
-msgstr "Standard Zeitzone"
+msgstr "Standard-Zeitzone"
 
 msgid "DefaultAlarmTone"
-msgstr "Default Alarmton"
+msgstr "Standard-Alarmton"
 
 msgid "Server_Path"
 msgstr "Serverpfad"
@@ -130,7 +132,7 @@ msgid "The_path_on_the_server"
 msgstr "Der Pfad auf dem Server, bspw. &quot;/caldav.php/user/&quot;"
 
 msgid "A_URL_or_domain_name"
-msgstr ""
+msgstr "Eine URL oder Domain für Ihren Kalendarserver"
 
 msgid "The_servers_hostname"
 msgstr ""
@@ -385,15 +387,15 @@ msgid "YearViewSize_PrefTitle"
 msgstr "Anzahl der Monate in der Jahresansicht"
 
 msgid "YearViewSize_PrefSummary"
-msgstr "Anzahl der Monate die in der Jahresansicht sichtbar sind"
+msgstr "Anzahl der Monate, die in der Jahresansicht sichtbar sind"
 
 msgid "Snooze_PrefTitle"
-msgstr "Snooze Zeitraum"
+msgstr "Snooze-Zeitraum"
 
 msgid "Snooze_PrefSummary"
 msgstr ""
 "Nach wievielen Minuten soll die Benachrichtigung wiederholt werden, wenn der"
-" Snooze Knopf gedrückt wurde."
+" Snooze-Knopf gedrückt wurde."
 
 msgid "DefaultCollection_PrefTitle"
 msgstr "Standardsammlung"
@@ -402,22 +404,22 @@ msgid "DefaultCollection_PrefSummary"
 msgstr "Die Standardsammlung für neue Elemente"
 
 msgid "DefaultAlarmTone_PrefTitle"
-msgstr "Standard Erinnerungsmelodie"
+msgstr "Standard-Erinnerungsmelodie"
 
 msgid "DefaultAlarmTone_PrefSummary"
-msgstr "Standard Erinnerungsmelodie für Benachrichtigungen"
+msgstr "Standard-Erinnerungsmelodie für Benachrichtigungen"
 
 msgid "AlarmVolumeType_PrefTitle"
-msgstr ""
+msgstr "Einstellungen für die Alarmlautstärke"
 
 msgid "AlarmVolumeType_PrefSummary"
-msgstr ""
+msgstr "Diese Einstellung wird für die Lautstärke des Alarms verwendet"
 
 msgid "AlarmBellVolume"
-msgstr ""
+msgstr "Lautstärke des Alarms"
 
 msgid "MediaPlayerVolume"
-msgstr ""
+msgstr "Lautstärke"
 
 msgid "prefWorkdayStart_Title"
 msgstr "Beginn des Arbeitstages"
@@ -435,7 +437,7 @@ msgid "prefWeekViewLinesPerHour_Title"
 msgstr "Zeilenhöhe"
 
 msgid "prefWeekViewLinesPerHour_Summary"
-msgstr "Die Höhe jeder Stunde eines Tages in der Wochen Ansicht"
+msgstr "Die Höhe jeder Stunde eines Tages in der Wochenansicht"
 
 msgid "prefWeekViewDayWidth_Title"
 msgstr "Spaltenbreite"
@@ -492,7 +494,7 @@ msgid "FromPrompt"
 msgstr "Von:"
 
 msgid "TodoFromPrompt"
-msgstr ""
+msgstr "Anfangen um:"
 
 msgid "UntilPrompt"
 msgstr "Bis:"
@@ -504,16 +506,16 @@ msgid "CompletedPrompt"
 msgstr "Abgeschlossen:"
 
 msgid "DaysPrompt"
-msgstr ""
+msgstr "Tage:"
 
 msgid "StartPrompt"
-msgstr ""
+msgstr "Anfang:"
 
 msgid "CompletePrompt"
-msgstr ""
+msgstr "Fertiggestellt:"
 
 msgid "CollectionPrompt"
-msgstr ""
+msgstr "Kalendar:"
 
 msgid "defaultCalendar"
 msgstr "Standardkalender"
@@ -586,10 +588,10 @@ msgid "EverySunday"
 msgstr "Jeden Sonntag"
 
 msgid "EveryNthOfTheMonth"
-msgstr "An jedem %s des Monats"
+msgstr "An jedem %s. des Monats"
 
 msgid "EveryMonthOnTheNthSomeday"
-msgstr "Am %s jeden Monats"
+msgstr "Am %s. jeden Monats"
 
 msgid "CustomRepeatRule"
 msgstr "selbstdefinierte Wiederholung"
@@ -636,16 +638,16 @@ msgid "errorSavingServerConfig"
 msgstr "Fehler beim Speichern der Serverkonfiguration"
 
 msgid "errorSavingFile"
-msgstr "Fehler beim speichern der Datei"
+msgstr "Fehler beim Speichern der Datei"
 
 msgid "ServerDataSaved"
-msgstr "Server Daten geschrieben. Dateiname: "
+msgstr "Server-Daten geschrieben. Dateiname: "
 
 msgid "NewManualServerConfiguration"
 msgstr "Manuelle Konfiguration"
 
 msgid "ManualServerConfigurationBlurb"
-msgstr "Server Informationen manuell eingeben"
+msgstr "Server-Informationen manuell eingeben"
 
 msgid "SavedServerConfigurationBlurb"
 msgstr "eine gespeicherte Server-Konfiguration"
@@ -663,7 +665,7 @@ msgid "alarm10MinutesPrior"
 msgstr "10 Minuten vorher"
 
 msgid "alarm15MinutesPrior"
-msgstr ""
+msgstr "15 Minuten vorher"
 
 msgid "alarm30MinutesPrior"
 msgstr "30 Minuten vorher"
@@ -693,18 +695,23 @@ msgid "internetNotAvailable"
 msgstr "Keine Internetverbindung verfügbar"
 
 msgid "couldNotDiscoverPort"
-msgstr "HTTP Port des CalDAV Servers konnte nicht ermittelt werden"
+msgstr "HTTP-Port des CalDAV Servers konnte nicht ermittelt werden"
 
 msgid "couldNotDiscoverPrincipal"
 msgstr ""
-"Der \"Principal\" Pfad des Servers konnte nicht ermittelt werden - benutze "
+"Der \"Principal\"-Pfad des Servers konnte nicht ermittelt werden - benutze "
 "die Vorgaben des Benutzers."
 
 msgid "foundPrincipalPath"
-msgstr "\"Principal\" Pfad des Servers unter &quot;%s&quot; gefunden"
+msgstr "\"Principal\"-Pfad des Servers unter &quot;%s&quot; gefunden"
 
 msgid "serverSupportsCalDAV"
 msgstr "Server unterstützt CalDAV."
+
+msgid "serverHasDAVNoCalDAV"
+msgstr ""
+"Der Server unterstützt DAV und Ihr Benutzername und Passwort funktionieren, "
+"aber CalDAV-Unterstützung ist nicht vorhanden."
 
 msgid "serverLacksCalDAV"
 msgstr "Server unterstützt CalDAV nicht."
@@ -719,10 +726,16 @@ msgid "serverValidationSuccess"
 msgstr "Serverüberprüfung war erfolgreich."
 
 msgid "authenticationFailed"
-msgstr "Authentifizierung mit Server fehlgeschlagen"
+msgstr "Authentifizierung am Server fehlgeschlagen"
 
 msgid "WeekViewPreferences"
 msgstr "Einstellungen Wochenansicht"
+
+msgid "AlarmPreferences"
+msgstr "Alarmeinstellungen"
+
+msgid "GeneralPreferences"
+msgstr "Allgemeine Einstellungen"
 
 msgid "checkServer"
 msgstr "Verifiziere Server"
@@ -734,7 +747,10 @@ msgid "checkServer_Internet"
 msgstr "Überprüfe Internetverbindung"
 
 msgid "checkServer_SearchingForServer"
-msgstr ""
+msgstr "Suche nach CalDAV-Server unter &quot;%s&quot;"
+
+msgid "checkServer_DiscoveryCancelled"
+msgstr "Serversuche wurde abgebrochen"
 
 msgid "serverRecordAlreadyExists"
 msgstr "Es liegt schon ein Server mit diesen Einstellungen vor"
@@ -797,7 +813,7 @@ msgid "Tasks"
 msgstr "Aufgaben"
 
 msgid "Unscheduled"
-msgstr ""
+msgstr "Ungeplant"
 
 msgid "ChooseAction"
 msgstr "Aktion wählen"
@@ -814,100 +830,129 @@ msgstr "Aufgaben der nächsten Woche"
 msgid "incompleteTasksTitle"
 msgstr "Nicht erledigte Aufgaben"
 
+msgid "incompleteTasksDue"
+msgstr "Unfertige Aufgaben fällig innerhalb einer Woche"
+
 msgid "allTasksTitle"
 msgstr "Alle Aufgaben"
 
 msgid "NewTaskTitle"
-msgstr ""
+msgstr "Neue Aufgabe"
 
 msgid "TaskSaved"
-msgstr ""
+msgstr "Aufgabe gespeichert."
 
 msgid "TaskModifiedAll"
-msgstr ""
+msgstr "Alle Vorkommnisse dieser Aufgabe bearbeitet."
 
 msgid "TaskModifiedOne"
-msgstr ""
+msgstr "Eine Vorkommnis dieser Aufgabe bearbeitet."
 
 msgid "TaskModifiedThisAndFuture"
-msgstr ""
+msgstr "Aktuelle und alle zukünftigen Vorkommnisse dieser Aufgabe bearbeitet."
 
 msgid "TaskErrorSaving"
-msgstr ""
+msgstr "Fehler beim Speichern der Daten -- Bitte versuchen Sie es nochmals."
 
 msgid "username"
-msgstr ""
+msgstr "Benutzername:"
 
 msgid "password"
-msgstr ""
+msgstr "Passwort:"
 
 msgid "setRepeatRule"
-msgstr ""
+msgstr "Wiederholung festlegen"
 
 msgid "eventName"
-msgstr ""
+msgstr "Ereignisname"
 
 msgid "plus"
-msgstr ""
+msgstr "+"
 
 msgid "url"
-msgstr ""
+msgstr "URL:"
 
 msgid "todoName"
-msgstr ""
+msgstr "Aufgabenname:"
 
 msgid "IsADate"
-msgstr ""
+msgstr "Ist ein Datum"
 
 msgid "NotSet"
-msgstr ""
+msgstr "Nicht gesetzt"
 
 msgid "Exactly"
-msgstr ""
+msgstr "Genau"
 
 msgid "Start"
-msgstr ""
+msgstr "Anfang"
 
 msgid "Finish"
-msgstr ""
+msgstr "Ende"
 
 msgid "Before"
-msgstr ""
+msgstr "Vor"
 
 msgid "After"
-msgstr ""
+msgstr "Nach"
 
 msgid "Custom"
-msgstr ""
+msgstr "Benutzerdefiniert"
 
 msgid "floatingTime"
 msgstr ""
 
 msgid "SetCustomAlarm"
-msgstr ""
+msgstr "Benutzerdefinierten Alarm setzen"
 
 msgid "showUpdateInformation"
-msgstr ""
+msgstr "Aktualisierungsinformationen anzeigen"
 
 msgid "General_aCal_Information"
-msgstr ""
+msgstr "Allgemeine aCal-Informationen"
 
 msgid "aCal_Website"
-msgstr ""
+msgstr "Die <b>aCal</b>-Webseite ist %s"
 
 msgid "aCal_IRC_Channel"
 msgstr ""
+"Sie können sich mit den aCal-Entwicklern im IRC unter &lt;a "
+"href=&quot;irc://irc.oftc.net/#acal&quot;>&quot;#acal auf "
+"irc.oftc.net&lt;/a> unterhalten."
 
 msgid "aCal_Mailing_Lists"
 msgstr ""
+"Die &lt;em>aCal-&lt;/em>-Mailinglisten sind öffentlich und Sie können sich "
+"unter &lt;a href=&quot;http://lists.acal.me/&quot;>lists.acal.me&lt;/a> "
+"anmelden. Dort findet sich auch das Nachrichtenarchiv."
 
 msgid "aCal_is_Free_Software"
 msgstr ""
+"aCal ist &quot;Freie Software&quot; (&quot;frei&quot; im Sinne von "
+"&quot;Freiheit&quot;) lizenziert unter der General Public License Version 3 "
+"order später. Sie können sich den &lt;a "
+"href=&quot;http://gitorious.org/acal&quot;>Quelltext&lt;/a> von aCal "
+"herunterladen."
+
+msgid "TaskMarkedComplete"
+msgstr "Aufgabe als abgeschlossen markiert."
+
+msgid "TaskDeleted"
+msgstr "Aufgabe wurde gelöscht."
+
+msgid "endsAt"
+msgstr "Endet %s"
+
+msgid "days"
+msgstr "Tage"
+
+msgid "noScheduledEvents"
+msgstr "Keine geplanten Ereignisse."
 
 # SourceFileEnd:../res/values/strings.xml
 # SourceFileStart:../res/values/timezonenames.xml
 msgid "tzNameAfricaCairo"
-msgstr ""
+msgstr "Afrika/Kairo"
 
 msgid "tzNameAfricaCasablanca"
 msgstr ""
