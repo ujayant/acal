@@ -271,4 +271,28 @@ public abstract class Masterable extends VComponent {
 	public String getEffectiveType() {
 		return this.name;
 	}
+
+	public void setToRecurrence(RecurrenceId targetRecurrence) {
+		try {
+			setPersistentOn();
+			RecurrenceId thisRecurrence = getRecurrenceId();
+			AcalDateTime targetRecurrenceTime = AcalDateTime.fromAcalProperty(targetRecurrence);
+			AcalDuration adjustmentDuration = targetRecurrenceTime.getDurationTo(AcalDateTime.fromAcalProperty(thisRecurrence)); 
+
+			AcalProperty startProp = getProperty(PropertyName.DTSTART); 
+			AcalProperty endProp = getProperty((this instanceof VTodo ? PropertyName.DUE : PropertyName.DTEND));
+			if ( startProp != null ) {
+				targetRecurrenceTime = AcalDateTime.fromAcalProperty(startProp).addDuration(adjustmentDuration);
+				setUniqueProperty(targetRecurrenceTime.asProperty(PropertyName.DTSTART));
+			}
+			if ( endProp != null ) {
+				targetRecurrenceTime = AcalDateTime.fromAcalProperty(endProp).addDuration(adjustmentDuration);
+				setUniqueProperty(targetRecurrenceTime.asProperty((this instanceof VTodo ? PropertyName.DUE : PropertyName.DTEND)));
+			}
+		}
+		catch ( YouMustSurroundThisMethodInTryCatchOrIllEatYouException e ) { }
+		finally {
+			setPersistentOff();
+		}
+	}
 }

@@ -479,72 +479,51 @@ public class VCalendar extends VComponent implements Cloneable {
 	 */
 	public Masterable getChildFromRecurrenceId(RecurrenceId recurrenceProperty) {
 		Masterable masterInstance = this.getMasterChild();
-		if ( !masterHasOverrides() ) return masterInstance;
+		if ( recurrenceProperty == null ) return masterInstance;
 
 		RecurrenceId testRecurrence = null;
 		boolean recalculateTimes = true;
-		Masterable override = null;
-		try {
-			this.setPersistentOn();
-			List<Masterable> matchingChildren = new ArrayList<Masterable>();
-			for (VComponent vc: this.getChildren()) {
-				if (vc.containsPropertyKey(recurrenceProperty.getName()) && vc instanceof Masterable)
-					matchingChildren.add((Masterable) vc);
-			}
-			if (matchingChildren.isEmpty()) {
-				// Won't happen since we test for this in masterHasOverrides()
-				return this.getMasterChild();
-			}
-			Collections.sort(matchingChildren, RecurrenceId.getVComponentComparatorByRecurrenceId());
-			for ( int i = 0; i < matchingChildren.size(); i++ ) {
-				testRecurrence = matchingChildren.get(i).getRecurrenceId();
-				if ( testRecurrence.equals(recurrenceProperty) ) {
-					recalculateTimes = false;
-					override = matchingChildren.get(i);
-					break;
+		if ( masterHasOverrides() ) {
+			Masterable override = null;
+			try {
+				this.setPersistentOn();
+				List<Masterable> matchingChildren = new ArrayList<Masterable>();
+				for (VComponent vc: this.getChildren()) {
+					if (vc.containsPropertyKey(recurrenceProperty.getName()) && vc instanceof Masterable)
+						matchingChildren.add((Masterable) vc);
 				}
-				if ( testRecurrence.overrides(recurrenceProperty) ) {
-					override = matchingChildren.get(i);
-					recalculateTimes = true;
+				if (matchingChildren.isEmpty()) {
+					// Won't happen since we test for this in masterHasOverrides()
+					return this.getMasterChild();
 				}
-				override = matchingChildren.get(i);
+				Collections.sort(matchingChildren, RecurrenceId.getVComponentComparatorByRecurrenceId());
+				for ( int i = 0; i < matchingChildren.size(); i++ ) {
+					testRecurrence = matchingChildren.get(i).getRecurrenceId();
+					if ( testRecurrence.equals(recurrenceProperty) ) {
+						recalculateTimes = false;
+						override = matchingChildren.get(i);
+						break;
+					}
+					if ( testRecurrence.overrides(recurrenceProperty) ) {
+						override = matchingChildren.get(i);
+						recalculateTimes = true;
+					}
+					override = matchingChildren.get(i);
+				}
+			} catch (YouMustSurroundThisMethodInTryCatchOrIllEatYouException e) {
+				Log.w(TAG,Log.getStackTraceString(e));
+			} finally {
+				this.setPersistentOff();	
 			}
-		} catch (YouMustSurroundThisMethodInTryCatchOrIllEatYouException e) {
-			Log.w(TAG,Log.getStackTraceString(e));
-		} finally {
-			this.setPersistentOff();	
-		}
-
-		if ( override != null ) {
 			if ( !recalculateTimes ) return override;
 			masterInstance = override;
 		}
 
-		try {
-			override.setPersistentOn();
-			testRecurrence = override.getRecurrenceId();
-			AcalDateTime recurrenceTime = AcalDateTime.fromAcalProperty(recurrenceProperty);
-			AcalDuration adjustmentDuration = recurrenceTime.getDurationTo(AcalDateTime.fromAcalProperty(testRecurrence)); 
+		masterInstance.setToRecurrence(recurrenceProperty);
 
-			AcalProperty startProp = override.getProperty(PropertyName.DTSTART); 
-			AcalProperty endProp = override.getProperty((override instanceof VTodo ? PropertyName.DUE : PropertyName.DTEND));
-			if ( startProp != null ) {
-				recurrenceTime = AcalDateTime.fromAcalProperty(startProp).addDuration(adjustmentDuration);
-				override.setUniqueProperty(recurrenceTime.asProperty(PropertyName.DTSTART));
-			}
-			if ( endProp != null ) {
-				recurrenceTime = AcalDateTime.fromAcalProperty(endProp).addDuration(adjustmentDuration);
-				override.setUniqueProperty(recurrenceTime.asProperty((override instanceof VTodo ? PropertyName.DUE : PropertyName.DTEND)));
-			}
-		}
-		catch ( YouMustSurroundThisMethodInTryCatchOrIllEatYouException e ) { }
-		finally {
-			override.setPersistentOff();
-		}
-		return override;
+		return masterInstance;
 	}
 
-	
 	private static String checkKnownAliases( String tzId ) {
 		if ( tzId.equals(TZNAME_UTC) ) return tzId;
 		if ( tzId.equals("GMT") ) return TZNAME_UTC;
