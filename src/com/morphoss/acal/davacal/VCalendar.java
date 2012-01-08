@@ -40,7 +40,7 @@ import com.morphoss.acal.database.cachemanager.CacheObject;
 import com.morphoss.acal.dataservice.EventInstance;
 import com.morphoss.acal.dataservice.Resource;
 
-public class VCalendar extends VComponent {
+public class VCalendar extends VComponent implements Cloneable {
 	public static final String TAG = "aCal VCalendar";
 	
 	/**
@@ -95,8 +95,8 @@ public class VCalendar extends VComponent {
 	}
 
 
-	private VCalendar(ComponentParts splitter, Resource r, VComponent parent) {
-		super(splitter, parent);
+	public VCalendar(Resource r) {
+		super(r.getBlob(), null);
 		this.collectionId = r.getCollectionId();
 		this.resourceId = r.getResourceId();
 		this.earliestStart = r.getEarliestStart();
