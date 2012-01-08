@@ -1,6 +1,7 @@
 package com.morphoss.acal.dataservice;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -16,12 +17,13 @@ public class Collection {
 	private ContentValues cv;
 	private int collectionColour;
 	public boolean alarmsEnabled;
-	public final int collectionId;
+	public final long collectionId;
 	public final boolean useForEvents;
 	public final boolean useForTasks;
 	public final boolean useForJournal;
 	public final boolean useForAddressbook;
 	
+	private static boolean haveAllCollections = false;
 	private static final HashMap<Long,Collection> collections = new HashMap<Long,Collection>();
 	
 	public synchronized  static Collection getInstance(long id, Context context) {
@@ -33,15 +35,33 @@ public class Collection {
 		return instance;
 	}
 	
-	//Call this method if there are any changes to Colelctions table.
+	//Call this method if there are any changes to Collections table.
 	public synchronized static void flush() {
 		collections.clear();
+		haveAllCollections = false;
 	}
+
+	private synchronized static void fetchAllCollections(Context context) {
+		for( ContentValues row : DavCollections.getCollections( context.getContentResolver(), DavCollections.INCLUDE_ALL_COLLECTIONS ) ) {
+			Collection c = new Collection(row);
+			collections.put(c.collectionId, c);
+		}
+		haveAllCollections = true;
+	}
+
+	public static Map<Long,Collection> getAllCollections(Context context) {
+		if ( !haveAllCollections ) fetchAllCollections(context);
+
+		HashMap<Long,Collection> allCollections = new HashMap<Long,Collection>(collections.size());
+		for( Collection c : collections.values() ) allCollections.put(c.collectionId, c);
+		return allCollections;
+	}
+	
 	public Collection( ContentValues collectionRow ) {
 		cv = collectionRow;
 		setColour(cv.getAsString(DavCollections.COLOUR));
 		alarmsEnabled = (cv.getAsInteger(DavCollections.USE_ALARMS) == 1);
-		collectionId = cv.getAsInteger(DavCollections._ID);
+		collectionId = cv.getAsLong(DavCollections._ID);
 		useForEvents = (cv.getAsInteger(DavCollections.ACTIVE_EVENTS) == 1);
 		useForTasks = (cv.getAsInteger(DavCollections.ACTIVE_TASKS) == 1);
 		useForJournal = (cv.getAsInteger(DavCollections.ACTIVE_JOURNAL) == 1);
