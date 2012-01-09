@@ -39,6 +39,7 @@ import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.database.AcalDBHelper;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager;
 import com.morphoss.acal.database.resourcesmanager.requests.RRDeleteByCollectionId;
+import com.morphoss.acal.dataservice.Collection;
 
 /**
  * <P>This ContentProvider interfaces with the dav_server table in the database.</P>
@@ -237,29 +238,32 @@ public class Servers extends ContentProvider {
 		return count;
 	}
 
-	
+
+	/**
+	 * Delete the specified Server and all that sailed on her.
+	 * 
+	 * @param context
+	 * @param serverId
+	 */
 	public static void deleteServer( Context context, int serverId ) {
 		AcalDBHelper dbHelper = new AcalDBHelper(context);
 		SQLiteDatabase db = dbHelper.getWritableDatabase();
 
 		String[] params = new String[] { Integer.toString(serverId) };
 		
-		ArrayList<Integer> collectionIds = null;
-		
-		Cursor c = db.query(DavCollections.DATABASE_TABLE, 
-				new String[]{DavCollections._ID},
+		ArrayList<Long> collectionIds = null;
+		Cursor c = db.query(DavCollections.DATABASE_TABLE, new String[]{DavCollections._ID},
 				DavCollections.SERVER_ID+" = ? ", 
 				params, null,null,null);
 		
 		if (c.getCount() > 0) {
-			collectionIds = new ArrayList<Integer>();
-			for (c.moveToFirst(); c.isAfterLast(); c.moveToNext())
-				collectionIds.add(c.getInt(0));
+			collectionIds = new ArrayList<Long>();
+			for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext())
+				collectionIds.add(c.getLong(0));
 		}
 		c.close();
 		
-		
-		
+		db = dbHelper.getWritableDatabase();
 		db.beginTransaction();
 		try {
 			db.delete(PathSets.DATABASE_TABLE, PathSets.SERVER_ID+"=?", params );
@@ -268,17 +272,19 @@ public class Servers extends ContentProvider {
 			db.setTransactionSuccessful();
 		}
 		catch ( Exception e ){
-			Log.i(AcalDBHelper.TAG,Log.getStackTraceString(e));
+			Log.w(AcalDBHelper.TAG,"Unexpected error deleting server "+serverId, e);
 		}
 		finally {
 			db.endTransaction();
 			db.close();
 		}
 		
-		if (!collectionIds.isEmpty()) {
+		if ( !collectionIds.isEmpty() ) {
 			//Ask resource manager to delete resources
 			ResourceManager.getInstance(context).sendRequest(new RRDeleteByCollectionId(collectionIds));
 		}
+		
+		Collection.flush();
 
 	}
 
