@@ -451,8 +451,8 @@ public class AcalRepeatRule {
 			throw new IllegalArgumentException("The date: " + range.start.fmtIcal() + " is way too far in the future! (after " + futureish.fmtIcal() );
 		}
 		if ( Constants.debugRepeatRule && Constants.LOG_DEBUG ) {
-			 Log.println(Constants.LOGD,TAG, "Fetching instances in "+range.toString());
-			 Log.println(Constants.LOGD,TAG, "Base is: "+this.baseDate.fmtIcal()+", Rule is: "+repeatRule.toString() );
+			 Log.println(Constants.LOGD, TAG, "Appending instances in "+range.toString()+
+					 ", Base is: "+this.baseDate.fmtIcal()+", Rule is: "+repeatRule.toString() );
 		}
 
 		if ( repeatRule.until != null && repeatRule.until.before(range.start) )
@@ -477,16 +477,17 @@ public class AcalRepeatRule {
 						Log.println(Constants.LOGD,TAG, "Null before finding useful instance for " +repeatRule.toString() );
 					break;
 				}
-				if ( thisDate != null ) {
-					instance = eventTimes.get(thisDate.getEpoch());
-					if ( instance == null ) {
-						instance = getRecurrence(thisDate, ourVEvent);
-						eventTimes.put(thisDate.getEpoch(), instance);
-					}
+
+				instance = eventTimes.get(thisDate.getEpoch());
+				if ( instance == null ) {
+					instance = getRecurrence(thisDate, ourVEvent);
+					eventTimes.put(thisDate.getEpoch(), instance);
 				}
+
 				if ( Constants.debugRepeatRule && Constants.LOG_DEBUG ) {
-					Log.println(Constants.LOGD,TAG, "Skipping Instance: "+thisDate.fmtIcal()+" of " +repeatRule.toString() );
-					Log.println(Constants.LOGD,TAG, "Skipping Instance from: "+instance.dtstart.fmtIcal()+" - "+instance.dtend.fmtIcal() );
+					if ( instance.dtend.after(range.start) ) break;
+					Log.println(Constants.LOGD,TAG, "Skipping Instance with recurrenceId: "+thisDate.fmtIcal()+" of " +repeatRule.toString()+
+							"\n       scheduled from: "+instance.dtstart.fmtIcal()+" to "+instance.dtend.fmtIcal()+" which ends before "+ range.start);
 				}
 			}
 			while( thisDate != null && ! instance.dtend.after(range.start) && possiblyInfinite < 20 );
@@ -557,26 +558,7 @@ public class AcalRepeatRule {
 		if ( sourceVCalendar.masterHasOverrides() ) {
 			RecurrenceId instanceId = RecurrenceId.fromString( thisDate.toPropertyString(PropertyName.RECURRENCE_ID));
 			ourVEvent = sourceVCalendar.getChildFromRecurrenceId(instanceId);
-			RecurrenceId overrideId = (RecurrenceId) ourVEvent.getProperty("RECURRENCE-ID");
-
-			if ( overrideId != null ) {
-				AcalProperty pStart = ourVEvent.getProperty(PropertyName.DTSTART);
-				if ( pStart != null ) { 
-					AcalDateTime start = AcalDateTime.fromIcalendar(pStart.getValue(),
-											pStart.getParam("VALUE"), pStart.getParam("TZID"));
-					if ( start == null ) {
-						Log.w(TAG,"Couldn't find DTSTART for our VEVENT instance!");
-					}
-					else {
-						// modify our instance time by the offset from the calculated instance time
-						AcalDateTime recurBase = AcalDateTime.fromIcalendar(overrideId.getValue(),
-									overrideId.getParam("VALUE"),overrideId.getParam("TZID"));
-						AcalDuration delta = recurBase.getDurationTo(start);
-						instanceStart = AcalDateTime.addDuration(instanceStart,delta);
-						ourDuration = ourVEvent.getDuration();
-					}
-				}
-			}
+			ourDuration = ourVEvent.getDuration();
 		}
 
 		lastDuration = ourDuration;
