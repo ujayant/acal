@@ -186,17 +186,18 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 		if ( event == null ) return rowLayout;
 		
 		Collection eventCollection = Collection.getInstance(event.getCollectionId(), this.context);
-		
-		rowLayout.findViewById(R.id.EventListItemIcons).setBackgroundColor(eventCollection.getColour());
-		sideBar.setBackgroundColor(eventCollection.getColour()); 
-		title.setTextColor(eventCollection.getColour());
+		if ( eventCollection != null ) {
+			rowLayout.findViewById(R.id.EventListItemIcons).setBackgroundColor(eventCollection.getColour());
+			sideBar.setBackgroundColor(eventCollection.getColour()); 
+			title.setTextColor(eventCollection.getColour());
+		}
 
 		title.setText((event.getSummary() == null  || event.getSummary().length() <= 0 ) ? "Untitled" : event.getSummary());
 
 		if ( event.hasAlarms() ) {
 			ImageView alarmed = (ImageView) rowLayout.findViewById(R.id.EventListItemAlarmBell);
 			alarmed.setVisibility(View.VISIBLE);
-			if ( ! eventCollection.alarmsEnabled() ) alarmed.setBackgroundColor(0xb0ffffff);
+			if ( eventCollection != null && ! eventCollection.alarmsEnabled() ) alarmed.setBackgroundColor(0xb0ffffff);
 		}
 		if ( event.isRecuring() ) {
 			ImageView repeating = (ImageView) rowLayout.findViewById(R.id.EventListItemRepeating);
