@@ -26,7 +26,6 @@ public abstract class DatabaseTableManager {
 
 	protected boolean inTx = false;
 	protected boolean inReadTx = false;
-	private boolean sucTx = false;
 
 	public static final int OPEN_READ = 1;
 	public static final int OPEN_READTX = 2;
@@ -167,7 +166,6 @@ public abstract class DatabaseTableManager {
 			if (!inTx) throw new IllegalStateException("Tried to close a db transaction when not in one!");
 			inTx = false;
 			inReadTx = false;
-			sucTx = false;
 			openStackTraceInfo = null;
 			break;
 		default:
@@ -206,7 +204,6 @@ public abstract class DatabaseTableManager {
 	public void setTxSuccessful() {
 		if (!inTx || inReadTx || db == null) throw new IllegalStateException("Tried to set Tx Successful when not in (writeable) TX");
 		db.setTransactionSuccessful();
-		this.sucTx = true;
 	}
 
 	public void endTransaction() {
@@ -218,7 +215,8 @@ public abstract class DatabaseTableManager {
 	//Some useful generic methods
 
 	public int delete(String whereClause, String[] whereArgs) {
-		if (Constants.debugDatabaseManager && Constants.LOG_VERBOSE) Log.println(Constants.LOGV,TAG, "Deleting Row on "+this.getTableName()+":\n\tWhere: "+whereClause);
+		if (Constants.debugDatabaseManager && Constants.LOG_VERBOSE) Log.println(Constants.LOGV,TAG,
+				"Deleting Row on "+this.getTableName()+":\n\tWhere: "+whereClause);
 		beginWriteQuery();
 		//First select or the row i'ds
 		ArrayList<ContentValues> rows = this.query(null, whereClause, whereArgs, null,null,null);
