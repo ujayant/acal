@@ -209,33 +209,31 @@ public class ResourceManager implements Runnable {
 
 	// Request handlers
 	public void sendRequest(ResourceRequest request) {
-		if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG, "Received Write Request: "+request.getClass());
+		if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG,
+				"Received Write Request: "+request.getClass());
 		writeQueue.offer(request);
 		threadHolder.open();
+	}
+
+	private void offerAndBlockUntilProcessed(BlockingResourceRequest request) {
+		threadHolder.open();
+		int priority = Thread.currentThread().getPriority();
+		Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
+		while (!request.isProcessed()) {
+			try { Thread.sleep(10); } catch (Exception e) {	}
+		}
+		Thread.currentThread().setPriority(priority);
 	}
 	
 	public void sendBlockingRequest(BlockingResourceRequest request) {
 		if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG, "Received Write Request: "+request.getClass());
 		writeQueue.offer(request);
-		threadHolder.open();
-		int priority = Thread.currentThread().getPriority();
-		Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
-		while (!request.isProcessed()) {
-			try { Thread.sleep(10); } catch (Exception e) {	}
-		}
-		Thread.currentThread().setPriority(priority);
+		offerAndBlockUntilProcessed(request);
 	}
 
 	public <E> ResourceResponse<E> sendBlockingRequest(BlockingResourceRequestWithResponse<E> request) {
 		if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG, "Received Blocking Request: "+request.getClass());
-		writeQueue.offer(request);
-		threadHolder.open();
-		int priority = Thread.currentThread().getPriority();
-		Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
-		while (!request.isProcessed()) {
-			try { Thread.sleep(10); } catch (Exception e) {	}
-		}
-		Thread.currentThread().setPriority(priority);
+		offerAndBlockUntilProcessed(request);
 		return request.getResponse();
 	}
 
@@ -511,10 +509,17 @@ public class ResourceManager implements Runnable {
 		}
 	
 		public void deleteByCollectionId(long id) {
-			this.beginTransaction();
-			db.delete(PENDING_DATABASE_TABLE, PEND_COLLECTION_ID+" = ?", new String[]{id+""});
-			delete(COLLECTION_ID + " = ?", new String[] { id + "" });
-			this.setTxSuccessful();
+			if ( ResourceManager.DEBUG && Constants.LOG_DEBUG ) Log.println(Constants.LOGD, ResourceManager.TAG, 
+					"Deleting resources for collection "+id);
+			try {
+				this.beginTransaction();
+				db.delete(PENDING_DATABASE_TABLE, PEND_COLLECTION_ID+" = ?", new String[]{id+""});
+				delete(COLLECTION_ID + " = ?", new String[] { id + "" });
+				this.setTxSuccessful();
+			}
+			catch( Exception e) {
+				Log.e(TAG,"Error deleting resources for collection "+id, e);
+			}
 			this.endTransaction();
 		}
 
