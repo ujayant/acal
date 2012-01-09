@@ -35,7 +35,6 @@ import com.morphoss.acal.davacal.PropertyName;
 import com.morphoss.acal.davacal.VCard;
 import com.morphoss.acal.davacal.VComponent;
 import com.morphoss.acal.davacal.VComponentCreationException;
-import com.morphoss.acal.providers.DavResources;
 import com.morphoss.acal.service.connector.Base64Coder;
 
 public class VCardContact {
@@ -60,7 +59,7 @@ public class VCardContact {
 	public VCardContact( Resource resourceRow ) throws VComponentCreationException {
 		vCardRow = resourceRow;
 		try {
-			sourceCard = (VCard) VComponent.createComponentFromResource(resourceRow, collectionObject);
+			sourceCard = (VCard) VComponent.createComponentFromResource(resourceRow);
 			sourceCard.setEditable();
 		}
 		catch ( Exception e ) {
