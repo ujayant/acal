@@ -107,8 +107,8 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 	private CacheTableManager CTMinstance;
 
 
-	private CacheTableManager getECPInstance() {
-		if (instance == null) CTMinstance = new CacheTableManager();
+	private CacheTableManager getCTMInstance() {
+		if (CTMinstance == null) CTMinstance = new CacheTableManager();
 		return CTMinstance;
 	}
 	
@@ -119,7 +119,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 	 */
 	private CacheManager(Context context) {
 		this.context = context;
-		this.CTMinstance = this.getECPInstance();
+		this.CTMinstance = this.getCTMInstance();
 		rm = ResourceManager.getInstance(context);
 		loadState();
 		workerThread = new Thread(this);
