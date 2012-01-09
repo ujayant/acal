@@ -33,9 +33,9 @@ import android.util.Log;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
-import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
 import com.morphoss.acal.activity.EventEdit;
+import com.morphoss.acal.database.cachemanager.CacheManager;
 import com.morphoss.acal.database.cachemanager.CacheObject;
 import com.morphoss.acal.dataservice.EventInstance;
 import com.morphoss.acal.dataservice.Resource;
@@ -370,12 +370,14 @@ public class VCalendar extends VComponent implements Cloneable {
 				if ( rProperty == null )
 					rProperty = m.getProperty(PropertyName.RDATE);
 				if ( rProperty == null ) {
-					Log.println(Constants.LOGD,TAG, "Individual instance CacheObject being created.");
+					if ( Constants.LOG_DEBUG && CacheManager.DEBUG )
+						Log.println(Constants.LOGD,TAG, "Individual instance CacheObject being created for id "+resourceId+", Summary: "+m.getSummary());
 					eventList.add(new CacheObject(m,collectionId,resourceId));
 					return true;
 				}
 				else {
-					Log.println(Constants.LOGD,TAG, "Building CacheObject instances from RepeatRule.");
+					if ( Constants.LOG_DEBUG && CacheManager.DEBUG )
+						Log.println(Constants.LOGD,TAG, "Building CacheObject instances in "+calendarRange+" from RepeatRule for id "+resourceId+", Summary: "+m.getSummary());
 
 					if ( calendarRange != null ) {
 						AcalDateRange intersection = rangeRequested.getIntersection(this.calendarRange);
