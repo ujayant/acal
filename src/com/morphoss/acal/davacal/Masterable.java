@@ -56,7 +56,7 @@ public abstract class Masterable extends VComponent {
 		this(typeName, new VCalendar());
 	}
 
-	
+
 	protected Masterable(String typeName, CalendarInstance instance ) {
 		this(typeName, new VCalendar());
 		if ( instance.getStart() != null ) setStart(instance.getStart());
@@ -71,7 +71,7 @@ public abstract class Masterable extends VComponent {
 			Log.println(Constants.LOGD, TAG, "Constructed "+typeName+" blob\n"+getTopParent().getCurrentBlob());
 	}
 
-	
+
 	public static Masterable fromCalendarInstance( CalendarInstance instance ) {
 		if ( instance instanceof EventInstance )
 			return new VEvent((EventInstance) instance);
@@ -126,9 +126,9 @@ public abstract class Masterable extends VComponent {
 	public AcalDateTime getEnd() {
 		AcalProperty aProp = getProperty( (this instanceof VTodo ? PropertyName.DUE : PropertyName.DTEND));
 		if ( aProp != null ) return AcalDateTime.fromAcalProperty(aProp);
-		
+
 		AcalDateTime result = getStart(); 
-		
+
 		AcalProperty dProp = getProperty(PropertyName.DURATION);
 		if ( dProp == null ) {
 			if ( result != null && result.isDate() ) result.applyLocalTimeZone().addDays(1);
@@ -138,14 +138,14 @@ public abstract class Masterable extends VComponent {
 		return result.addDuration(AcalDuration.fromProperty(dProp));
 	}
 
-	
+
 	public AcalDateTime getStart() {
 		AcalProperty aProp = getProperty(PropertyName.DTSTART);
 		if ( aProp == null ) return null;
 		return AcalDateTime.fromAcalProperty(aProp);
 	}
 
-	
+
 	public RecurrenceId getRecurrenceId() {
 		AcalProperty aProp = getProperty(PropertyName.RECURRENCE_ID);
 		if ( aProp == null ) {
@@ -160,7 +160,7 @@ public abstract class Masterable extends VComponent {
 		return new RecurrenceId(aProp.getName(),aProp.getValue(),aProp.paramsBlob);
 	}
 
-	
+
 	public ArrayList<AcalAlarm> getAlarms() {
 		ArrayList<AcalAlarm> alarms = new ArrayList<AcalAlarm>(); 
 		try {
@@ -208,7 +208,7 @@ public abstract class Masterable extends VComponent {
 				VAlarm vAlarm = ((AcalAlarm) alarm).getVAlarm(this);
 				if ( Constants.debugVComponent ) Log.println(Constants.LOGD, TAG,
 						"Adding alarm component:\n"+vAlarm.getCurrentBlob());
-//				addChild(vAlarm);
+				//				addChild(vAlarm);
 			}
 		}
 		if ( Constants.debugVComponent ) Log.println(Constants.LOGD, TAG,
@@ -273,26 +273,21 @@ public abstract class Masterable extends VComponent {
 	}
 
 	public void setToRecurrence(RecurrenceId targetRecurrence) {
-		try {
-			setPersistentOn();
-			RecurrenceId thisRecurrence = getRecurrenceId();
-			AcalDateTime targetRecurrenceTime = AcalDateTime.fromAcalProperty(targetRecurrence);
-			AcalDuration adjustmentDuration = targetRecurrenceTime.getDurationTo(AcalDateTime.fromAcalProperty(thisRecurrence)); 
+		this.setEditable();
+		RecurrenceId thisRecurrence = getRecurrenceId();
+		AcalDateTime targetRecurrenceTime = AcalDateTime.fromAcalProperty(targetRecurrence);
+		AcalDuration adjustmentDuration = AcalDateTime.fromAcalProperty(thisRecurrence).getDurationTo(targetRecurrenceTime); 
 
-			AcalProperty startProp = getProperty(PropertyName.DTSTART); 
-			AcalProperty endProp = getProperty((this instanceof VTodo ? PropertyName.DUE : PropertyName.DTEND));
-			if ( startProp != null ) {
-				targetRecurrenceTime = AcalDateTime.fromAcalProperty(startProp).addDuration(adjustmentDuration);
-				setUniqueProperty(targetRecurrenceTime.asProperty(PropertyName.DTSTART));
-			}
-			if ( endProp != null ) {
-				targetRecurrenceTime = AcalDateTime.fromAcalProperty(endProp).addDuration(adjustmentDuration);
-				setUniqueProperty(targetRecurrenceTime.asProperty((this instanceof VTodo ? PropertyName.DUE : PropertyName.DTEND)));
-			}
+		AcalProperty startProp = getProperty(PropertyName.DTSTART); 
+		AcalProperty endProp = getProperty((this instanceof VTodo ? PropertyName.DUE : PropertyName.DTEND));
+		if ( startProp != null ) {
+			targetRecurrenceTime = AcalDateTime.fromAcalProperty(startProp).addDuration(adjustmentDuration);
+			setUniqueProperty(targetRecurrenceTime.asProperty(PropertyName.DTSTART));
 		}
-		catch ( YouMustSurroundThisMethodInTryCatchOrIllEatYouException e ) { }
-		finally {
-			setPersistentOff();
+		if ( endProp != null ) {
+			targetRecurrenceTime = AcalDateTime.fromAcalProperty(endProp).addDuration(adjustmentDuration);
+			setUniqueProperty(targetRecurrenceTime.asProperty((this instanceof VTodo ? PropertyName.DUE : PropertyName.DTEND)));
+
 		}
 	}
 }

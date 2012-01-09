@@ -11,19 +11,19 @@ import com.morphoss.acal.davacal.VEvent;
 public class EventInstance extends CalendarInstance {
 
 	public EventInstance(VEvent vEvent, long collectionId, long resourceId, AcalDateTime dtstart, AcalDuration duration) {
-		super(vEvent, collectionId, resourceId, dtstart, AcalDateTime.addDuration(dtstart, duration));
+		super(vEvent.getTopParent(), collectionId, resourceId, dtstart, AcalDateTime.addDuration(dtstart, duration));
 
 	}
 
 	public EventInstance(VEvent vEvent, long collectionId, long resourceId, AcalDateTime dtstart, AcalDateTime dtend ) {
-		super(vEvent, collectionId, resourceId,dtstart,dtend);
+		super(vEvent.getTopParent(), collectionId, resourceId,dtstart,dtend);
 	}
 	
 	private EventInstance(EVENT_BUILDER builder) throws BadlyConstructedEventException {
 		super(
 				builder.collectionId, -1, builder.start, builder.duration.getEndDate(builder.start),
 				builder.alarmList, null, builder.start.toPropertyString(PropertyName.RECURRENCE_ID),
-				builder.summary, null, null);
+				builder.summary, null, null, true);
 	}
 	
 	public static class EVENT_BUILDER {

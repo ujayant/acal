@@ -18,7 +18,7 @@ public class TodoInstance extends CalendarInstance {
 	 * @param due
 	 */
 	public TodoInstance( VTodo vTodo, long collectionId, long resourceId, AcalDateTime dtstart, AcalDateTime due ) {
-		super(vTodo, collectionId, resourceId, dtstart, due);
+		super(vTodo.getTopParent(), collectionId, resourceId, dtstart, due);
 
 		completed = vTodo.getCompleted();
 		percentComplete = vTodo.getPercentComplete();

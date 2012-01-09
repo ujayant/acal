@@ -151,7 +151,7 @@ public class Resource implements Parcelable {
 					modTime = AcalDateTime.fromMillis(Date.parse(cv.getAsString(ResourceTableManager.LAST_MODIFIED)));
 				} catch( Exception e ) {}
 				modTime.setTimeZone(AcalDateTime.UTC.getID());
-				needsSync = cv.getAsBoolean(ResourceTableManager.NEEDS_SYNC);
+				needsSync = cv.getAsInteger(ResourceTableManager.NEEDS_SYNC) ==1;
 				if ( needsSync == null ) needsSync = true;
 			}
 			catch (Exception e) {

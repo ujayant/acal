@@ -31,6 +31,7 @@ public abstract class CalendarInstance {
 	protected String summary;
 	protected String location;
 	protected String description;
+	protected boolean isFirstInstance;
 	
 
 	/**
@@ -46,7 +47,7 @@ public abstract class CalendarInstance {
 	 * @param description
 	 */
 	protected CalendarInstance(long cid, long rid, AcalDateTime start, AcalDateTime end, ArrayList<AcalAlarm> alarms, String rrule,
-			String rrid, String summary, String location, String description) {
+			String rrid, String summary, String location, String description, boolean firstInstance) {
 		
 		this.collectionId = cid; if (cid < 0) throw new IllegalArgumentException("Collection ID must be a valid collection!");
 		this.resourceId = (rid<0) ? -1 : rid;
@@ -58,11 +59,17 @@ public abstract class CalendarInstance {
 		this.summary = (summary == null) ? "" : summary; 
 		this.location = (location == null) ? "" : location; 
 		this.description = (description == null) ? "" : description; 
-		
-		
+		this.isFirstInstance = firstInstance;
 	}
-
-	protected CalendarInstance(Masterable masterInstance, long collectionId, long resourceId, AcalDateTime dtstart, AcalDateTime dtend) {
+	
+	protected CalendarInstance(VCalendar calendar, long collectionId, long resourceId, AcalDateTime dtstart, AcalDateTime dtend) {
+		this(calendar.getChildFromRecurrenceId(
+				RecurrenceId.fromString((dtstart == null ? (dtend == null ? null : dtend.toPropertyString(PropertyName.RECURRENCE_ID)) : dtstart.toPropertyString(PropertyName.RECURRENCE_ID)))
+		),collectionId, resourceId, dtstart, dtend, false);
+		this.isFirstInstance = calendar.getMasterChild().getStart().equals(dtstart);
+	}
+	
+	private CalendarInstance(Masterable masterInstance, long collectionId, long resourceId, AcalDateTime dtstart, AcalDateTime dtend, boolean delete) {
 		this(collectionId,
 				resourceId,
 				dtstart,
@@ -72,7 +79,8 @@ public abstract class CalendarInstance {
 				(dtstart == null ? (dtend == null ? null : dtend.toPropertyString(PropertyName.RECURRENCE_ID)) : dtstart.toPropertyString(PropertyName.RECURRENCE_ID)),
 				masterInstance.getSummary(), 
 				masterInstance.getLocation(),
-				masterInstance.getDescription());
+				masterInstance.getDescription(),
+				masterInstance.getStart().equals(dtstart));
 	}
 
 	public AcalDateTime getEnd() {
@@ -83,6 +91,10 @@ public abstract class CalendarInstance {
 	public AcalDuration getDuration() { 
 		if (dtstart == null) return null;
 		return dtstart.getDurationTo(getEnd()); 
+	}
+	
+	public boolean isFirstInstance() {
+		return this.isFirstInstance;
 	}
 	
 	public AcalDateTime getStart() { return (dtstart  == null) ? null : this.dtstart.clone(); };
