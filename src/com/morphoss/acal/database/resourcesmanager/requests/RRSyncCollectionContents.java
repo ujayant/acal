@@ -27,9 +27,9 @@ import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.database.DMQueryBuilder;
 import com.morphoss.acal.database.DMQueryList;
 import com.morphoss.acal.database.DatabaseTableManager.QUERY_ACTION;
-import com.morphoss.acal.database.resourcesmanager.ResourceProcessingException;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager.WriteableResourceTableManager;
+import com.morphoss.acal.database.resourcesmanager.ResourceProcessingException;
 import com.morphoss.acal.database.resourcesmanager.requesttypes.ResourceRequest;
 import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.providers.Servers;
@@ -74,7 +74,6 @@ public class RRSyncCollectionContents implements ResourceRequest {
 	private aCalService			context;
 	private boolean	synchronisationForced			= false;
 	private AcalRequestor 		requestor			= null;
-	private boolean	resourcesWereSynchronized;
 	private boolean	syncWasCompleted;
 	private int	errorCounter = 0;
 	
@@ -142,7 +141,6 @@ public class RRSyncCollectionContents implements ResourceRequest {
 
 		long start = System.currentTimeMillis();
 		try {
-			resourcesWereSynchronized = false;
 			syncWasCompleted = true;
 
 			// step 1 are there any 'needs_sync' in dav_resources?

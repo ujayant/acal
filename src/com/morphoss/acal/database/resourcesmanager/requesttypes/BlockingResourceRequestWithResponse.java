@@ -22,10 +22,5 @@ public abstract class BlockingResourceRequestWithResponse<E> extends ResourceReq
 	public ResourceResponse<E> getResponse() {
 		return this.response;
 	}
-	
-	
-	
-	
-
-	
+		
 }

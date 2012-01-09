@@ -8,15 +8,15 @@ import com.morphoss.acal.database.resourcesmanager.requesttypes.ResourceRequest;
 
 public class RRDeleteByCollectionId implements ResourceRequest {
 
-	private ArrayList<Integer> ids;
+	private ArrayList<Long> ids;
 	
-	public RRDeleteByCollectionId(ArrayList<Integer> ids) {
-		this.ids =ids;
+	public RRDeleteByCollectionId(ArrayList<Long> ids) {
+		this.ids = ids;
 	}
 	
 	@Override
 	public void process(WriteableResourceTableManager processor)	throws ResourceProcessingException {
-		for (int id : ids) processor.deleteByCollectionId(id);
+		for (long id : ids) processor.deleteByCollectionId(id);
 	}
 
 }

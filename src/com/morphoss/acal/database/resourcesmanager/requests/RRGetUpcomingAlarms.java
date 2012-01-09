@@ -14,7 +14,6 @@ import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTable
 import com.morphoss.acal.database.resourcesmanager.ResourceProcessingException;
 import com.morphoss.acal.database.resourcesmanager.ResourceResponse;
 import com.morphoss.acal.database.resourcesmanager.ResourceResponseListener;
-import com.morphoss.acal.database.resourcesmanager.requests.RRGetUpcomingAlarms.RRGetUpcomingAlarmsResult;
 import com.morphoss.acal.database.resourcesmanager.requesttypes.ReadOnlyResourceRequestWithResponse;
 import com.morphoss.acal.dataservice.Collection;
 import com.morphoss.acal.dataservice.Resource;
