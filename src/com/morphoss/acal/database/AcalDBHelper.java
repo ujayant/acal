@@ -48,7 +48,7 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 	/**
 	 * The version of this database. Used to determine if an upgrade is required.
 	 */
-	public static final int DB_VERSION = 18;
+	public static final int DB_VERSION = 19;
 	
 	/**
 	 * <p>The dav_server Table as stated in the specification.</p>
@@ -228,7 +228,21 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 			+",closed BOOLEAN"
 		+");";
 
+	public static final String ALARM_TABLE_SQL = 
+		"CREATE TABLE alarms ("
+	        +"_id INTEGER PRIMARY KEY AUTOINCREMENT"
+			+",ttf NUMERIC"
+			+",rid NUMERIC"
+			+",rrid TEXT"
+			+",state NUMERIC"
+		+");";
 	
+	public static final String ALARM_META_TABLE_SQL = 
+		"CREATE TABLE alarm_meta ("
+	        +"_id INTEGER PRIMARY KEY AUTOINCREMENT"
+			+",closed BOOLEAN"
+		+");";
+
 	/**
 	 * Visible single argument constructor. Calls super with default values.
 	 * 
@@ -265,6 +279,8 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 		db.execSQL(RESOURCE_CACHE_META_TABLE_SQL);
 		
 		db.execSQL(SHOW_UPCOMING_WIDGET_TABLE_SQL);
+		db.execSQL(ALARM_TABLE_SQL);
+		db.execSQL(ALARM_META_TABLE_SQL);
 		
 		db.setTransactionSuccessful();
 		db.endTransaction();
@@ -339,6 +355,11 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 		if (oldVersion == 17) {
 			db.execSQL("DROP TABLE pending_change");
 			db.execSQL(PENDING_CHANGE_TABLE_SQL);
+			oldVersion++;
+		}
+		if (oldVersion == 18) {
+			db.execSQL(ALARM_TABLE_SQL);
+			db.execSQL(ALARM_META_TABLE_SQL);
 			oldVersion++;
 		}
 		

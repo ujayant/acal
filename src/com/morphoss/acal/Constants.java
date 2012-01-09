@@ -46,7 +46,7 @@ public class Constants {
 	public static final Pattern	matchSegmentName	= Pattern.compile("([^/]+)$");
 
 	/** Set this to false and all debug logging is turned off */
-	public static final boolean DEBUG_MODE = true;
+	public static final boolean DEBUG_MODE = false;
 
 	/** How much stuff to spit out into the logs */
 	public static final boolean LOG_VERBOSE = false && DEBUG_MODE;		//Very verbose play by play execution information

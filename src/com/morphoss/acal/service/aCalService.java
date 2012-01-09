@@ -38,6 +38,7 @@ import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.activity.AlarmActivity;
+import com.morphoss.acal.database.alarmmanager.AlarmQueueManager;
 import com.morphoss.acal.database.cachemanager.CacheManager;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager;
 import com.morphoss.acal.davacal.AcalAlarm;
@@ -54,6 +55,7 @@ public class aCalService extends Service {
 	private final static long serviceStartedAt = System.currentTimeMillis();
 	private ResourceManager rm;
 	private CacheManager cm;
+	private AlarmQueueManager am;
 
 	// Alarms stuff in here temporarily but should be moved.
 	private static final AcalDateTime MIN_ALARM_AGE = AcalDateTime.addDuration(new AcalDateTime(), new AcalDuration("-PT4H"));	// now -4 hours
@@ -89,6 +91,7 @@ public class aCalService extends Service {
 
 		rm = ResourceManager.getInstance(this);
 		cm = CacheManager.getInstance(this);
+		am = AlarmQueueManager.getInstance(this);
 		
 		worker = WorkerClass.getInstance(this);
 				
@@ -147,6 +150,7 @@ public class aCalService extends Service {
 		//Ensure database is closed properly and worker is terminated.
 		if ( worker != null ) worker.killWorker();
 		worker = null;
+		am.close();
 		rm.close();
 		cm.close();
 		cm = null;
