@@ -38,7 +38,6 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 
-import com.morphoss.acal.DatabaseChangedEvent;
 import com.morphoss.acal.R;
 import com.morphoss.acal.ServiceManager;
 import com.morphoss.acal.providers.DavCollections;
@@ -46,7 +45,6 @@ import com.morphoss.acal.service.ServiceJob;
 import com.morphoss.acal.service.SyncChangesToServer;
 import com.morphoss.acal.service.SyncCollectionContents;
 import com.morphoss.acal.service.WorkerClass;
-import com.morphoss.acal.service.aCalService;
 
 /**
  * <p>This activity allows the user to configure a single collection. It MUST be handed a ContentValues object with as
@@ -225,7 +223,7 @@ public class CollectionConfiguration extends PreferenceActivity implements OnPre
 	public void saveData() {
 		Uri provider = ContentUris.withAppendedId(DavCollections.CONTENT_URI, collectionData.getAsInteger(DavCollections._ID));
 		getContentResolver().update(provider, collectionData, null, null);
-		aCalService.databaseDispatcher.dispatchEvent(new DatabaseChangedEvent(DatabaseChangedEvent.DATABASE_RECORD_UPDATED, DavCollections.class, collectionData));
+
 		//notify caller of change
 		Intent res = new Intent();
 		res.putExtra("UpdateRequired",collectionData.getAsInteger(DavCollections._ID) );

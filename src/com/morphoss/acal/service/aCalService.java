@@ -33,8 +33,6 @@ import android.os.RemoteException;
 import android.util.Log;
 
 import com.morphoss.acal.Constants;
-import com.morphoss.acal.DatabaseChangedEvent;
-import com.morphoss.acal.DatabaseEventDispatcher;
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
@@ -51,7 +49,7 @@ public class aCalService extends Service {
 	private WorkerClass worker;
 	public static final String TAG = "aCalService";
 	public static String aCalVersion = "aCal/1.0"; // Updated at start of program.
-	public static final DatabaseEventDispatcher databaseDispatcher = new DatabaseEventDispatcher();
+	//public static final DatabaseEventDispatcher databaseDispatcher = new DatabaseEventDispatcher();
 	
 	private final static long serviceStartedAt = System.currentTimeMillis();
 	private ResourceManager rm;
@@ -206,7 +204,7 @@ public class aCalService extends Service {
 
 		@Override
 		public void fullResync() throws RemoteException {
-			databaseDispatcher.dispatchEvent(new DatabaseChangedEvent(DatabaseChangedEvent.DATABASE_INVALIDATED,null,null));
+			//databaseDispatcher.dispatchEvent(new DatabaseChangedEvent(DatabaseChangedEvent.DATABASE_INVALIDATED,null,null));
 			ServiceJob[] jobs = new ServiceJob[2];
 			jobs[0] = new SynchronisationJobs(SynchronisationJobs.HOME_SET_DISCOVERY);
 			jobs[1] = new SynchronisationJobs(SynchronisationJobs.HOME_SETS_UPDATE);

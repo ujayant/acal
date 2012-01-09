@@ -1,7 +1,6 @@
 package com.morphoss.acal.database.resourcesmanager;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -12,7 +11,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
-import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.ConditionVariable;
 import android.util.Log;
@@ -28,6 +26,7 @@ import com.morphoss.acal.database.DMUpdateQuery;
 import com.morphoss.acal.database.DataChangeEvent;
 import com.morphoss.acal.database.DatabaseTableManager;
 import com.morphoss.acal.database.cachemanager.CacheManager;
+import com.morphoss.acal.database.resourcesmanager.requesttypes.BlockingResourceRequest;
 import com.morphoss.acal.database.resourcesmanager.requesttypes.BlockingResourceRequestWithResponse;
 import com.morphoss.acal.database.resourcesmanager.requesttypes.ReadOnlyBlockingRequestWithResponse;
 import com.morphoss.acal.database.resourcesmanager.requesttypes.ReadOnlyResourceRequest;
@@ -214,6 +213,18 @@ public class ResourceManager implements Runnable {
 		writeQueue.offer(request);
 		threadHolder.open();
 	}
+	
+	public void sendBlockingRequest(BlockingResourceRequest request) {
+		if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG, "Received Write Request: "+request.getClass());
+		writeQueue.offer(request);
+		threadHolder.open();
+		int priority = Thread.currentThread().getPriority();
+		Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
+		while (!request.isProcessed()) {
+			try { Thread.sleep(10); } catch (Exception e) {	}
+		}
+		Thread.currentThread().setPriority(priority);
+	}
 
 	public <E> ResourceResponse<E> sendBlockingRequest(BlockingResourceRequestWithResponse<E> request) {
 		if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG, "Received Blocking Request: "+request.getClass());
@@ -252,43 +263,46 @@ public class ResourceManager implements Runnable {
 	public interface WriteableResourceTableManager extends ReadOnlyResourceTableManager {
 		public long insert(String nullColumnHack, ContentValues values);
 		public int update(ContentValues values, String whereClause,	String[] whereArgs);
+		
 		public void deleteByCollectionId(long id);
 		public void deleteInvalidCollectionRecord(long collectionId);
 		public void deletePendingChange(Integer pendingId);
+		public long addPending(long l, long m, String oldBlob, String newBlob, String uid);
 		public void updateCollection(long collectionId, ContentValues collectionData);
-		public boolean doSyncListAndToken(DMQueryList newChangeList, long collectionId, String syncToken);
-		public boolean syncToServer(DMAction action, long resourceId, Integer pendingId);
+		
 		public DMQueryList getNewQueryList();
 		public DMDeleteQuery getNewDeleteQuery(String whereClause, String[] whereArgs);
 		public DMInsertQuery getNewInsertQuery(String nullColumnHack, ContentValues values);
 		public DMUpdateQuery getNewUpdateQuery(ContentValues values, String whereClause, String[] whereArgs);
 		public DMQueryBuilder getNewQueryBuilder();
 		public boolean processActions(DMQueryList queryList);
-		public long addPending(long l, long m, String oldBlob, String newBlob, String uid);
+		
+		public boolean doSyncListAndToken(DMQueryList newChangeList, long collectionId, String syncToken);
+		public boolean syncToServer(DMAction action, long resourceId, Integer pendingId);
+		
+		
 	}
 
 	public interface ReadOnlyResourceTableManager {
 		public void process(ResourceRequest r);
-		public ConnectivityManager getConectivityService();
-		public ContentValues getRow(long rid);
-		public Context getContext();
-		public ContentValues getResourceInCollection(long collectionId,	String name);
-		public Map<String, ContentValues> findSyncNeededResources(long collectionId);
-		public Map<String, ContentValues> getCurrentResourceMap(long collectionId);
-		public ContentValues getServerData(int serverId);
-		public ContentValues getCollectionRow(long collectionId);
-		public boolean getCollectionIdByPath(ContentValues values, long serverId, String collectionPath );
-		public boolean marshallChangesToSync(ArrayList<ContentValues> pendingChangesList);
-		public boolean marshallCollectionsToSync(ArrayList<ContentValues> pendingChangesList);
+		
 		public ArrayList<ContentValues> query(String[] columns, String selection, String[] selectionArgs,
 				String groupBy, String having, String orderBy);
+		
+		public Map<String, ContentValues> contentQueryMap(String selection, String[] selectionArgs);
+		public ContentValues getResource(long rid);
+		public ContentValues getResourceInCollection(long collectionId,	String name);
 		public ArrayList<ContentValues> getPendingResources();
-
+		public Context getContext();
+		
+		//These should provide a similar interface to this class at some point.
+		public ContentValues getServerData(int serverId);
+		public ContentValues getCollectionRow(long collectionId);
+		
 	}
 
-	// This special class provides encapsulation of database operations as is
-	// set up to enforce
-	// Scope. I.e. ONLY ResourceManager can start a request
+	// This special class provides encapsulation of database operations as its
+	// set up to enforce Scope. I.e. ONLY ResourceManager can start a request
 	public class ResourceTableManager extends DatabaseTableManager implements WriteableResourceTableManager, ReadOnlyResourceTableManager {
 
 		// Resources Table Constants
@@ -382,14 +396,11 @@ public class ResourceManager implements Runnable {
 			if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG,"End Processing");
 		}
 
-		public ConnectivityManager getConectivityService() {
-			return (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-		}
 
 		/**
 		 * Method to retrieve a particular database row for a given resource ID.
 		 */
-		public ContentValues getRow(long rid) {
+		public ContentValues getResource(long rid) {
 			ArrayList<ContentValues> res = this.query( null, RESOURCE_ID + " = ?",	new String[] { rid + "" }, null, null, null);
 			if (res == null || res.isEmpty()) return null;
 			return res.get(0);
@@ -469,74 +480,36 @@ public class ResourceManager implements Runnable {
 		}
 
 		/**
-		 * <p>
-		 * Finds the resources which have been marked as needing synchronisation
-		 * in our local database.
-		 * </p>
+		 * Provides a content query map for legacy classes.
 		 * 
-		 * @return A map of String/Data which are the hrefs we need to sync
+		 * @Deprecated
 		 */
-		public Map<String, ContentValues> findSyncNeededResources(long collectionId) {
-			long start = System.currentTimeMillis();
-			Map<String, ContentValues> originalData = null;
-
-			// step 1a get list of resources from db
-			start = System.currentTimeMillis();
-			boolean needEndTx = false;
-
-			if ( db == null ) {
-				beginReadTransaction();
-				needEndTx = true;
-			}
-			Cursor mCursor = db.query(RESOURCE_DATABASE_TABLE, null,
-					COLLECTION_ID + " = ? AND (" + NEEDS_SYNC + " = 1 OR " + RESOURCE_DATA + " IS NULL)",
-					new String[] { collectionId + "" }, null, null, null);
+		@Deprecated
+		public Map<String, ContentValues> contentQueryMap(String selection, String[] selectionArgs) {
+			Map<String, ContentValues> result = null;
+			beginReadTransaction();
+			Cursor mCursor = db.query(
+					RESOURCE_DATABASE_TABLE, 
+					null,
+					selection,
+					selectionArgs, 
+					null, null, null);
 			try {
 				ContentQueryMap cqm = new ContentQueryMap(mCursor,
 						ResourceTableManager.RESOURCE_NAME, false, null);
 				cqm.requery();
-				originalData = cqm.getRows();
+				result = cqm.getRows();
 			}
 			catch( Exception e ) {
 				Log.i(TAG,Log.getStackTraceString(e));
 			}
 			finally {
 				if ( mCursor != null && !mCursor.isClosed() ) mCursor.close();
-				if (needEndTx) this.endTransaction();
+				this.endTransaction();
 			}
-			
-			if (Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents)
-				if ( ResourceManager.DEBUG ) Log.println(Constants.LOGV, TAG,
-						"DavCollections ContentQueryMap retrieved in "
-						+ (System.currentTimeMillis() - start) + "ms");
-			return originalData;
+			return result;
 		}
-
-		/**
-		 * Returns a Map of href to database record for the current database
-		 * state.
-		 * 
-		 * @return
-		 */
-		public Map<String, ContentValues> getCurrentResourceMap(long collectionId) {
-			beginReadQuery();
-
-			Cursor resourceCursor = db.query(RESOURCE_DATABASE_TABLE,null, COLLECTION_ID + " = ? ", new String[] { collectionId + "" }, null, null, null);
-			if (!resourceCursor.moveToFirst()) {
-				resourceCursor.close();
-				endQuery();
-				return new HashMap<String, ContentValues>();
-			}
-			ContentQueryMap cqm = new ContentQueryMap(resourceCursor,
-					ResourceTableManager.RESOURCE_NAME, false, null);
-			cqm.requery();
-			Map<String, ContentValues> databaseList = cqm.getRows();
-			cqm.close();
-			resourceCursor.close();
-			endQuery();
-			return databaseList;
-		}
-
+	
 		public void deleteByCollectionId(long id) {
 			this.beginTransaction();
 			db.delete(PENDING_DATABASE_TABLE, PEND_COLLECTION_ID+" = ?", new String[]{id+""});
@@ -603,51 +576,6 @@ public class ResourceManager implements Runnable {
 		public ContentValues getCollectionRow(long collectionId) {
 			return DavCollections.getRow(collectionId, context.getContentResolver());
 		}
-
-		public boolean getCollectionIdByPath(ContentValues values, long serverId, String collectionPath ) {
-			Cursor cursor = context.getContentResolver().query(DavCollections.CONTENT_URI, null, 
-					DavCollections.SERVER_ID + "=? AND " + DavCollections.COLLECTION_PATH + "=?",
-					new String[] { "" + serverId, collectionPath }, null);
-			if ( cursor.moveToFirst() ) {
-				DatabaseUtils.cursorRowToContentValues(cursor, values);
-				cursor.close();
-				return true;
-			}
-			cursor.close();
-			return false;
-		}
-
-
-		/**
-		 * Fills pendingChangesList with all records currently in the pending_changes table.
-		 * @return Whether there are any records.
-		 */
-		public boolean marshallChangesToSync(ArrayList<ContentValues> pendingChangesList) {
-			this.beginReadQuery();
-			Cursor pendingCursor = db.query(PENDING_DATABASE_TABLE, null, null, null, null, null, null);
-			if ( DEBUG ) Log.println(Constants.LOGD, TAG, "Found "+pendingCursor.getCount()+" local rows to sync.");
-			try {
-				if ( pendingCursor.getCount() > 0 ) {
-					pendingCursor.moveToFirst();
-					do {
-						ContentValues cv = new ContentValues();
-						DatabaseUtils.cursorRowToContentValues(pendingCursor, cv);
-						pendingChangesList.add(cv);
-					}
-					while( pendingCursor.moveToNext() );
-				}
-			}
-			catch( Exception e ) {
-				Log.w(TAG,"Error fetching pending changes",e);
-			}
-			finally {
-				if ( pendingCursor != null && !pendingCursor.isClosed() ) pendingCursor.close();
-			}
-			this.endQuery();
-			if ( DEBUG ) Log.println(Constants.LOGD, TAG, "Found "+pendingChangesList.size()+" local changes to sync.");
-			return !pendingChangesList.isEmpty();
-		}
-
 		
 		public void deletePendingChange(Integer pendingId) {
 			this.beginWriteQuery();
@@ -661,30 +589,6 @@ public class ResourceManager implements Runnable {
 			db.update(DavCollections.DATABASE_TABLE, collectionData, DavCollections._ID+" =?", new String[]{collectionId+""});
 			this.endQuery();
 
-		}
-		public boolean marshallCollectionsToSync(ArrayList<ContentValues> pendingChangesList) {
-			Cursor pendingCursor = context.getContentResolver().query(DavCollections.CONTENT_URI, null,
-					DavCollections.SYNC_METADATA+"=1 AND ("+DavCollections.ACTIVE_EVENTS
-					+"=1 OR "+DavCollections.ACTIVE_TASKS
-					+"=1 OR "+DavCollections.ACTIVE_JOURNAL
-					+"=1 OR "+DavCollections.ACTIVE_ADDRESSBOOK+"=1) "
-					,
-					null, null);
-			if ( pendingCursor.getCount() == 0 ) {
-				pendingCursor.close();
-				return false;
-			}
-
-			pendingChangesList = new ArrayList<ContentValues>();
-			while( pendingCursor.moveToNext() ) {
-				ContentValues cv = new ContentValues();
-				DatabaseUtils.cursorRowToContentValues(pendingCursor, cv);
-				pendingChangesList.add(cv);
-			}
-
-			pendingCursor.close();
-
-			return ( pendingChangesList.size() != 0 );
 		}
 
 		@Override

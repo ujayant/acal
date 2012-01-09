@@ -26,7 +26,6 @@ import java.nio.channels.FileChannel;
 import android.util.Log;
 
 import com.morphoss.acal.Constants;
-import com.morphoss.acal.DatabaseChangedEvent;
 import com.morphoss.acal.database.AcalDBHelper;
 
 public class DebugDatabase extends ServiceJob {
@@ -65,7 +64,6 @@ public class DebugDatabase extends ServiceJob {
 			AcalDBHelper dbHelper = new AcalDBHelper(this.context);
 			dbHelper.onUpgrade(dbHelper.getWritableDatabase(), -1, -1);
 			dbHelper.close();
-			aCalService.databaseDispatcher.dispatchEvent(new DatabaseChangedEvent(DatabaseChangedEvent.DATABASE_INVALIDATED,null,null));
 			if (Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG,"Reversion complete.");
 		} catch (Exception e) {
 			Log.e(TAG,"Error reverting database: "+e.getMessage());

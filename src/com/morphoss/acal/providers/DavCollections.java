@@ -34,9 +34,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.morphoss.acal.Constants;
-import com.morphoss.acal.DatabaseChangedEvent;
 import com.morphoss.acal.database.AcalDBHelper;
-import com.morphoss.acal.service.aCalService;
 
 /**
  * <p>This ContentProvider interfaces with the dav_collection table in the database.</p>
@@ -443,12 +441,6 @@ CREATE TABLE dav_collection (
 		if (res < 1 && Constants.LOG_DEBUG) Log.d(TAG, "Update failed!");
 		else if (res > 1) Log.e(TAG,"collectionEnabled() updates more than one row!!! "+res+" rows affected.");
 		else if (Constants.LOG_DEBUG) Log.d(TAG,"Collection active status successfully changed.");
-		try {
-			aCalService.databaseDispatcher.dispatchEvent(new DatabaseChangedEvent(DatabaseChangedEvent.DATABASE_RECORD_UPDATED, DavCollections.class, toSync));
-		} catch (Exception e) {
-			Log.e(TAG,"Exception changing active status of collection: "+e+"\n"+Log.getStackTraceString(e));
-			return false;
-		}
 		return (res > 0);
 	}
 }

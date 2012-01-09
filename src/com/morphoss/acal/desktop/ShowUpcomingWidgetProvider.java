@@ -24,7 +24,6 @@ import android.widget.RemoteViews;
 
 import com.morphoss.acal.AcalDebug;
 import com.morphoss.acal.Constants;
-import com.morphoss.acal.DatabaseChangedEvent;
 import com.morphoss.acal.R;
 import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.acaltime.AcalDateTime;
@@ -32,7 +31,6 @@ import com.morphoss.acal.activity.EventView;
 import com.morphoss.acal.database.AcalDBHelper;
 import com.morphoss.acal.dataservice.Collection;
 import com.morphoss.acal.dataservice.EventInstance;
-import com.morphoss.acal.service.aCalService;
 
 public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 	
@@ -187,7 +185,7 @@ public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 		int res = db.delete(TABLE, FIELD_DTEND+" <= ?", new String[]{""+endTime});
 		db.close();
 		dbhelper.close();
-		if (res >  0) aCalService.databaseDispatcher.dispatchEvent(new DatabaseChangedEvent(DatabaseChangedEvent.DATABASE_SHOW_UPCOMING_WIDGET_UPDATE,null,null));
+		//if (res >  0) aCalService.databaseDispatcher.dispatchEvent(new DatabaseChangedEvent(DatabaseChangedEvent.DATABASE_SHOW_UPCOMING_WIDGET_UPDATE,null,null));
 		if (Constants.LOG_DEBUG && Constants.debugWidget)  Log.println(Constants.LOGD, TAG,
 				"Deleted "+res+" event(s) that have ended.");
 	}

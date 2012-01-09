@@ -108,7 +108,7 @@ public class Resource implements Parcelable {
 		cv.put(ResourceTableManager.ETAG,etag);
 		cv.put(ResourceTableManager.CONTENT_TYPE,contentType);
 		cv.put(ResourceTableManager.RESOURCE_DATA,data);
-		cv.put(ResourceTableManager.NEEDS_SYNC,needsSync);
+		cv.put(ResourceTableManager.NEEDS_SYNC,needsSync ? 1 : 0);
 		cv.put(ResourceTableManager.EARLIEST_START, earliestStart);
 		cv.put(ResourceTableManager.LATEST_END, latestEnd);
 		cv.put(ResourceTableManager.EFFECTIVE_TYPE, effectiveType);

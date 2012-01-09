@@ -22,7 +22,6 @@ import android.util.Log;
 
 import com.morphoss.acal.AcalDebug;
 import com.morphoss.acal.Constants;
-import com.morphoss.acal.DatabaseChangedEvent;
 import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.database.DMQueryBuilder;
@@ -147,7 +146,9 @@ public class RRSyncCollectionContents implements ResourceRequest {
 			syncWasCompleted = true;
 
 			// step 1 are there any 'needs_sync' in dav_resources?
-			Map<String, ContentValues> originalData = processor.findSyncNeededResources(collectionId);
+			Map<String, ContentValues> originalData = processor.contentQueryMap(
+					ResourceTableManager.COLLECTION_ID + " = ? AND (" + ResourceTableManager.NEEDS_SYNC + " = 1 OR " + ResourceTableManager.RESOURCE_DATA + " IS NULL)",
+					new String[] { collectionId + "" });
 
 			if ( originalData.size() < 1 && ! timeToRun() ) {
 				scheduleNextInstance();
@@ -157,9 +158,6 @@ public class RRSyncCollectionContents implements ResourceRequest {
 
 			if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD,TAG, 
 						"Starting sync on collection " + this.collectionPath + " (" + this.collectionId + ")");
-
-			aCalService.databaseDispatcher.dispatchEvent(new DatabaseChangedEvent(
-					DatabaseChangedEvent.DATABASE_BEGIN_RESOURCE_CHANGES, DavCollections.class, collectionData));
 
 			if (originalData.size() < 1) {
 				if (Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents ) Log.println(Constants.LOGV,TAG,
@@ -171,7 +169,9 @@ public class RRSyncCollectionContents implements ResourceRequest {
 			if ( (serverData.getAsInteger(Servers.HAS_SYNC) != null && (1 == serverData.getAsInteger(Servers.HAS_SYNC))
 										? doRegularSyncReport()
 										: doRegularSyncPropfind() ) ) {
-				originalData = processor.findSyncNeededResources(collectionId);
+				originalData =  processor.contentQueryMap(
+						ResourceTableManager.COLLECTION_ID + " = ? AND (" + ResourceTableManager.NEEDS_SYNC + " = 1 OR " + ResourceTableManager.RESOURCE_DATA + " IS NULL)",
+						new String[] { collectionId + "" });
 				syncMarkedResources(originalData);
 			}
 
@@ -187,22 +187,12 @@ public class RRSyncCollectionContents implements ResourceRequest {
 				}
 				processor.updateCollection(collectionId, collectionData);
 			}
-
-			if ( resourcesWereSynchronized ) {
-				aCalService.databaseDispatcher.dispatchEvent(
-							new DatabaseChangedEvent(DatabaseChangedEvent.DATABASE_RECORD_UPDATED,
-															DavCollections.class, collectionData)
-						);
-			}
 		}
 		catch (Exception e) {
 			Log.e(TAG, "Error syncing collection " + this.collectionId + ": " + e.getMessage());
 			Log.e(TAG, Log.getStackTraceString(e));
 		}
-		finally {
-			aCalService.databaseDispatcher.dispatchEvent(new DatabaseChangedEvent(
-						DatabaseChangedEvent.DATABASE_END_RESOURCE_CHANGES, DavCollections.class, collectionData));
-		}
+	
 		long finish = System.currentTimeMillis();
 		if (Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents )
 			Log.println(Constants.LOGV,TAG, "Collection sync finished in " + (finish - start) + "ms");
@@ -485,7 +475,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 			return false;
 		}
 
-		Map<String, ContentValues> ourResourceMap = processor.getCurrentResourceMap(collectionId);
+		Map<String, ContentValues> ourResourceMap = processor.contentQueryMap(ResourceTableManager.COLLECTION_ID + " = ? ", new String[] { collectionId + "" });
 		//ArrayList<ResourceModification> changeList = new ArrayList<ResourceModification>();
 		DMQueryList queryList = processor.getNewQueryList();
 

@@ -34,7 +34,6 @@ import android.net.Uri;
 import android.util.Log;
 
 import com.morphoss.acal.Constants;
-import com.morphoss.acal.DatabaseChangedEvent;
 import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.davacal.VComponent;
@@ -222,10 +221,6 @@ public class HomeSetsUpdate extends ServiceJob {
 					}
 					deleteIn.append(d.getValue().getAsInteger(DavCollections._ID));
 
-					aCalService.databaseDispatcher.dispatchEvent(
-								new DatabaseChangedEvent(DatabaseChangedEvent.DATABASE_RECORD_DELETED,
-											DavCollections.class,
-											d.getValue()) );
 				}
 				deleteIn.append(")");
 				if ( Constants.LOG_DEBUG ) { Log.d(TAG,"Deleting collections from DB where:");
@@ -408,26 +403,24 @@ public class HomeSetsUpdate extends ServiceJob {
 				mCursor = cr.query( cr.insert(DavCollections.CONTENT_URI, cv), null, null, null, null);
 				if ( mCursor.moveToFirst() )
 					DatabaseUtils.cursorRowToContentValues(mCursor, cv);
-				changeEvent = DatabaseChangedEvent.DATABASE_RECORD_INSERTED;
+				
 				
 				if ( sync_meta )
 					WorkerClass.getExistingInstance().addJobAndWake(new SyncChangesToServer());
 
 				if ( Constants.LOG_DEBUG ) Log.d(TAG, "Scheduling InitialCollectionSync on new collection.");
 				job = new InitialCollectionSync( serverId, collectionPath);
-				aCalService.databaseDispatcher.dispatchEvent(new DatabaseChangedEvent(changeEvent, DavCollections.class, cv));
 			}
 			else {
 				// update record
 				mCursor.moveToFirst();
 				String collectionId = mCursor.getString(0);
 				cr.update(DavCollections.CONTENT_URI, cv, DavCollections._ID + " = ?", new String[] { collectionId });
-				changeEvent = DatabaseChangedEvent.DATABASE_RECORD_UPDATED;
+
 				cv.put(DavCollections._ID, collectionId);
 
 				if ( Constants.LOG_DEBUG ) Log.d(TAG, "Scheduling SyncCollectionContents on existing collection.");
 				job = new SyncCollectionContents(Integer.parseInt(collectionId));
-				aCalService.databaseDispatcher.dispatchEvent(new DatabaseChangedEvent(changeEvent, DavCollections.class, cv));
 			}
 			context.addWorkerJob(job);
 			

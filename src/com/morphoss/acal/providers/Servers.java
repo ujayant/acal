@@ -35,12 +35,10 @@ import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.morphoss.acal.DatabaseChangedEvent;
 import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.database.AcalDBHelper;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager;
 import com.morphoss.acal.database.resourcesmanager.requests.RRDeleteByCollectionId;
-import com.morphoss.acal.service.aCalService;
 
 /**
  * <P>This ContentProvider interfaces with the dav_server table in the database.</P>
@@ -275,9 +273,6 @@ public class Servers extends ContentProvider {
 		finally {
 			db.endTransaction();
 			db.close();
-
-			//FINALLY DISPATCH CHANGE
-			aCalService.databaseDispatcher.dispatchEvent(new DatabaseChangedEvent(DatabaseChangedEvent.DATABASE_INVALIDATED,null,null));
 		}
 		
 		if (!collectionIds.isEmpty()) {

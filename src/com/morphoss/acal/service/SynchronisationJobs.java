@@ -27,7 +27,6 @@ import android.database.Cursor;
 import android.util.Log;
 
 import com.morphoss.acal.Constants;
-import com.morphoss.acal.DatabaseChangedEvent;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.providers.Servers;
@@ -66,9 +65,7 @@ public class SynchronisationJobs extends ServiceJob {
 
 			case CACHE_RESYNC:
 				if ( Constants.LOG_DEBUG ) Log.i(TAG,"Responding to internal cache revalidation request.");
-				aCalService.databaseDispatcher.dispatchEvent(new DatabaseChangedEvent(DatabaseChangedEvent.DATABASE_INVALIDATED,null,null));
 				break;
-
 		}
 	}
 

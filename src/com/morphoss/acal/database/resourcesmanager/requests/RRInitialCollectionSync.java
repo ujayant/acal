@@ -11,6 +11,9 @@ import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
 
 import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.util.Log;
 
 import com.morphoss.acal.Constants;
@@ -189,7 +192,7 @@ public class RRInitialCollectionSync implements ResourceRequest {
 			}
 			else if ( serverId > 0 && collectionId < 0 ) {
 				collectionValues = new ContentValues();
-				if (processor.getCollectionIdByPath(collectionValues, serverId, collectionPath)) {
+				if (this.getCollectionIdByPath(processor.getContext(), collectionValues, serverId, collectionPath)) {
 					collectionId = collectionValues.getAsInteger(DavCollections._ID);
 					isCollectionIdAssigned = true;
 				}
@@ -211,12 +214,26 @@ public class RRInitialCollectionSync implements ResourceRequest {
 		return ( isCollectionIdAssigned && collectionPath != null );
 	}
 
+	public boolean getCollectionIdByPath(Context context, ContentValues values, long serverId, String collectionPath ) {
+		Cursor cursor = context.getContentResolver().query(DavCollections.CONTENT_URI, null, 
+			DavCollections.SERVER_ID + "=? AND " + DavCollections.COLLECTION_PATH + "=?",
+			new String[] { "" + serverId, collectionPath }, null);
+	if ( cursor.moveToFirst() ) {
+		DatabaseUtils.cursorRowToContentValues(cursor, values);
+		cursor.close();
+		return true;
+	}
+	cursor.close();
+	return false;
+}
+
+	
 	public void processSyncToDatabase( DavNode root ) {
 		try {
 
 			if (Constants.LOG_VERBOSE) Log.v(TAG, "processSyncToDatabase started.");
 
-			Map<String, ContentValues>  databaseMap = processor.getCurrentResourceMap(collectionId);
+			Map<String, ContentValues>  databaseMap = processor.contentQueryMap(ResourceTableManager.COLLECTION_ID + " = ? ", new String[] { collectionId + "" });
 			Collection<ContentValues> databaseList = databaseMap.values();
 			Map<String, ContentValues> serverList = new HashMap<String,ContentValues>();
 			List<DavNode> responseList = root.getNodesFromPath("multistatus/response");
