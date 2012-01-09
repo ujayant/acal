@@ -21,10 +21,10 @@ public class CRAddRangeResult implements CacheRequest {
 	
 	@Override
 	public void process(CacheTableManager processor) throws CacheProcessingException {
-		if ( CacheManager.DEBUG ) Log.println(Constants.LOGD, TAG, "Processing query set and updating window");
+		if ( CacheManager.DEBUG && Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG, "Processing query set and updating window");
 		processor.processActions(queries);
 		processor.updateWindowToInclude(range);
-		if ( CacheManager.DEBUG ) Log.println(Constants.LOGD, TAG,"Done");
+		if ( CacheManager.DEBUG && Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,"Done");
 	}
 
 	

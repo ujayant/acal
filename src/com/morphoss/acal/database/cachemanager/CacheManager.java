@@ -53,13 +53,16 @@ import com.morphoss.acal.davacal.VComponentCreationException;
  */
 public class CacheManager implements Runnable, ResourceChangedListener,  ResourceResponseListener<ArrayList<Resource>> {
 
-
-
-
 	//The current instance
 	private static CacheManager instance = null;
 	public static final String TAG = "aCal CacheManager";
 
+	//Settings
+	private static final int DEF_MONTHS_BEFORE = -1;	//these 2 represent the default window size
+	private static final int DEF_MONTHS_AFTER = 3;		//relative to todays date
+	public static final boolean	DEBUG	= false && Constants.DEBUG_MODE;
+		
+	
 	//Get an instance
 	public synchronized static CacheManager getInstance(Context context) {
 		if (instance == null) instance = new CacheManager(context);
@@ -108,12 +111,6 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		if (instance == null) CTMinstance = new CacheTableManager();
 		return CTMinstance;
 	}
-	
-	//Settings
-	private static final int DEF_MONTHS_BEFORE = -3;	//these 2 represent the default window size
-	private static final int DEF_MONTHS_AFTER = 6;		//relative to todays date
-	public static final boolean	DEBUG	= false && Constants.DEBUG_MODE;
-	
 	
 	/**
 	 * CacheManager needs a context to manage the DB. Should run under AcalService.
@@ -293,7 +290,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		int closedState = 0;
 		try {
 			if (mCursor.getCount() < 1) {
-				if ( CacheManager.DEBUG ) Log.println(Constants.LOGD,TAG, "Initializing cache for first use.");
+				if ( CacheManager.DEBUG && Constants.LOG_DEBUG ) Log.println(Constants.LOGD,TAG, "Initializing cache for first use.");
 				data.put(FIELD_CLOSED, 1);
 				data.put(FIELD_COUNT, 0);
 				data.put(FIELD_START,  defaultWindow.getMillis());
@@ -312,7 +309,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		}
 
 		if ( !(closedState == 1)) {
-			if ( CacheManager.DEBUG ) Log.println(Constants.LOGD,TAG, "Application not closed correctly last time. Resetting cache.");
+			Log.println(Constants.LOGI,TAG, "Application not closed correctly last time. Resetting cache.");
 			Toast.makeText(context, "aCal was not correctly shutdown last time.\nRebuilding cache - It may take some time before events are visible.",Toast.LENGTH_LONG).show();
 			this.CTMinstance.clearCache();
 			data.put(FIELD_COUNT, 0);
@@ -372,7 +369,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 	//Request events (FROM RESOURCES) that
 	private void retrieveRange() {
 		if (window.getRequestedWindow() == null) return;
-		if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD,TAG,"Sending resourceRequest");
+		if ( DEBUG && Constants.LOG_DEBUG ) Log.println(Constants.LOGD,TAG,"Sending RRGetCacheEventsInRange Request");
 		ResourceManager.getInstance(context).sendRequest(new RRGetCacheEventsInRange(window, this));
 	}
 	
@@ -407,23 +404,27 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 
 			}
 			Thread.currentThread().setPriority(currentPri);
-			Log.println(Constants.LOGD,TAG,events.size()+"Event Instances obtained. Posting Response.");
+			if ( DEBUG && Constants.LOG_DEBUG )
+				Log.println(Constants.LOGD,TAG,events.size()+"Event Instances obtained. Posting Response.");
 
 			
 			//put new data on the process queue
 			
 			DMQueryList inserts = new DMQueryList();
 			
-			Log.println(Constants.LOGD,TAG, "Have response from Resource manager for range request.");
+			if ( DEBUG && Constants.LOG_DEBUG )
+				Log.println(Constants.LOGD,TAG, "Have response from Resource manager for range request.");
 			//We should have exclusive DB access at this point
-			Log.println(Constants.LOGD,TAG, "Queueing delete of events in "+range);
+			if ( DEBUG && Constants.LOG_DEBUG )
+				Log.println(Constants.LOGD,TAG, "Queueing delete of events in "+range);
 			inserts.addAction(new DMQueryBuilder()
 							.setAction(QUERY_ACTION.DELETE)
 							.setWhereClause(FIELD_START+" >= ? AND "+FIELD_START+" <= ?")
 							.setwhereArgs(new String[]{range.start.getMillis()+"", range.end.getMillis()+""})
 							.build());
 							
-			Log.println(Constants.LOGD,TAG, "Queueing insert of "+events.size()+" new events in "+range);
+			if ( DEBUG && Constants.LOG_DEBUG )
+				Log.println(Constants.LOGD,TAG, "Queueing insert of "+events.size()+" new events in "+range);
 			for (CacheObject event : events) {
 				if ( event.getStart() == Long.MAX_VALUE || event.getEnd() == Long.MAX_VALUE ) {
 					// Single instance tasks with a null start date can get included multiple times 
@@ -542,7 +543,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		 * Returns weather or not the cache fully covers a specified (or default) range
 		 */
 		public boolean checkWindow(AcalDateRange requestedRange) {
-			if ( Constants.LOG_DEBUG ) {
+			if ( DEBUG && Constants.LOG_DEBUG ) {
 				Log.println(Constants.LOGD,TAG,"Checking Cache Window: Request "+requestedRange);
 				Log.println(Constants.LOGD,TAG,"Checking Cache Window: Current Window:"+ window);
 			}
@@ -646,8 +647,11 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 						if ( comp == null ) continue;
 						// get instances within window
 
-						Log.println(Constants.LOGD, TAG,
-								"Processing a resource changed for a " + comp.getEffectiveType());
+						if ( DEBUG && Constants.LOG_DEBUG ) {
+							Log.println(Constants.LOGD, TAG,
+									"Processing a resource changed for a " + comp.getEffectiveType() +
+									"ID: "+r.getResourceId()+", earliest: "+r.getEarliestStart()+", latest: "+r.getLatestEnd());
+						}
 
 						newData = new ArrayList<CacheObject>();
 						if ( comp instanceof VCalendar ) {
@@ -664,7 +668,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 
 					}
 					catch ( Exception e ) {
-						Log.e(TAG, "Error Handling Resoure Change:" + Log.getStackTraceString(e));
+						Log.e(TAG, "Error Handling Resoure Change.", e);
 					}
 
 					break;

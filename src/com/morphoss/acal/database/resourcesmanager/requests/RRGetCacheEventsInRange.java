@@ -50,16 +50,17 @@ public class RRGetCacheEventsInRange extends ReadOnlyResourceRequestWithResponse
 		long start = range.start.getMillis();
 		long end = range.end.getMillis();
 		
-		if ( CacheManager.DEBUG ) Log.println(Constants.LOGD,TAG,"Getting Resource rows");
+
+		String whereClause = 
+				"("+ResourceTableManager.EFFECTIVE_TYPE +"='"+VComponent.VEVENT+
+				"' OR "+ResourceTableManager.EFFECTIVE_TYPE +"='"+VComponent.VTODO+"' )" +
+				" AND ("+ResourceTableManager.LATEST_END+" IS NULL OR " + ResourceTableManager.LATEST_END+" >= "+start+" )" +
+				" AND ("+ResourceTableManager.EARLIEST_START+" IS NULL OR "+ResourceTableManager.EARLIEST_START+" <= "+end+" )";
+
+		if ( CacheManager.DEBUG ) Log.println(Constants.LOGD,TAG,"Getting Resource rows where:\n"+whereClause);
 
 		//step 2 query db for resources in range
-		ArrayList<ContentValues> rValues = processor.query(null,
-				"("+ResourceTableManager.EFFECTIVE_TYPE +"=? OR "+ResourceTableManager.EFFECTIVE_TYPE +"=? )" +
-				" AND ("+ResourceTableManager.LATEST_END+" IS NULL OR " + ResourceTableManager.LATEST_END+" >= ? )" +
-				" AND ("+ResourceTableManager.EARLIEST_START+" IS NULL OR "+ResourceTableManager.EARLIEST_START+" <= ? )"
-				,
-				new String[]{ VComponent.VEVENT, VComponent.VTODO, start+"", end+""},
-				null,null,null);
+		ArrayList<ContentValues> rValues = processor.query(null,whereClause,null,null,null,null);
 		
 		//also need pendings
 		ArrayList<ContentValues> pValues = processor.getPendingResources();
@@ -93,8 +94,6 @@ public class RRGetCacheEventsInRange extends ReadOnlyResourceRequestWithResponse
 		}
 		for (ContentValues cv : rValues) result.add(Resource.fromContentValues(cv));
 		if ( CacheManager.DEBUG ) Log.println(Constants.LOGD,TAG, "Conversion complete. Populating VCalendars and appending events.");
-		
-		
 		
 		
 		//post response

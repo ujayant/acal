@@ -79,7 +79,7 @@ public abstract class DatabaseTableManager {
 	public ArrayList<ContentValues> query(String[] columns, String selection, String[] selectionArgs, String groupBy, String having, String orderBy) {
 		ArrayList<ContentValues> result = new ArrayList<ContentValues>();
 		int count = 0;
-		if (Constants.debugDatabaseManager) Log.println(Constants.LOGD,TAG,"DB: "+this.getTableName()+" query:");
+		if (Constants.debugDatabaseManager && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG,"DB: "+this.getTableName()+" query:");
 		printStackTraceInfo();
 		beginReadQuery();
 		Cursor c = db.query(getTableName(), columns, selection, selectionArgs, groupBy, having, orderBy);
@@ -117,17 +117,17 @@ public abstract class DatabaseTableManager {
 		changes = new ArrayList<DataChangeEvent>();
 		switch (type) {
 		case OPEN_READ:
-			if (Constants.debugDatabaseManager) Log.println(Constants.LOGD,TAG,"DB:"+this.getTableName()+" OPEN_READ:");
+			if (Constants.debugDatabaseManager && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG,"DB:"+this.getTableName()+" OPEN_READ:");
 			printStackTraceInfo();
 			db = dbHelper.getReadableDatabase();
 			break;
 		case OPEN_WRITE:
-			if (Constants.debugDatabaseManager) Log.println(Constants.LOGD,TAG,"DB:"+this.getTableName()+" OPEN_WRITE:");
+			if (Constants.debugDatabaseManager && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG,"DB:"+this.getTableName()+" OPEN_WRITE:");
 			printStackTraceInfo();
 			db = dbHelper.getWritableDatabase();
 			break;
 		case OPEN_READTX:
-			if (Constants.debugDatabaseManager) Log.println(Constants.LOGD,TAG,"DB:"+this.getTableName()+" OPEN_READTX:");
+			if (Constants.debugDatabaseManager && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG,"DB:"+this.getTableName()+" OPEN_READTX:");
 			saveStackTraceInfo();
 			printStackTraceInfo();
 			inTx = true;
@@ -135,7 +135,7 @@ public abstract class DatabaseTableManager {
 			db = dbHelper.getReadableDatabase();
 			break;
 		case OPEN_WRITETX:
-			if (Constants.debugDatabaseManager) Log.println(Constants.LOGD,TAG,"DB:"+this.getTableName()+" OPEN_WRITETX:");
+			if (Constants.debugDatabaseManager && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG,"DB:"+this.getTableName()+" OPEN_WRITETX:");
 			saveStackTraceInfo();
 			printStackTraceInfo();
 			inTx = true;
@@ -158,11 +158,11 @@ public abstract class DatabaseTableManager {
 		dbHelper = null;
 		switch (type) {
 		case CLOSE:
-			if (Constants.debugDatabaseManager) Log.println(Constants.LOGD,TAG,"DB:"+this.getTableName()+" CLOSE:");
+			if (Constants.debugDatabaseManager && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG,"DB:"+this.getTableName()+" CLOSE:");
 			printStackTraceInfo();
 			break;
 		case CLOSE_TX:
-			if (Constants.debugDatabaseManager) Log.println(Constants.LOGD,TAG,"DB:"+this.getTableName()+" CLOSETX:");
+			if (Constants.debugDatabaseManager && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG,"DB:"+this.getTableName()+" CLOSETX:");
 			printStackTraceInfo();
 			if (!inTx) throw new IllegalStateException("Tried to close a db transaction when not in one!");
 			inTx = false;
@@ -218,7 +218,7 @@ public abstract class DatabaseTableManager {
 	//Some useful generic methods
 
 	public int delete(String whereClause, String[] whereArgs) {
-		if (Constants.debugDatabaseManager) Log.println(Constants.LOGD,TAG, "Deleting Row on "+this.getTableName()+":\n\tWhere: "+whereClause);
+		if (Constants.debugDatabaseManager && Constants.LOG_VERBOSE) Log.println(Constants.LOGV,TAG, "Deleting Row on "+this.getTableName()+":\n\tWhere: "+whereClause);
 		beginWriteQuery();
 		//First select or the row i'ds
 		ArrayList<ContentValues> rows = this.query(null, whereClause, whereArgs, null,null,null);
@@ -235,7 +235,7 @@ public abstract class DatabaseTableManager {
 
 	public int update(ContentValues values, String whereClause,
 			String[] whereArgs) {
-		if (Constants.debugDatabaseManager) Log.println(Constants.LOGD,TAG,
+		if (Constants.debugDatabaseManager && Constants.LOG_VERBOSE) Log.println(Constants.LOGV,TAG,
 				"Updating Row on "+this.getTableName()+":\n\t"+values.toString());
 		beginWriteQuery();
 		int count = db.update(getTableName(), values, whereClause,
@@ -246,7 +246,7 @@ public abstract class DatabaseTableManager {
 	}
 
 	public long insert(String nullColumnHack, ContentValues values) {
-		if (Constants.debugDatabaseManager) Log.println(Constants.LOGD, TAG, 
+		if (Constants.debugDatabaseManager && Constants.LOG_VERBOSE) Log.println(Constants.LOGV, TAG, 
 				"Inserting Row on "+this.getTableName()+":\n\t"+values.toString());
 		beginWriteQuery();
 		long newId = db.insert(getTableName(), nullColumnHack, values);
