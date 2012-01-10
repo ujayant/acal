@@ -221,4 +221,16 @@ public final class StaticHelpers {
 		return src.readLong();
 	}
 
+	/**
+	 * Since ContentValues and SQlite don't play well with booleans it's useful to have this
+	 * to convert stuff from a number that's really a boolean.
+	 * @param zeroIsFalse
+	 * @param defaultValue
+	 * @return
+	 */
+	public static boolean toBoolean( Integer zeroIsFalse, boolean defaultValue ) {
+		if ( zeroIsFalse == null ) return defaultValue;
+		else if ( zeroIsFalse == 0 ) return false;
+		else return true;
+	}
 }
