@@ -9,6 +9,7 @@ import android.os.Parcelable;
 import android.util.Log;
 
 import com.morphoss.acal.Constants;
+import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
 
@@ -123,7 +124,7 @@ public class Resource implements Parcelable {
 		String blob = null;
 		long earliestStart = Long.MIN_VALUE;
 		long latestEnd = Long.MAX_VALUE;
-		Boolean needsSync = false;
+		boolean needsSync = false;
 		String effectiveType = "";
 		AcalDateTime modTime = new AcalDateTime();
 		if ( cv.containsKey(ResourceTableManager.PEND_RESOURCE_ID) ) {
@@ -151,8 +152,7 @@ public class Resource implements Parcelable {
 					modTime = AcalDateTime.fromMillis(Date.parse(cv.getAsString(ResourceTableManager.LAST_MODIFIED)));
 				} catch( Exception e ) {}
 				modTime.setTimeZone(AcalDateTime.UTC.getID());
-				needsSync = cv.getAsInteger(ResourceTableManager.NEEDS_SYNC) ==1;
-				if ( needsSync == null ) needsSync = true;
+				needsSync = StaticHelpers.toBoolean(cv.getAsInteger(ResourceTableManager.NEEDS_SYNC),true);
 			}
 			catch (Exception e) {
 				Log.println(Constants.LOGD, TAG,"Error in Resource: "+e+Log.getStackTraceString(e)); 
