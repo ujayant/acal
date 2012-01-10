@@ -195,6 +195,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		AcalDBHelper dbHelper = new AcalDBHelper(c);
 		SQLiteDatabase db = dbHelper.getWritableDatabase();
 		db.beginTransaction();
+		
 		//get current values
 		Cursor mCursor = db.query(META_TABLE, null, null, null, null, null, null);
 		try {
