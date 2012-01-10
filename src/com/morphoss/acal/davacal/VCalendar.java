@@ -35,6 +35,7 @@ import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
 import com.morphoss.acal.activity.EventEdit;
+import com.morphoss.acal.database.alarmmanager.AlarmRow;
 import com.morphoss.acal.database.cachemanager.CacheManager;
 import com.morphoss.acal.database.cachemanager.CacheObject;
 import com.morphoss.acal.dataservice.EventInstance;
@@ -354,7 +355,7 @@ public class VCalendar extends VComponent implements Cloneable {
 		hasRepeatRule = ( repeatRule != null && repeatRule.repeatRule != AcalRepeatRule.SINGLE_INSTANCE );
 	}
 
-	public boolean appendAlarmInstancesBetween(List<AcalAlarm> alarmList, AcalDateRange rangeRequested) {
+	public boolean appendAlarmInstancesBetween(ArrayList<AlarmRow> alarmList, AcalDateRange rangeRequested) {
 		if ( hasRepeatRule == null && repeatRule == null ) checkRepeatRule();
 		if ( !hasRepeatRule ) return false;
 		this.repeatRule.appendAlarmInstancesBetween(alarmList, rangeRequested);

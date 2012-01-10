@@ -42,6 +42,7 @@ public class AcalAlarm implements Serializable, Parcelable, Comparable<AcalAlarm
 	public AcalDateTime snoozeTime = null;
 	public boolean hasEventAssociated = false;
 	public EventInstance myEvent = null;
+	public String blob;
 
 	
 	public String toString() {
@@ -123,6 +124,7 @@ public class AcalAlarm implements Serializable, Parcelable, Comparable<AcalAlarm
 	 * @param end The end from the parent.  Passed in separately because we might be in repeat rule expansion.
 	 */
 	public AcalAlarm( VAlarm component, Masterable parent, AcalDateTime start, AcalDateTime end ) {
+		this.blob = component.getCurrentBlob();
 		AcalProperty aProperty = component.getProperty(PropertyName.TRIGGER);
 		String related = aProperty.getParam("RELATED");
 		String valueType =  aProperty.getParam("VALUE");

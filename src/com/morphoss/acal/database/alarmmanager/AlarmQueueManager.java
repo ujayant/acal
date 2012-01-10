@@ -1,12 +1,16 @@
 package com.morphoss.acal.database.alarmmanager;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.Semaphore;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
@@ -14,16 +18,26 @@ import android.os.ConditionVariable;
 import android.util.Log;
 
 import com.morphoss.acal.Constants;
+import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
+import com.morphoss.acal.activity.AlarmActivity;
 import com.morphoss.acal.database.AcalDBHelper;
+import com.morphoss.acal.database.DMInsertQuery;
 import com.morphoss.acal.database.DMQueryList;
 import com.morphoss.acal.database.DataChangeEvent;
 import com.morphoss.acal.database.DatabaseTableManager;
+import com.morphoss.acal.database.alarmmanager.requesttypes.AlarmRequest;
+import com.morphoss.acal.database.alarmmanager.requesttypes.AlarmResponse;
+import com.morphoss.acal.database.alarmmanager.requesttypes.BlockingAlarmRequest;
+import com.morphoss.acal.database.alarmmanager.requesttypes.BlockingAlarmRequestWithResponse;
 import com.morphoss.acal.database.cachemanager.CacheManager;
-import com.morphoss.acal.database.cachemanager.CacheProcessingException;
 import com.morphoss.acal.database.resourcesmanager.ResourceChangedEvent;
 import com.morphoss.acal.database.resourcesmanager.ResourceChangedListener;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager;
+import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
+import com.morphoss.acal.database.resourcesmanager.requests.RRGetUpcomingAlarms;
+import com.morphoss.acal.dataservice.Resource;
+import com.morphoss.acal.davacal.VCalendar;
 
 /**
  * This manager manages the Alarm Database Table(s). It will listen to changes to resources and update the DB
@@ -79,11 +93,6 @@ public class AlarmQueueManager implements Runnable, ResourceChangedListener  {
 	
 	//Request Processor Instance
 	private AlarmTableManager ATMinstance;
-
-
-	//States
-	public enum ALARM_STATE { PENDING, DISMISSED, SNOOZED };
-
 	
 	private AlarmTableManager getATMInstance() {
 		if (instance == null) ATMinstance = new AlarmTableManager();
@@ -230,7 +239,7 @@ public class AlarmQueueManager implements Runnable, ResourceChangedListener  {
 	 * Forces AlarmManager to rebuild alarms from scratch. Should only be called if table has become invalid.
 	 */
 	private void rebuild() {
-		this.sendRequest(new ARRebuildRequest());
+		ATMinstance.rebuild();
 	}
 	
 	/**
@@ -256,7 +265,7 @@ public class AlarmQueueManager implements Runnable, ResourceChangedListener  {
 	 */
 	@Override
 	public void resourceChanged(ResourceChangedEvent event) {
-		// TODO Auto-generated method stub
+		this.sendRequest(new ARResourceChanged(event));
 	}
 	
 	/**
@@ -272,6 +281,28 @@ public class AlarmQueueManager implements Runnable, ResourceChangedListener  {
 		threadHolder.open();
 	}
 	
+	public <E> AlarmResponse<E> sendBlockingRequest(BlockingAlarmRequestWithResponse<E> request) {
+		queue.offer(request);
+		threadHolder.open();
+		int priority = Thread.currentThread().getPriority();
+		Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
+		while (!request.isProcessed()) {
+			try { Thread.sleep(10); } catch (Exception e) {	}
+		}
+		Thread.currentThread().setPriority(priority);
+		return request.getResponse();
+	}
+	public void sendBlockingRequest(BlockingAlarmRequest request) {
+		queue.offer(request);
+		threadHolder.open();
+		int priority = Thread.currentThread().getPriority();
+		Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
+		while (!request.isProcessed()) {
+			try { Thread.sleep(10); } catch (Exception e) {	}
+		}
+		Thread.currentThread().setPriority(priority);
+	}
+	
 	
 	public final class AlarmTableManager extends DatabaseTableManager {
 		/**
@@ -281,17 +312,21 @@ public class AlarmQueueManager implements Runnable, ResourceChangedListener  {
 		 */
 		
 		private static final String TABLENAME = "alarms";
-        private static final String FIELD_ID = "_id";
-		private static final String FIELD_TIME_TO_FIRE = "ttf";
-		private static final String FIELD_RID = "rid";
-		private static final String FIELD_RRID = "rrid";
-		private static final String FIELD_STATE ="state";
+        public static final String FIELD_ID = "_id";
+		public static final String FIELD_TIME_TO_FIRE = "ttf";
+		public static final String FIELD_RID = "rid";
+		public static final String FIELD_RRID = "rrid";
+		public static final String FIELD_STATE ="state";
+		public static final String FIELD_BLOB ="blob";
 		
 		//Change this to set how far back we look for alarms and database first time use/rebuild
-		private static final int LOCKBACK_MINUTES = 4*60;		//default 4 hours
+		private static final int LOOKBACK_SECONDS = 4*60*60;		//default 4 hours
         
+		private AlarmManager alarmManager;
+		
 		private AlarmTableManager() {
 			super(AlarmQueueManager.this.context);
+			alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
 		}
 
 		public void process(AlarmRequest request) {
@@ -323,32 +358,7 @@ public class AlarmQueueManager implements Runnable, ResourceChangedListener  {
 			return TABLENAME;
 		}
 
-		//Override parent db functions - we don't want other classes having direct access.
-		
-		@Override
-		public ArrayList<ContentValues> query(String[] columns, String selection, String[] selectionArgs, String groupBy, String having, String orderBy) {
-			throw new UnsupportedOperationException("Direct access to Alarm Table Prohibited.");
-		}
-		
-		@Override
-		public int delete(String whereClause, String[] whereArgs) {
-			throw new UnsupportedOperationException("Direct access to Alarm Table Prohibited.");
-		}
-		
-		@Override
-		public int update(ContentValues values, String whereClause,	String[] whereArgs) {
-			throw new UnsupportedOperationException("Direct access to Alarm Table Prohibited.");
-		}
-		
-		@Override
-		public long insert(String nullColumnHack, ContentValues values) {
-			throw new UnsupportedOperationException("Direct access to Alarm Table Prohibited.");
-		}
-		
-		@Override
-		public boolean processActions(DMQueryList queryList) {
-			throw new UnsupportedOperationException("Direct access to Alarm Table Prohibited.");
-		}
+	
 		
 		//Custom operations
 		
@@ -356,12 +366,33 @@ public class AlarmQueueManager implements Runnable, ResourceChangedListener  {
 		 * Wipe and rebuild alarm table - called if it has become corrupted.
 		 */
 		public void rebuild() {
+			Log.i(TAG, "Clearing Alarm Cache of possibly corrupt data and rebuilding...");
 			//Display up to the last x hours of alarms.
+			AcalDateTime after = new AcalDateTime();
+			after.addSeconds(-LOOKBACK_SECONDS);
 			
 			//Step 1 - request a list of all resources so we can find the next alarm trigger for each
+			RRGetUpcomingAlarms request = new RRGetUpcomingAlarms(after);
+			rm.sendBlockingRequest(request);
+			ArrayList<AlarmRow> alarms = request.getResponse().result();
+			int count = 0;
+			//Create query List
+			DMQueryList list = new DMQueryList();
+			for (AlarmRow alarm : alarms) {
+				list.addAction(new DMInsertQuery(
+							null,
+							alarm.toContentValues()
+						));
+				count++;
+			}
 			
 			//step 2 - begin db transaction, delete all existing and insert new list
-			
+			beginTransaction();
+			super.delete(null, null);
+			super.processActions(list);
+			super.setTxSuccessful();
+			endTransaction();
+			Log.i(TAG, count+" entries added.");
 			//step 3 schedule alarm intent
 			scheduleAlarmIntent();
 		}
@@ -370,31 +401,109 @@ public class AlarmQueueManager implements Runnable, ResourceChangedListener  {
 		 * Get the next alarm to go off
 		 * @return
 		 */
-		public Object getNextDueAlarm() {
-			return null;
+		public AlarmRow getNextDueAlarm() {
+			ArrayList<ContentValues> res = super.query(null, 
+					FIELD_STATE +" = ? OR "+FIELD_STATE +" = ?", 
+					new String[] {ALARM_STATE.PENDING.ordinal()+"", ALARM_STATE.SNOOZED.ordinal()+""} , 
+					null, 
+					null, 
+					FIELD_TIME_TO_FIRE+" ASC");
+			if (res.isEmpty()) return null;
+			return AlarmRow.fromContentValues(res.get(0));
 		}
 		
 		/**
-		 * Snooze a specific alarm.
+		 * Snooze/Dismiss a specific alarm
 		 * @param alarm
 		 */
-		public void snoozeAlarm(Object alarm) {
+		public void updateAlarmState(AlarmRow row, ALARM_STATE state) {
+			//TODO add snooze capability - for now just dismiss.
+			super.beginTransaction();
 			
-		}
-		
-		/**
-		 * Dismiss a specific alarm
-		 */
-		public void dismissAlarm(Object alarm) {
-			//update table row to show alarm dismissed (if exists)
+			//first remove any dismissed alarms
+			super.delete(FIELD_STATE+" = ?", new String[]{ALARM_STATE.DISMISSED.ordinal()+""});
+			
+			//set alarm row to dismissed
+			row.setState(ALARM_STATE.DISMISSED);
+			
+			//attempt update
+			int res = super.update(row.toContentValues(), FIELD_ID+" = ?", new String[]{row.getId()+""});
+			if (res >0) {
+				//success
+				super.setTxSuccessful();
+			}
+			super.endTransaction();
+			
+			
+			//Reschedule next intent.
 			scheduleAlarmIntent();
 		}
+		
+
 		
 		/**
 		 * Schedule the next alarm intent - Should be called whenever there is a change to the db.
 		 */
 		public void scheduleAlarmIntent() {
+			AlarmRow next = getNextDueAlarm();
+			if (next == null) return; //nothing to schedule.
+			long ttf = next.getTimeToFire();
+			Log.i(TAG, "Scheduled Alarm for "+ ((ttf-System.currentTimeMillis())/1000)+" Seconds from now.");
+			Intent intent = new Intent(context, AlarmActivity.class);
+			PendingIntent alarmIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_ONE_SHOT);
+			alarmManager.set(AlarmManager.RTC_WAKEUP, ttf, alarmIntent);
+			
+		}
+
+		//Deal with resource changes
+		public void processChanges(ArrayList<DataChangeEvent> changes) {
+			super.beginTransaction();
+			for (DataChangeEvent change : changes) {
+				super.delete(FIELD_RID+" = ?", new String[]{change.getData().getAsLong(ResourceTableManager.RESOURCE_ID)+""});
+				switch (change.action) {
+					case INSERT:
+					case UPDATE:
+					case PENDING_RESOURCE:
+						populateTableFromResource(change.getData());
+						break;
+					default: break;
+				}
+			}
+			super.setTxSuccessful();
+			super.endTransaction();
+			//schedule alarm intent
+			scheduleAlarmIntent();
+
+		}
+
+		private void populateTableFromResource(ContentValues data) {
+			//default start timestamp
+			AcalDateTime after = new AcalDateTime();
+			ArrayList<AlarmRow> alarmList = new ArrayList<AlarmRow>();
+			//use last dismissed to calculate start
+			ArrayList<ContentValues> cvs = super.query(null, FIELD_STATE+" = ?", new String[]{ALARM_STATE.DISMISSED.ordinal()+""}, null, null, FIELD_TIME_TO_FIRE+" DESC");
+			if (!cvs.isEmpty()) after = AcalDateTime.fromMillis(cvs.get(0).getAsLong(FIELD_TIME_TO_FIRE));
+			
+			Resource r = Resource.fromContentValues(data);
+			VCalendar vc = new VCalendar(r);
+			vc.appendAlarmInstancesBetween(alarmList, new AcalDateRange(after, AcalDateTime.addDays(after, 7)));
 		
+			Collections.sort(alarmList);
+			
+			//Create query List
+			DMQueryList list = new DMQueryList();
+			for (AlarmRow alarm : alarmList) {
+				list.addAction(new DMInsertQuery(
+							null,
+							alarm.toContentValues()
+						));
+			}
+			
+			super.processActions(list);
+
 		}
 	}
+
+
+	
 }

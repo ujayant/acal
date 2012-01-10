@@ -234,7 +234,8 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 			+",ttf NUMERIC"
 			+",rid NUMERIC"
 			+",rrid TEXT"
-			+",state NUMERIC"
+			+",state NUMERIC" 
+			+", blob TEXT"
 		+");";
 	
 	public static final String ALARM_META_TABLE_SQL = 

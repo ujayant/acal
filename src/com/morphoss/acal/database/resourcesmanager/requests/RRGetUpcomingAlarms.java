@@ -5,39 +5,35 @@ import java.util.Collections;
 import java.util.Map;
 
 import android.content.ContentValues;
-import android.content.Context;
 
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
-import com.morphoss.acal.database.resourcesmanager.ResourceManager.ReadOnlyResourceTableManager;
-import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
+import com.morphoss.acal.database.alarmmanager.AlarmRow;
 import com.morphoss.acal.database.resourcesmanager.ResourceProcessingException;
 import com.morphoss.acal.database.resourcesmanager.ResourceResponse;
-import com.morphoss.acal.database.resourcesmanager.ResourceResponseListener;
-import com.morphoss.acal.database.resourcesmanager.requesttypes.ReadOnlyResourceRequestWithResponse;
+import com.morphoss.acal.database.resourcesmanager.ResourceManager.ReadOnlyResourceTableManager;
+import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
+import com.morphoss.acal.database.resourcesmanager.requesttypes.ReadOnlyBlockingRequestWithResponse;
 import com.morphoss.acal.dataservice.Collection;
 import com.morphoss.acal.dataservice.Resource;
 import com.morphoss.acal.davacal.AcalAlarm;
 import com.morphoss.acal.davacal.VCalendar;
 
-public class RRGetUpcomingAlarms extends ReadOnlyResourceRequestWithResponse<ArrayList<AcalAlarm>> {
-
-	public RRGetUpcomingAlarms( ResourceResponseListener<ArrayList<AcalAlarm>> callBack ) {
-		super(callBack);
-	}
+public class RRGetUpcomingAlarms extends ReadOnlyBlockingRequestWithResponse<ArrayList<AlarmRow>> {
 
 	private Map<Long,Collection> alarmCollections = null;
 	private AcalDateTime alarmsAfter = null;
 	private boolean processingCompleted = false;
 
-	public void setUp(Context context, AcalDateTime after ) {
-		alarmCollections = Collection.getAllCollections(context);
+	public RRGetUpcomingAlarms(AcalDateTime after) {
+		super();
 		alarmsAfter = after.clone();
 	}
 
 	@Override
 	public void process(ReadOnlyResourceTableManager processor)	throws ResourceProcessingException {
-		ArrayList<AcalAlarm> alarmList = new ArrayList<AcalAlarm>(); 
+		alarmCollections = Collection.getAllCollections(processor.getContext());
+		ArrayList<AlarmRow> alarmList = new ArrayList<AlarmRow>(); 
 
 		long start = alarmsAfter.getMillis();
 		long end = start;
@@ -68,17 +64,17 @@ public class RRGetUpcomingAlarms extends ReadOnlyResourceRequestWithResponse<Arr
 		this.postResponse(response);
 	}
 
-	public class RRGetUpcomingAlarmsResult extends ResourceResponse<ArrayList<AcalAlarm>> {
+	public class RRGetUpcomingAlarmsResult extends ResourceResponse<ArrayList<AlarmRow>> {
 
-		private ArrayList<AcalAlarm> result;
+		private ArrayList<AlarmRow> result;
 		
-		public RRGetUpcomingAlarmsResult(ArrayList<AcalAlarm> result) { 
+		public RRGetUpcomingAlarmsResult(ArrayList<AlarmRow> result) { 
 			this.result = result;
 			setCompleted();
 		}
 		
 		@Override
-		public ArrayList<AcalAlarm> result() {return this.result;	}
+		public ArrayList<AlarmRow> result() {return this.result;	}
 		
 	}
 

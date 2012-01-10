@@ -398,9 +398,9 @@ CREATE TABLE dav_collection (
 				if ( includeSelection.length() > 1 ) includeSelection.append(" OR ");
 				includeSelection.append(DavCollections.ACTIVE_ADDRESSBOOK+"=1");
 			}
-			includeSelection.append(")");
+			includeSelection.append(") AND ");
 		}
-		includeSelection.append(" AND EXISTS (SELECT 1 FROM "+Servers.DATABASE_TABLE
+		includeSelection.append(" EXISTS (SELECT 1 FROM "+Servers.DATABASE_TABLE
 					+" WHERE "+DavCollections.SERVER_ID+"="+Servers._ID+")");
 
 		Cursor cursor = cr.query( DavCollections.CONTENT_URI, null, includeSelection.toString(),

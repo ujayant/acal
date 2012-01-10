@@ -30,6 +30,7 @@ import java.util.regex.Pattern;
 import android.util.Log;
 
 import com.morphoss.acal.Constants;
+import com.morphoss.acal.database.alarmmanager.AlarmRow;
 import com.morphoss.acal.database.cachemanager.CacheObject;
 import com.morphoss.acal.dataservice.EventInstance;
 import com.morphoss.acal.davacal.AcalAlarm;
@@ -413,8 +414,8 @@ public class AcalRepeatRule {
 	private final static AcalDateTime futureish = AcalDateTime.fromMillis(System.currentTimeMillis() + (86400000L*365L*10));
 
 	//TODO dirty hack to get alarms in range.
-	public void appendAlarmInstancesBetween(List<AcalAlarm> alarmList, AcalDateRange range) {
-
+	public void appendAlarmInstancesBetween(ArrayList<AlarmRow> alarmList, AcalDateRange range) {
+		
 		List<EventInstance> events = new ArrayList<EventInstance>();
 		if ( this.sourceVCalendar.hasAlarm() ) {
 			if ( Constants.debugAlarms ) Log.println(Constants.LOGV,TAG,"Event has alarms");
@@ -427,8 +428,13 @@ public class AcalRepeatRule {
 
 					if ( range.contains(alarm.getNextTimeToFire()) ) {
 						//the alarm needs to have event data associated
-						alarm.setEvent(event);
-						alarmList.add(alarm);
+						AlarmRow row = new AlarmRow(
+								alarm.getNextTimeToFire().getMillis(),
+								event.getResourceId(),
+								event.getRecurrenceId(),
+								alarm.blob
+								);
+						alarmList.add(row);
 					}
 				}
 			}

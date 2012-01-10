@@ -43,8 +43,14 @@ import android.widget.TextView;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateTime;
+import com.morphoss.acal.database.alarmmanager.ALARM_STATE;
+import com.morphoss.acal.database.alarmmanager.ARGetNextAlarm;
+import com.morphoss.acal.database.alarmmanager.ARUpdateAlarmState;
+import com.morphoss.acal.database.alarmmanager.AlarmQueueManager;
+import com.morphoss.acal.database.alarmmanager.AlarmRow;
+import com.morphoss.acal.database.resourcesmanager.ResourceManager;
+import com.morphoss.acal.database.resourcesmanager.requests.RRAlarmRowToAcalAlarm;
 import com.morphoss.acal.dataservice.EventInstance;
-import com.morphoss.acal.dataservice.MethodsRequired;
 import com.morphoss.acal.davacal.AcalAlarm;
 
 /**
@@ -98,8 +104,8 @@ public class AlarmActivity extends AcalActivity implements OnClickListener  {
 	private NotificationManager mNotificationManager;
 	private SharedPreferences prefs;
 	private AcalAlarm currentAlarm;
+	private AlarmRow currentAlarmRow;
 	private PowerManager.WakeLock wl;
-	private MethodsRequired dataRequest = new MethodsRequired();
 
 	/** These values are not defined until Android 2.0 or later, so we have
 	 * to define them ourselves.  They won't work unless you're on a 2.x or
@@ -179,11 +185,6 @@ public class AlarmActivity extends AcalActivity implements OnClickListener  {
 
 
 	@Override
-	public void onNewIntent(Intent i) {
-		//super.onNewIntent(i);
-	}
-
-	@Override
 	public void onClick(View clickedThing) {
 		if ( clickedThing == mapButton ) {
 			if ( Constants.LOG_DEBUG ) Log.d(TAG, "Starting Map");
@@ -197,11 +198,11 @@ public class AlarmActivity extends AcalActivity implements OnClickListener  {
 		}
 		if ( clickedThing == snoozeButton ) {
 			if ( Constants.LOG_DEBUG ) Log.d(TAG, "Snoozing Alarm");
-				this.dataRequest.snoozeAlarm(currentAlarm);
+				AlarmQueueManager.getInstance(this).sendBlockingRequest(new ARUpdateAlarmState(currentAlarmRow, ALARM_STATE.SNOOZED));
 		}
 		if ( clickedThing == dismissButton ) {
 			if ( Constants.LOG_DEBUG ) Log.d(TAG, "Dismissing alarm.");
-				this.dataRequest.dismissAlarm(currentAlarm);
+				AlarmQueueManager.getInstance(this).sendBlockingRequest(new ARUpdateAlarmState(currentAlarmRow, ALARM_STATE.DISMISSED));
 		}
 		this.showNextAlarm();
 	}
@@ -234,13 +235,18 @@ public class AlarmActivity extends AcalActivity implements OnClickListener  {
 	 */
 	private void showNextAlarm() {
 		if (Constants.LOG_DEBUG) Log.d(TAG, "Showing next alarm....");
-		this.currentAlarm = dataRequest.getCurrentAlarm();
-		if (this.currentAlarm == null) {
+		currentAlarmRow = AlarmQueueManager.getInstance(this).sendBlockingRequest(new ARGetNextAlarm()).result();
+		
+		if (currentAlarmRow == null) {
 			if (Constants.LOG_DEBUG)Log.d(TAG,"Next alarm is null. Finishing");
 			mNotificationManager.cancelAll();
 			finish();
 			return;
+		} else {
+			//need to construct an AcalAlarm from the alarm row
+			this.currentAlarm = ResourceManager.getInstance(this).sendBlockingRequest(new RRAlarmRowToAcalAlarm(currentAlarmRow)).result();
 		}
+		
 		this.updateAlarmView();
 	}
 
@@ -442,24 +448,4 @@ public class AlarmActivity extends AcalActivity implements OnClickListener  {
 			}
 		}
 	};
-
-
-	/************************************************************************
-	 * 					Service Connection management						*
-	 ************************************************************************/
-	private synchronized void serviceIsConnected() {
-		setupButton(mapButton, MAP);
-		setupButton(snoozeButton, SNOOZE);
-		setupButton(dismissButton, DIMISS);
-		showNextAlarm();
-	}
-	
-	private void setupButton(View v, int val) {
-		v.setOnClickListener(this);
-		v.setTag(val);
-	}
-
-	private synchronized void serviceIsDisconnected() {
-		this.dataRequest = null;
-	}
 }
