@@ -605,10 +605,7 @@ public class AcalRepeatRule {
 				throw new IllegalArgumentException("To retrieve CacheObjects the RepeatRule must have valid collectionId and resourceId");
 			}
 			Thread.yield();
-			if ( masterInstance instanceof VEvent )
-				return new CacheObject( (VEvent) masterInstance, collectionId, resourceId, dtstart, duration);
-			else
-				return new CacheObject(masterInstance, collectionId, resourceId, dtstart, dtend, null);
+			return new CacheObject(masterInstance, collectionId, resourceId, dtstart, dtend, null);
 		}
 	}
 /*

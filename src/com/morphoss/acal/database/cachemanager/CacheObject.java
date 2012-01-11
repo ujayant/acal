@@ -56,58 +56,6 @@ public class CacheObject implements Parcelable, Comparable<CacheObject> {
 		this.flags = flags;
 	}
 
-	//Generate a cacheObject from a VEvent
-	public CacheObject( VEvent event, long collectionId, long resourceId, AcalDateTime dtstart, AcalDuration duration) {
-		this.rid = resourceId;
-		this.resourceType = CacheTableManager.RESOURCE_TYPE_VEVENT;
-		this.completed = Long.MAX_VALUE;
-		this.completeFloating = false;
-		this.rrid = dtstart.toPropertyString(PropertyName.RECURRENCE_ID);
-		this.cid = collectionId;
-		this.summary = event.getSummary();
-		this.location = event.getLocation();
-		this.start = dtstart.getMillis();
-		this.end = duration.getEndDate(dtstart).getMillis();
-		
-		int flags = 0;
-		if (!event.getAlarms().isEmpty()) flags+=HAS_ALARM_FLAG;
-		if (event.getProperty(PropertyName.RRULE) != null) flags+=RECURS_FLAG;
-		if (dtstart.isFloating()) {
-			startFloating = true;
-			endFloating = true;
-		} else {
-			startFloating = false;
-			endFloating = false;
-		}
-		if (dtstart.isDate()) flags+= FLAG_ALL_DAY;
-		this.flags = flags;
-	}
-
-	
-	
-	//Generate a cacheObject from a VTodo
-	public CacheObject( VTodo masterInstance, long collectionId, long resourceId, AcalDateTime dtstart, AcalDateTime due, AcalDateTime completed) {
-		this.rid = resourceId;
-		this.resourceType = CacheTableManager.RESOURCE_TYPE_VTODO;
-		this.rrid = dtstart.toPropertyString(PropertyName.RECURRENCE_ID);
-		this.cid = collectionId;
-		this.summary = masterInstance.getSummary();
-		this.location = masterInstance.getLocation();
-		this.start = dtstart.getMillis();
-		this.end = due.getMillis();
-		this.completed = completed.getMillis();
-		
-		int flags = 0;
-		if (!masterInstance.getAlarms().isEmpty()) flags+=HAS_ALARM_FLAG;
-		if (masterInstance.getProperty(PropertyName.RRULE) != null) flags+=RECURS_FLAG;
-		startFloating = dtstart.isFloating();
-		endFloating = due.isFloating();
-		completeFloating = completed.isFloating();
-
-		if (dtstart.isDate()) flags+= FLAG_ALL_DAY;
-		this.flags = flags;
-	}
-
 	public CacheObject( Masterable masterInstance, long collectionId, long resourceId ) {
 		this.rid = resourceId;
 		this.resourceType = masterInstance.name;
@@ -129,13 +77,13 @@ public class CacheObject implements Parcelable, Comparable<CacheObject> {
 		aDate = masterInstance.getEnd();
 		this.end = (aDate == null ? Long.MAX_VALUE : aDate.getMillis());
 		endFloating = (aDate == null ? true : aDate.isFloating());
-		if ( aDate != null )
+		if ( aDate != null && recurrenceId == null)
 			recurrenceId = aDate.toPropertyString(PropertyName.RECURRENCE_ID);
 
 		aDate = AcalDateTime.fromAcalProperty(masterInstance.getProperty(PropertyName.COMPLETED));
 		this.completed = (aDate == null ? Long.MAX_VALUE : aDate.getMillis());
 		completeFloating = (aDate == null ? true : aDate.isFloating());
-		if ( aDate != null )
+		if ( aDate != null  && recurrenceId == null )
 			recurrenceId = aDate.toPropertyString(PropertyName.RECURRENCE_ID);
 		this.rrid = recurrenceId;
 		
@@ -164,12 +112,12 @@ public class CacheObject implements Parcelable, Comparable<CacheObject> {
 
 		this.end = (dtend == null ? Long.MAX_VALUE : dtend.getMillis());
 		endFloating = (dtend == null ? true : dtend.isFloating());
-		if ( dtend != null )
+		if ( dtend != null  && recurrenceId == null)
 			recurrenceId = dtend.toPropertyString(PropertyName.RECURRENCE_ID);
 
 		this.completed = (completed == null ? Long.MAX_VALUE : completed.getMillis());
 		completeFloating = (completed == null ? true : completed.isFloating());
-		if ( completed != null )
+		if ( completed != null  && recurrenceId == null)
 			recurrenceId = completed.toPropertyString(PropertyName.RECURRENCE_ID);
 		this.rrid = recurrenceId;
 		
