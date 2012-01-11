@@ -55,6 +55,11 @@ public class AcalProperty {
 	private String value;
 	String paramsBlob[];
 
+	// These parameters are quite common so we'll use string parameters
+	public final static String PARAM_VALUE = "VALUE";
+	public final static String PARAM_TYPE = "TYPE";
+	public final static String PARAM_TZID = "TZID";
+	
 	/**
 	 * Construct an AcalProperty object from a string, presumably culled from a VCOMPONENT
 	 * of some kind, such as a VEVENT or VCARD.
@@ -183,6 +188,19 @@ public class AcalProperty {
 			Log.v(TAG,"Added to '"+name+"' parameter '"+paramName+"' = '"+paramValue+"'");
 	}
 
+	/**
+	 * Remove any parameter "name" from this AcalProperty.
+	 * @param paramName
+	 */
+	public synchronized void removeParam(String paramName) {
+		paramsPersistent = true;
+		if (!paramsSet) populateParams();
+		paramsBlob = null;
+		params.remove(paramName);
+		if ( DEBUG && Constants.LOG_VERBOSE )
+			Log.v(TAG,"Removed '"+name+"' parameter '"+paramName+"'");
+	}
+
 	private synchronized void rebuildParamsBlob() {
 		if ( params == null || params.isEmpty() ) {
 			paramsBlob = new String[] { };
@@ -196,6 +214,7 @@ public class AcalProperty {
 		paramsBlob = new String[params.size()];
 		int i=0;
 		for( String p : params.keySet() ) {
+			if ( params.get(p) == null ) continue;
 			StringBuilder builder = new StringBuilder(p.toUpperCase());
 			builder.append('=');
 			// Should really use pre-compiled regex here, but it should not be called often
