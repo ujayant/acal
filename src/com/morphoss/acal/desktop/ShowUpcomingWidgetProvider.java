@@ -2,19 +2,15 @@ package com.morphoss.acal.desktop;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.List;
-import java.util.TimeZone;
+import java.util.ArrayList;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.Cursor;
-import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.preference.PreferenceManager;
@@ -25,12 +21,14 @@ import android.widget.RemoteViews;
 import com.morphoss.acal.AcalDebug;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
-import com.morphoss.acal.StaticHelpers;
+import com.morphoss.acal.aCal;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.activity.EventView;
 import com.morphoss.acal.database.AcalDBHelper;
+import com.morphoss.acal.database.cachemanager.CRGetNextNObjects;
+import com.morphoss.acal.database.cachemanager.CacheManager;
+import com.morphoss.acal.database.cachemanager.CacheObject;
 import com.morphoss.acal.dataservice.Collection;
-import com.morphoss.acal.dataservice.EventInstance;
 
 public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 	
@@ -93,35 +91,29 @@ public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 			long timeOfNextEventEnd = Long.MAX_VALUE;
 			long timeOfNextEventStart = Long.MAX_VALUE;
 
-			//Remove events that have finished
-			cleanOld(context);
-			
 			//Get Data
-			ContentValues[] cvs = getCurrentData(context);
-			for (int  i = 0; i<NUMBER_OF_EVENTS_TO_SHOW; i++) {
-				if (cvs[i] != null) {
-					if (Constants.LOG_VERBOSE) Log.println(Constants.LOGV, TAG, "Processing event "+i);
-					try {
-						AcalDateTime dtstart = AcalDateTime.fromMillis(cvs[i].getAsLong(FIELD_DTSTART)).shiftTimeZone(TimeZone.getDefault().getID());
-						AcalDateTime dtend = AcalDateTime.fromMillis(cvs[i].getAsLong(FIELD_DTEND)).shiftTimeZone(TimeZone.getDefault().getID());
+			ArrayList<CacheObject> data = getCurrentData(context);
+			for (CacheObject object : data) {
+				if (Constants.LOG_VERBOSE) Log.println(Constants.LOGV, TAG, "Processing event "+object.getSummary());
+				try {
+					AcalDateTime dtstart = object.getStartDateTime();
+					AcalDateTime dtend = object.getEndDateTime();
 
-						int rid = cvs[i].getAsInteger(FIELD_RESOURCE_ID);
+					long rid = object.getResourceId();
 						
-						//set up on click intent
-						Intent viewEvent = new Intent(context, EventView.class);
-						viewEvent.putExtra(EventView.RESOURCE_ID_KEY, rid);
-						viewEvent.putExtra(EventView.DTSTART_KEY,dtstart.getMillis());
-						PendingIntent onClickIntent = PendingIntent.getActivity(context, i, viewEvent, PendingIntent.FLAG_UPDATE_CURRENT);
+					//set up on click intent
+					Intent startApp = new Intent(context, aCal.class);
+					PendingIntent onClickIntent = PendingIntent.getActivity(context, 0, startApp, PendingIntent.FLAG_UPDATE_CURRENT);
 						
-						//inflate row
-						RemoteViews row = new RemoteViews(context.getPackageName(), R.layout.show_upcoming_widget_base_row);
+					//inflate row
+					RemoteViews row = new RemoteViews(context.getPackageName(), R.layout.show_upcoming_widget_base_row);
 	
-						LayoutInflater lf = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-						ShowUpcomingRowLayout rowLayout = (ShowUpcomingRowLayout)lf.inflate(R.layout.show_upcoming_widget_custom_row, null);
+					LayoutInflater lf = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+					ShowUpcomingRowLayout rowLayout = (ShowUpcomingRowLayout)lf.inflate(R.layout.show_upcoming_widget_custom_row, null);
 	
-						row.setImageViewBitmap(R.id.upcoming_row_image, rowLayout.setData(
-								cvs[i].getAsInteger(ShowUpcomingWidgetProvider.FIELD_COLOUR),
-								cvs[i].getAsString(ShowUpcomingWidgetProvider.FIELD_SUMMARY),
+					row.setImageViewBitmap(R.id.upcoming_row_image, rowLayout.setData(
+								Collection.getInstance(object.getCollectionId(), context).getColour(),
+								object.getSummary(),
 								getNiceDateTime(context,dtstart,dtend,prefer24Hour) ));
 
 						row.setOnClickPendingIntent(R.id.upcoming_row, onClickIntent);
@@ -138,7 +130,7 @@ public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 					}
 					
 				}
-				else if ( i==0 ) {
+				if ( data.isEmpty()) {
 					RemoteViews row = new RemoteViews(context.getPackageName(), R.layout.show_upcoming_widget_base_row);
 					
 					LayoutInflater lf = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -150,9 +142,8 @@ public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 					//addview
 					views.addView(R.id.upcoming_container, row);
 				}
-			}
 			
-			//set on click
+			
 			//views.setOnClickPendingIntent(R.id.upcoming_container, pendingIntent);
 			
 			if (Constants.LOG_DEBUG && Constants.debugWidget) Log.println(Constants.LOGD, TAG, 
@@ -183,153 +174,23 @@ public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 		}
 	}
 	
-	//Clean any events from the DB that have ended
-	public static void cleanOld(Context context) {
-		if ( Constants.debugHeap ) AcalDebug.heapDebug(TAG, "Widget cleanOld");
-		long endTime = System.currentTimeMillis();
-		AcalDBHelper dbhelper = new AcalDBHelper(context);
-		SQLiteDatabase db = dbhelper.getReadableDatabase();
-		int res = db.delete(TABLE, FIELD_DTEND+" <= ?", new String[]{""+endTime});
-		db.close();
-		dbhelper.close();
-		//if (res >  0) aCalService.databaseDispatcher.dispatchEvent(new DatabaseChangedEvent(DatabaseChangedEvent.DATABASE_SHOW_UPCOMING_WIDGET_UPDATE,null,null));
-		if (Constants.LOG_DEBUG && Constants.debugWidget)  Log.println(Constants.LOGD, TAG,
-				"Deleted "+res+" event(s) that have ended.");
-	}
+
 	
 	/**
-	 * Get the current contents of the DB table and return as an array of ContentValues
-	 * Array Size is ALWAYS NUMBER_POF_EVENTS_TO_SHOW, however there maybe NULL values if the 
-	 * number of rows in the DB is different. Returned array is in order of the _ID field, which should
-	 * be the same order in which events were added.
+	 * Get the current next V events and return as an array of CacheObjects
+	 * Array Size is always <= NUMBER_OF_EVENTS_TO_SHOW, Returned array is in order of events
 	 * 
 	 * @param context
 	 * @return
 	 */
-	public synchronized static ContentValues[] getCurrentData(Context context) {
+	public synchronized static ArrayList<CacheObject> getCurrentData(Context context) {
 		if ( Constants.debugHeap ) AcalDebug.heapDebug(TAG, "Widget getCurrentData");
 		if (Constants.LOG_DEBUG) Log.println(Constants.LOGD, TAG, "Retrieving current data");
-		ContentValues[] cvs = new ContentValues[NUMBER_OF_EVENTS_TO_SHOW];
-		AcalDBHelper dbhelper = new AcalDBHelper(context);
-		SQLiteDatabase db = dbhelper.getReadableDatabase();
 		
-		Cursor cursor = db.query(TABLE, null, null, null, null, null, FIELD_ID+" ASC");
-		if (cursor.getCount() > 0) {
-			cursor.moveToFirst();
-			for (int i=0; !cursor.isAfterLast() && i<NUMBER_OF_EVENTS_TO_SHOW; cursor.moveToNext(), i++) {
-				cvs[i] = new ContentValues();
-				DatabaseUtils.cursorRowToContentValues(cursor, cvs[i]);
-				if (Constants.LOG_VERBOSE && Constants.debugWidget) Log.println(Constants.LOGV, TAG,
-						"Loaded event "+i+" from db");
-			}
-		}
-		cursor.close();
-		db.close();
-		dbhelper.close();
-		if ( Constants.debugHeap ) AcalDebug.heapDebug(TAG, "Widget getCurrentData done");
-		return cvs;
+		return CacheManager.getInstance(context).sendRequest(new CRGetNextNObjects(NUMBER_OF_EVENTS_TO_SHOW)).result();
 	}
 
-	public synchronized static void checkIfUpdateRequired(Context context, List<EventInstance> currentEvents) {
-		if (Constants.LOG_DEBUG && Constants.debugWidget) Log.println(Constants.LOGD, TAG, 
-				"Checking to see if widget update is required...");
-
-		if ( Constants.debugHeap ) AcalDebug.heapDebug(TAG, "Widget checkIfUpdateRequired");
-		//Turn events into content vals for easier processing
-		ContentValues[] cvs = new ContentValues[currentEvents.size()];
-		for (int i = 0; i< currentEvents.size(); i++) {
-			ContentValues cv = getCVFromEvent(context, currentEvents.get(i));
-			if (cv != null)	cvs[i] = cv;
-			else break;
-		}
-		
-		if (hasDataChanged(context, cvs)){
-			if (Constants.LOG_DEBUG && Constants.debugWidget) Log.println(Constants.LOGD, TAG,
-					"Data change detected, Updating DB");
-			updateData(context, cvs);
-			if (Constants.LOG_DEBUG && Constants.debugWidget) Log.println(Constants.LOGD, TAG,
-					"Sending update broadcast");
-			StaticHelpers.updateWidgets(context, ShowUpcomingWidgetProvider.class);
-		}
-		if ( Constants.debugHeap ) AcalDebug.heapDebug(TAG, "Widget checkIfUpdateRequired done");
-	}
 	
-	/**
-	 * Returns true if the list of events provided does not match the contents of the database
-	 * @param context
-	 * @param currentEvents
-	 * @return
-	 */
-	public synchronized static boolean hasDataChanged(Context context, ContentValues[] newData) {
-		ContentValues[] oldData = getCurrentData(context);
-		if (Constants.LOG_DEBUG && Constants.debugWidget) Log.println(Constants.LOGD, TAG,
-				"Comparing current data to db");
-		
-		if ( Constants.debugHeap ) AcalDebug.heapDebug(TAG, "Widget hasDataChanged");
-		if (oldData.length != newData.length) return true;
-		
-		for (int i = 0; i< NUMBER_OF_EVENTS_TO_SHOW && i< oldData.length; i++) {
-			if (oldData[i] == null && newData[i] == null) continue; //both are null
-			if (oldData[i] == null || newData[i] == null) return true; //only one is null
-
-			//check all fields for change
-			if (		oldData[i].getAsInteger(FIELD_RESOURCE_ID) != newData[i].getAsInteger(FIELD_RESOURCE_ID) ||  
-						oldData[i].getAsInteger(FIELD_COLOUR) != newData[i].getAsInteger(FIELD_COLOUR) ||
-						oldData[i].getAsLong(FIELD_DTSTART) != newData[i].getAsLong(FIELD_DTSTART) ||
-						oldData[i].getAsLong(FIELD_DTEND) != newData[i].getAsLong(FIELD_DTEND) ||
-						!oldData[i].getAsString(FIELD_SUMMARY).equals(newData[i].getAsString(FIELD_SUMMARY)))
-				return true;
-			
-			//check to see if this event has ended
-			long now = new AcalDateTime().getMillis();
-			if (oldData[i].getAsLong(FIELD_DTEND) <= now) return true;
-		}
-		if (Constants.LOG_DEBUG && Constants.debugWidget) Log.println(Constants.LOGD, TAG,
-				"Data does not appear to have changed.");
-		return false;
-	}
-	
-	/**
-	 * Overwrites the current database table with the list of events
-	 * @param context
-	 * @param currentEvents
-	 */
-	public static synchronized void updateData(Context context, ContentValues[] cvs) {
-		if (Constants.LOG_DEBUG && Constants.debugWidget) Log.println(Constants.LOGD, TAG,
-				"Writing new values to DB");
-		if ( Constants.debugHeap ) AcalDebug.heapDebug(TAG, "Widget upateData");
-		AcalDBHelper dbhelper = new AcalDBHelper(context);
-		SQLiteDatabase db = dbhelper.getWritableDatabase();
-		db.beginTransaction();
-		
-		//1st, clear existing data
-		db.delete(TABLE, null, null);
-		db.yieldIfContendedSafely();
-
-		//2nd Add each event
-		for (ContentValues cv : cvs) {
-			db.insert(TABLE, null, cv);
-			db.yieldIfContendedSafely();
-		}
-		
-		db.setTransactionSuccessful();
-		db.endTransaction(); 
-		
-		db.close(); 
-		if ( Constants.debugHeap ) AcalDebug.heapDebug(TAG, "Widget upateData done");
-	}
-
-	public synchronized static ContentValues getCVFromEvent(Context context, EventInstance event) {
-		ContentValues cv = new ContentValues();
-		cv.put(FIELD_RESOURCE_ID, event.getResourceId());
-		cv.put(FIELD_COLOUR, Collection.getInstance(event.getCollectionId(), context).getColour());
-		cv.put(FIELD_DTSTART, event.getStart().getMillis());
-		cv.put(FIELD_DTEND, event.getEnd().getMillis());
-		cv.put(FIELD_SUMMARY, event.getSummary());
-		
-		return cv;
-	}
-
 	
 	private String getNiceDateTime(Context context, AcalDateTime start, AcalDateTime end, boolean use24HourFormat) {
 		AcalDateTime now = new AcalDateTime().applyLocalTimeZone();

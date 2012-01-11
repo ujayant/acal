@@ -15,6 +15,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.morphoss.acal.Constants;
+import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.database.AcalDBHelper;
@@ -35,6 +36,7 @@ import com.morphoss.acal.dataservice.Resource;
 import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VComponent;
 import com.morphoss.acal.davacal.VComponentCreationException;
+import com.morphoss.acal.desktop.ShowUpcomingWidgetProvider;
 
 /**
  * 	
@@ -367,6 +369,26 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		threadHolder.open();
 	}
 	
+	/**
+	 * Send a request to the CacheManager. thread is blocked until response is generated. No guarantee is given as to 
+	 * the order of processing, so if sending multiple requests, consider potential race conditions.
+	 * @param request
+	 * @throws IllegalStateException thrown if close() has been called.
+	 */
+	public <E> CacheResponse<E> sendRequest(BlockingCacheRequestWithResponse<E> request) throws IllegalStateException {
+		if (instance == null || this.workerThread == null || this.CTMinstance == null) 
+			throw new IllegalStateException("CM in illegal state - probably because sendRequest was called after close() has been called.");
+		queue.offer(request);
+		threadHolder.open();
+		int priority = Thread.currentThread().getPriority();
+		Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
+		while (!request.isProcessed()) {
+			try { Thread.sleep(10); } catch (Exception e) {	}
+		}
+		Thread.currentThread().setPriority(priority);
+		return request.getResponse();
+	}
+	
 	//Request events (FROM RESOURCES) that
 	private void retrieveRange() {
 		if (window.getRequestedWindow() == null) return;
@@ -576,6 +598,8 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 					listener.cacheChanged(cce);
 				}
 			}
+			//update widgets
+			StaticHelpers.updateWidgets(context, ShowUpcomingWidgetProvider.class);
 			
 		}
 
