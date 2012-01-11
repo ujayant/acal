@@ -34,12 +34,12 @@ import com.morphoss.acal.Constants;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
+import com.morphoss.acal.acaltime.AcalRepeatRuleParser;
 import com.morphoss.acal.activity.EventEdit;
 import com.morphoss.acal.database.alarmmanager.AlarmRow;
 import com.morphoss.acal.database.cachemanager.CacheManager;
 import com.morphoss.acal.database.cachemanager.CacheObject;
 import com.morphoss.acal.dataservice.CalendarInstance;
-import com.morphoss.acal.dataservice.EventInstance;
 import com.morphoss.acal.dataservice.Resource;
 
 public class VCalendar extends VComponent implements Cloneable {
@@ -116,7 +116,7 @@ public class VCalendar extends VComponent implements Cloneable {
 	}
 
 	
-	public String applyEventAction(EventInstance event, int action, int instances) throws InvalidCalendarActionException {
+	public String applyEventAction(CalendarInstance event, int action, int instances) throws InvalidCalendarActionException {
 
 		this.setEditable();
 		VEvent vEvent = (VEvent) this.getMasterChild();
@@ -140,98 +140,109 @@ public class VCalendar extends VComponent implements Cloneable {
 	}
 
 	
-	private String doEdit(EventInstance event, int instances) throws InvalidCalendarActionException {
-		switch (instances) {
-		case EventEdit.INSTANCES_SINGLE:
-		case EventEdit.INSTANCES_THIS_FUTURE: return this.getCurrentBlob(); //TODO not implemented
-		
-		case EventEdit.INSTANCES_ALL:
-			Masterable mast = this.getMasterChild();
-			mast.setEditable();
-			mast.removeProperties( new PropertyName[] {PropertyName.DTSTART, PropertyName.DTEND, PropertyName.DURATION,
-					PropertyName.SUMMARY, PropertyName.LOCATION, PropertyName.DESCRIPTION, PropertyName.RRULE } );
+	private String doEdit(CalendarInstance calendarInstance, int instances) throws InvalidCalendarActionException {
+		Masterable childInstance = null;
 
-			AcalDateTime dtStart = event.getStart();
-			mast.addProperty( dtStart.asProperty(PropertyName.DTSTART));
-
-			AcalDateTime dtEnd = event.getEnd();
-			if ( (dtEnd.getTimeZoneId() == null && dtStart.getTimeZoneId() == null) || 
-					(dtEnd.getTimeZoneId() != null && dtEnd.getTimeZoneId().equals(dtStart.getTimeZoneId())) )
-				mast.addProperty(event.getDuration().asProperty(PropertyName.DURATION) );
-			else
-				mast.addProperty( dtEnd.asProperty( PropertyName.DTEND ) );
-
-			mast.addProperty(new AcalProperty(PropertyName.SUMMARY, event.getSummary()));
-
-			String location = event.getLocation();
-			if ( !location.equals("") )
-				mast.addProperty(new AcalProperty(PropertyName.LOCATION,location));
-
-			String description = event.getDescription();
-			if ( !description.equals("") )
-				mast.addProperty(new AcalProperty(PropertyName.DESCRIPTION,description));
-
-			String rrule = event.getRRule();
-			if ( rrule != null && !rrule.equals(""))
-				mast.addProperty(new AcalProperty(PropertyName.RRULE,rrule));
-
-			mast.updateAlarmComponents( event.getAlarms() );
-
-			updateTimeZones();
-
-			if ( Constants.debugVComponent )
-				Log.println(Constants.LOGD, TAG, "Constructed Blob for\n"+this.getCurrentBlob());
-
-			return this.getCurrentBlob();
-			
-		default: throw new InvalidCalendarActionException("Invalid action/instances combination.");
+		if ( instances == EventEdit.INSTANCES_ALL ) {
+			childInstance = getMasterChild();
 		}
+		else {
+			RecurrenceId rrid = RecurrenceId.fromString(calendarInstance.getRecurrenceId());
+			childInstance = getChildFromRecurrenceId(rrid); 
+
+			RecurrenceId baseRecurrenceId = null;
+			try {
+				baseRecurrenceId = (RecurrenceId) childInstance.getProperty(PropertyName.RECURRENCE_ID);
+			}
+			catch( ClassCastException e ) {
+			}
+			if ( instances == EventEdit.INSTANCES_THIS_FUTURE ) rrid.setThisAndFuture(true);
+
+			if ( baseRecurrenceId == null || !rrid.equals(baseRecurrenceId) ) {
+				childInstance = (Masterable) createComponentFromBlob(childInstance.getCurrentBlob());
+			}
+
+			childInstance.removeProperties(new PropertyName[] { PropertyName.RECURRENCE_ID } );
+			childInstance.addProperty(rrid);
+		}
+
+		childInstance.setEditable();
+		childInstance.removeProperties( new PropertyName[] {PropertyName.DTSTART, PropertyName.DTEND, PropertyName.DURATION,
+				PropertyName.SUMMARY, PropertyName.LOCATION, PropertyName.DESCRIPTION, PropertyName.RRULE } );
+
+		AcalDateTime dtStart = calendarInstance.getStart();
+		childInstance.addProperty( dtStart.asProperty(PropertyName.DTSTART));
+
+		AcalDateTime dtEnd = calendarInstance.getEnd();
+		if ( (dtEnd.getTimeZoneId() == null && dtStart.getTimeZoneId() == null) || 
+				(dtEnd.getTimeZoneId() != null && dtEnd.getTimeZoneId().equals(dtStart.getTimeZoneId())) )
+			childInstance.addProperty(calendarInstance.getDuration().asProperty(PropertyName.DURATION) );
+		else
+			childInstance.addProperty( dtEnd.asProperty( PropertyName.DTEND ) );
+
+		childInstance.addProperty(new AcalProperty(PropertyName.SUMMARY, calendarInstance.getSummary()));
+
+		String location = calendarInstance.getLocation();
+		if ( !location.equals("") )
+			childInstance.addProperty(new AcalProperty(PropertyName.LOCATION,location));
+
+		String description = calendarInstance.getDescription();
+		if ( !description.equals("") )
+			childInstance.addProperty(new AcalProperty(PropertyName.DESCRIPTION,description));
+
+		String rrule = calendarInstance.getRRule();
+		if ( rrule != null && !rrule.equals(""))
+			childInstance.addProperty(new AcalProperty(PropertyName.RRULE,rrule));
+
+		childInstance.updateAlarmComponents( calendarInstance.getAlarms() );
+
+		updateTimeZones();
+		if ( Constants.debugVComponent )
+			Log.println(Constants.LOGD, TAG, "Constructed Blob for\n"+this.getCurrentBlob());
+		return this.getCurrentBlob();
 	}
 
-	private String doDelete(EventInstance event, int instances ) throws InvalidCalendarActionException {
+	
+	private String doDelete(CalendarInstance calendarInstance, int instances ) throws InvalidCalendarActionException {
+		Masterable m = getMasterChild();
+		m.setEditable();
+
 		//TODO
 		switch (instances) {
 			case EventEdit.INSTANCES_SINGLE:
-			case EventEdit.INSTANCES_THIS_FUTURE:
-			default: throw new InvalidCalendarActionException("Invalid action/instances combination.");
-		}
-	}
-			
-			/**if ( action.getAction() == WriteableEventInstance.ACTION_DELETE_SINGLE) {
-				AcalProperty exDate = vEvent.getProperty("EXDATE");
+				AcalProperty exDate = m.getProperty(PropertyName.EXDATE);
 				if ( exDate == null || exDate.getValue().equals("") ) 
-					exDate = AcalProperty.fromString(action.getStart().toPropertyString(PropertyName.EXDATE));
+					exDate = AcalProperty.fromString(calendarInstance.getStart().toPropertyString(PropertyName.EXDATE));
 				else {
-					vEvent.removeProperties( new PropertyName[] {PropertyName.EXDATE} );
-					exDate = AcalProperty.fromString(exDate.toRfcString() + "," + action.getStart().fmtIcal() );
+					m.removeProperties( new PropertyName[] {PropertyName.EXDATE} );
+					exDate = AcalProperty.fromString(exDate.toRfcString() + "," + calendarInstance.getStart().fmtIcal() );
 				}
-				vEvent.addProperty(exDate);
-			}
-			else if (action.getAction() ==WriteableEventInstance.ACTION_DELETE_ALL_FUTURE) {
-				AcalRepeatRuleParser parsedRule = AcalRepeatRuleParser.parseRepeatRule(action.getRRule());
-				AcalDateTime until = action.getStart().clone();
+				m.addProperty(exDate);
+				break;
+
+			case EventEdit.INSTANCES_THIS_FUTURE:
+				AcalRepeatRuleParser parsedRule = AcalRepeatRuleParser.parseRepeatRule(calendarInstance.getRRule());
+				AcalDateTime until = calendarInstance.getStart().clone();
 				until.addSeconds(-1);
 				parsedRule.setUntil(until);
 				String rrule = parsedRule.toString();
-				action.setRepetition(rrule);
-				vEvent.removeProperties( new PropertyName[] {PropertyName.RRULE} );
-				vEvent.addProperty(new AcalProperty("RRULE",rrule));
-			}
-			else if (action.isModifyAction()) {
-				this.applyModify(vEvent,action);
-				this.updateTimeZones(vEvent);
-			}
+				m.removeProperties( new PropertyName[] {PropertyName.RRULE} );
+				m.addProperty(new AcalProperty(PropertyName.RRULE,rrule));
+			default: throw new InvalidCalendarActionException("Invalid action/instances combination.");
+		}
 
-			String ret = this.getCurrentBlob();
-			return ret;
-			*/
-		
+		if ( Constants.debugVComponent )
+			Log.println(Constants.LOGD, TAG, "Reconstructed Blob for\n"+this.getCurrentBlob());
+
+		return this.getCurrentBlob();
+	}
+					
 
 	/**
 	 * TODO - needs to be refactored
 	 */
-	private void applyModify(Masterable mast, EventInstance action) {
-		/**
+	/**
+	private void applyModify(Masterable mast, CalendarInstance action) {
 		//there are 3 possible modify actions:
 		if (action.getAction() == WriteableEventInstance.ACTION_MODIFY_SINGLE) {
 			// Only modify the single instance
@@ -273,8 +284,8 @@ public class VCalendar extends VComponent implements Cloneable {
 
 			mast.updateAlarmComponents( action.getAlarms() );
 		}
-		*/
 	}
+		*/
 
 	public void updateTimeZones() {
 		HashSet<String> tzIdSet = new HashSet<String>();
