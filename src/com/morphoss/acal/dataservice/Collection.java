@@ -60,12 +60,12 @@ public class Collection {
 	public Collection( ContentValues collectionRow ) {
 		cv = collectionRow;
 		setColour(cv.getAsString(DavCollections.COLOUR));
-		alarmsEnabled = (cv.getAsInteger(DavCollections.USE_ALARMS) == 1);
+		alarmsEnabled = StaticHelpers.toBoolean(cv.getAsInteger(DavCollections.USE_ALARMS), true);
 		collectionId = cv.getAsLong(DavCollections._ID);
-		useForEvents = (cv.getAsInteger(DavCollections.ACTIVE_EVENTS) == 1);
-		useForTasks = (cv.getAsInteger(DavCollections.ACTIVE_TASKS) == 1);
-		useForJournal = (cv.getAsInteger(DavCollections.ACTIVE_JOURNAL) == 1);
-		useForAddressbook = (cv.getAsInteger(DavCollections.ACTIVE_ADDRESSBOOK) == 1);
+		useForEvents = StaticHelpers.toBoolean(cv.getAsInteger(DavCollections.ACTIVE_EVENTS), true);
+		useForTasks = StaticHelpers.toBoolean(cv.getAsInteger(DavCollections.ACTIVE_TASKS), true);
+		useForJournal = StaticHelpers.toBoolean(cv.getAsInteger(DavCollections.ACTIVE_JOURNAL), true);
+		useForAddressbook = StaticHelpers.toBoolean(cv.getAsInteger(DavCollections.ACTIVE_ADDRESSBOOK), false);
 	}
 
 	private static Collection fromDatabase(long collectionId, Context context) {
@@ -90,9 +90,7 @@ public class Collection {
 		if (cv.containsKey(DavCollections.COLOUR)){
 			setColour(cv.getAsString(DavCollections.COLOUR));
 		}
-		if (cv.containsKey(DavCollections.USE_ALARMS)){
-			alarmsEnabled = (cv.getAsInteger(DavCollections.USE_ALARMS) == 1);
-		}
+		alarmsEnabled = StaticHelpers.toBoolean(cv.getAsInteger(DavCollections.USE_ALARMS), true);
 	}
 
 	public int getColour() {
