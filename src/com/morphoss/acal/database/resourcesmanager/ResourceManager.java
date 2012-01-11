@@ -233,6 +233,7 @@ public class ResourceManager implements Runnable {
 
 	public <E> ResourceResponse<E> sendBlockingRequest(BlockingResourceRequestWithResponse<E> request) {
 		if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG, "Received Blocking Request: "+request.getClass());
+		writeQueue.offer(request);
 		offerAndBlockUntilProcessed(request);
 		return request.getResponse();
 	}
@@ -399,6 +400,7 @@ public class ResourceManager implements Runnable {
 		 * Method to retrieve a particular database row for a given resource ID.
 		 */
 		public ContentValues getResource(long rid) {
+			
 			ArrayList<ContentValues> res = this.query( null, RESOURCE_ID + " = ?",	new String[] { rid + "" }, null, null, null);
 			if (res == null || res.isEmpty()) return null;
 			return res.get(0);

@@ -227,6 +227,7 @@ ResourceChangedListener, ResourceResponseListener, OnFocusChangeListener {
 
 			case SAVE_RESULT:
 				//dismiss dialog
+				mHandler.removeMessages(SAVE_FAILED);
 				isSaving = false;
 				if (savingDialog != null) savingDialog.dismiss();
 				long res = (Long)msg.obj;
@@ -238,6 +239,7 @@ ResourceChangedListener, ResourceResponseListener, OnFocusChangeListener {
 					ret.putExtras(b);			
 					setResult(RESULT_OK, ret);
 					saveSucceeded = true;
+					
 					finish();
 
 				} else {
@@ -249,8 +251,8 @@ ResourceChangedListener, ResourceResponseListener, OnFocusChangeListener {
 				isSaving = false;
 				if (savingDialog != null) savingDialog.dismiss();
 				if ( saveSucceeded ) {
-					// Don't know why we get here, but we do!
-					Log.w(TAG,"This shouldn't happen, so lets log it to see why it does!",new Exception());
+					// Don't know why we get here, but we do! - cancel save failed when save succeeds. we shouldn't see this anymore.
+					Log.w(TAG,"This should have been fixed now yay!",new Exception());
 				}
 				else {
 					Toast.makeText(EventEdit.this, "Something went wrong trying to save data.", Toast.LENGTH_LONG).show();

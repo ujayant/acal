@@ -156,7 +156,6 @@ public class AlarmQueueManager implements Runnable, ResourceChangedListener  {
 		AcalDBHelper dbHelper = new AcalDBHelper(context);
 		SQLiteDatabase db = dbHelper.getWritableDatabase();
 		//load start/end range from meta table
-		AcalDateTime defaultWindow = new AcalDateTime();
 		Cursor mCursor = db.query(META_TABLE, null, null, null, null, null, null);
 		int closedState = 0;
 		try {
@@ -401,7 +400,7 @@ public class AlarmQueueManager implements Runnable, ResourceChangedListener  {
 		 * Get the next alarm to go off
 		 * @return
 		 */
-		public AlarmRow getNextDueAlarm() {
+		public AlarmRow getNextAlarm() {
 			ArrayList<ContentValues> res = super.query(null, 
 					FIELD_STATE +" = ? OR "+FIELD_STATE +" = ?", 
 					new String[] {ALARM_STATE.PENDING.ordinal()+"", ALARM_STATE.SNOOZED.ordinal()+""} , 
@@ -409,6 +408,24 @@ public class AlarmQueueManager implements Runnable, ResourceChangedListener  {
 					null, 
 					FIELD_TIME_TO_FIRE+" ASC");
 			if (res.isEmpty()) return null;
+			return AlarmRow.fromContentValues(res.get(0));
+		}
+		
+		/**
+		 * Get the next alarm that is overdue or null. If null, then schedule next alarm intent.
+		 * @return
+		 */
+		public AlarmRow getNextDueAlarm() {
+			ArrayList<ContentValues> res = super.query(null, 
+					"("+FIELD_STATE +" = ? OR "+FIELD_STATE +" = ? ) AND "+FIELD_TIME_TO_FIRE+" < ?", 
+					new String[] {ALARM_STATE.PENDING.ordinal()+"", ALARM_STATE.SNOOZED.ordinal()+"", System.currentTimeMillis()+""} , 
+					null, 
+					null, 
+					FIELD_TIME_TO_FIRE+" ASC");
+			if (res.isEmpty()) {
+				this.scheduleAlarmIntent();
+				return null;
+			}
 			return AlarmRow.fromContentValues(res.get(0));
 		}
 		
@@ -445,7 +462,7 @@ public class AlarmQueueManager implements Runnable, ResourceChangedListener  {
 		 * Schedule the next alarm intent - Should be called whenever there is a change to the db.
 		 */
 		public void scheduleAlarmIntent() {
-			AlarmRow next = getNextDueAlarm();
+			AlarmRow next = getNextAlarm();
 			if (next == null) return; //nothing to schedule.
 			long ttf = next.getTimeToFire();
 			Log.i(TAG, "Scheduled Alarm for "+ ((ttf-System.currentTimeMillis())/1000)+" Seconds from now.");
@@ -458,27 +475,34 @@ public class AlarmQueueManager implements Runnable, ResourceChangedListener  {
 		//Deal with resource changes
 		public void processChanges(ArrayList<DataChangeEvent> changes) {
 			super.beginTransaction();
-			for (DataChangeEvent change : changes) {
-				super.delete(FIELD_RID+" = ?", new String[]{change.getData().getAsLong(ResourceTableManager.RESOURCE_ID)+""});
-				switch (change.action) {
-					case INSERT:
-					case UPDATE:
-					case PENDING_RESOURCE:
-						populateTableFromResource(change.getData());
-						break;
-					default: break;
+			try {
+				for (DataChangeEvent change : changes) {
+					this.db.yieldIfContendedSafely();
+					super.delete(FIELD_RID+" = ?", new String[]{change.getData().getAsLong(ResourceTableManager.RESOURCE_ID)+""});
+					switch (change.action) {
+						case INSERT:
+						case UPDATE:
+						case PENDING_RESOURCE:
+							populateTableFromResource(change.getData());
+							break;
+						default: break;
+					}
 				}
+			} catch (Exception e) {
+				Log.e(TAG, "Error processing resource changes: "+e+"\n"+Log.getStackTraceString(e));
 			}
 			super.setTxSuccessful();
 			super.endTransaction();
 			//schedule alarm intent
 			scheduleAlarmIntent();
+			
 
 		}
 
 		private void populateTableFromResource(ContentValues data) {
 			//default start timestamp
-			AcalDateTime after = new AcalDateTime();
+			AcalDateTime after = new AcalDateTime().applyLocalTimeZone();
+
 			ArrayList<AlarmRow> alarmList = new ArrayList<AlarmRow>();
 			//use last dismissed to calculate start
 			ArrayList<ContentValues> cvs = super.query(null, FIELD_STATE+" = ?", new String[]{ALARM_STATE.DISMISSED.ordinal()+""}, null, null, FIELD_TIME_TO_FIRE+" DESC");

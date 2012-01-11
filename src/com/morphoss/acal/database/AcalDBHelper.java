@@ -50,6 +50,8 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 	 */
 	public static final int DB_VERSION = 19;
 	
+
+	
 	/**
 	 * <p>The dav_server Table as stated in the specification.</p>
 	 */

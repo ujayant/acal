@@ -14,6 +14,7 @@ public class AlarmRow implements Comparable<AlarmRow> {
 	private String blob;
 	
 	public AlarmRow(long id, long ttf, long rid, String rrid, ALARM_STATE state, String blob) {
+		this.id = id;
 		this.ttf = ttf;
 		this.rid = rid;
 		this.rrid = rrid;
@@ -74,6 +75,22 @@ public class AlarmRow implements Comparable<AlarmRow> {
 
 	public long getId() {
 		return this.id;
+	}
+
+	public long getResourceId() {
+		return this.rid;
+	}
+
+	public String getReccurenceId() {
+		return this.rrid;
+	}
+
+	public String getBlob() {
+		return this.blob;
+	}
+
+	public long getTTF() {
+		return this.ttf;
 	}
 	
 }

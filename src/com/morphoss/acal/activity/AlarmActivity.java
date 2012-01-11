@@ -44,7 +44,7 @@ import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.database.alarmmanager.ALARM_STATE;
-import com.morphoss.acal.database.alarmmanager.ARGetNextAlarm;
+import com.morphoss.acal.database.alarmmanager.ARGetNextDueAlarm;
 import com.morphoss.acal.database.alarmmanager.ARUpdateAlarmState;
 import com.morphoss.acal.database.alarmmanager.AlarmQueueManager;
 import com.morphoss.acal.database.alarmmanager.AlarmRow;
@@ -181,18 +181,19 @@ public class AlarmActivity extends AcalActivity implements OnClickListener  {
 		snoozeButton = (ImageView) this.findViewById(R.id.snooze_button);
 		dismissButton = (ImageView) this.findViewById(R.id.dismiss_button);
 
+		
 	}
 
 
 	@Override
 	public void onClick(View clickedThing) {
 		if ( clickedThing == mapButton ) {
-			if ( Constants.LOG_DEBUG ) Log.d(TAG, "Starting Map");
-			String loc = location.getText().toString();
+			//if ( Constants.LOG_DEBUG ) Log.d(TAG, "Starting Map");
+			//String loc = location.getText().toString();
 			// replace whitespaces with '+'
-			loc.replace("\\s", "+");
-			Uri target = Uri.parse("geo:0,0?q=" + loc);
-			startActivity(new Intent(android.content.Intent.ACTION_VIEW, target));
+			//loc.replace("\\s", "+");
+			//Uri target = Uri.parse("geo:0,0?q=" + loc);
+			//startActivity(new Intent(android.content.Intent.ACTION_VIEW, target));
 			// start map view
 			return;
 		}
@@ -225,6 +226,10 @@ public class AlarmActivity extends AcalActivity implements OnClickListener  {
 		if (wl.isHeld()) wl.release();
 	}
 
+	public void onResume() {
+		super.onResume();
+		this.showNextAlarm();
+	}
 
 	/********************************
 	 * 		Alarm Management		*
@@ -235,7 +240,7 @@ public class AlarmActivity extends AcalActivity implements OnClickListener  {
 	 */
 	private void showNextAlarm() {
 		if (Constants.LOG_DEBUG) Log.d(TAG, "Showing next alarm....");
-		currentAlarmRow = AlarmQueueManager.getInstance(this).sendBlockingRequest(new ARGetNextAlarm()).result();
+		currentAlarmRow = AlarmQueueManager.getInstance(this).sendBlockingRequest(new ARGetNextDueAlarm()).result();
 		
 		if (currentAlarmRow == null) {
 			if (Constants.LOG_DEBUG)Log.d(TAG,"Next alarm is null. Finishing");
@@ -245,6 +250,13 @@ public class AlarmActivity extends AcalActivity implements OnClickListener  {
 		} else {
 			//need to construct an AcalAlarm from the alarm row
 			this.currentAlarm = ResourceManager.getInstance(this).sendBlockingRequest(new RRAlarmRowToAcalAlarm(currentAlarmRow)).result();
+			if (this.currentAlarm == null ) {
+				//error getting alarm. 
+				//TODO dismiss this row then show next
+				mNotificationManager.cancelAll();
+				finish();
+				return;
+			}
 		}
 		
 		this.updateAlarmView();
@@ -263,14 +275,18 @@ public class AlarmActivity extends AcalActivity implements OnClickListener  {
 			header.setText((now.getHour())+":"+min);
 			title.setText(currentAlarm.description);
 			createNotification(currentAlarm.description);
-			EventInstance event = currentAlarm.getEvent();
-			if (event == null)
-				throw new IllegalStateException("Alarms passed to AlarmActivity MUST have an associated event");
-			location.setText(event.getLocation());
+			//EventInstance event = currentAlarm.getEvent();
+			//if (event == null)
+			//	throw new IllegalStateException("Alarms passed to AlarmActivity MUST have an associated event");
+			//location.setText(event.getLocation());
 
 			AcalDateTime viewDate = new AcalDateTime();
 			viewDate.applyLocalTimeZone();
 			viewDate.setDaySecond(0);
+			
+			snoozeButton.setOnClickListener(this);
+			dismissButton.setOnClickListener(this);
+			mapButton.setOnClickListener(this);
 			/**
 			 * TODO - fix this
 			 */

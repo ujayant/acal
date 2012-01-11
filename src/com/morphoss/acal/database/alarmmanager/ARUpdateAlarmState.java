@@ -23,6 +23,7 @@ public class ARUpdateAlarmState implements BlockingAlarmRequest {
 	@Override
 	public void process(AlarmTableManager processor) throws AlarmProcessingException {
 		processor.updateAlarmState(row, newState);
+		this.processed = true;
 	}
 
 }

@@ -4,12 +4,12 @@ import com.morphoss.acal.database.alarmmanager.AlarmQueueManager.AlarmTableManag
 import com.morphoss.acal.database.alarmmanager.requesttypes.AlarmResponse;
 import com.morphoss.acal.database.alarmmanager.requesttypes.BlockingAlarmRequestWithResponse;
 
-public class ARGetNextAlarm extends BlockingAlarmRequestWithResponse<AlarmRow> {
+public class ARGetNextDueAlarm extends BlockingAlarmRequestWithResponse<AlarmRow> {
 
 	@Override
 	public void process(AlarmTableManager processor) throws AlarmProcessingException {
-		
-		this.postResponse(new ARGetNextAlarmResult(processor.getNextDueAlarm()));
+		AlarmRow res = processor.getNextDueAlarm();
+		this.postResponse(new ARGetNextAlarmResult(res));
 	}
 	
 	public class ARGetNextAlarmResult extends AlarmResponse<AlarmRow> {

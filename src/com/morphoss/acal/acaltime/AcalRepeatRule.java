@@ -429,7 +429,7 @@ public class AcalRepeatRule {
 					if ( range.contains(alarm.getNextTimeToFire()) ) {
 						//the alarm needs to have event data associated
 						AlarmRow row = new AlarmRow(
-								alarm.getNextTimeToFire().getMillis(),
+								alarm.getNextTimeToFire().applyLocalTimeZone().getMillis(),
 								event.getResourceId(),
 								event.getRecurrenceId(),
 								alarm.blob
