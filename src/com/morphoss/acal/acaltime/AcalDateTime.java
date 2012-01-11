@@ -95,7 +95,8 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 				")?" 						// 10 = Olson timezone
 			);
 
-	public static final TimeZone		UTC					= TimeZone.getTimeZone("UTC");
+	public static final String			UTC_NAME			= "UTC";
+	public static final TimeZone		UTC					= TimeZone.getTimeZone(UTC_NAME);
 
 	public static final int				SECONDS_IN_DAY		= 86400;
 	public static final int				SECONDS_IN_HOUR		= 3600;
@@ -191,7 +192,7 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 		AcalDateTime ret = fromMillis(millisecondsSinceEpoch);
 		if ( fromFloating ) {
 			ret.tz = UTC;
-			ret.tzName = UTC.getID();
+			ret.tzName = UTC_NAME;
 			ret.setTimeZone(TimeZone.getDefault().getID());
 		}
 		else
@@ -239,7 +240,7 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	public static AcalDateTime fromAcalProperty(AcalProperty prop) {
 		if ( prop == null ) return null;
 		try {
-			return AcalDateTime.fromIcalendar(prop.getValue(),prop.getParam("VALUE"),prop.getParam("TZID"));
+			return AcalDateTime.fromIcalendar(prop.getValue(),prop.getParam(AcalProperty.PARAM_VALUE),prop.getParam(AcalProperty.PARAM_TZID));
 		}
 		catch ( NullPointerException e ) {}
 		catch ( IllegalArgumentException e ) {}
@@ -339,7 +340,7 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 			newDateTime = new AcalDateTime(year, month, day, hour, minute, second, null);
 			if (m.group(7) != null && m.group(7).equals("Z") ) {
 				newDateTime.tz = UTC;
-				newDateTime.tzName = "UTC";
+				newDateTime.tzName = UTC_NAME;
 			}
 			else if (m.group(10) != null && !m.group(10).equals("") ) {
 				newDateTime.overwriteTimeZone(m.group(10));
@@ -395,7 +396,7 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	 * <p>
 	 * It is expected that this will be called something like:<br/>
 	 * <pre>
-	 * new AcalDateTime = AcalDateTime.fromProperty( dateProperty.Value(), dateProperty.getParam("VALUE"), dateProperty.getParam("TZID") );
+	 * new AcalDateTime = AcalDateTime.fromProperty( dateProperty.Value(), dateProperty.getParam(AcalProperty.PARAM_VALUE), dateProperty.getParam(AcalProperty.PARAM_TZID) );
 	 * </pre>
 	 * It's fine for either of the second two to be null.  The first one can also be null, but you'll
 	 * just get a null back in that case.
@@ -1310,7 +1311,7 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 		if ( second < 10 ) ret.append("0");
 		ret.append(second);
 
-		if ( tz != null && tzName != null && tzName.equals("UTC") ) ret.append('Z');
+		if ( tz != null && tzName != null && tzName.equals(UTC_NAME) ) ret.append('Z');
 
 		return ret.toString();
 	}
@@ -1339,7 +1340,7 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 			ret.append(";VALUE=DATE");
 			// VALUE=DATE *MUST NOT* contain a TZID (RFC5545 3.2.19)
 		}
-		else if ( tz != null && !tzName.equals("UTC") ) {
+		else if ( tz != null && !tzName.equals(UTC_NAME) ) {
 			ret.append(";TZID=");
 			ret.append(tzName);
 		}
@@ -1356,7 +1357,7 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 		StringBuilder ret = new StringBuilder( (epoch == EPOCH_NOT_SET ? "EPOCH_NOT_SET" : Long.toString(epoch)) );
 		ret.append(" - ");
 		ret.append(fmtIcal());
-		if ( tz != null && !tzName.equals("UTC") ) {
+		if ( tz != null && !tzName.equals(UTC_NAME) ) {
 			ret.append(" ");
 			ret.append(tzName);
 		}
@@ -1728,8 +1729,8 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 
 	public AcalProperty asProperty(String propertyName) {
 		AcalProperty ret = new AcalProperty(propertyName, fmtIcal());
-		if ( isDate ) ret.setParam("VALUE", "DATE");
-		else if ( tz != null && !tzName.equals("UTC") )	ret.setParam("TZID",tzName);
+		if ( isDate ) ret.setParam(AcalProperty.PARAM_VALUE, "DATE");
+		else if ( tz != null && !tzName.equals(UTC_NAME) )	ret.setParam(AcalProperty.PARAM_TZID,tzName);
 		return ret;
 	}
 
@@ -1746,7 +1747,7 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	public static AcalDateTime getInstance() {
 		AcalDateTime answer = new AcalDateTime();
 		answer.tz = UTC;
-		answer.tzName = UTC.getID();
+		answer.tzName = UTC_NAME;
 		answer.applyLocalTimeZone();
 		return answer;
 	}
