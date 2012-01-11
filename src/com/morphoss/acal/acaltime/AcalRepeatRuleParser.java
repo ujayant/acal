@@ -58,7 +58,7 @@ public abstract class AcalRepeatRuleParser {
 	protected final static int INFINITE_REPEAT_COUNT = -1;
 
 	protected final RRuleFreqType		frequency;
-	public final int					count;
+	protected int						count;
 	public final int					interval;
 	public final int[]					bysecond;
 	public final int[]					byminute;
@@ -180,6 +180,7 @@ public abstract class AcalRepeatRuleParser {
 
 	public void setUntil( AcalDateTime newUntil ) {
 		until = newUntil.clone();
+		count = INFINITE_REPEAT_COUNT;
 	}
 
 	public String toString() {
