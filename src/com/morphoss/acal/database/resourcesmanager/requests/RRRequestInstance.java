@@ -51,7 +51,7 @@ public class RRRequestInstance extends ReadOnlyResourceRequestWithResponse<Calen
 						throw new Exception("Resource deleted.");
 					} else {
 						CalendarInstance ci = CalendarInstance.fromPendingRowAndRRID(val,rrid);
-						this.postResponse(new RRRequestInstanceResponse<CalendarInstance>(ci));
+						this.postResponse(new RRRequestInstanceResponse(ci));
 						this.processed = true;
 					}
 				}
@@ -59,19 +59,19 @@ public class RRRequestInstance extends ReadOnlyResourceRequestWithResponse<Calen
 			if (!processed) {
 				Resource res = Resource.fromContentValues(cv.get(0));
 				CalendarInstance ci = CalendarInstance.fromResourceAndRRId(res, rrid);
-				this.postResponse(new RRRequestInstanceResponse<CalendarInstance>(ci));
+				this.postResponse(new RRRequestInstanceResponse(ci));
 				this.processed = true;
 			}
 		}
 		catch ( Exception e ) {
 			Log.e(TAG, e.getMessage() + Log.getStackTraceString(e));
-			this.postResponse(new RRRequestInstanceResponse<CalendarInstance>(e));
+			this.postResponse(new RRRequestInstanceResponse(e));
 			this.processed = true;
 		}
 		
 	}
 
-	public class RRRequestInstanceResponse<CalendarIntstance> extends ResourceResponse<CalendarInstance> {
+	public class RRRequestInstanceResponse extends ResourceResponse<CalendarInstance> {
 
 		private CalendarInstance result = null;
 		public RRRequestInstanceResponse(CalendarInstance ci) { this.result = ci; }
