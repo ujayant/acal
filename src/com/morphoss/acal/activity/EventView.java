@@ -331,9 +331,9 @@ public class EventView extends AcalActivity implements  OnClickListener, Resourc
 				collectionLayout.setVisibility(View.VISIBLE);
 			
 			if (collection.alarmsEnabled()) {
-				textAlarmsWarning.setVisibility(View.VISIBLE);
+				textAlarmsWarning.setVisibility(View.GONE);
 			} else {
-				alarmsLayout.setVisibility(View.GONE);
+				textAlarmsWarning.setVisibility(View.VISIBLE);
 			}
 		} else {
 			collectionLayout.setVisibility(View.GONE);
