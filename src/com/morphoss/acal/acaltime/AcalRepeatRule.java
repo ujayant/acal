@@ -96,7 +96,7 @@ public class AcalRepeatRule {
 	public AcalRepeatRule(AcalProperty dtStart, AcalProperty rRule) {
 		this((dtStart == null
 					? null
-					: AcalDateTime.fromIcalendar(dtStart.getValue(),dtStart.getParam("VALUE"),dtStart.getParam("TZID"))),
+					: AcalDateTime.fromIcalendar(dtStart.getValue(),dtStart.getParam(AcalProperty.PARAM_VALUE),dtStart.getParam(AcalProperty.PARAM_TZID))),
 				(rRule == null ? null : rRule.getValue())
 			);
 	}
@@ -132,12 +132,12 @@ public class AcalRepeatRule {
 		if ( repeatFromDate == null )
 			repeatFromDate = masterComponent.getProperty(PropertyName.DTEND);
 		if ( repeatFromDate == null ) {
-			if ( Constants.debugRepeatRule && Constants.LOG_VERBOSE ) {
-				Log.println(Constants.LOGV,TAG,"Cannot calculate instances of "+masterComponent.getName()+" without DTSTART/DUE inside " + vCal.getName() );
+			if ( Constants.debugRepeatRule && Constants.LOG_DEBUG ) {
+				Log.println(Constants.LOGD,TAG,"Cannot calculate instances of "+masterComponent.getName()+" without DTSTART/DUE inside " + vCal.getName() );
 				repeatFromDate = masterComponent.getProperty(PropertyName.DTSTART);
 				masterComponent = vCal.getMasterChild();
 				repeatFromDate = masterComponent.getProperty(PropertyName.DTSTART);
-				Log.println(Constants.LOGV,TAG, "Original blob is\n"+vCal.getOriginalBlob() );
+				Log.println(Constants.LOGD,TAG, "Original blob is\n"+vCal.getOriginalBlob() );
 			}
 			return null;
 		}
@@ -157,8 +157,8 @@ public class AcalRepeatRule {
 			String value = dateListProperty.getValue();
 			if ( value == null )	continue;
 		
-			String isDateParam = dateListProperty.getParam("VALUE");
-			String tzIdParam = dateListProperty.getParam("TZID");
+			String isDateParam = dateListProperty.getParam(AcalProperty.PARAM_VALUE);
+			String tzIdParam = dateListProperty.getParam(AcalProperty.PARAM_TZID);
 			
 			final String[] dateList = Constants.splitOnCommas.split(value);
 			AcalDateTime[] timeList = new AcalDateTime[dateList.length];
