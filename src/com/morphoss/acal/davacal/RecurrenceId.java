@@ -25,12 +25,25 @@ import com.morphoss.acal.acaltime.AcalDateTime;
 public class RecurrenceId extends AcalProperty implements Comparable<RecurrenceId>{
 	
 	public final AcalDateTime	when;
-	public final boolean		thisAndFuture;
+	private boolean		thisAndFuture;
+	
+	public final static String PARAM_RANGE = "RANGE";
+	public final static String VALUE_THISANDFUTURE = "THISANDFUTURE";
 
 	protected RecurrenceId(String name, String value, String[] paramsBlob) {
 		super(name,value,paramsBlob);
-		when = AcalDateTime.fromIcalendar(getValue(),getParam("VALUE"), getParam("TZID"));
-		thisAndFuture = (getParam("RANGE") != null && getParam("RANGE").equalsIgnoreCase("THISANDFUTURE"));
+		when = AcalDateTime.fromIcalendar(getValue(),getParam(AcalProperty.PARAM_VALUE), getParam(AcalProperty.PARAM_TZID));
+		thisAndFuture = (getParam(PARAM_RANGE) != null && getParam(PARAM_RANGE).equalsIgnoreCase(VALUE_THISANDFUTURE));
+	}
+
+	public boolean getThisAndFuture() {
+		return thisAndFuture;
+	}
+
+	public void setThisAndFuture(boolean isThisAndFuture ) {
+		thisAndFuture = isThisAndFuture;
+		if ( thisAndFuture ) this.setParam(PARAM_RANGE, VALUE_THISANDFUTURE);
+		else this.removeParam(PARAM_RANGE);
 	}
 
 	public static RecurrenceId fromString(String blob) {
@@ -64,6 +77,13 @@ public class RecurrenceId extends AcalProperty implements Comparable<RecurrenceI
 		return ( (thisAndFuture && !when.after(rid.when)) || when.equals(rid.when) );
 	}
 	
+	/**
+	 * @return the thisAndFuture
+	 */
+	public boolean isThisAndFuture() {
+		return thisAndFuture;
+	}
+
 	public static class VComponentComparatorByRecurrenceId implements Comparator<VComponent> {
 		
 		public int compare(VComponent a, VComponent b) {
