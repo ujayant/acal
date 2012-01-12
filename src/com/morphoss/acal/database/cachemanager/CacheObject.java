@@ -296,9 +296,9 @@ public class CacheObject implements Parcelable, Comparable<CacheObject> {
 		cv.put(CacheTableManager.FIELD_DTSTART, this.start);
 		cv.put(CacheTableManager.FIELD_DTEND, this.end);
 		cv.put(CacheTableManager.FIELD_COMPLETED, this.completed);
-		cv.put(CacheTableManager.FIELD_DTSTART_FLOAT, this.startFloating);
-		cv.put(CacheTableManager.FIELD_DTEND_FLOAT, this.endFloating);
-		cv.put(CacheTableManager.FIELD_COMPLETE_FLOAT, this.completeFloating);
+		cv.put(CacheTableManager.FIELD_DTSTART_FLOAT, this.startFloating?1:0);
+		cv.put(CacheTableManager.FIELD_DTEND_FLOAT, this.endFloating?1:0);
+		cv.put(CacheTableManager.FIELD_COMPLETE_FLOAT, this.completeFloating?1:0);
 		cv.put(CacheTableManager.FIELD_FLAGS, this.flags);
 		return cv;
 	}
@@ -357,4 +357,9 @@ public class CacheObject implements Parcelable, Comparable<CacheObject> {
 		return new AcalDateRange(getStartDateTime(),getEndDateTime());
 	}
 	
+	public boolean equals(Object other) {
+		if (this == other) return true;
+		if (! (other instanceof CacheObject)) return false;
+		return (this.cid == ((CacheObject)other).cid);
+	}
 }

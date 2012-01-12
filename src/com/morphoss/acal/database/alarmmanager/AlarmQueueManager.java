@@ -26,11 +26,11 @@ import com.morphoss.acal.database.DMInsertQuery;
 import com.morphoss.acal.database.DMQueryList;
 import com.morphoss.acal.database.DataChangeEvent;
 import com.morphoss.acal.database.DatabaseTableManager;
+import com.morphoss.acal.database.alarmmanager.requests.ARResourceChanged;
 import com.morphoss.acal.database.alarmmanager.requesttypes.AlarmRequest;
 import com.morphoss.acal.database.alarmmanager.requesttypes.AlarmResponse;
 import com.morphoss.acal.database.alarmmanager.requesttypes.BlockingAlarmRequest;
 import com.morphoss.acal.database.alarmmanager.requesttypes.BlockingAlarmRequestWithResponse;
-import com.morphoss.acal.database.cachemanager.CacheManager;
 import com.morphoss.acal.database.resourcesmanager.ResourceChangedEvent;
 import com.morphoss.acal.database.resourcesmanager.ResourceChangedListener;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager;
@@ -321,6 +321,8 @@ public class AlarmQueueManager implements Runnable, ResourceChangedListener  {
 		//Change this to set how far back we look for alarms and database first time use/rebuild
 		private static final int LOOKBACK_SECONDS = 4*60*60;		//default 4 hours
         
+		private static final String TAG = "aCal AlarmQueueManager";
+		
 		private AlarmManager alarmManager;
 		
 		private AlarmTableManager() {
@@ -329,6 +331,10 @@ public class AlarmQueueManager implements Runnable, ResourceChangedListener  {
 		}
 
 		public void process(AlarmRequest request) {
+			long start = System.currentTimeMillis();
+			if (Constants.debugAlarms) {
+				Log.d(TAG,"Processing "+request.getClass()+": "+request.getLogDescription());
+			}
 			try {
 				request.process(this);
 				if (this.inTx) {
@@ -343,6 +349,9 @@ public class AlarmQueueManager implements Runnable, ResourceChangedListener  {
 				//make sure db was closed properly
 				if (this.db != null)
 				try { endQuery(); } catch (Exception e) { }
+			}
+			if (Constants.debugAlarms) {
+				Log.d(TAG, "Processing of "+request.getClass()+" complete in "+(System.currentTimeMillis()-start)+"ms");
 			}
 		}
 
@@ -477,7 +486,7 @@ public class AlarmQueueManager implements Runnable, ResourceChangedListener  {
 			super.beginTransaction();
 			try {
 				for (DataChangeEvent change : changes) {
-					this.db.yieldIfContendedSafely();
+					this.yeild();
 					super.delete(FIELD_RID+" = ?", new String[]{change.getData().getAsLong(ResourceTableManager.RESOURCE_ID)+""});
 					switch (change.action) {
 						case INSERT:

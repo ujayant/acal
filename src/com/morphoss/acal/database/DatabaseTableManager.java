@@ -41,9 +41,13 @@ public abstract class DatabaseTableManager {
 	protected AcalDBHelper dbHelper;
 	protected Context context;
 
+	
+	private long dbOpened;
+	private long dbYeilded;
+	
 	public enum QUERY_ACTION { INSERT, UPDATE, DELETE, PENDING_RESOURCE };
 	
-	public static final String TAG = "aCal DatabaseManager";
+	private static final String TAG = "aCal DatabaseManager";
 
 	public abstract void dataChanged(ArrayList<DataChangeEvent> changes);
 	protected abstract String getTableName();
@@ -63,23 +67,21 @@ public abstract class DatabaseTableManager {
 			openStackTraceInfo += "\n\t\t"+stack[i].toString(); 
 	}
 	
-	protected void printStackTraceInfo() {
-		if (Constants.debugDatabaseManager && Constants.LOG_VERBOSE) { 
+	protected void printStackTraceInfo(int logLevel) {
 			int base = 3;
 			int depth = 10;
 			StackTraceElement[] stack = Thread.currentThread().getStackTrace();
 			String info = "\t"+stack[base].toString();
 			for (int i = base+1; i < stack.length && i< base+depth; i++)
 				info += "\n\t\t"+stack[i].toString(); 
-			Log.println(Constants.LOGV, TAG, info);
-		}
+			Log.println(logLevel, TAG, info);
 	}
 	
 	public ArrayList<ContentValues> query(String[] columns, String selection, String[] selectionArgs, String groupBy, String having, String orderBy) {
 		ArrayList<ContentValues> result = new ArrayList<ContentValues>();
 		int count = 0;
 		if (Constants.debugDatabaseManager && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG,"DB: "+this.getTableName()+" query:");
-		printStackTraceInfo();
+		if (Constants.debugDatabaseManager && Constants.LOG_VERBOSE) printStackTraceInfo(Log.VERBOSE);
 		beginReadQuery();
 		Cursor c = db.query(getTableName(), columns, selection, selectionArgs, groupBy, having, orderBy);
 		try {
@@ -114,21 +116,23 @@ public abstract class DatabaseTableManager {
 		}
 		dbHelper = new AcalDBHelper(context);
 		changes = new ArrayList<DataChangeEvent>();
+		this.dbOpened = System.currentTimeMillis();
+		this.dbYeilded = dbOpened;
 		switch (type) {
 		case OPEN_READ:
 			if (Constants.debugDatabaseManager && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG,"DB:"+this.getTableName()+" OPEN_READ:");
-			printStackTraceInfo();
+			if (Constants.debugDatabaseManager && Constants.LOG_VERBOSE) printStackTraceInfo(Log.VERBOSE);
 			db = dbHelper.getReadableDatabase();
 			break;
 		case OPEN_WRITE:
 			if (Constants.debugDatabaseManager && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG,"DB:"+this.getTableName()+" OPEN_WRITE:");
-			printStackTraceInfo();
+			if (Constants.debugDatabaseManager && Constants.LOG_VERBOSE) printStackTraceInfo(Log.VERBOSE);
 			db = dbHelper.getWritableDatabase();
 			break;
 		case OPEN_READTX:
 			if (Constants.debugDatabaseManager && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG,"DB:"+this.getTableName()+" OPEN_READTX:");
 			saveStackTraceInfo();
-			printStackTraceInfo();
+			if (Constants.debugDatabaseManager && Constants.LOG_VERBOSE) printStackTraceInfo(Log.VERBOSE);
 			inTx = true;
 			inReadTx = true;
 			db = dbHelper.getReadableDatabase();
@@ -136,7 +140,7 @@ public abstract class DatabaseTableManager {
 		case OPEN_WRITETX:
 			if (Constants.debugDatabaseManager && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG,"DB:"+this.getTableName()+" OPEN_WRITETX:");
 			saveStackTraceInfo();
-			printStackTraceInfo();
+			if (Constants.debugDatabaseManager && Constants.LOG_VERBOSE) printStackTraceInfo(Log.VERBOSE);
 			inTx = true;
 			db = dbHelper.getWritableDatabase();
 			db.beginTransaction();
@@ -158,11 +162,11 @@ public abstract class DatabaseTableManager {
 		switch (type) {
 		case CLOSE:
 			if (Constants.debugDatabaseManager && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG,"DB:"+this.getTableName()+" CLOSE:");
-			printStackTraceInfo();
+			if (Constants.debugDatabaseManager && Constants.LOG_VERBOSE) printStackTraceInfo(Log.VERBOSE);
 			break;
 		case CLOSE_TX:
 			if (Constants.debugDatabaseManager && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG,"DB:"+this.getTableName()+" CLOSETX:");
-			printStackTraceInfo();
+			if (Constants.debugDatabaseManager && Constants.LOG_VERBOSE) printStackTraceInfo(Log.VERBOSE);
 			if (!inTx) throw new IllegalStateException("Tried to close a db transaction when not in one!");
 			inTx = false;
 			inReadTx = false;
@@ -171,8 +175,26 @@ public abstract class DatabaseTableManager {
 		default:
 			throw new IllegalArgumentException("Invalid argument provided for openDB");
 		}
+		long time = System.currentTimeMillis()-this.dbYeilded;
+		//Metric checking to make sure that the database is being used correctly.
+		if (time > 100) {
+			Log.w(TAG, "Database opened for excessive period of time ("+time+"ms) Without yeild!:");
+			this.printStackTraceInfo(Log.WARN);
+		}
+		if (Constants.debugDatabaseManager) {
+			time = System.currentTimeMillis()- this.dbOpened;
+			Log.d(TAG, "Database opened for "+time+"ms");
+		}
 		this.dataChanged(changes);
 		changes = null;
+	}
+	
+	public void yeild() {
+		if (Constants.debugDatabaseManager) Log.d(TAG, "Yeild Called.");
+		if (db != null) {
+			this.dbYeilded = System.currentTimeMillis();
+			db.yieldIfContendedSafely();
+		}
 	}
 
 	protected void beginReadQuery() {
@@ -265,7 +287,7 @@ public abstract class DatabaseTableManager {
 			if ( DatabaseTableManager.this.inTx ) {
 				for (DMAction action : actions) {
 					action.process(this);
-					db.yieldIfContendedSafely();
+					this.yeild();
 				}
 			}
 			else {
@@ -273,7 +295,7 @@ public abstract class DatabaseTableManager {
 				openDb = true;
 				for (DMAction action : actions) {
 					action.process(this);
-					db.yieldIfContendedSafely();
+					this.yeild();
 				}
 				setTxSuccessful();
 			}

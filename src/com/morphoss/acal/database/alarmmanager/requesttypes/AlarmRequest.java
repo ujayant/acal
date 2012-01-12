@@ -1,7 +1,6 @@
 package com.morphoss.acal.database.alarmmanager.requesttypes;
 
 import com.morphoss.acal.database.alarmmanager.AlarmProcessingException;
-import com.morphoss.acal.database.alarmmanager.AlarmQueueManager;
 import com.morphoss.acal.database.alarmmanager.AlarmQueueManager.AlarmTableManager;
 
 
@@ -24,6 +23,11 @@ public interface AlarmRequest {
 	 * the cause should be identified and fixed.
 	 */
 	public void process(AlarmTableManager processor) throws AlarmProcessingException;
+	
+	/**
+	 * Needed so the AlarmTableManager can write useful informationto the logs
+	 */
+	public String getLogDescription();
 
 }
 

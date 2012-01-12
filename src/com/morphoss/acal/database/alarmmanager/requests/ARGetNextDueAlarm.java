@@ -1,9 +1,17 @@
-package com.morphoss.acal.database.alarmmanager;
+package com.morphoss.acal.database.alarmmanager.requests;
 
+import com.morphoss.acal.database.alarmmanager.AlarmProcessingException;
+import com.morphoss.acal.database.alarmmanager.AlarmRow;
 import com.morphoss.acal.database.alarmmanager.AlarmQueueManager.AlarmTableManager;
 import com.morphoss.acal.database.alarmmanager.requesttypes.AlarmResponse;
 import com.morphoss.acal.database.alarmmanager.requesttypes.BlockingAlarmRequestWithResponse;
 
+/**
+ * Use this to get the next due alarm.
+ * 
+ * @author Chris Noldus
+ *
+ */
 public class ARGetNextDueAlarm extends BlockingAlarmRequestWithResponse<AlarmRow> {
 
 	@Override
@@ -23,5 +31,10 @@ public class ARGetNextDueAlarm extends BlockingAlarmRequestWithResponse<AlarmRow
 		@Override
 		public AlarmRow result() {return this.result;	}
 		
+	}
+
+	@Override
+	public String getLogDescription() {
+		return "Request next due alarm";
 	}
 }

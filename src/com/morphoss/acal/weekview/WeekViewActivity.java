@@ -54,7 +54,7 @@ import com.morphoss.acal.activity.EventView;
 import com.morphoss.acal.activity.MonthView;
 import com.morphoss.acal.activity.YearView;
 import com.morphoss.acal.database.cachemanager.CacheObject;
-import com.morphoss.acal.dataservice.EventInstance;
+import com.morphoss.acal.weekview.WeekViewDays.WVCacheObject;
 import com.morphoss.acal.widget.NumberPickerDialog;
 import com.morphoss.acal.widget.NumberSelectedListener;
 
@@ -475,13 +475,13 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
         }
 
         for( int i=2; i< underList.size(); i++) {
-        	menu.add(Menu.NONE, i | CONTEXT_ACTION_VIEW, Menu.NONE, ((EventInstance) underList.get(i)).getSummary() );  
+        	menu.add(Menu.NONE, i | CONTEXT_ACTION_VIEW, Menu.NONE, ((WVCacheObject) underList.get(i)).getSummary() );  
         	menu.add(Menu.NONE, i | CONTEXT_ACTION_EDIT, Menu.NONE,
-        				getString(R.string.editSomeEvent, ((CacheObject) underList.get(i)).getSummary() ));  
+        				getString(R.string.editSomeEvent, ((WVCacheObject) underList.get(i)).getSummary() ));  
         	menu.add(Menu.NONE, i | CONTEXT_ACTION_COPY, Menu.NONE,
-        				getString(R.string.copySomeEvent, ((CacheObject) underList.get(i)).getSummary() ));  
+        				getString(R.string.copySomeEvent, ((WVCacheObject) underList.get(i)).getSummary() ));  
         	menu.add(Menu.NONE, i | CONTEXT_ACTION_DELETE, Menu.NONE,
-       				getString(R.string.deleteSomeEvent, ((CacheObject) underList.get(i)).getSummary() ));  
+       				getString(R.string.deleteSomeEvent, ((WVCacheObject) underList.get(i)).getSummary() ));  
         }
 		
 	}

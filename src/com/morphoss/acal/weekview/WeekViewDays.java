@@ -408,13 +408,13 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 			return;
 		}
 
-		int bottom = (int) ((event.getEnd() - topStart)/WeekViewActivity.SECONDS_PER_PIXEL);
+		int bottom = (int) ((event.getEnd()/1000 - topStart)/WeekViewActivity.SECONDS_PER_PIXEL);
 		if ( bottom < PxH )  {  // Event is off top
 			if ( Constants.LOG_VERBOSE && Constants.debugWeekView ) Log.v(TAG,"Event is off top by "+ bottom + " vs. " + PxH);
 			return;
 		}
 
-		int top = (int) ((event.getStart() - topStart)/WeekViewActivity.SECONDS_PER_PIXEL);
+		int top = (int) ((event.getStart()/1000 - topStart)/WeekViewActivity.SECONDS_PER_PIXEL);
 		if ( top > TpX ) { // Event is off bottom
 			if ( Constants.LOG_VERBOSE && Constants.debugWeekView ) Log.v(TAG,"Event is off bottom by "+ top + " vs. " + TpX);
 			return;
@@ -572,5 +572,9 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 			return (this.getRange().overlaps(other.getRange()));
 		}
 
+	}
+
+	public void requestRedraw() {
+		this.invalidate();
 	}
 }
