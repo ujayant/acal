@@ -26,8 +26,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Rect;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -167,10 +165,10 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 
 		// Set up buttons
 		this.setupButton(R.id.week_today_button, TODAY);
-		this.setupButton(R.id.week_year_button, YEAR);
 		this.setupButton(R.id.week_month_button, MONTH);
 		this.setupButton(R.id.week_add_button, ADD);
-		
+		//TODO - layout does not have a year view button at present.
+		//this.setupButton(R.id.week_year_button, YEAR);
 	
 		loadPrefs();
 		days.setOnTouchListener(days);
@@ -285,7 +283,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	@Override 
 	public void onPause() {
 		super.onPause();
-		days.close();
+		days.close();		//important - otherwise days will never be dereferenced causing memory hole.
 		prefs.edit().putLong(getString(R.string.prefSelectedDate), selectedDate.getMillis()).commit();
 		prefs.edit().putLong(getString(R.string.prefSavedSelectedDate), System.currentTimeMillis()).commit();
 	}
@@ -293,7 +291,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	@Override
 	public void onResume() {
 		super.onResume();
-		days.open();
+		days.open();		//important - days must be open on display or system will crash
 		imageCache = new WeekViewImageCache(this);
 		loadPrefs();
 		days.dimensionsChanged();  // User may have been in the preferences screen, maybe indirectly.
@@ -375,18 +373,10 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	}
 
 
-	private static final int BUMP_MSG = 1;
-
 	public static final int	INCLUDE_IN_DAY_EVENTS	= 0x02;
 	public static final int	INCLUDE_ALL_DAY_EVENTS	= 0x04;
 
-	private Handler mHandler = new Handler() {
-		@Override
-		public void handleMessage(Message msg) {
-			refresh();
-		}
 
-	};
 	/**
 	 * <p>
 	 * Helper method for setting up buttons
@@ -447,6 +437,9 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		return false;
 	}
 	
+	/**
+	 * TODO - context menyu items need to be brought in line to work with refactored activities.
+	 */
 	private List<Object>	underList;
 	private static final int	CONTEXT_ACTION_VIEW		= 0x100;
 	private static final int	CONTEXT_ACTION_EDIT		= 0x200;
@@ -485,8 +478,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
         }
 		
 	}
-
-
+	
 	@Override
 	public boolean onContextItemSelected(MenuItem item) {
 
@@ -494,27 +486,32 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
         switch( item.getItemId() ) {
         	case -1:
         	case -2: {
-        		CacheObject sae = (CacheObject) underList.get(item.getItemId() & 0xFF);
+        		//Edit Instance Selected
+        		CacheObject co = (CacheObject) underList.get(item.getItemId() & 0xFF);
         		Bundle bundle = new Bundle();
     			bundle.putInt(EventEdit.ACTION_KEY, EventEdit.ACTION_EDIT);
-    			bundle.putLong(EventEdit.RESOURCE_ID_KEY, sae.getResourceId());
-    			bundle.putString(EventEdit.RECCURENCE_ID_KEY, sae.getRecurrenceId());
+    			bundle.putLong(EventEdit.RESOURCE_ID_KEY, co.getResourceId());
+    			bundle.putString(EventEdit.RECCURENCE_ID_KEY, co.getRecurrenceId());
     			Intent eventEditIntent = new Intent(this, EventEdit.class);
     			eventEditIntent.putExtras(bundle);
     			this.startActivity(eventEditIntent);
         		break;
         	}
         	default: {
-        		CacheObject sae = (CacheObject) underList.get(item.getItemId() & 0xFF);
+        		//View Instance
+        		CacheObject co = (CacheObject) underList.get(item.getItemId() & 0xFF);
         		int action = (item.getItemId() & 0xFF00);
         		if ( action == CONTEXT_ACTION_VIEW ) {
 	        		Bundle bundle = new Bundle();
-	    			bundle.putParcelable(EventView.CACHE_INSTANCE_KEY, sae);
+	    			bundle.putParcelable(EventView.CACHE_INSTANCE_KEY, co);
 	    			Intent eventViewIntent = new Intent(this, EventView.class);
 	    			eventViewIntent.putExtras(bundle);
 	    			this.startActivity(eventViewIntent);
         		}
         		else if ( action == CONTEXT_ACTION_DELETE ) {
+        			/**
+        			 * TODO
+        			 */
         		}
         		else {
 	        		if ( action == CONTEXT_ACTION_COPY ) {
@@ -577,9 +574,9 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 				// There's at least one event under the double-click
 				if ( under.size() == 3 ) {
 					// There's only one event under the tap, so we'll view it directly
-					CacheObject sae = ((CacheObject) under.get(2));
+					CacheObject co = ((CacheObject) under.get(2));
 					Bundle bundle = new Bundle();
-	    			bundle.putParcelable(EventView.CACHE_INSTANCE_KEY, sae);
+	    			bundle.putParcelable(EventView.CACHE_INSTANCE_KEY, co);
 	    			Intent eventViewIntent = new Intent(this, EventView.class);
 	    			eventViewIntent.putExtras(bundle);
 	    			this.startActivity(eventViewIntent);
@@ -636,6 +633,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 			this.startActivity(eventEditIntent);
 			break;
 		case YEAR:
+			//TODO not implemented properly
 			bundle = new Bundle();
 			bundle.putInt("StartYear", selectedDate.getYear());
 			Intent yearIntent = new Intent(this, YearView.class);
@@ -662,6 +660,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	}
 
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		//TODO Should be using constants for parecelable keys. We need to streamline how acitivy reuslt work across the board.
 		if ( resultCode == RESULT_OK ) {
 			switch ( requestCode ) {
 			case PICK_DAY_FROM_MONTH_VIEW:
@@ -711,5 +710,4 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		if ( hm.length < 2 ) return defaultValue;
 		return Integer.parseInt(hm[0])*3600 + Integer.parseInt(hm[1])*60 ;
 	}
-
 }
