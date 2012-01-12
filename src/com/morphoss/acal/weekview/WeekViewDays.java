@@ -40,10 +40,6 @@ import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
-import com.morphoss.acal.database.cachemanager.CRObjectsInRange;
-import com.morphoss.acal.database.cachemanager.CacheChangedEvent;
-import com.morphoss.acal.database.cachemanager.CacheObject;
-import com.morphoss.acal.database.cachemanager.CacheResponse;
 import com.morphoss.acal.dataservice.Collection;
 
 public class WeekViewDays extends ImageView implements OnTouchListener {
@@ -60,7 +56,7 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 	//All these vars are used in drawing and are recaculated each time draw() is called and co-ordinates have changed
 
 	// These need only be calculated once 
-	private int viewWidth;				//The current screen viewWidth in pixels
+	private int viewWidth;			//The current screen viewWidth in pixels
 	private int TpX;				//The current Screen height in pixels
 	private int HSPP;				//Horizontal Seconds per Pixel
 	private int HNS;				//the number of visible horizontal seconds
@@ -70,15 +66,12 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 	private int PxD;				//The current height of days section
 	private int PxH;				//The current height of the Header section
 	private int topSec;				//The first second of the day that is visible in main view
-	private int scrollx;			//The current (valid) horizontal scroll amount
-	private int scrolly;			//The current (valid) vertical scroll amount
-	private long currentEpoch;		//The UTC epoch time of 0:00 on the first Visible Day
 	private long HST;				//The UTC epoch time of the first visible horizontal second
 	private long HET;				//The UTC epoch time of the last visible horizontal second
 	private int HDepth;				//The number of horizontal rows
 	
 
-	private boolean isInitialized = false;	//Set to True once screen dimensions are calculated.
+	private boolean dimensionCalculated = false;	//Set to True once screen dimensions are calculated.
 
 	private class Rectangle {
 		int x1, y1, x2, y2;
@@ -91,29 +84,35 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 			this.event = event;
 		}
 	}
+	
+	//The current set of events that are visible on the screen
 	private List<Rectangle> eventsDisplayed;
 
-	private Paint	workPaint;
+	private Paint workPaint;
 
 	/** Default Constructor */
 	public WeekViewDays(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
-		initialise(context);
+		construct(context);
 	}
 
 	/** Default Constructor */
 	public WeekViewDays(Context context, AttributeSet attrs) {
 		super(context,attrs);
-		initialise(context);
+		construct(context);
 	}
 
 	/** Default Constructor */
 	public WeekViewDays(Context context) {
 		super(context);
-		initialise(context);
+		construct(context);
 	}
 
-	private void initialise(Context context) {
+	/**
+	 * Called by all constructors to ensure class is set up correctly.
+	 * @param context
+	 */
+	private void construct(Context context) {
 		if (this.isInEditMode()) {
 			return;
 		}
@@ -123,6 +122,10 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 		this.context = (WeekViewActivity) context;
 	}
 
+	/**
+	 * The Current height of the header.
+	 * @return
+	 */
 	public int getHeaderHeight() {
 		return this.PxH; 
 	}
@@ -140,52 +143,19 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 		return y;
 	}
 
-
-	private void drawHeader(Canvas canvas, Paint p) {
-
-		//1 Calculate per frame vars
-		HST = this.currentEpoch - (scrollx*HSPP);
-		HET = HST+HNS;
-
-		AcalDateTime startTime = new AcalDateTime().setEpoch(HST).applyLocalTimeZone();
-		AcalDateTime endTime = startTime.clone().setEpoch(HET);
-		AcalDateRange range = new AcalDateRange(startTime,endTime);
-
-		//Get the current timetable
-		headerTimeTable = dataCache.getMultiDayTimeTable(range, this, HST, HET, HDepth);
-		if (headerTimeTable.length <=0) {	this.PxH =0; return; }
-		PxH = HDepth*HIH;
-
-		//draw day boxes
-		p.setStyle(Paint.Style.STROKE);
-		p.setColor(context.getResources().getColor(R.color.WeekViewDayGridBorder));
-		canvas.drawRect(0, 0, viewWidth, PxH, p);
-		for (int curx =0-(WeekViewActivity.DAY_WIDTH-scrollx); curx<=viewWidth; curx+= WeekViewActivity.DAY_WIDTH) {
-			canvas.drawRect(curx, 0, curx+WeekViewActivity.DAY_WIDTH,PxH,p);
-		}
-
-
-		for (int i = 0; i<headerTimeTable.length;i++)  {
-			boolean hasEvent = false;
-			for(int j=0;j < headerTimeTable[i].length && headerTimeTable[i][j] != null;j++) {
-				WVCacheObject event = headerTimeTable[i][j];
-				drawHorizontal(event, canvas,i);
-				hasEvent=true;
-			}
-			if (!hasEvent) break;
-		}
-
-	}
-
 	public void dimensionsChanged() {
 		if ( Constants.LOG_DEBUG )
 			Log.d(TAG,"Dimensions may have changed, recalculating...");
-		this.isInitialized = false;
+		this.dimensionCalculated = false;
 	}
 
-	public boolean isInitialized() { return this.isInitialized; }
+	public boolean dimensionsCaclulated() { return this.dimensionCalculated; }
 
-	private void initialize() {
+	/**
+	 * Called once during first onDraw to calculate dimensions. We cant do this in the constructor as we need the screen
+	 * to be populated first and this happens after construction.
+	 */
+	private void calculateDimensions() {
 	
 		//Vars needed for drawing
 		viewWidth = this.getWidth();
@@ -200,21 +170,58 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 		HNS = viewWidth*HSPP;
 		HIH = (int)WeekViewActivity.FULLDAY_ITEM_HEIGHT;
 
-		//Scroll info
-		scrolly = context.getScrollY();
-		scrollx = context.getScrollX();
-
 		workPaint = new Paint();
 		workPaint.setStyle(Paint.Style.FILL);
 		workPaint.setColor(context.getResources().getColor(R.color.WeekViewDayGridWorkTimeBG));
 
-		this.isInitialized = true;
+		this.dimensionCalculated = true;
 		context.refresh();
-
+	}
+	
+	/**
+	 * This will calculate the header vars. While it requires construction of the header timetable, this
+	 * timetable is cached and if header height is calculated its a certainty that the timetable will
+	 * be used again shortly.
+	 */
+	private void calculateHeaderVars() {
+		//1 Calculate per frame vars
+		int scrollx = context.getScrollX();
+		int scrolly = context.getScrollX();
+		
+		HST = this.context.getCurrentDate().getEpoch() - (scrollx*HSPP);
+		HET = HST+HNS;
+		
+		AcalDateTime startTime = new AcalDateTime().setEpoch(HST).applyLocalTimeZone();
+		AcalDateTime endTime = startTime.clone().setEpoch(HET);
+		AcalDateRange range = new AcalDateRange(startTime,endTime);
+		
+		//Get the current timetable
+		headerTimeTable = dataCache.getMultiDayTimeTable(range, this, HST, HET, HDepth);
+		if (headerTimeTable.length <=0) {	this.PxH =0; return; }
+		PxH = HDepth*HIH;
+		
+		//save affected vars
+		PxD = TpX - PxH;
+		topSec = scrolly * WeekViewActivity.SECONDS_PER_PIXEL;
 	}
 
 
-
+	/****************************************************************
+	 * 							DRAW METHODS						*
+	 ****************************************************************/
+	
+	/**
+	 * The primary draw method. Called whenever we need to redraw the view.
+	 * 1) Check dimensions are calculated
+	 * 2) Caclulate transient variables
+	 * 3) Draw Background
+	 * 4) Draw header 
+	 * 5) Draw grid
+	 * 6) Draw main body
+	 * 7) Draw Border
+	 * 8) Draw shading
+	 * 
+	 */
 	@Override
 	public void draw(Canvas canvas) {
 		super.draw(canvas);
@@ -223,126 +230,74 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 		if (this.getWidth() == 0) return;
 		if (this.getHeight() == 0) return;
 		if (this.isInEditMode()) return;	//can't draw in edit mode
-
-		if (!this.isInitialized) { this.initialize(); return; }
-
+		
+		//Calculate dimensions if we haven't already done so
+		if (!this.dimensionCalculated) { this.calculateDimensions(); return; }
+		
+		//reset the displayed events list
 		eventsDisplayed = new ArrayList<Rectangle>();
-
-		//calculate variables that may change from frame to frame
-		scrolly = context.getScrollY();
-		scrollx = context.getScrollX();
-		this.firstVisibleDay = this.context.getCurrentDate();
-		AcalDateTime currentDay = this.firstVisibleDay.clone();
-		this.currentEpoch = currentDay.getEpoch();
-
+		
+		//Create one paint that all methods can share
 		Paint p = new Paint();
-		drawBackground(canvas);
+		
+		//Calculate the required header variables drawHeader and drawBody are dependant on this calculation.
+		calculateHeaderVars();
 
-		//need to draw header first. Drawing the header also adjusts the y value and height.
-		this.drawHeader(canvas,p);
-		PxD = TpX - PxH;
-		topSec = scrolly * WeekViewActivity.SECONDS_PER_PIXEL;
-
+		//Warning! the order of calls here is important! Wrong order will produce a pretty mangled UI.
+		drawBackground(canvas,p);
+		drawHeader(canvas,p);
 		drawGrid(canvas,p);
-
-		int dayX = (int)(0-WeekViewActivity.DAY_WIDTH+context.getScrollX());
-		int dayWidth = WeekViewActivity.DAY_WIDTH;
-		p = new Paint();
-
-		currentDay.addDays(-1);
-		//draw events
-		while (dayX<= viewWidth) {
-
-			if ( Constants.LOG_DEBUG && Constants.debugWeekView )
-				Log.d(TAG,"Starting new day "+AcalDateTime.fmtDayMonthYear(currentDay)+
-						" epoch="+currentDay.getEpoch()+" dayX="+dayX);
-
-			WVCacheObject[][] timeTable = dataCache.getInDayTimeTable(currentDay,this);
-
-			//draw visible events
-			if ( timeTable.length > 0) {
-				p.reset();
-				p.setStyle(Paint.Style.FILL);
-				long thisDayEpoch = currentDay.getEpoch();
-
-				//events can show up several times in the timetable, keep a record of what's already drawn
-				Set<WVCacheObject> drawn = new HashSet<WVCacheObject>();
-
-				for (int i = 0; i < timeTable.length; i++)  {
-					int curX = 0;
-					for(int j=0; j < timeTable[i].length; j++) {
-						if (timeTable[i][j] != null) {
-							if (drawn.contains(timeTable[i][j])) {
-								curX+=timeTable[i][j].getLastWidth();
-								continue;
-							}
-							drawn.add(timeTable[i][j]);
-
-							//calculate viewWidth
-							int depth  = 0;
-							for ( int k = j;
-							k<=dataCache.getLastMaxX() && (timeTable[i][k] == null || timeTable[i][k] == timeTable[i][j]);
-							k++)
-								depth++;
-							float singleWidth = (dayWidth/(dataCache.getLastMaxX()+1)) * depth;	
-							WVCacheObject event = timeTable[i][j];
-							drawVertical(event, canvas, (int)dayX+curX, (int)singleWidth, thisDayEpoch);
-							event.setLastWidth((int)singleWidth);
-							curX+=singleWidth;
-						}
-					}
-				}
-			}
-			currentDay.addDays(1);
-			dayX+=dayWidth;
-		}
-
-		//border
-		p.reset();
-		p.setStyle(Paint.Style.STROKE);
-		p.setColor(0xff333333);
-		canvas.drawRect(0, 0, viewWidth, PxH, p);
-
-		//draw shading effect below header
-		if (PxH != 0 ) {
-			int hhh = 1200/WeekViewActivity.SECONDS_PER_PIXEL;
-
-			int base = 0x444444;
-			int current = 0xc0;
-			int decrement = current/hhh;
-			hhh += PxH;
-
-			int color = (current << 24)+base; 
-			p.setColor(color);
-			canvas.drawLine(0, PxH, viewWidth, PxH, p);
-
-			for (int i=PxH; i<hhh; i++) {
-				current-=decrement;
-				color = (current << 24)+base; 
-				p.setColor(color);
-				canvas.drawLine(0, i, viewWidth, i, p);
-			}
-		}
+		drawBody(canvas,p);
+		drawBorder(canvas,p);
+		drawShading(canvas,p);
 	}
-
+	
 	/**
+	 * The first of the draw methods
 	 * Draw a bland background underneath everything else.
 	 * @param canvas
 	 */
-	private void drawBackground(Canvas canvas) {
-		Paint p = new Paint();
+	private void drawBackground(Canvas canvas, Paint p) {
 		p.setStyle(Paint.Style.FILL);
 		p.setColor(Color.parseColor("#AAf0f0f0"));
 		canvas.drawRect(0, 0, viewWidth, TpX, p);
 	}
+	
+	/**
+	 * Next is the header - this method has side-affects that are important to other draw calls.
+	 * @param canvas
+	 * @param p
+	 */
+	private void drawHeader(Canvas canvas, Paint p) {
 
+		int scrollx = context.getScrollY();
 
+		//draw day boxes
+		p.setStyle(Paint.Style.STROKE);
+		p.setColor(context.getResources().getColor(R.color.WeekViewDayGridBorder));
+		canvas.drawRect(0, 0, viewWidth, PxH, p);
+		for (int curx =0-(WeekViewActivity.DAY_WIDTH-scrollx); curx<=viewWidth; curx+= WeekViewActivity.DAY_WIDTH) {
+			canvas.drawRect(curx, 0, curx+WeekViewActivity.DAY_WIDTH,PxH,p);
+		}
+
+		for (int i = 0; i<headerTimeTable.length;i++)  {
+			boolean hasEvent = false;
+			for(int j=0;j < headerTimeTable[i].length && headerTimeTable[i][j] != null;j++) {
+				WVCacheObject event = headerTimeTable[i][j];
+				drawHorizontal(event, canvas,i);
+				hasEvent=true;
+			}
+			if (!hasEvent) break;
+		}
+	}
+	
 	/**
 	 * Draw the time/date grid to go behind the events.
 	 * @param canvas
 	 * @param p
 	 */
 	public void drawGrid(Canvas canvas, Paint p) {
+		int scrollx = context.getScrollX();
 		p.setStyle(Paint.Style.FILL);
 		int dayX = (int)(0-WeekViewActivity.DAY_WIDTH+scrollx);
 		AcalDateTime currentDay = context.getCurrentDate().clone();
@@ -371,13 +326,130 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 			dayX += WeekViewActivity.DAY_WIDTH;
 			currentDay.addDays(1);
 		}
+	}
+	
+	/**
+	 * The most significant of the draw methods. Optimising the method will inevitably give good performance gains.
+	 * @param canvas
+	 * @param p
+	 */
+	private void drawBody(Canvas canvas, Paint p) {
+		//get the first fully visible day
+		AcalDateTime currentDay = this.context.getCurrentDate().clone();
+		
+		//The x-axis offset of the first day
+		int dayX = (int)(0-WeekViewActivity.DAY_WIDTH+context.getScrollX());
+		
+		//Its nicer to store this value in a var with a short name
+		int dayWidth = WeekViewActivity.DAY_WIDTH;
 
+		//Subtract a day as we may need to partially draw the day before the first fully visible day
+		currentDay.addDays(-1);
+		
+		//draw events
+		while (dayX<= viewWidth) {		//while x position is left of the right side of the screen
+
+			if ( Constants.LOG_DEBUG && Constants.debugWeekView )
+				Log.d(TAG,"Starting new day "+AcalDateTime.fmtDayMonthYear(currentDay)+
+						" epoch="+currentDay.getEpoch()+" dayX="+dayX);
+
+			//Get the timetable for the current day.
+			WVCacheObject[][] timeTable = dataCache.getInDayTimeTable(currentDay,this);
+
+			//draw visible events
+			if ( timeTable.length > 0) {
+				p.reset();
+				p.setStyle(Paint.Style.FILL);
+				long thisDayEpoch = currentDay.getEpoch();
+
+				//events can show up several times in the timetable, keep a record of what's already drawn
+				Set<WVCacheObject> drawn = new HashSet<WVCacheObject>();
+
+				//for each set of overlapping events
+				for (int i = 0; i < timeTable.length; i++)  {
+					int curX = 0;
+					//for each overlapping event in a set
+					for(int j=0; j < timeTable[i].length; j++) {
+						if (timeTable[i][j] != null) {
+							if (drawn.contains(timeTable[i][j])) {
+								//if we have already drawn this event, we need to increment x by its width
+								curX+=timeTable[i][j].getLastWidth();
+								continue;
+							}
+							drawn.add(timeTable[i][j]);
+
+							//calculate depth - i.e how many events this event overlaps.
+							int depth  = 0;
+							for ( int k = j;
+								k<=dataCache.getLastMaxX() && (timeTable[i][k] == null || timeTable[i][k] == timeTable[i][j]);
+								k++)
+								depth++;
+							//Calculate the width we should draw by dividing the available space by the number of events.
+							float singleWidth = (dayWidth/(dataCache.getLastMaxX()+1)) * depth;	
+							WVCacheObject event = timeTable[i][j];
+							//draw the event
+							drawVertical(event, canvas, (int)dayX+curX, (int)singleWidth, thisDayEpoch);
+							//save its width for future reference
+							event.setLastWidth((int)singleWidth);
+							//increment x pointer
+							curX+=singleWidth;
+						}
+					} //end this event in set
+				} //end this set of overlapping events
+			} //end this day
+			currentDay.addDays(1);
+			dayX+=dayWidth;
+		} //end visible days
+	}
+	
+	/**
+	 * Draw the border arround the main grid
+	 * @param canvas
+	 * @param p
+	 */
+	private void drawBorder(Canvas canvas, Paint p) {
+		//border
+		p.reset();
+		p.setStyle(Paint.Style.STROKE);
+		p.setColor(0xff333333);
+		canvas.drawRect(0, 0, viewWidth, PxH, p);
+	}
+	
+	/**
+	 * Draw the shading between the header and the main grid
+	 * @param canvas
+	 * @param p
+	 */
+	private void drawShading(Canvas canvas, Paint p) {
+		//draw shading effect below header
+		if (PxH != 0 ) {
+			int hhh = 1200/WeekViewActivity.SECONDS_PER_PIXEL;
+
+			int base = 0x444444;
+			int current = 0xc0;
+			int decrement = current/hhh;
+			hhh += PxH;
+
+			int color = (current << 24)+base; 
+			p.setColor(color);
+			canvas.drawLine(0, PxH, viewWidth, PxH, p);
+
+			for (int i=PxH; i<hhh; i++) {
+				current-=decrement;
+				color = (current << 24)+base; 
+				p.setColor(color);
+				canvas.drawLine(0, i, viewWidth, i, p);
+			}
+		}
 	}
 
+	/**
+	 * This ed the primary draw methods. The next 2 methods are responsible for the actual drawing of events
+	 */
 
 
 	/**
-	 * Draw the event in the main part of the day.
+	 * Draw an event in the main part of the day.
 	 *  
 	 * @param event to be drawn
 	 * @param canvas to draw on
@@ -451,7 +523,7 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 
 
 	/**
-	 * Draw the (all day) event in the header
+	 * Draw an (all day/multi day) event in the header
 	 * @param event to be drawn.
 	 * @param c The canvas
 	 * @param depth layer for the event
@@ -470,21 +542,19 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 		eventsDisplayed.add( new Rectangle( x, y, x+actualWidth, y+HIH, event) );
 	}
 
-	/**
-	 * Calculates a timetable for the layout of the events within a day.
-	 * @param day to do the timetable for
-	 * @return An array of lists, one per column
-	 */
-	private void getInDayTimeTable(AcalDateTime day) {
-		
-	}
-
+	
+	/************************************************
+	 * 				End Draw Methods				*
+	 ************************************************/
+	
 
 	/**
 	 * Finds the event that the click was on, or the day+time that it was on (or maybe
 	 * just the day.
 	 */
 	public ArrayList<Object> whatWasUnderneath(float x, float y) {
+		int scrolly = context.getScrollY();
+		int scrollx = context.getScrollX();
 		ArrayList<Object> result = new ArrayList<Object>();
 		result.add(this.firstVisibleDay.clone().addDays((int) ((x-scrollx) / WeekViewActivity.DAY_WIDTH)));
 		if ( y < PxH ) result.add(-1);
@@ -516,18 +586,30 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 		return result;
 	}
 	
+	/**
+	 * Must be called when activity quits or we will never be GC'd
+	 */
 	public void close() {
 		if (dataCache != null) {
 			dataCache.close();
 			dataCache = null;
 		}
 	}
+	
+	/**
+	 * Should be called if we wish to reuse this class after a close
+	 */
 	public void open() {
 		if (dataCache == null) {
 			dataCache = new WeekViewCache(context,this);
 		}
 	}
 
+	/**
+	 * Interaction overrides
+	 */
+	
+	
 	@Override
 	public boolean onTouch(View v, MotionEvent event) {
 		return context.onTouch(v,event);
@@ -537,41 +619,6 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 	public void cancelLongPress() {
 		super.cancelLongPress();
 		context.cancelLongPress();
-	}
-
-	public class WVCacheObject extends CacheObject {
-
-		private int maxWidth;
-		private int actualWidth;
-		private int lastWidth;
-
-
-		public WVCacheObject(CacheObject original) {
-			super(original);
-		}
-
-		public int calulateMaxWidth(int screenWidth, int HSPP) {
-			this.actualWidth = (int)(getEnd()-getStart())/HSPP;
-			maxWidth = (actualWidth>screenWidth ? screenWidth : actualWidth);
-			return maxWidth;
-		}
-		public int getMaxWidth() {
-			return this.maxWidth;
-		}
-		public int getActualWidth() {
-			return this.actualWidth;
-		}
-		public int getLastWidth() {
-			return this.lastWidth;
-		}
-		public void setLastWidth(int w) {
-			this.lastWidth = w;
-		}
-
-		public boolean overlaps(WVCacheObject other) {
-			return (this.getRange().overlaps(other.getRange()));
-		}
-
 	}
 
 	public void requestRedraw() {

@@ -3,8 +3,6 @@ package com.morphoss.acal.weekview;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -22,7 +20,6 @@ import com.morphoss.acal.database.cachemanager.CacheObject;
 import com.morphoss.acal.database.cachemanager.CacheResponse;
 import com.morphoss.acal.database.cachemanager.CacheResponseListener;
 import com.morphoss.acal.database.cachemanager.CacheWindow;
-import com.morphoss.acal.weekview.WeekViewDays.WVCacheObject;
 
 /**
  * This class provides an in memory cache of event data for weekview to prevent unnecessarily making cache requests. or
@@ -117,7 +114,7 @@ public class WeekViewCache implements CacheChangedListener, CacheResponseListene
 		HashMap<Integer,ArrayList<WVCacheObject>> dayMap = new HashMap<Integer,ArrayList<WVCacheObject>>();
 		
 		for (CacheObject co: response.result()) {
-			if (co.isAllDay()) fullDay.add(callback.new WVCacheObject(co));
+			if (co.isAllDay()) fullDay.add(new WVCacheObject(co));
 			else {
 				int day = (int)(co.getStartDateTime().getMonthDay());
 				ArrayList<WVCacheObject> dayList = null;
@@ -126,7 +123,7 @@ public class WeekViewCache implements CacheChangedListener, CacheResponseListene
 				} else {
 					dayList = new ArrayList<WVCacheObject>();
 				}
-				dayList.add(callback.new WVCacheObject(co));
+				dayList.add(new WVCacheObject(co));
 				dayMap.put(day, dayList);
 			}
 		}

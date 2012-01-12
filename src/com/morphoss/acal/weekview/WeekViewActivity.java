@@ -52,7 +52,6 @@ import com.morphoss.acal.activity.EventView;
 import com.morphoss.acal.activity.MonthView;
 import com.morphoss.acal.activity.YearView;
 import com.morphoss.acal.database.cachemanager.CacheObject;
-import com.morphoss.acal.weekview.WeekViewDays.WVCacheObject;
 import com.morphoss.acal.widget.NumberPickerDialog;
 import com.morphoss.acal.widget.NumberSelectedListener;
 
@@ -298,7 +297,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	}
 
 	
-	public boolean daysInitialized(){ return days.isInitialized(); }
+	public boolean daysInitialized(){ return days.dimensionsCaclulated(); }
 	
 	/**
 	 * <p>
