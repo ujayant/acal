@@ -13,6 +13,7 @@ import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.net.Uri;
 import android.os.ConditionVariable;
+import android.os.Process;
 import android.util.Log;
 
 import com.morphoss.acal.Constants;
@@ -115,7 +116,7 @@ public class ResourceManager implements Runnable {
 
 	@Override
 	public void run() {
-		Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
+		Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND );
 		while (running) {
 			// do stuff
 			if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG,"Thread Opened...");
@@ -217,12 +218,12 @@ public class ResourceManager implements Runnable {
 
 	private void offerAndBlockUntilProcessed(BlockingResourceRequest request) {
 		threadHolder.open();
-		int priority = Thread.currentThread().getPriority();
-		Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
+		int priority = Process.getThreadPriority(Process.myTid());
+		Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
 		while (!request.isProcessed()) {
 			try { Thread.sleep(10); } catch (Exception e) {	}
 		}
-		Thread.currentThread().setPriority(priority);
+		Process.setThreadPriority(priority);
 	}
 	
 	public void sendBlockingRequest(BlockingResourceRequest request) {
@@ -249,12 +250,12 @@ public class ResourceManager implements Runnable {
 		if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG, "Received Blocking Read Request: "+request.getClass());
 		readQueue.offer(request);
 		threadHolder.open();
-		int priority = Thread.currentThread().getPriority();
-		Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
+		int priority = Process.getThreadPriority(Process.myTid());
+		Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
 		while (!request.isProcessed()) {
 			try { Thread.sleep(10); } catch (Exception e) {	}
 		}
-		Thread.currentThread().setPriority(priority);
+		Process.setThreadPriority(priority);
 		return request.getResponse();
 	}
 
@@ -544,15 +545,18 @@ public class ResourceManager implements Runnable {
 		public boolean syncToServer(DMAction action, long resourceId, Integer pendingId) {
 			this.beginTransaction();
 			action.process(this);
+			this.yeild();
 			if ( pendingId != null ) {
 				// We can retire this change now
 				int removed = db.delete(PENDING_DATABASE_TABLE,
 						PENDING_ID+"=?",
 						new String[] { Integer.toString(pendingId) });
+				this.yeild();
 				if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG, "Deleted "+removed+" one pending_change record ID="+pendingId+" for resourceId="+resourceId);
 
 				ContentValues pending = new ContentValues();
 				pending.put(PENDING_ID, pendingId);
+				this.yeild();
 			}
 			this.setTxSuccessful();
 			this.endTransaction();

@@ -10,6 +10,7 @@ import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteMisuseException;
 import android.util.Log;
+import android.os.Process;
 
 import com.morphoss.acal.Constants;
 
@@ -36,6 +37,9 @@ public abstract class DatabaseTableManager {
 	public static final int CLOSE_TX = 6;
 	
 	private ArrayList<DataChangeEvent> changes;
+	
+	private int initialPriority;
+	private static final int preferredPriority = Process.THREAD_PRIORITY_DISPLAY + (2*Process.THREAD_PRIORITY_LESS_FAVORABLE);
 	
 	protected SQLiteDatabase db;
 	protected AcalDBHelper dbHelper;
@@ -114,6 +118,8 @@ public abstract class DatabaseTableManager {
 			}
 			throw new SQLiteMisuseException("Tried to open DB when already open");
 		}
+		this.initialPriority = Process.getThreadPriority(Process.myTid());
+		Process.setThreadPriority(preferredPriority);
 		dbHelper = new AcalDBHelper(context);
 		changes = new ArrayList<DataChangeEvent>();
 		this.dbOpened = System.currentTimeMillis();
@@ -159,6 +165,7 @@ public abstract class DatabaseTableManager {
 		dbHelper.close();
 		db = null;
 		dbHelper = null;
+		Process.setThreadPriority(this.initialPriority);
 		switch (type) {
 		case CLOSE:
 			if (Constants.debugDatabaseManager && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG,"DB:"+this.getTableName()+" CLOSE:");
