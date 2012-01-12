@@ -157,7 +157,7 @@ public abstract class Masterable extends VComponent {
 		if ( aProp instanceof RecurrenceId )
 			return (RecurrenceId) aProp;
 
-		return new RecurrenceId(aProp.getName(),aProp.getValue(),aProp.paramsBlob);
+		return new RecurrenceId(aProp.getValue(),aProp.paramsBlob);
 	}
 
 
@@ -275,11 +275,16 @@ public abstract class Masterable extends VComponent {
 	public void setToRecurrence(RecurrenceId targetRecurrence) {
 		this.setEditable();
 		RecurrenceId thisRecurrence = getRecurrenceId();
-		AcalDateTime targetRecurrenceTime = AcalDateTime.fromAcalProperty(targetRecurrence);
-		AcalDuration adjustmentDuration = AcalDateTime.fromAcalProperty(thisRecurrence).getDurationTo(targetRecurrenceTime); 
+		if ( targetRecurrence.when.isFloating() != thisRecurrence.when.isFloating() ) {
+			Log.w(TAG,"Target recurrence is "+targetRecurrence+" and this is "+thisRecurrence, new Exception(""));
+		}
+		AcalDuration adjustmentDuration = AcalDateTime.fromAcalProperty(thisRecurrence).getDurationTo(targetRecurrence.when);
+		
+		if ( adjustmentDuration.getDurationMillis() == 0L ) return;
 
 		AcalProperty startProp = getProperty(PropertyName.DTSTART); 
 		AcalProperty endProp = getProperty((this instanceof VTodo ? PropertyName.DUE : PropertyName.DTEND));
+		AcalDateTime targetRecurrenceTime;
 		if ( startProp != null ) {
 			targetRecurrenceTime = AcalDateTime.fromAcalProperty(startProp).addDuration(adjustmentDuration);
 			setUniqueProperty(targetRecurrenceTime.asProperty(PropertyName.DTSTART));

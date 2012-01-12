@@ -30,8 +30,8 @@ public class RecurrenceId extends AcalProperty implements Comparable<RecurrenceI
 	public final static String PARAM_RANGE = "RANGE";
 	public final static String VALUE_THISANDFUTURE = "THISANDFUTURE";
 
-	protected RecurrenceId(String name, String value, String[] paramsBlob) {
-		super(name,value,paramsBlob);
+	protected RecurrenceId(String value, String[] paramsBlob) {
+		super(PropertyName.RECURRENCE_ID.toString(),value,paramsBlob);
 		when = AcalDateTime.fromIcalendar(getValue(),getParam(AcalProperty.PARAM_VALUE), getParam(AcalProperty.PARAM_TZID));
 		thisAndFuture = (getParam(PARAM_RANGE) != null && getParam(PARAM_RANGE).equalsIgnoreCase(VALUE_THISANDFUTURE));
 	}
@@ -47,9 +47,10 @@ public class RecurrenceId extends AcalProperty implements Comparable<RecurrenceI
 	}
 
 	public static RecurrenceId fromString(String blob) {
+		if ( blob == null ) return null;
 		AcalProperty ret = AcalProperty.fromString(blob);
 		if ( ret instanceof RecurrenceId ) return (RecurrenceId) ret;
-		throw new IllegalArgumentException();
+		throw new IllegalArgumentException("Does not appear to be a recurrenceId property: "+blob);
 	}
 
 	public int compareTo(RecurrenceId another) {
