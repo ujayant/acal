@@ -363,6 +363,7 @@ public class VCalendar extends VComponent implements Cloneable {
 		}
 		catch ( Exception e ) {
 			Log.e(TAG,"Exception getting repeat rule from VCalendar", e);
+			Log.i(TAG,getCurrentBlob());
 		}
 		hasRepeatRule = ( repeatRule != null && repeatRule.repeatRule != AcalRepeatRule.SINGLE_INSTANCE );
 	}
@@ -440,10 +441,7 @@ public class VCalendar extends VComponent implements Cloneable {
 					
 		}
 		catch(Exception e) {
-			if (Constants.LOG_DEBUG) {
-				Log.println(Constants.LOGD,TAG,"Exception in RepeatRule handling");
-				Log.println(Constants.LOGD,TAG,Log.getStackTraceString(e));
-			}
+			Log.println(Constants.LOGI,TAG,"Exception in RepeatRule handling: "+ Log.getStackTraceString(e)+"\n"+getCurrentBlob());
 		}
 		return false;
 	}

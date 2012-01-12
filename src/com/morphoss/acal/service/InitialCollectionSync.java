@@ -66,7 +66,7 @@ public class InitialCollectionSync extends ServiceJob {
 		//send request
 		rm.sendRequest(request);
 		//block until response completed
-		while (request.running()) {
+		while (!request.isProcessed()) {
 			Thread.yield();
 			try { Thread.sleep(100); } catch (Exception e) {}
 		}

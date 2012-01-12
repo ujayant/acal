@@ -5,7 +5,6 @@ import com.morphoss.acal.database.resourcesmanager.ResourceResponse;
 
 public abstract class ReadOnlyBlockingRequestWithResponse<E> extends ReadOnlyResourceRequestWithResponse<E>   {
 
-	private boolean processed = false;
 	private ResourceResponse<E> response;
 	
 	public ReadOnlyBlockingRequestWithResponse() {
@@ -18,10 +17,8 @@ public abstract class ReadOnlyBlockingRequestWithResponse<E> extends ReadOnlyRes
 	
 	protected void postResponse(ResourceResponse<E> r) {
 		this.response = r;
-		this.processed = true;
+		this.setProcessed();
 	}
-	
-	public boolean isProcessed() { return this.processed; }
 	
 	public ResourceResponse<E> getResponse() {
 		return this.response;

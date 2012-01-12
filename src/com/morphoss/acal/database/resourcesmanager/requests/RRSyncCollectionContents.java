@@ -79,11 +79,6 @@ public class RRSyncCollectionContents implements ResourceRequest {
 	
 	
 	private WriteableResourceTableManager processor;
-	private volatile boolean running = true;
-	
-	public boolean isRunning() {
-		return this.running;
-	}
 	
 	public void setService(aCalService svc) {
 		this.context = svc;
@@ -150,7 +145,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 
 			if ( originalData.size() < 1 && ! timeToRun() ) {
 				scheduleNextInstance();
-				running = false;
+				setProcessed();
 				return;
 			}
 
@@ -202,7 +197,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 		this.context = null;
 		this.requestor = null;
 		if ( Constants.debugHeap ) AcalDebug.heapDebug(TAG, "SyncCollectionContents end");
-		running = false;
+		setProcessed();
 	}
 	
 	/**
@@ -999,5 +994,11 @@ public class RRSyncCollectionContents implements ResourceRequest {
 		return this.scheduleNextInstance;
 	}
 
+	private boolean processingComplete = false;
+
+	@Override
+	public boolean isProcessed() { return this.processingComplete; }
+	@Override
+	public synchronized void setProcessed() { this.processingComplete = true; }	
 
 }

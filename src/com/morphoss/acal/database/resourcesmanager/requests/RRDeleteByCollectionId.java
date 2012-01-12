@@ -13,6 +13,13 @@ public class RRDeleteByCollectionId implements ResourceRequest {
 	public RRDeleteByCollectionId(ArrayList<Long> ids) {
 		this.ids = ids;
 	}
+
+	private boolean processed = false;
+	@Override
+	public boolean isProcessed() { return this.processed; }
+	@Override
+	public synchronized void setProcessed() { this.processed = true; }
+	
 	
 	@Override
 	public void process(WriteableResourceTableManager processor)	throws ResourceProcessingException {

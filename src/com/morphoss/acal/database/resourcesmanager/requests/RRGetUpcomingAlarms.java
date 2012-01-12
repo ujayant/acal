@@ -9,21 +9,19 @@ import android.content.ContentValues;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.database.alarmmanager.AlarmRow;
-import com.morphoss.acal.database.resourcesmanager.ResourceProcessingException;
-import com.morphoss.acal.database.resourcesmanager.ResourceResponse;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager.ReadOnlyResourceTableManager;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
+import com.morphoss.acal.database.resourcesmanager.ResourceProcessingException;
+import com.morphoss.acal.database.resourcesmanager.ResourceResponse;
 import com.morphoss.acal.database.resourcesmanager.requesttypes.ReadOnlyBlockingRequestWithResponse;
 import com.morphoss.acal.dataservice.Collection;
 import com.morphoss.acal.dataservice.Resource;
-import com.morphoss.acal.davacal.AcalAlarm;
 import com.morphoss.acal.davacal.VCalendar;
 
 public class RRGetUpcomingAlarms extends ReadOnlyBlockingRequestWithResponse<ArrayList<AlarmRow>> {
 
 	private Map<Long,Collection> alarmCollections = null;
 	private AcalDateTime alarmsAfter = null;
-	private boolean processingCompleted = false;
 
 	public RRGetUpcomingAlarms(AcalDateTime after) {
 		super();
@@ -70,21 +68,12 @@ public class RRGetUpcomingAlarms extends ReadOnlyBlockingRequestWithResponse<Arr
 		
 		public RRGetUpcomingAlarmsResult(ArrayList<AlarmRow> result) { 
 			this.result = result;
-			setCompleted();
+			setProcessed();
 		}
 		
 		@Override
 		public ArrayList<AlarmRow> result() {return this.result;	}
 		
-	}
-
-	private synchronized void setCompleted() {
-		processingCompleted = true;
-	}
-	
-	@Override
-	public synchronized boolean isProcessed() {
-		return processingCompleted;
 	}
 
 }

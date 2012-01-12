@@ -338,8 +338,6 @@ public class ResourceManager implements Runnable {
 		public static final String TYPE_JOURNAL = "'VJOURNAL'";
 		public static final String TYPE_ADDRESS = "'VCARD'";
 
-
-
 		public static final String TAG = "aCal ResourceTableManager";
 
 
@@ -378,7 +376,7 @@ public class ResourceManager implements Runnable {
 					"Process started a transaction without ending it!");
 				}
 			} catch (ResourceProcessingException e) {
-				Log.e(TAG, "Error Procssing Resource Request: "
+				Log.e(TAG, "Error Processing Resource Request: "
 						+ Log.getStackTraceString(e));
 			} catch (Exception e) {
 				Log.e(TAG,
@@ -386,11 +384,13 @@ public class ResourceManager implements Runnable {
 						+ Log.getStackTraceString(e));
 			} finally {
 				// make sure db was closed properly
-				if (this.db != null)
-					try {
-						endQuery();
-					} catch (Exception e) {
-					}
+				try {
+					if ( this.inTx ) this.endTransaction();
+					if ( this.db != null ) endQuery();
+				}
+				catch ( Exception e ) {
+				}
+				r.setProcessed();
 			}
 			if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG,"End Processing");
 		}

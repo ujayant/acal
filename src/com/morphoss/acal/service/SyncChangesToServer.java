@@ -41,9 +41,9 @@ import com.morphoss.acal.database.DMAction;
 import com.morphoss.acal.database.DMQueryBuilder;
 import com.morphoss.acal.database.DatabaseTableManager.QUERY_ACTION;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager;
-import com.morphoss.acal.database.resourcesmanager.ResourceProcessingException;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager.WriteableResourceTableManager;
+import com.morphoss.acal.database.resourcesmanager.ResourceProcessingException;
 import com.morphoss.acal.database.resourcesmanager.requesttypes.BlockingResourceRequest;
 import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.service.connector.AcalRequestor;
@@ -54,7 +54,6 @@ public class SyncChangesToServer extends ServiceJob implements BlockingResourceR
 
 	public static final String	TAG					= "aCal SyncChangesToServer";
 	
-	private boolean processed = false;
 	private static boolean DEBUG = true && Constants.DEBUG_MODE;
 	
 	private long timeToWait = 90000;
@@ -99,7 +98,7 @@ public class SyncChangesToServer extends ServiceJob implements BlockingResourceR
 		
 		if ( pendingChangesList.isEmpty() ) {
 			if (DEBUG) Log.println(Constants.LOGD, TAG, "No local changes to synchronise.");
-			processed = true;
+			setProcessed();
 			return; // without rescheduling
 		}
 		else if ( !connectivityAvailable() ) {
@@ -137,7 +136,7 @@ public class SyncChangesToServer extends ServiceJob implements BlockingResourceR
 		}
 
 		updateSyncStatus = updateSyncStatus();
-		processed = true;
+		setProcessed();
 	}
 
 	
@@ -444,9 +443,11 @@ public class SyncChangesToServer extends ServiceJob implements BlockingResourceR
 		return "Syncing local changes back to the server.";
 	}
 
+	private boolean processingComplete = false;
+
 	@Override
-	public boolean isProcessed() {
-		return this.processed;
-	}
+	public boolean isProcessed() { return this.processingComplete; }
+	@Override
+	public synchronized void setProcessed() { this.processingComplete = true; }	
 
 }
