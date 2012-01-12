@@ -17,7 +17,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.ConditionVariable;
 import android.util.Log;
 
-import com.morphoss.acal.Constants;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.activity.AlarmActivity;
@@ -38,6 +37,7 @@ import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTable
 import com.morphoss.acal.database.resourcesmanager.requests.RRGetUpcomingAlarms;
 import com.morphoss.acal.dataservice.Resource;
 import com.morphoss.acal.davacal.VCalendar;
+import com.morphoss.acal.davacal.VComponentCreationException;
 
 /**
  * This manager manages the Alarm Database Table(s). It will listen to changes to resources and update the DB
@@ -518,7 +518,15 @@ public class AlarmQueueManager implements Runnable, ResourceChangedListener  {
 			if (!cvs.isEmpty()) after = AcalDateTime.fromMillis(cvs.get(0).getAsLong(FIELD_TIME_TO_FIRE));
 			
 			Resource r = Resource.fromContentValues(data);
-			VCalendar vc = new VCalendar(r);
+			VCalendar vc;
+			try {
+				vc = (VCalendar) VCalendar.createComponentFromResource(r);
+			}
+			catch ( VComponentCreationException e ) {
+				// @todo Auto-generated catch block
+				Log.w(TAG,"Auto-generated catch block", e);
+				return;
+			}
 			vc.appendAlarmInstancesBetween(alarmList, new AcalDateRange(after, AcalDateTime.addDays(after, 7)));
 		
 			Collections.sort(alarmList);

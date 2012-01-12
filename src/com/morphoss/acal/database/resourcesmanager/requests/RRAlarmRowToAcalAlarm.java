@@ -38,7 +38,7 @@ public class RRAlarmRowToAcalAlarm extends BlockingResourceRequestWithResponse<A
 			}
 			if (r == null)  r = Resource.fromContentValues(processor.getResource(row.getResourceId()));
 			 
-			VCalendar vc = new VCalendar(r);
+			VCalendar vc = (VCalendar) VCalendar.createComponentFromResource(r);
 			
 			Masterable master = vc.getChildFromRecurrenceId(RecurrenceId.fromString(row.getReccurenceId()));
 			ArrayList<AcalAlarm> alarms = master.getAlarms();
