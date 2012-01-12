@@ -23,7 +23,6 @@ import com.morphoss.acal.davacal.VComponent;
 public class RRGetCacheEventsInRange extends ReadOnlyResourceRequestWithResponse<ArrayList<Resource>> {
 
 	public static final String TAG = "aCal RRGetCacheEventsInRange";
-	private boolean processed = false;
 	private CacheWindow window;
 	
 	
@@ -42,7 +41,7 @@ public class RRGetCacheEventsInRange extends ReadOnlyResourceRequestWithResponse
 		if (window.getRequestedWindow() == null) {
 			if ( CacheManager.DEBUG ) Log.println(Constants.LOGD, TAG, "Resource request cancelled - cache window already full");
 			super.postResponse(new RREventsInRangeResponse<ArrayList<Resource>>(result));
-			this.processed = true;
+			this.setProcessed();
 			return;
 		}
 		
@@ -99,12 +98,7 @@ public class RRGetCacheEventsInRange extends ReadOnlyResourceRequestWithResponse
 		//post response
 		super.postResponse(new RREventsInRangeResponse<ArrayList<Resource>>(result));
 
-		this.processed = true;
-	}
-	
-	@Override
-	public boolean isProcessed() {
-		return this.processed;
+		this.setProcessed();
 	}
 	
 	/**

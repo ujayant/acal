@@ -6,6 +6,8 @@ import com.morphoss.acal.database.resourcesmanager.ResourceResponseListener;
 
 public abstract class ResourceRequestWithResponse<E> implements ResourceRequest {
 
+	private boolean processed = false;
+	
 	//The CallBack
 	private ResourceResponseListener<E> callBack = null;
 
@@ -18,6 +20,11 @@ public abstract class ResourceRequestWithResponse<E> implements ResourceRequest 
 		this.callBack = callBack;
 	}
 
+	@Override
+	public boolean isProcessed() { return this.processed; }
+	@Override
+	public synchronized void setProcessed() { this.processed = true; }
+	
 	
 	/**
 	 * Called by child classes to send response to the callback. Sends response on its own Thread so will usually return immediately.

@@ -6,11 +6,11 @@ import android.content.ContentValues;
 import android.util.Log;
 
 import com.morphoss.acal.database.cachemanager.CacheObject;
+import com.morphoss.acal.database.resourcesmanager.ResourceManager.ReadOnlyResourceTableManager;
+import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
 import com.morphoss.acal.database.resourcesmanager.ResourceProcessingException;
 import com.morphoss.acal.database.resourcesmanager.ResourceResponse;
 import com.morphoss.acal.database.resourcesmanager.ResourceResponseListener;
-import com.morphoss.acal.database.resourcesmanager.ResourceManager.ReadOnlyResourceTableManager;
-import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
 import com.morphoss.acal.database.resourcesmanager.requesttypes.ReadOnlyResourceRequestWithResponse;
 import com.morphoss.acal.dataservice.CalendarInstance;
 import com.morphoss.acal.dataservice.Resource;
@@ -21,7 +21,6 @@ public class RRRequestInstance extends ReadOnlyResourceRequestWithResponse<Calen
 	
 	private long rid;
 	private String rrid;
-	private boolean processed = false;
 	
 	public RRRequestInstance(ResourceResponseListener<CalendarInstance> callBack, CacheObject co) {
 		super(callBack);
@@ -52,21 +51,21 @@ public class RRRequestInstance extends ReadOnlyResourceRequestWithResponse<Calen
 					} else {
 						CalendarInstance ci = CalendarInstance.fromPendingRowAndRRID(val,rrid);
 						this.postResponse(new RRRequestInstanceResponse(ci));
-						this.processed = true;
+						this.setProcessed();
 					}
 				}
 			}
-			if (!processed) {
+			if (!isProcessed()) {
 				Resource res = Resource.fromContentValues(cv.get(0));
 				CalendarInstance ci = CalendarInstance.fromResourceAndRRId(res, rrid);
 				this.postResponse(new RRRequestInstanceResponse(ci));
-				this.processed = true;
+				this.setProcessed();
 			}
 		}
 		catch ( Exception e ) {
 			Log.e(TAG, e.getMessage() + Log.getStackTraceString(e));
 			this.postResponse(new RRRequestInstanceResponse(e));
-			this.processed = true;
+			this.setProcessed();
 		}
 		
 	}
@@ -84,8 +83,4 @@ public class RRRequestInstance extends ReadOnlyResourceRequestWithResponse<Calen
 		
 	}
 
-	@Override
-	public boolean isProcessed() {
-		return this.processed;
-	}
 }

@@ -5,12 +5,11 @@ import java.util.ArrayList;
 import android.content.ContentValues;
 
 import com.morphoss.acal.database.alarmmanager.AlarmRow;
-import com.morphoss.acal.database.resourcesmanager.ResourceProcessingException;
-import com.morphoss.acal.database.resourcesmanager.ResourceResponse;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager.WriteableResourceTableManager;
+import com.morphoss.acal.database.resourcesmanager.ResourceProcessingException;
+import com.morphoss.acal.database.resourcesmanager.ResourceResponse;
 import com.morphoss.acal.database.resourcesmanager.requesttypes.BlockingResourceRequestWithResponse;
-import com.morphoss.acal.dataservice.CalendarInstance;
 import com.morphoss.acal.dataservice.Resource;
 import com.morphoss.acal.davacal.AcalAlarm;
 import com.morphoss.acal.davacal.Masterable;

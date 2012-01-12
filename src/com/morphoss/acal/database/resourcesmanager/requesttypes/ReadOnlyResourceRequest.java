@@ -7,5 +7,6 @@ public interface ReadOnlyResourceRequest extends Comparable<ReadOnlyResourceRequ
 	
 	public void process(ResourceManager.ReadOnlyResourceTableManager processor) throws ResourceProcessingException;
 	public boolean isProcessed();
+	public void setProcessed();
 	public int priority();
 }

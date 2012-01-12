@@ -48,7 +48,6 @@ public class RRInitialCollectionSync implements ResourceRequest {
 	private AcalRequestor requestor;
 	private aCalService acalService;
 	private WriteableResourceTableManager processor;
-	private volatile boolean processed = false;
 
 	private Header[] syncHeaders = new Header[] {
 			new BasicHeader("Depth","1"),
@@ -103,6 +102,13 @@ public class RRInitialCollectionSync implements ResourceRequest {
 		this.serverId = serverId;
 		this.collectionPath = collectionPath;
 	}
+
+	private boolean processingComplete = false;
+
+	@Override
+	public boolean isProcessed() { return this.processingComplete; }
+	@Override
+	public synchronized void setProcessed() { this.processingComplete = true; }
 	
 	public void setService(aCalService svc) {
 		this.acalService = svc;
@@ -113,7 +119,7 @@ public class RRInitialCollectionSync implements ResourceRequest {
 		this.processor = processor;  
 
 		if ( !getCollectionId() ) {
-			processed = true;
+			setProcessed();
 			return;
 		}
 
@@ -126,7 +132,7 @@ public class RRInitialCollectionSync implements ResourceRequest {
 			
 			serverData = processor.getServerData(serverId);
 			if (serverData == null) {
-				processed = true;
+				setProcessed();
 				throw new ResourceProcessingException("No record for ID " + serverId);
 			}
 			requestor = AcalRequestor.fromServerValues(serverData);
@@ -137,7 +143,7 @@ public class RRInitialCollectionSync implements ResourceRequest {
 			Log.e(TAG, "Error getting server data: " + e.getMessage());
 			Log.e(TAG, "Deleting invalid collection Record.");
 			processor.deleteInvalidCollectionRecord(collectionId);			
-			processed = true;
+			setProcessed();
 			return;
 		}
 
@@ -156,7 +162,7 @@ public class RRInitialCollectionSync implements ResourceRequest {
 				Log.i(TAG, "Sync REPORT got 404 on " + collectionPath + " so a HomeSetsUpdate is being scheduled.");
 				ServiceJob sj = new HomeSetsUpdate(serverId);
 				acalService.addWorkerJob(sj);
-				processed = true;
+				setProcessed();
 				return;
 			}
 			if ( root == null ) {
@@ -170,13 +176,9 @@ public class RRInitialCollectionSync implements ResourceRequest {
 
 		// Now schedule a sync contents on this.
 		acalService.addWorkerJob(new SyncCollectionContents(collectionId,collectionNeedsSync));
-		processed = true;
+		setProcessed();
 	}
 
-	public boolean running() {
-		return processed;
-	}
-	
 	private boolean getCollectionId() {
 		try {
 			if ( collectionPath == null ) {
