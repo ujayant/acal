@@ -290,4 +290,8 @@ public abstract class Masterable extends VComponent {
 
 		}
 	}
+
+	public boolean isMasterInstance() {
+		return ( getProperty(PropertyName.RECURRENCE_ID) == null);
+	}
 }
