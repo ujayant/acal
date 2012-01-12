@@ -128,21 +128,23 @@ public class AcalRepeatRule {
 		if ( repeatFromDate == null )
 			repeatFromDate = masterComponent.getProperty(PropertyName.DUE);
 		if ( repeatFromDate == null )
-			repeatFromDate = masterComponent.getProperty(PropertyName.COMPLETED);
-		if ( repeatFromDate == null )
 			repeatFromDate = masterComponent.getProperty(PropertyName.DTEND);
+		if ( repeatFromDate == null )
+			repeatFromDate = masterComponent.getProperty(PropertyName.COMPLETED);
 		if ( repeatFromDate == null ) {
-			if ( Constants.debugRepeatRule && Constants.LOG_DEBUG ) {
+//			if ( Constants.debugRepeatRule && Constants.LOG_DEBUG ) {
 				Log.println(Constants.LOGD,TAG,"Cannot calculate instances of "+masterComponent.getName()+" without DTSTART/DUE inside " + vCal.getName() );
 				repeatFromDate = masterComponent.getProperty(PropertyName.DTSTART);
 				masterComponent = vCal.getMasterChild();
 				repeatFromDate = masterComponent.getProperty(PropertyName.DTSTART);
 				Log.println(Constants.LOGD,TAG, "Original blob is\n"+vCal.getOriginalBlob() );
-			}
+//			}
 			return null;
 		}
+		AcalProperty rRuleProperty = masterComponent.getProperty(PropertyName.RRULE);
+		if ( rRuleProperty == null ) rRuleProperty = new AcalProperty( PropertyName.RRULE, AcalRepeatRule.SINGLE_INSTANCE.toString());
 
-		AcalRepeatRule ret = new AcalRepeatRule( repeatFromDate, masterComponent.getProperty(PropertyName.RRULE) );
+		AcalRepeatRule ret = new AcalRepeatRule( repeatFromDate, rRuleProperty);
 		ret.sourceVCalendar = vCal;
 		ret.collectionId = collectionId;
 		ret.resourceId = resourceId;
