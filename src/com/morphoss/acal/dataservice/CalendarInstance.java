@@ -9,7 +9,6 @@ import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.davacal.AcalAlarm;
 import com.morphoss.acal.davacal.Masterable;
-import com.morphoss.acal.davacal.PropertyName;
 import com.morphoss.acal.davacal.RecurrenceId;
 import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VComponent;
@@ -62,25 +61,23 @@ public abstract class CalendarInstance {
 		this.isFirstInstance = firstInstance;
 	}
 	
-	protected CalendarInstance(VCalendar calendar, long collectionId, long resourceId, AcalDateTime dtstart, AcalDateTime dtend) {
-		this(calendar.getChildFromRecurrenceId(
-				RecurrenceId.fromString((dtstart == null ? (dtend == null ? null : dtend.toPropertyString(PropertyName.RECURRENCE_ID)) : dtstart.toPropertyString(PropertyName.RECURRENCE_ID)))
-		),collectionId, resourceId, dtstart, dtend, false);
-		this.isFirstInstance = calendar.getMasterChild().getStart().equals(dtstart);
+	protected CalendarInstance(VCalendar calendar, long collectionId, long resourceId, RecurrenceId rrid ) {
+		this( calendar.getChildFromRecurrenceId(rrid), collectionId, resourceId, rrid, false);
 	}
 	
-	private CalendarInstance(Masterable masterInstance, long collectionId, long resourceId, AcalDateTime dtstart, AcalDateTime dtend, boolean delete) {
+	private CalendarInstance(Masterable masterInstance, long collectionId, long resourceId, RecurrenceId rrid, boolean delete) {
 		this(collectionId,
 				resourceId,
-				dtstart,
-				dtend,
+				masterInstance.getStart(),
+				masterInstance.getEnd(),
 				masterInstance.getAlarms(),
 				masterInstance.getRRule(),
-				(dtstart == null ? (dtend == null ? null : dtend.toPropertyString(PropertyName.RECURRENCE_ID)) : dtstart.toPropertyString(PropertyName.RECURRENCE_ID)),
+				(rrid == null ? null : rrid.toRfcString()),
 				masterInstance.getSummary(), 
 				masterInstance.getLocation(),
 				masterInstance.getDescription(),
-				masterInstance.getStart().equals(dtstart));
+				masterInstance.isMasterInstance()
+			 );
 	}
 
 	public AcalDateTime getEnd() {
@@ -140,12 +137,12 @@ public abstract class CalendarInstance {
 	}
 	
 
-	static public CalendarInstance getInstance(Masterable masterInstance, long collectionId, long resourceId, AcalDateTime dtstart, AcalDateTime dtend ) {
+	static public CalendarInstance getInstance(Masterable masterInstance, long collectionId, long resourceId, RecurrenceId rrid ) {
 		if ( masterInstance instanceof VEvent ) {
-			return new EventInstance((VEvent) masterInstance, collectionId, resourceId, dtstart, dtend);
+			return new EventInstance((VEvent) masterInstance, collectionId, resourceId, rrid);
 		}
 		else if ( masterInstance instanceof VTodo ) {
-			return new TodoInstance((VTodo) masterInstance, collectionId, resourceId, dtstart, dtend);
+			return new TodoInstance((VTodo) masterInstance, collectionId, resourceId, rrid);
 		}
 		else {
 			throw new IllegalArgumentException("Resource does not map to a known Componant Type");
@@ -162,7 +159,7 @@ public abstract class CalendarInstance {
 		else
 			obj = ((VCalendar)comp).getChildFromRecurrenceId(RecurrenceId.fromString(rrid));
 
-		return getInstance(obj, res.getCollectionId(), res.getResourceId(), obj.getStart(), obj.getEnd() );
+		return getInstance(obj, res.getCollectionId(), res.getResourceId(), obj.getRecurrenceId() );
 	}
 
 	

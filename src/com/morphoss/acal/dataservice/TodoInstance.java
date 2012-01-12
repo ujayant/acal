@@ -1,6 +1,7 @@
 package com.morphoss.acal.dataservice;
 
 import com.morphoss.acal.acaltime.AcalDateTime;
+import com.morphoss.acal.davacal.RecurrenceId;
 import com.morphoss.acal.davacal.VTodo;
 
 public class TodoInstance extends CalendarInstance {
@@ -17,8 +18,8 @@ public class TodoInstance extends CalendarInstance {
 	 * @param dtstart
 	 * @param due
 	 */
-	public TodoInstance( VTodo vTodo, long collectionId, long resourceId, AcalDateTime dtstart, AcalDateTime due ) {
-		super(vTodo.getTopParent(), collectionId, resourceId, dtstart, due);
+	public TodoInstance( VTodo vTodo, long collectionId, long resourceId, RecurrenceId rrid ) {
+		super(vTodo.getTopParent(), collectionId, resourceId, rrid);
 
 		completed = vTodo.getCompleted();
 		percentComplete = vTodo.getPercentComplete();
