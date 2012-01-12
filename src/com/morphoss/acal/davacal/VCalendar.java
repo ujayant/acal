@@ -97,19 +97,6 @@ public class VCalendar extends VComponent implements Cloneable {
 	}
 
 
-	public VCalendar(Resource r) {
-		super(r.getBlob(), null);
-		this.collectionId = r.getCollectionId();
-		this.resourceId = r.getResourceId();
-		this.earliestStart = r.getEarliestStart();
-		this.latestEnd = r.getLatestEnd();
-		if ( earliestStart != null ) {
-			this.calendarRange = new AcalDateRange(AcalDateTime.fromMillis(earliestStart),
-					(latestEnd == null ? null : AcalDateTime.fromMillis(latestEnd)));
-		}
-	}
-
-
 	public VCalendar clone() {
 		// parent is null, since a VCalendar is a top-level object.
 		return new VCalendar(this.content, this.collectionId, this.resourceId, this.earliestStart, this.latestEnd, null);
@@ -364,38 +351,47 @@ public class VCalendar extends VComponent implements Cloneable {
 		catch ( Exception e ) {
 			Log.e(TAG,"Exception getting repeat rule from VCalendar", e);
 			Log.i(TAG,getCurrentBlob());
+			repeatRule = null;
 		}
 		hasRepeatRule = ( repeatRule != null && repeatRule.repeatRule != AcalRepeatRule.SINGLE_INSTANCE );
 	}
 
 	public boolean appendAlarmInstancesBetween(ArrayList<AlarmRow> alarmList, AcalDateRange rangeRequested) {
-		if ( hasRepeatRule == null && repeatRule == null ) checkRepeatRule();
-		if ( !hasRepeatRule ) {
-			if ( this.hasAlarm() ) {
-				if ( Constants.debugAlarms ) Log.println(Constants.LOGV,TAG,"Event has alarms");
-				Masterable master = this.getMasterChild();
-				CalendarInstance instance = CalendarInstance.getInstance(master, this.collectionId, this.resourceId, master.getStart(), master.getEnd() );
-
-				for (AcalAlarm alarm : instance.getAlarms()) {
-					alarm.setToLocalTime();
-					if ( Constants.debugAlarms && Constants.LOG_VERBOSE )
-						Log.println(Constants.LOGV,TAG,"Alarm next time to fire is "+alarm.getNextTimeToFire().fmtIcal());
-
-					if ( rangeRequested.contains(alarm.getNextTimeToFire()) ) {
-							//the alarm needs to have event data associated
-							AlarmRow row = new AlarmRow(
-									alarm.getNextTimeToFire().applyLocalTimeZone().getMillis(),
-									instance.getResourceId(),
-									instance.getRecurrenceId(),
-									alarm.blob
-									);
-							alarmList.add(row);
+		try {
+			if ( hasRepeatRule == null && repeatRule == null ) checkRepeatRule();
+			if ( !hasRepeatRule ) {
+				if ( this.hasAlarm() ) {
+					if ( Constants.debugAlarms ) Log.println(Constants.LOGV,TAG,"Event has alarms");
+					Masterable master = this.getMasterChild();
+					CalendarInstance instance = CalendarInstance.getInstance(master, this.collectionId, this.resourceId, master.getRecurrenceId() );
+	
+					for (AcalAlarm alarm : instance.getAlarms()) {
+						alarm.setToLocalTime();
+						if ( Constants.debugAlarms && Constants.LOG_VERBOSE )
+							Log.println(Constants.LOGV,TAG,"Alarm next time to fire is "+alarm.getNextTimeToFire().fmtIcal());
+	
+						if ( rangeRequested.contains(alarm.getNextTimeToFire()) ) {
+								//the alarm needs to have event data associated
+								AlarmRow row = new AlarmRow(
+										alarm.getNextTimeToFire().applyLocalTimeZone().getMillis(),
+										instance.getResourceId(),
+										instance.getRecurrenceId(),
+										alarm.blob
+										);
+								alarmList.add(row);
+							}
 						}
-					}
-				
+					
+				}
+			}
+			else this.repeatRule.appendAlarmInstancesBetween(alarmList, rangeRequested);
+		}
+		catch( Exception e ) {
+			Log.i(TAG,"Error adding alarm instances for VCALENDAR (resourceId "+this.resourceId+"): "+e.getMessage());
+			if ( Constants.debugVComponent && Constants.LOG_DEBUG ) {
+				Log.println(Constants.LOGD, TAG, Log.getStackTraceString(e)+"\nResource in error is:\n"+getCurrentBlob());
 			}
 		}
-		else this.repeatRule.appendAlarmInstancesBetween(alarmList, rangeRequested);
 		return true;
 	}
 

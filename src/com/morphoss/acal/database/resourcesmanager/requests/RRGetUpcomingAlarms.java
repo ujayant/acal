@@ -5,10 +5,12 @@ import java.util.Collections;
 import java.util.Map;
 
 import android.content.ContentValues;
+import android.util.Log;
 
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.database.alarmmanager.AlarmRow;
+import com.morphoss.acal.database.resourcesmanager.ResourceManager;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager.ReadOnlyResourceTableManager;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
 import com.morphoss.acal.database.resourcesmanager.ResourceProcessingException;
@@ -17,6 +19,7 @@ import com.morphoss.acal.database.resourcesmanager.requesttypes.ReadOnlyBlocking
 import com.morphoss.acal.dataservice.Collection;
 import com.morphoss.acal.dataservice.Resource;
 import com.morphoss.acal.davacal.VCalendar;
+import com.morphoss.acal.davacal.VComponentCreationException;
 
 public class RRGetUpcomingAlarms extends ReadOnlyBlockingRequestWithResponse<ArrayList<AlarmRow>> {
 
@@ -52,7 +55,15 @@ public class RRGetUpcomingAlarms extends ReadOnlyBlockingRequestWithResponse<Arr
 
 			for (ContentValues cv : cvs) {
 				Resource r = Resource.fromContentValues(cv);
-				VCalendar vc = new VCalendar(r);
+				VCalendar vc;
+				try {
+					vc = (VCalendar) VCalendar.createComponentFromResource(r);
+				}
+				catch ( VComponentCreationException e ) {
+					// @todo Auto-generated catch block
+					Log.w(ResourceManager.TAG,"Auto-generated catch block", e);
+					continue;
+				}
 				vc.appendAlarmInstancesBetween(alarmList, new AcalDateRange(alarmsAfter, AcalDateTime.addDays(alarmsAfter, 7)));
 			}
 		}

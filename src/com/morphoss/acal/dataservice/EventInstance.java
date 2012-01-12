@@ -6,19 +6,16 @@ import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.davacal.AcalAlarm;
 import com.morphoss.acal.davacal.PropertyName;
+import com.morphoss.acal.davacal.RecurrenceId;
 import com.morphoss.acal.davacal.VEvent;
 
 public class EventInstance extends CalendarInstance {
 
-	public EventInstance(VEvent vEvent, long collectionId, long resourceId, AcalDateTime dtstart, AcalDuration duration) {
-		super(vEvent.getTopParent(), collectionId, resourceId, dtstart, AcalDateTime.addDuration(dtstart, duration));
+	public EventInstance(VEvent vEvent, long collectionId, long resourceId, RecurrenceId rrid ) {
+		super(vEvent.getTopParent(), collectionId, resourceId, rrid);
 
 	}
 
-	public EventInstance(VEvent vEvent, long collectionId, long resourceId, AcalDateTime dtstart, AcalDateTime dtend ) {
-		super(vEvent.getTopParent(), collectionId, resourceId,dtstart,dtend);
-	}
-	
 	private EventInstance(EVENT_BUILDER builder) throws BadlyConstructedEventException {
 		super(
 				builder.collectionId, -1, builder.start, builder.duration.getEndDate(builder.start),

@@ -45,27 +45,27 @@ public class Constants {
 	public final static Pattern splitOnCommas = Pattern.compile(",");
 	public static final Pattern	matchSegmentName	= Pattern.compile("([^/]+)$");
 
-	/** Set this to false and all debug logging is turned off */
-	public static final boolean DEBUG_MODE = true;
+	/** Set this to false and all debug logging is turned off, everywhere */
+	public static final boolean DEBUG_MODE = false;
 
 	/** How much stuff to spit out into the logs */
 	public static final boolean LOG_VERBOSE = false && DEBUG_MODE;		//Very verbose play by play execution information
 	public static final boolean LOG_DEBUG = true && DEBUG_MODE;			//Information relevant to debugging tasks.
 	public static final boolean DEBUG_SETTINGS = true && DEBUG_MODE;	// Does the debugging menu appear in Settings
 
-	/** Since Andrew's device won't display logs at DEBUG level he needs a way to fake that! */
-/*	public static final int LOGV = Log.INFO;  // Normally should be Log.VERBOSE of course.
+	/** Since Andrew's device won't display logs at DEBUG level he needs a way to fake that! * /
+	public static final int LOGV = Log.INFO;  // Normally should be Log.VERBOSE of course.
 	public static final int LOGD = Log.INFO;  // Normally should be Log.DEBUG of course.
 	public static final int LOGI = Log.WARN;  // Normally should be Log.INFO of course.
 	public static final int LOGW = Log.ERROR;  // Normally should be Log.WARN of course.
 	public static final int LOGE = Log.ASSERT; // Normally should be Log.ERROR of course.
-*/
+/*/
 	public static final int LOGV = Log.VERBOSE;
 	public static final int LOGD = Log.DEBUG;
 	public static final int LOGI = Log.INFO;
 	public static final int LOGW = Log.WARN;
 	public static final int LOGE = Log.ERROR;
-	
+/*/	
 	/** And sometimes we want to really deeply debug specific bits */
 	public static final boolean		debugRepeatRule					= false && DEBUG_MODE;
 	public static final boolean		debugCalendar					= false && DEBUG_MODE;
@@ -77,7 +77,7 @@ public class Constants {
 	public static final boolean		debugVComponent					= false && DEBUG_MODE;
 	public static final boolean		debugDateTime					= false && DEBUG_MODE;
 	public static final boolean		debugDavCommunication			= false && DEBUG_MODE;
-	public static final boolean		debugAlarms						= true && DEBUG_MODE;
+	public static final boolean		debugAlarms						= false && DEBUG_MODE;
 	public static final boolean		debugHeap						= false && DEBUG_MODE;
 	public static final boolean		debugCheckServerDialog			= false && DEBUG_MODE;
 	public static final boolean		debugTheming					= false && DEBUG_MODE;

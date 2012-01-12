@@ -117,7 +117,7 @@ public class AcalProperty {
 		
 		paramsBlob = ( params.size() > 0 ? params.toArray(new String[params.size()]) : new String[0]);
 
-		if (name.equals("RECURRENCE-ID")) return new RecurrenceId(name,value,paramsBlob);
+		if (name.equals("RECURRENCE-ID")) return new RecurrenceId(value,paramsBlob);
 		return new AcalProperty(name,value,paramsBlob);
 	}
 

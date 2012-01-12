@@ -424,7 +424,7 @@ public class EventView extends AcalActivity implements  OnClickListener, Resourc
 		if (res instanceof EventInstance) {
 			this.event = (EventInstance)res;
 			this.rid = this.event.getResourceId();
-			this.rrid = this.event.getStart().toPropertyString(PropertyName.RECURRENCE_ID);
+			this.rrid = this.event.getRecurrenceId();
 			mHandler.sendMessage(mHandler.obtainMessage(REFRESH));
 		}
 	}

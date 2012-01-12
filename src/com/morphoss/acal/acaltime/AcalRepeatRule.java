@@ -93,14 +93,6 @@ public class AcalRepeatRule {
 		eventTimes = new HashMap<Long,LocalEventInstance>();
 	}
 
-	public AcalRepeatRule(AcalProperty dtStart, AcalProperty rRule) {
-		this((dtStart == null
-					? null
-					: AcalDateTime.fromIcalendar(dtStart.getValue(),dtStart.getParam(AcalProperty.PARAM_VALUE),dtStart.getParam(AcalProperty.PARAM_TZID))),
-				(rRule == null ? null : rRule.getValue())
-			);
-	}
-
 
 	public void setUntil(AcalDateTime newUntil) {
 		repeatRule.setUntil(newUntil);
@@ -144,7 +136,22 @@ public class AcalRepeatRule {
 		AcalProperty rRuleProperty = masterComponent.getProperty(PropertyName.RRULE);
 		if ( rRuleProperty == null ) rRuleProperty = new AcalProperty( PropertyName.RRULE, AcalRepeatRule.SINGLE_INSTANCE.toString());
 
-		AcalRepeatRule ret = new AcalRepeatRule( repeatFromDate, rRuleProperty);
+		AcalDateTime baseDate = AcalDateTime.fromIcalendar(repeatFromDate.getValue(),
+				repeatFromDate.getParam(AcalProperty.PARAM_VALUE),repeatFromDate.getParam(AcalProperty.PARAM_TZID));
+
+		AcalRepeatRule ret = null;
+		try {
+			ret = new AcalRepeatRule( baseDate, rRuleProperty.getValue());
+		}
+		catch( NullPointerException npe ) {}
+		catch( IllegalArgumentException e ) {
+			Log.i(TAG,e.getMessage());
+		}
+		if ( ret == null ) {
+			Log.i(TAG,"Failed to parse repeat rule from:\n"+repeatFromDate+"\n"+rRuleProperty);
+			return ret;
+		}
+
 		ret.sourceVCalendar = vCal;
 		ret.collectionId = collectionId;
 		ret.resourceId = resourceId;
@@ -581,25 +588,28 @@ public class AcalRepeatRule {
 		final AcalDateTime dtstart;
 		final AcalDateTime dtend;
 		final AcalDuration duration;
+		private RecurrenceId rrid = null;
 		
 		LocalEventInstance( Masterable masterIn, AcalDateTime dtstart, AcalDuration duration ) {
 			this.masterInstance = masterIn;
 			this.dtstart = dtstart;
+			this.dtend = AcalDateTime.addDuration(dtstart, duration);
 			this.duration = duration;
 			if ( duration.seconds < 0 || duration.days < 0 )
 				throw new IllegalArgumentException("Resource duration must be positive. UID: "+masterIn.getUID() );
 			if ( Constants.debugRepeatRule && duration.days > 10 ) {
 				throw new IllegalArgumentException();
 			}
-			this.dtend = AcalDateTime.addDuration(dtstart, duration);
 		}
 
 		EventInstance getEventInstance() {
 			if ( collectionId == VComponent.VALUE_NOT_ASSIGNED || resourceId == VComponent.VALUE_NOT_ASSIGNED ) {
 				throw new IllegalArgumentException("To retrieve CalendarInstances the RepeatRule must have valid collectionId and resourceId");
 			}
-			return new EventInstance( (VEvent) masterInstance, collectionId, resourceId, dtstart, duration);
-			//return DefaultEventInstance.getInstance((VEvent) VEvent, dtstart, duration, isPending );
+			if ( dtstart != null ) 
+				this.rrid = RecurrenceId.fromString(dtstart.toPropertyString(PropertyName.RECURRENCE_ID));
+
+			return new EventInstance( (VEvent) masterInstance, collectionId, resourceId, rrid);
 		}
 		
 		CacheObject getCacheObject() {
