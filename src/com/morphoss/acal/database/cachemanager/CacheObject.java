@@ -6,13 +6,11 @@ import android.content.ContentValues;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
-import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.database.cachemanager.CacheManager.CacheTableManager;
 import com.morphoss.acal.davacal.Masterable;
 import com.morphoss.acal.davacal.PropertyName;
-import com.morphoss.acal.davacal.VEvent;
-import com.morphoss.acal.davacal.VTodo;
 
 /**
  * Represents a single row in the cache
@@ -40,6 +38,24 @@ public class CacheObject implements Parcelable, Comparable<CacheObject> {
 	public static final int FLAG_ALL_DAY = 			1<<3;
 	
 
+	
+	//builds a clone of an existing cache object - useful for classes that wish to extend this one.
+	protected CacheObject(CacheObject original) {
+		this.rid = original.rid;
+		this.resourceType = original.resourceType;
+		this.rrid = original.rrid;
+		this.cid = original.cid;
+		this.summary = original.summary;
+		this.location= original.location;
+		this.start = original.start;
+		this.end = original.end;
+		this.completed = original.completed;
+		this.startFloating = original.startFloating;
+		this.endFloating = original.endFloating;
+		this.completeFloating = original.completeFloating;
+		this.flags = original.flags;
+	}
+	
 	public CacheObject(long rid, String resourceType, String rrid,  long cid, String sum, String loc, long st, long end, long completed, boolean sfloat, boolean efloat, boolean cfloat, int flags) {
 		this.rid = rid;
 		this.resourceType = resourceType;
@@ -337,5 +353,8 @@ public class CacheObject implements Parcelable, Comparable<CacheObject> {
 		return AcalDateTime.localTimeFromMillis(completed,completeFloating);
 	}
 	
+	public AcalDateRange getRange() {
+		return new AcalDateRange(getStartDateTime(),getEndDateTime());
+	}
 	
 }

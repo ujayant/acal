@@ -628,7 +628,7 @@ public class ResourceManager implements Runnable {
 		public long addPending(long cid, long rid, String oldBlob, String newBlob, String uid) {
 			// add a new pending resource and return the resultant resource.
 			// if oldBlob == null then this is a create not an edit
-			QUERY_ACTION action = null;
+			QUERY_ACTION action = QUERY_ACTION.PENDING_RESOURCE;;
 			Cursor mCursor = null;
 			ContentValues newResource = new ContentValues();
 			try {
@@ -677,7 +677,7 @@ public class ResourceManager implements Runnable {
 						db.insert(PENDING_DATABASE_TABLE, null, newResource);
 					}
 					mCursor.close();
-					action = QUERY_ACTION.PENDING_RESOURCE;
+					
 					
 				}
 				//trigger resource change event

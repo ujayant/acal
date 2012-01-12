@@ -3,13 +3,27 @@ package com.morphoss.acal.database;
 import android.content.ContentValues;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
 import com.morphoss.acal.database.DatabaseTableManager.QUERY_ACTION;
 
 public class DataChangeEvent  implements Parcelable {
+	
+	public static final String TAG = "aCal DataChangeEvent";
+	
 	public final QUERY_ACTION action;
 	private final ContentValues data;
-	public DataChangeEvent(QUERY_ACTION action, ContentValues data) { this.action = action; this.data = data; }
+	public DataChangeEvent(QUERY_ACTION action, ContentValues data) { 
+	
+		if (action == null) {
+			NullPointerException e = new NullPointerException("Change Event can not be created with a null action.");
+			Log.e(TAG, "Invalid DataChangeEvent Creation: "+Log.getStackTraceString(e));
+			throw e;
+		}
+		
+		this.action = action; 
+		this.data = data; 
+	}
 	public ContentValues getData() {
 		return new ContentValues(data);
 	}

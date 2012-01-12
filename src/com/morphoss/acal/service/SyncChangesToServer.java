@@ -95,10 +95,9 @@ public class SyncChangesToServer extends ServiceJob implements BlockingResourceR
 		this.processor = processor;
 		this.requestor = new AcalRequestor();
 		
-		pendingChangesList = new ArrayList<ContentValues>();
-		pendingChangesList.addAll(processor.getPendingResources());
+		pendingChangesList = processor.getPendingResources();
 		
-		if ( !pendingChangesList.isEmpty() ) {
+		if ( pendingChangesList.isEmpty() ) {
 			if (DEBUG) Log.println(Constants.LOGD, TAG, "No local changes to synchronise.");
 			processed = true;
 			return; // without rescheduling
@@ -289,7 +288,7 @@ public class SyncChangesToServer extends ServiceJob implements BlockingResourceR
 			case 200: // Status OK. (normal for UPDATE)
 				if (DEBUG) Log.println(Constants.LOGD,TAG, "Response "+status+" against "+path);
 				resourceData.put(ResourceTableManager.RESOURCE_DATA, newData);
-				resourceData.put(ResourceTableManager.NEEDS_SYNC, true);
+				resourceData.put(ResourceTableManager.NEEDS_SYNC, 1);
 				resourceData.put(ResourceTableManager.ETAG, "unknown etag after PUT before sync");
 /**
  * This is sadly unreliable.  Some servers will return an ETag and yet

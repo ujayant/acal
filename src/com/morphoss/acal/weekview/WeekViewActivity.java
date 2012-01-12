@@ -50,10 +50,11 @@ import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.activity.EventEdit;
+import com.morphoss.acal.activity.EventView;
 import com.morphoss.acal.activity.MonthView;
 import com.morphoss.acal.activity.YearView;
+import com.morphoss.acal.database.cachemanager.CacheObject;
 import com.morphoss.acal.dataservice.EventInstance;
-import com.morphoss.acal.dataservice.MethodsRequired;
 import com.morphoss.acal.widget.NumberPickerDialog;
 import com.morphoss.acal.widget.NumberSelectedListener;
 
@@ -112,7 +113,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	public static final int PICK_TODAY_FROM_EVENT_VIEW = 1;
 	public static final int PICK_DAY_FROM_MONTH_VIEW = 5;
 	
-	//Image cache
+	//Image/data caches
 	private WeekViewImageCache imageCache;
 	
 	//Dialogs
@@ -122,8 +123,6 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	private GestureDetector gestureDetector;
 	private AcalDateTime selectedDate = new AcalDateTime();
 	
-	/* Fields relating to calendar data */
-	private MethodsRequired dataRequest = null;
 	
 	//Fields relating to scrolling
 	private int scrollx = 0;
@@ -145,7 +144,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		Bundle b = this.getIntent().getExtras();
 		if ( b != null && b.containsKey("InvokedFromView") )
 			invokedFromView = true;
-
+		
 		this.setContentView(R.layout.week_view);
 		header 	= (WeekViewHeader) 	this.findViewById(R.id.week_view_header);
 		sidebar = (WeekViewSideBar) this.findViewById(R.id.week_view_sidebar);
@@ -172,6 +171,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		this.setupButton(R.id.week_month_button, MONTH);
 		this.setupButton(R.id.week_add_button, ADD);
 		
+	
 		loadPrefs();
 		days.setOnTouchListener(days);
 
@@ -281,26 +281,19 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		selectedDate.addDays(-1);
 	}
 	
-	private synchronized void serviceIsConnected() {
-		refresh();
-	}
-
-	private synchronized void serviceIsDisconnected() {
-		this.dataRequest = null;
-	}
-
-	
 	
 	@Override 
 	public void onPause() {
 		super.onPause();
+		days.close();
 		prefs.edit().putLong(getString(R.string.prefSelectedDate), selectedDate.getMillis()).commit();
 		prefs.edit().putLong(getString(R.string.prefSavedSelectedDate), System.currentTimeMillis()).commit();
 	}
 	
 	@Override
 	public void onResume() {
-		super.onResume();		
+		super.onResume();
+		days.open();
 		imageCache = new WeekViewImageCache(this);
 		loadPrefs();
 		days.dimensionsChanged();  // User may have been in the preferences screen, maybe indirectly.
@@ -344,33 +337,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	}
 
 	
-	/**
-	 * Methods for managing event structure
-	 * @param typesToInclude 
-	 *
-	public List<EventInstance> getEventsForDays(AcalDateRange range, int typesToInclude) {
-			List<EventInstance> supplied = dataRequest.getEventsForDays(range);
-			if ( typesToInclude == (INCLUDE_ALL_DAY_EVENTS | INCLUDE_IN_DAY_EVENTS) ) return supplied; 
-			List<EventInstance> filtered = new ArrayList<EventInstance>(supplied.size());
-			for( EventInstance e : supplied ) {
-				if ( (typesToInclude & INCLUDE_ALL_DAY_EVENTS) != 0 ) {
-					if ( e.isAllDay() ) filtered.add(e);
-				}
-				else {
-					if ( !e.isAllDay() ) filtered.add(e);
-				}
-			}
-			return filtered;
-	}*/
 
-	public int getNumberEventsForDay(AcalDateTime day) {
-		return dataRequest.getNumberEventsForDay(day);
-	}
-
-	public EventInstance getNthEventForDay(AcalDateTime day, int n) {
-		return dataRequest.getNthEventForDay(day, n);
-		
-	}
 	/**
 	 * <p>
 	 * Responsible for handling the menu button push.
@@ -435,9 +402,6 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 			myButton.setTag(val);
 			AcalTheme.setContainerFromTheme(myButton, AcalTheme.BUTTON);
 		}
-	}
-	
-	private void dateChanged() {
 	}
 	
 	@Override
@@ -512,12 +476,12 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 
         for( int i=2; i< underList.size(); i++) {
         	menu.add(Menu.NONE, i | CONTEXT_ACTION_VIEW, Menu.NONE, ((EventInstance) underList.get(i)).getSummary() );  
-//        	menu.add(Menu.NONE, i | CONTEXT_ACTION_EDIT, Menu.NONE,
-//        				getString(R.string.editSomeEvent, ((SimpleAcalEvent) underList.get(i)).summary ));  
-//        	menu.add(Menu.NONE, i | CONTEXT_ACTION_COPY, Menu.NONE,
-//        				getString(R.string.copySomeEvent, ((SimpleAcalEvent) underList.get(i)).summary ));  
-//        	menu.add(Menu.NONE, i | CONTEXT_ACTION_DELETE, Menu.NONE,
-//       				getString(R.string.deleteSomeEvent, ((SimpleAcalEvent) underList.get(i)).summary ));  
+        	menu.add(Menu.NONE, i | CONTEXT_ACTION_EDIT, Menu.NONE,
+        				getString(R.string.editSomeEvent, ((CacheObject) underList.get(i)).getSummary() ));  
+        	menu.add(Menu.NONE, i | CONTEXT_ACTION_COPY, Menu.NONE,
+        				getString(R.string.copySomeEvent, ((CacheObject) underList.get(i)).getSummary() ));  
+        	menu.add(Menu.NONE, i | CONTEXT_ACTION_DELETE, Menu.NONE,
+       				getString(R.string.deleteSomeEvent, ((CacheObject) underList.get(i)).getSummary() ));  
         }
 		
 	}
@@ -528,35 +492,24 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 
 		if ( Constants.LOG_VERBOSE && Constants.debugWeekView ) Log.v(TAG,"OnContextItemSelected!");
         switch( item.getItemId() ) {
-        	case -1: {
-        		Bundle bundle = new Bundle();
-        		AcalDateTime dayPressed = (AcalDateTime) underList.get(0);
-        		dayPressed.applyLocalTimeZone().setDaySecond(0);
-    			bundle.putParcelable("DATE", dayPressed);
-    			bundle.putBoolean("ALLDAY", true);
-    			Intent eventEditIntent = new Intent(this, EventEdit.class);
-    			eventEditIntent.putExtras(bundle);
-    			this.startActivity(eventEditIntent);
-        		break;
-        	}
+        	case -1:
         	case -2: {
+        		CacheObject sae = (CacheObject) underList.get(item.getItemId() & 0xFF);
         		Bundle bundle = new Bundle();
-        		AcalDateTime dayPressed = (AcalDateTime) underList.get(0);
-                int secPressed = (Integer) underList.get(1);
-        		dayPressed.applyLocalTimeZone().setDaySecond(secPressed);
-    			bundle.putParcelable("DATE", dayPressed);
-    			bundle.putInt("TIME", secPressed);
+    			bundle.putInt(EventEdit.ACTION_KEY, EventEdit.ACTION_EDIT);
+    			bundle.putLong(EventEdit.RESOURCE_ID_KEY, sae.getResourceId());
+    			bundle.putString(EventEdit.RECCURENCE_ID_KEY, sae.getRecurrenceId());
     			Intent eventEditIntent = new Intent(this, EventEdit.class);
     			eventEditIntent.putExtras(bundle);
     			this.startActivity(eventEditIntent);
         		break;
         	}
         	default: {
-        		/*EventInstance sae = (EventInstance) underList.get(item.getItemId() & 0xFF);
+        		CacheObject sae = (CacheObject) underList.get(item.getItemId() & 0xFF);
         		int action = (item.getItemId() & 0xFF00);
         		if ( action == CONTEXT_ACTION_VIEW ) {
 	        		Bundle bundle = new Bundle();
-	    			bundle.putParcelable("SimpleAcalEvent", sae);
+	    			bundle.putParcelable(EventView.CACHE_INSTANCE_KEY, sae);
 	    			Intent eventViewIntent = new Intent(this, EventView.class);
 	    			eventViewIntent.putExtras(bundle);
 	    			this.startActivity(eventViewIntent);
@@ -565,17 +518,12 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
         		}
         		else {
 	        		if ( action == CONTEXT_ACTION_COPY ) {
-	        			sae.setOperation(EventInstance.EVENT_OPERATION_COPY);
-	        		}
+	        			//TODO
+	           		}
 	        		else if ( action == CONTEXT_ACTION_EDIT ) {
-	        			sae.setOperation(EventInstance.EVENT_OPERATION_EDIT);
+	        			//TODO
 	        		}
-	        		Bundle bundle = new Bundle();
-	    			bundle.putParcelable("SimpleAcalEvent", sae);
-	    			Intent eventEditIntent = new Intent(this, EventEdit.class);
-	    			eventEditIntent.putExtras(bundle);
-	    			this.startActivity(eventEditIntent);
-        		}*/
+        		}
         		break;
         	}
         }
@@ -608,8 +556,6 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 
 	@Override
 	public void onShowPress(MotionEvent arg0) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	MotionEvent lastClickMe = null;
@@ -631,13 +577,12 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 				// There's at least one event under the double-click
 				if ( under.size() == 3 ) {
 					// There's only one event under the tap, so we'll view it directly
-					/**Bundle bundle = new Bundle();
-					EventInstance sae = ((EventInstance) under.get(2));
-					sae.setOperation(EventInstance.EVENT_OPERATION_VIEW);
-					bundle.putParcelable("SimpleAcalEvent", sae);
-					Intent eventViewIntent = new Intent(this, EventView.class);
-					eventViewIntent.putExtras(bundle);
-					this.startActivity(eventViewIntent);*/
+					CacheObject sae = ((CacheObject) under.get(2));
+					Bundle bundle = new Bundle();
+	    			bundle.putParcelable(EventView.CACHE_INSTANCE_KEY, sae);
+	    			Intent eventViewIntent = new Intent(this, EventView.class);
+	    			eventViewIntent.putExtras(bundle);
+	    			this.startActivity(eventViewIntent);
 				}
 				else {
 					// There's more than one, so we need to show a context menu
@@ -655,7 +600,6 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	@Override 
 	public void onNumberSelected(int number) {
 		selectedDate = new AcalDateTime(number,1,1,0,0,0,null).applyLocalTimeZone().setDaySecond(0);
-		this.dateChanged();
 	}
 
 	protected Dialog onCreateDialog(int id) {

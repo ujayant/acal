@@ -238,6 +238,10 @@ public class WorkerClass implements Runnable {
 				// variable is closed automatically.
 				ServiceJob job;
 				while ( (job = getJob()) != null ) {
+					if (job.getDescription() == null) {
+						Log.w(TAG, "Description of job in class "+job.getClass()+" is returning null.");
+					}
+					
 					Log.i(TAG, "Executing job " + job.getDescription());
 //					if ( Constants.debugHeap)
 //						AcalDebug.heapDebug(TAG, "Run Job "+job.getDescription().replace(':','-'));

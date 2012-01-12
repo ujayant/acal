@@ -160,8 +160,8 @@ public class AlarmQueueManager implements Runnable, ResourceChangedListener  {
 		int closedState = 0;
 		try {
 			if (mCursor.getCount() < 1) {
-				if ( CacheManager.DEBUG && Constants.LOG_DEBUG ) Log.println(Constants.LOGD,TAG, "Initializing cache for first use.");
-				data.put(FIELD_CLOSED, 1);
+				Log.i(TAG, "Initializing cache for first use.");
+				data.put(FIELD_CLOSED, 0);
 				rebuild();
 				
 			} else  {
@@ -177,11 +177,11 @@ public class AlarmQueueManager implements Runnable, ResourceChangedListener  {
 			if ( mCursor != null ) mCursor.close();
 		}
 
-		if ( !(closedState == 1)) {
-			Log.println(Constants.LOGI,TAG, "Rebuiliding alarm cache.");
+		if ( closedState == 0) {
+			Log.i(TAG, "Rebuiliding alarm cache.");
 			rebuild();
 		}
-		data.put(FIELD_CLOSED, 1);
+		data.put(FIELD_CLOSED, 0);
 		db.delete(META_TABLE, null, null);
 		data.remove(FIELD_ID);
 		this.metaRow = db.insert(META_TABLE, null, data);
@@ -202,7 +202,7 @@ public class AlarmQueueManager implements Runnable, ResourceChangedListener  {
 		//save start/end range to meta table
 		acquireMetaLock();
 		ContentValues data = new ContentValues();
-		data.put(FIELD_CLOSED, true);
+		data.put(FIELD_CLOSED, 1);
 
 		AcalDBHelper dbHelper = new AcalDBHelper(context);
 		SQLiteDatabase db = dbHelper.getWritableDatabase();
