@@ -30,14 +30,14 @@ public class CRObjectsInWindow  extends CacheRequestWithResponse<ArrayList<Cache
 		
 		//No longer need data?
 		if (range == null) {
-			this.postResponse(new CRObjectsInRangeResponse<ArrayList<CacheObject>>(result));
+			this.postResponse(new CRObjectsInWindowResponse<ArrayList<CacheObject>>(result, null));
 			return;
 		}
 		
 		//is data available?
 		if (!processor.checkWindow(range)) {
 			//Wait give up - caller can decide to rerequest or waitf for cachechanged notification
-			this.postResponse(new CRObjectsInRangeResponse<ArrayList<CacheObject>>(result));
+			this.postResponse(new CRObjectsInWindowResponse<ArrayList<CacheObject>>(result, range));
 			return;
 		}
 
@@ -66,7 +66,7 @@ public class CRObjectsInWindow  extends CacheRequestWithResponse<ArrayList<Cache
 		for (ContentValues cv : data) 
 				result.add(CacheObject.fromContentValues(cv));
 		caller.getWindow().expandWindow(range);
-		this.postResponse(new CRObjectsInRangeResponse<ArrayList<CacheObject>>(result));
+		this.postResponse(new CRObjectsInWindowResponse<ArrayList<CacheObject>>(result,range));
 	}
 
 	/**
@@ -75,12 +75,18 @@ public class CRObjectsInWindow  extends CacheRequestWithResponse<ArrayList<Cache
 	 *
 	 * @param <E>
 	 */
-	public class CRObjectsInRangeResponse<E extends ArrayList<CacheObject>> implements CacheResponse<ArrayList<CacheObject>> {
+	public class CRObjectsInWindowResponse<E extends ArrayList<CacheObject>> implements CacheResponse<ArrayList<CacheObject>> {
 		
 		private ArrayList<CacheObject> result;
+		private AcalDateRange range;
 		
-		private CRObjectsInRangeResponse(ArrayList<CacheObject> result) {
+		private CRObjectsInWindowResponse(ArrayList<CacheObject> result, AcalDateRange range) {
 			this.result = result;
+			this.range = range;
+		}
+		
+		public AcalDateRange rangeRetreived() {
+			return this.range;
 		}
 		
 		/**

@@ -149,7 +149,7 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 		this.dimensionCalculated = false;
 	}
 
-	public boolean dimensionsCaclulated() { return this.dimensionCalculated; }
+	public boolean isDimensionsCaclulated() { return this.dimensionCalculated; }
 
 	/**
 	 * Called once during first onDraw to calculate dimensions. We cant do this in the constructor as we need the screen
@@ -186,8 +186,9 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 	private void calculateHeaderVars() {
 		//1 Calculate per frame vars
 		int scrollx = context.getScrollX();
-		int scrolly = context.getScrollX();
+		int scrolly = context.getScrollY();
 		
+		topSec = scrolly * WeekViewActivity.SECONDS_PER_PIXEL;
 		HST = this.context.getCurrentDate().getEpoch() - (scrollx*HSPP);
 		HET = HST+HNS;
 		
@@ -196,13 +197,20 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 		AcalDateRange range = new AcalDateRange(startTime,endTime);
 		
 		//Get the current timetable
-		headerTimeTable = dataCache.getMultiDayTimeTable(range, this, HST, HET, HDepth);
-		if (headerTimeTable.length <=0) {	this.PxH =0; return; }
+		WeekViewTimeTable timeTable = dataCache.getMultiDayTimeTable(range, HDepth);
+		headerTimeTable = timeTable.getTimetable();
+		HDepth = timeTable.HDepth;	//TODO yucky side affect stuff
+		
+		if (headerTimeTable.length <=0) {	
+			this.PxH =0; 
+			PxD = TpX;
+			return; 
+		}
 		PxH = HDepth*HIH;
 		
 		//save affected vars
 		PxD = TpX - PxH;
-		topSec = scrolly * WeekViewActivity.SECONDS_PER_PIXEL;
+		
 	}
 
 
@@ -247,7 +255,7 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 		drawBackground(canvas,p);
 		drawHeader(canvas,p);
 		drawGrid(canvas,p);
-		drawBody(canvas,p);
+		drawEvents(canvas,p);
 		drawBorder(canvas,p);
 		drawShading(canvas,p);
 	}
@@ -313,7 +321,7 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 		int workBot = (context.WORK_FINISH_SECONDS- topSec) / WeekViewActivity.SECONDS_PER_PIXEL;
 		if ( workTop < PxH ) workTop = PxH;
 
-		//dayGrid = Bitmap.createBitmap(dayGrid, 0, offset, dayGrid.getWidth(), PxD);
+		dayGrid = Bitmap.createBitmap(dayGrid, 0, offset, dayGrid.getWidth(), PxD);
 		Rect src = new Rect(0,offset,dayGrid.getWidth(),offset+PxD);
 		while ( dayX <= viewWidth) {
 			if (!(currentDay.getWeekDay() == AcalDateTime.SATURDAY || currentDay.getWeekDay() == AcalDateTime.SUNDAY)) {
@@ -333,7 +341,7 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 	 * @param canvas
 	 * @param p
 	 */
-	private void drawBody(Canvas canvas, Paint p) {
+	private void drawEvents(Canvas canvas, Paint p) {
 		//get the first fully visible day
 		AcalDateTime currentDay = this.context.getCurrentDate().clone();
 		
@@ -354,10 +362,16 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 						" epoch="+currentDay.getEpoch()+" dayX="+dayX);
 
 			//Get the timetable for the current day.
-			WVCacheObject[][] timeTable = dataCache.getInDayTimeTable(currentDay,this);
+			WeekViewTimeTable timeTable = dataCache.getInDayTimeTable(currentDay);
+			if (timeTable == null) {
+				currentDay.addDays(1);
+				dayX+=dayWidth;
+				continue;
+			}
+			WVCacheObject[][] timeTableData = timeTable.getTimetable(); 
 
 			//draw visible events
-			if ( timeTable.length > 0) {
+			if ( timeTableData.length > 0) {
 				p.reset();
 				p.setStyle(Paint.Style.FILL);
 				long thisDayEpoch = currentDay.getEpoch();
@@ -366,27 +380,27 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 				Set<WVCacheObject> drawn = new HashSet<WVCacheObject>();
 
 				//for each set of overlapping events
-				for (int i = 0; i < timeTable.length; i++)  {
+				for (int i = 0; i < timeTableData.length; i++)  {
 					int curX = 0;
 					//for each overlapping event in a set
-					for(int j=0; j < timeTable[i].length; j++) {
-						if (timeTable[i][j] != null) {
-							if (drawn.contains(timeTable[i][j])) {
+					for(int j=0; j < timeTableData[i].length; j++) {
+						if (timeTableData[i][j] != null) {
+							if (drawn.contains(timeTableData[i][j])) {
 								//if we have already drawn this event, we need to increment x by its width
-								curX+=timeTable[i][j].getLastWidth();
+								curX+=timeTableData[i][j].getLastWidth();
 								continue;
 							}
-							drawn.add(timeTable[i][j]);
+							drawn.add(timeTableData[i][j]);
 
 							//calculate depth - i.e how many events this event overlaps.
 							int depth  = 0;
 							for ( int k = j;
-								k<=dataCache.getLastMaxX() && (timeTable[i][k] == null || timeTable[i][k] == timeTable[i][j]);
+								k<=timeTable.lastMaxX && (timeTableData[i][k] == null || timeTableData[i][k] == timeTableData[i][j]);
 								k++)
 								depth++;
 							//Calculate the width we should draw by dividing the available space by the number of events.
-							float singleWidth = (dayWidth/(dataCache.getLastMaxX()+1)) * depth;	
-							WVCacheObject event = timeTable[i][j];
+							float singleWidth = (dayWidth/(timeTable.lastMaxX+1)) * depth;	
+							WVCacheObject event = timeTableData[i][j];
 							//draw the event
 							drawVertical(event, canvas, (int)dayX+curX, (int)singleWidth, thisDayEpoch);
 							//save its width for future reference
@@ -394,9 +408,9 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 							//increment x pointer
 							curX+=singleWidth;
 						}
-					} //end this event in set
-				} //end this set of overlapping events
-			} //end this day
+					} //end this event in set  
+				} //end this set of overlapping events 
+			} //end this day 
 			currentDay.addDays(1);
 			dayX+=dayWidth;
 		} //end visible days

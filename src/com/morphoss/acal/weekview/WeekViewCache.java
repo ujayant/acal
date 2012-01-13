@@ -20,103 +20,119 @@ import com.morphoss.acal.database.cachemanager.CacheObject;
 import com.morphoss.acal.database.cachemanager.CacheResponse;
 import com.morphoss.acal.database.cachemanager.CacheResponseListener;
 import com.morphoss.acal.database.cachemanager.CacheWindow;
+import com.morphoss.acal.database.cachemanager.CRObjectsInWindow.CRObjectsInWindowResponse;
 
 /**
- * This class provides an in memory cache of event data for weekview to prevent unnecessarily making cache requests. or
+ * This class provides an in memory cache of event data for WeekView to prevent unnecessarily making cache requests. or
  * having to recalculate the same timetables.
+ * 
+ * It also has a handle on cache changes so that it can force the diplay to update if a collection changes.
+ * 
  * @author Chris Noldus
  *
  */
 public class WeekViewCache implements CacheChangedListener, CacheResponseListener<ArrayList<CacheObject>> {
 
-	private WeekViewDays callback;
-	private CacheManager cm;
+	private WeekViewDays callback;			//The view that is using this cache
+	private CacheManager cm;				//CacheManager for getting data
+	private CacheWindow window;
+	//private int lastMaxX;					//Yucky coupling. Used by WeekViewDays in draw calculation
+	
+	//Cached Data
+	//It is important that the Actual CacheWindow size is equivalent to the range covered by this cached data
 	private HashMap<Integer, ArrayList<WVCacheObject>> partDayEventsInRange = new HashMap<Integer,ArrayList<WVCacheObject>>();
 	private ArrayList<WVCacheObject> fullDayEventsInRange = new ArrayList<WVCacheObject>();
-	private CacheWindow window;
-	private int lastMaxX;
-	
-	
 	private ArrayList<WVCacheObject> HSimpleList;  	//The last list of (simple) events for the header
-	private WVCacheObject[][] HTimetable;  			//The last timetable used for the header
-	private HashMap<Integer,WVCacheObject[][]> DTimetables = new HashMap<Integer,WVCacheObject[][]>();  //Cached timetables for each day
+	private WeekViewTimeTable HTimetable;  			//The last timetable used for the header
+	private HashMap<Integer,WeekViewTimeTable> DTimetables = new HashMap<Integer,WeekViewTimeTable>();  //Cached timetables for each day
 
 	
 	
 	private static final int HANDLE_SAVE_NEW_DATA = 1;
 	private static final int HANDLE_RESET = 2;
 	
+	/**
+	 * Handler for processing cache responses in GUI Thread
+	 */
 	private Handler mHandler = new Handler() {
 		@SuppressWarnings("unchecked")
 		@Override
 		public void handleMessage(Message msg) {
 			switch (msg.what) {
 				case HANDLE_SAVE_NEW_DATA:
-					
+					//Called when we have a cache response
 					copyNewDataToDayMap((HashMap<Integer,ArrayList<WVCacheObject>>)((Object[])msg.obj)[0]);
 					copyNewDataToEventsInRqange((ArrayList<WVCacheObject>)((Object[])msg.obj)[1]);
+					updateWindowToIncludeConcreteRange((AcalDateRange)((Object[])msg.obj)[2]);
 					callback.requestRedraw();
 					break;
 				case HANDLE_RESET: {
-					window = new CacheWindow(null);
-					DTimetables.clear();
-					HTimetable = null;
-					HSimpleList = null;
-					partDayEventsInRange.clear();
-					fullDayEventsInRange.clear();
-					callback.requestRedraw();
+					//Called when we have a cache change.
+					resetCache();
 				}
 			}
 		}
-
-		
 	};
 	
+	/** Constructor */
 	public WeekViewCache(Context context, WeekViewDays callback) {
 		this.callback = callback;
 		cm = CacheManager.getInstance(context, this);
 		window = new CacheWindow(null);
 	}
 	
+	/** must be called when no longer needed to prevent memory hole */
 	public void close() {
 		cm.removeListener(this);
 	}
 
+	/**
+	 * Send a request for data in the specified range
+	 * @param range
+	 */
 	private void loadDataForRange(AcalDateRange range) {
 		window.addToRequestedRange(range);
 		cm.sendRequest(new CRObjectsInWindow(this));
 	}
 	
+	/**
+	 * Handle Cache changes. At this point we just reset the cache if it will affect us.
+	 */
 	@Override
 	public void cacheChanged(CacheChangedEvent event) {
 	
 		//1 Check if any of the changes affect the current range
-		boolean affected = false;
+		AcalDateTime earliestStart = null;
+		AcalDateTime latestEnd = null;
 		for (DataChangeEvent e : event.getChanges()) {
 			ContentValues cv = e.getData();
 			CacheObject co = CacheObject.fromContentValues(cv);
-			AcalDateRange range = new AcalDateRange(co.getStartDateTime(), co.getEndDateTime());
-			if (range.overlaps(window.getCurrentWindow())) {
-				affected = true;
-				break;
-			}
+			if (earliestStart == null) earliestStart = co.getStartDateTime();
+			else if (co.getStartDateTime().before(earliestStart)) earliestStart = co.getStartDateTime();
+		
+			if (latestEnd == null) latestEnd = co.getStartDateTime();
+			else if (co.getEndDateTime().after(latestEnd)) latestEnd = co.getEndDateTime();
 		}
 		//2 if so, wipe existing data
-		if (affected) {
+		if (new AcalDateRange(earliestStart,latestEnd).overlaps(window.getCurrentWindow())) {
 			mHandler.sendMessage(mHandler.obtainMessage(HANDLE_RESET));
 		}
 	}
 	
+	/**
+	 * Handle responses from the cache
+	 */
 	@Override
 	public void cacheResponse(CacheResponse<ArrayList<CacheObject>> response) {
-		ArrayList<WVCacheObject> fullDay = new ArrayList<WVCacheObject>();
+		CRObjectsInWindowResponse<ArrayList<CacheObject>> resobject = (CRObjectsInWindowResponse<ArrayList<CacheObject>>) response;
 		
+		ArrayList<WVCacheObject> fullDay = new ArrayList<WVCacheObject>();
 		HashMap<Integer,ArrayList<WVCacheObject>> dayMap = new HashMap<Integer,ArrayList<WVCacheObject>>();
 		
 		for (CacheObject co: response.result()) {
 			if (co.isAllDay()) fullDay.add(new WVCacheObject(co));
 			else {
-				int day = (int)(co.getStartDateTime().getMonthDay());
+				int day = (int)(co.getStartDateTime().getYearDay());
 				ArrayList<WVCacheObject> dayList = null;
 				if (dayMap.containsKey(day)) {
 					dayList = dayMap.get(day);
@@ -127,8 +143,8 @@ public class WeekViewCache implements CacheChangedListener, CacheResponseListene
 				dayMap.put(day, dayList);
 			}
 		}
-		Object[] obj = new Object[]{dayMap,fullDay};
-		
+		Object[] obj = new Object[]{dayMap,fullDay,resobject.rangeRetreived()};
+	
 		mHandler.sendMessage(mHandler.obtainMessage(HANDLE_SAVE_NEW_DATA, obj));
 	}
 	
@@ -157,6 +173,24 @@ public class WeekViewCache implements CacheChangedListener, CacheResponseListene
 		}
 	}
 	
+	/**
+	 * Updates the concrete range of the window to include the given range. called on CacheResponse
+	 * @param range
+	 */
+	private void updateWindowToIncludeConcreteRange(AcalDateRange range) {
+		if (range == null) return;
+		window.expandWindow(range);
+	}
+	
+	public void resetCache() {
+		window = new CacheWindow(null);
+		DTimetables.clear();
+		HTimetable = null;
+		HSimpleList = null;
+		partDayEventsInRange.clear();
+		fullDayEventsInRange.clear();
+		callback.requestRedraw();
+	}
 	
 	public CacheWindow getWindow() {
 		return this.window;
@@ -169,58 +203,55 @@ public class WeekViewCache implements CacheChangedListener, CacheResponseListene
 	 * @param range A one-dimensional array of events
 	 * @return A two-dimensional array of events
 	 */
-	public WVCacheObject[][] getMultiDayTimeTable(AcalDateRange range, WeekViewDays view, long HST, long HET, long HDepth) {
+	public WeekViewTimeTable getMultiDayTimeTable(AcalDateRange range, long HDepth) {
+		calcMultiDayTimeTable(range,HDepth);
+		return HTimetable;
+		
+	}
+	
+	private void calcMultiDayTimeTable(AcalDateRange range, long HDepth) {
 		//first check to see if we even have the requested range
 		if (!window.isWithinWindow(range)) {
 			this.loadDataForRange(range);
-			return new WVCacheObject[0][0];
+			HTimetable = new WeekViewTimeTable(new ArrayList<WVCacheObject>(), true);
+			return;
 		}
+
+		//HST & HET define the range
+		//HDepth is precalculated
 		
 		//first we need to construct a list of WVChacheObjects for the requested range
 		ArrayList<WVCacheObject> eventsForMultiDays = new ArrayList<WVCacheObject>();
+		
 		for (WVCacheObject wvo : this.fullDayEventsInRange) if (wvo.getRange().overlaps(range)) eventsForMultiDays.add(wvo);
 		
 		//List<EventInstance> events = context.getEventsForDays(range, WeekViewActivity.INCLUDE_ALL_DAY_EVENTS );
 		if (HTimetable != null && HSimpleList != null) {
-			if (HSimpleList.containsAll(eventsForMultiDays) && eventsForMultiDays.size() == HSimpleList.size()) return HTimetable;
+			if (HSimpleList.containsAll(eventsForMultiDays) && eventsForMultiDays.size() == HSimpleList.size()) return;
 		}
 		HSimpleList = eventsForMultiDays;
 		Collections.sort(HSimpleList);
 
-		WVCacheObject[][] timetable = new WVCacheObject[HSimpleList.size()][HSimpleList.size()]; //maximum possible
-		int depth = 0;
-		for (int x = 0; x < HSimpleList.size(); x++) {
-			WVCacheObject co = HSimpleList.get(x);
-			if ( co.getStart() >= HET || co.getEnd() <= HST ) continue;  // Discard any events out of range.
-			int i = 0;
-			boolean go = true;
-			while(go) {
-				WVCacheObject[] row = timetable[i];
-				int j=0;
-				while(true) {
-					if (row[j] == null) { row[j] = co; go=false; break; }
-					else if (!(row[j].getEnd() > (co.getStart()))) {j++; continue; }
-					else break;
-				}
-				i++;
-			}
-			depth = Math.max(depth,i);
-		}
-		HDepth = depth;
-		HTimetable = timetable;
-		return timetable; 
+		HTimetable = new WeekViewTimeTable(eventsForMultiDays, true);
+		
 	}
 
 	/**
-	 * Calculates a timetable for the layout of the events within a day.
+	 * Retreives the timetable for the specified day. returns null if there is none.
 	 * @param day to do the timetable for
 	 * @return An array of lists, one per column
 	 */
-	public WVCacheObject[][] getInDayTimeTable(AcalDateTime currentDay, WeekViewDays weekViewDays) {
-		int day = (int)(currentDay.getMonthDay());
+	public WeekViewTimeTable getInDayTimeTable(AcalDateTime currentDay) {
+		int day = (int)(currentDay.getYearDay());
 		//first lets check to see if we already have this timetable
 		if (this.DTimetables.containsKey(day)) return this.DTimetables.get(day);
-		
+		//nope? then calculate it
+		calcInDayTimeTable(currentDay);
+		return this.DTimetables.get(day);
+	}
+	
+	private void calcInDayTimeTable(AcalDateTime currentDay) {
+		int day = (int)(currentDay.getYearDay());
 		AcalDateTime dayStart = currentDay.clone().setDaySecond(0);
 		AcalDateTime dayEnd = dayStart.clone().addDays(1);
 		AcalDateRange range = new AcalDateRange(dayStart,dayEnd);
@@ -228,39 +259,22 @@ public class WeekViewCache implements CacheChangedListener, CacheResponseListene
 		//first check to see if we even have the requested range
 		if (!window.isWithinWindow(range)) {
 			this.loadDataForRange(range);
-			return new WVCacheObject[0][0];
+			return;
 		}
 		
 		//first we need to construct a list of WVChacheObjects for the requested range
-		ArrayList<WVCacheObject> eventsForDays = this.partDayEventsInRange.get((int)(currentDay.getMonthDay()));
+		ArrayList<WVCacheObject> eventsForDays = this.partDayEventsInRange.get((int)(currentDay.getYearDay()));
 		if (eventsForDays == null) {
+			
 			//Special case - there are no events for this day. no point wasting memory storing empty days
-			return new WVCacheObject[0][0];
+			return;
 		}
+		
 		Collections.sort(eventsForDays);
-		WVCacheObject[][] timetable = new WVCacheObject[eventsForDays.size()][eventsForDays.size()]; //maximum possible
-		int maxX = 0;
-		for (WVCacheObject co :eventsForDays){
-			int x = 0; int y = 0;
-			while (timetable[y][x] != null) {
-				if (co.overlaps(timetable[y][x])) {
+		
+		WeekViewTimeTable timeTable = new WeekViewTimeTable(eventsForDays, false);
+		
+		this.DTimetables.put(day, timeTable);
+	}
 
-					//if our end time is before [y][x]'s, we need to extend[y][x]'s range
-					if (co.getEnd() < (timetable[y][x].getEnd())) timetable[y+1][x] = timetable[y][x];
-					x++;
-				} else {
-					y++;
-				}
-			}
-			timetable[y][x] = co;
-			if (x > maxX) maxX = x;
-		}
-		lastMaxX = maxX;
-		this.DTimetables.put(day, timetable);
-		return timetable;
-	}
-	
-	public int getLastMaxX() {
-		return this.lastMaxX;
-	}
 }

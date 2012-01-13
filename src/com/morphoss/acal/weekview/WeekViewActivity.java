@@ -297,7 +297,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	}
 
 	
-	public boolean daysInitialized(){ return days.dimensionsCaclulated(); }
+	public boolean daysInitialized(){ return days.isDimensionsCaclulated(); }
 	
 	/**
 	 * <p>
