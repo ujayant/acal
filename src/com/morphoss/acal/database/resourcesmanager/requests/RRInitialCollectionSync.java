@@ -130,7 +130,7 @@ public class RRInitialCollectionSync implements ResourceRequest {
 		try {
 			// get serverData
 			
-			serverData = processor.getServerData(serverId);
+			serverData = processor.getServerRow(serverId);
 			if (serverData == null) {
 				setProcessed();
 				throw new ResourceProcessingException("No record for ID " + serverId);

@@ -57,7 +57,7 @@ public class SyncCollectionContents extends ServiceJob {
 	 * @param collectionId
 	 * @param forceSync
 	 */
-	public SyncCollectionContents(int collectionId, boolean forceSync ) {
+	public SyncCollectionContents(long collectionId, boolean forceSync ) {
 		this.collectionId = collectionId;
 		request = new RRSyncCollectionContents(collectionId, forceSync);
 		this.TIME_TO_EXECUTE = 0;

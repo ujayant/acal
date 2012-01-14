@@ -266,7 +266,7 @@ public class ResourceManager implements Runnable {
 		
 		public void deleteByCollectionId(long id);
 		public void deleteInvalidCollectionRecord(long collectionId);
-		public void deletePendingChange(Integer pendingId);
+		public void deletePendingChange(long pendingId);
 		public long addPending(long l, long m, String oldBlob, String newBlob, String uid);
 		public void updateCollection(long collectionId, ContentValues collectionData);
 		
@@ -278,7 +278,7 @@ public class ResourceManager implements Runnable {
 		public boolean processActions(DMQueryList queryList);
 		
 		public boolean doSyncListAndToken(DMQueryList newChangeList, long collectionId, String syncToken);
-		public boolean syncToServer(DMAction action, long resourceId, Integer pendingId);
+		public boolean syncToServer(DMAction action, long resourceId, long pendingId);
 		
 		
 	}
@@ -296,7 +296,7 @@ public class ResourceManager implements Runnable {
 		public Context getContext();
 		
 		//These should provide a similar interface to this class at some point.
-		public ContentValues getServerData(int serverId);
+		public ContentValues getServerRow(int serverId);
 		public ContentValues getCollectionRow(long collectionId);
 		
 	}
@@ -498,7 +498,9 @@ public class ResourceManager implements Runnable {
 			try {
 				ContentQueryMap cqm = new ContentQueryMap(mCursor,
 						ResourceTableManager.RESOURCE_NAME, false, null);
+				this.yield();
 				cqm.requery();
+				this.yield();
 				result = cqm.getRows();
 			}
 			catch( Exception e ) {
@@ -508,6 +510,7 @@ public class ResourceManager implements Runnable {
 				if ( mCursor != null && !mCursor.isClosed() ) mCursor.close();
 				this.endTransaction();
 			}
+			this.yield();
 			return result;
 		}
 	
@@ -542,24 +545,18 @@ public class ResourceManager implements Runnable {
 			return success;
 		}
 
-		public boolean syncToServer(DMAction action, long resourceId, Integer pendingId) {
+		public boolean syncToServer(DMAction action, long resourceId, long pendingId) {
 			this.beginTransaction();
 			action.process(this);
-			this.yeild();
-			if ( pendingId != null ) {
-				// We can retire this change now
-				int removed = db.delete(PENDING_DATABASE_TABLE,
-						PENDING_ID+"=?",
-						new String[] { Integer.toString(pendingId) });
-				this.yeild();
-				if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG, "Deleted "+removed+" one pending_change record ID="+pendingId+" for resourceId="+resourceId);
 
-				ContentValues pending = new ContentValues();
-				pending.put(PENDING_ID, pendingId);
-				this.yeild();
-			}
+			// We can retire this change now
+			int removed = db.delete(PENDING_DATABASE_TABLE, PENDING_ID+"="+pendingId, null);
 			this.setTxSuccessful();
 			this.endTransaction();
+
+			if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG, 
+					"Deleted "+removed+" pending_change record ID="+pendingId+" for resourceId="+resourceId);
+
 			return true;
 
 		}
@@ -576,7 +573,7 @@ public class ResourceManager implements Runnable {
 			}
 		}
 
-		public ContentValues getServerData(int serverId) {
+		public ContentValues getServerRow(int serverId) {
 			return Servers.getRow(serverId, context.getContentResolver());
 		}
 
@@ -588,9 +585,11 @@ public class ResourceManager implements Runnable {
 			return DavCollections.getRow(collectionId, context.getContentResolver());
 		}
 		
-		public void deletePendingChange(Integer pendingId) {
+		public void deletePendingChange(long pendingId) {
 			this.beginWriteQuery();
-			db.delete(PENDING_DATABASE_TABLE, PENDING_ID+" = ?", new String[]{pendingId+""});
+			int count = db.delete(PENDING_DATABASE_TABLE, PENDING_ID+" = ?", new String[]{pendingId+""});
+			if ( DEBUG && Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,
+					"Deleted "+count+" pending change records with ID "+pendingId);
 			this.endQuery();
 		}
 
@@ -719,15 +718,20 @@ public class ResourceManager implements Runnable {
 					" ON ("+
 					PENDING_DATABASE_TABLE+"."+PEND_RESOURCE_ID+" = "+RESOURCE_DATABASE_TABLE+"."+RESOURCE_ID+
 					")", null, null, null, null, null, null);
+			this.yield();
 			if (mCursor.getCount() > 0) {
+				if ( ResourceManager.DEBUG && Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG, 
+						"Found "+mCursor.getCount()+" pending changes");
 				for (mCursor.moveToFirst(); !mCursor.isAfterLast(); mCursor.moveToNext()) {
 					ContentValues vals = new ContentValues();
 					DatabaseUtils.cursorRowToContentValues(mCursor, vals);
 					res.add(vals);
+					this.yield();
 				}
 					
 			}
 			mCursor.close();
+			this.yield();
 			endQuery();
 			return res;
 		}

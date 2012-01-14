@@ -111,15 +111,15 @@ public class RRSyncCollectionContents implements ResourceRequest {
 	 * @param collectionId
 	 * @param forceSync
 	 */
-	public RRSyncCollectionContents(int collectionId, boolean forceSync ) {
+	public RRSyncCollectionContents(long collectionId, boolean forceSync ) {
 		this.collectionId = collectionId;
 		this.synchronisationForced = forceSync;
 	}
 	
 	
 	@Override
-	public void process(WriteableResourceTableManager processor)	throws ResourceProcessingException {
-		this.processor = processor;
+	public void process(WriteableResourceTableManager writeProcessor)	throws ResourceProcessingException {
+		this.processor = writeProcessor;
 		if ( Constants.debugHeap ) AcalDebug.heapDebug(TAG, "SyncCollectionContents start");
 		if ( collectionId < 0 || !getCollectionInfo()) {
 			Log.w(TAG, "Could not read collection " + collectionId + " for server " + serverId
@@ -231,7 +231,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 
 		try {
 			// get serverData
-			serverData = processor.getServerData(serverId);
+			serverData = processor.getServerRow(serverId);
 			if (serverData == null) throw new Exception("No record for ID " + serverId);
 			requestor = AcalRequestor.fromServerValues(serverData);
 			requestor.setPath(collectionPath);
