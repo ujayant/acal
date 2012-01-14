@@ -980,9 +980,14 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	/**
 	 * Set the flag that marks this as a date.  If it is marked as a date
 	 * it will print as a date via fmtIcal() and toPropertyString() methods.
+	 * 
+	 * This also will throw away any 'seconds' value. The timezone information
+	 * will be retained, though possibly that should be chucked also.
+	 * 
 	 * @return this, for chaining.
 	 */
 	public AcalDateTime setAsDate(boolean newValue) {
+		setDaySecond(0);
 		isDate = newValue;
 		return this;
 	}
