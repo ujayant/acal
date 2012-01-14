@@ -55,8 +55,9 @@ public class CRObjectsInMonthByDay extends CacheRequestWithResponse<HashMap<Shor
 		final HashMap<Short,ArrayList<CacheObject>> result = new HashMap<Short,ArrayList<CacheObject>>();
 		AcalDateTime start = new AcalDateTime( year, month, 1, 0, 0, 0, TimeZone.getDefault().getID()); 
 		AcalDateTime end = start.clone().addMonths(1).applyLocalTimeZone();
+		AcalDateRange range = new AcalDateRange(start,end);
 		
-		if (!processor.checkWindow(new AcalDateRange(start,end))) {
+		if (!processor.checkWindow(range)) {
 			//Wait give up - caller can decide to rerequest or waitf for cachechanged notification
 			this.postResponse(new CREventsInMonthByDayResponse<HashMap<Short,ArrayList<CacheObject>>>(result));
 			pend = System.currentTimeMillis();
@@ -64,33 +65,20 @@ public class CRObjectsInMonthByDay extends CacheRequestWithResponse<HashMap<Shor
 			return;
 		}
 		
-		String dtStart = start.getMillis()+"";
-		String dtEnd = end.getMillis()+"";
-		String offset = TimeZone.getDefault().getOffset(start.getMillis())+"";
-		
 		qstart  = System.currentTimeMillis();
-		ArrayList<ContentValues> data = processor.query(null, 
-				"( " + 
-					"( "+CacheTableManager.FIELD_DTEND+" > ? AND NOT "+CacheTableManager.FIELD_DTEND_FLOAT+" )"+
-						" OR "+
-						"( "+CacheTableManager.FIELD_DTEND+" + ? > ? AND "+CacheTableManager.FIELD_DTEND_FLOAT+" )"+
-						" OR "+
-					"( "+CacheTableManager.FIELD_DTEND+" ISNULL )"+
-				" ) AND ( "+
-					"( "+CacheTableManager.FIELD_DTSTART+" < ? AND NOT "+CacheTableManager.FIELD_DTSTART_FLOAT+" )"+
-						" OR "+
-					"( "+CacheTableManager.FIELD_DTSTART+" + ? < ? AND "+CacheTableManager.FIELD_DTSTART_FLOAT+" )"+
-						" OR "+
-					"( "+CacheTableManager.FIELD_DTSTART+" ISNULL )"+
-				")",
-				new String[] {dtStart , offset, dtStart, dtEnd, offset, dtEnd},
-				null,null,CacheTableManager.FIELD_DTSTART+" ASC");
+		ArrayList<ContentValues> data = processor.queryInRange(range);
 		qend  = System.currentTimeMillis();
+		int daysInMonth = start.getActualMaximum(AcalDateTime.DAY_OF_MONTH);
 		for (ContentValues value : data ) {
 			CacheObject co = CacheObject.fromContentValues(value);
-			AcalDateTime dt = AcalDateTime.fromMillis(value.getAsLong(CacheTableManager.FIELD_DTSTART)).shiftTimeZone(TimeZone.getDefault().getID());
-			if (!result.containsKey(dt.getMonthDay())) result.put(dt.getMonthDay(), new ArrayList<CacheObject>());
-			result.get(dt.getMonthDay()).add(co);
+			start = co.getStartDateTime();
+			end = co.getEndDateTime();
+			for( short dayOfMonth = start.getMonthDay()
+					; dayOfMonth <= (end.getMonthDay() < start.getMonthDay() ? daysInMonth : end.getMonthDay())
+					; dayOfMonth++ ) {
+				if ( !result.containsKey(dayOfMonth) ) result.put(dayOfMonth, new ArrayList<CacheObject>());
+				result.get(dayOfMonth).add(co);
+			}
 		}
 		
 		this.postResponse(new CREventsInMonthByDayResponse<HashMap<Short,ArrayList<CacheObject>>>(result));

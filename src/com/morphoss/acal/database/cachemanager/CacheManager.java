@@ -1,6 +1,7 @@
 package com.morphoss.acal.database.cachemanager;
 
 import java.util.ArrayList;
+import java.util.TimeZone;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.Semaphore;
@@ -62,7 +63,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 	//Settings
 	private static final int DEF_MONTHS_BEFORE = -1;	//these 2 represent the default window size
 	private static final int DEF_MONTHS_AFTER = 3;		//relative to todays date
-	public static final boolean	DEBUG	= false && Constants.DEBUG_MODE;
+	public static final boolean	DEBUG	= true && Constants.DEBUG_MODE;
 		
 	
 	//Get an instance
@@ -557,6 +558,40 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 			checkDefaultWindow();
 		}
 		
+		
+		/**
+		 * One specific common query for the cache is to fetch rows for a particular range of dates.
+		 * 
+		 * @param range Must not be null, or have either end null
+		 * @return
+		 */
+		public ArrayList<ContentValues> queryInRange( AcalDateRange range ) {
+			long dtStart = range.start.getMillis();
+			long dtEnd = range.end.getMillis();
+			int offsetS = TimeZone.getDefault().getOffset(range.start.getMillis());
+			int offsetE = TimeZone.getDefault().getOffset(range.start.getMillis());
+			
+			String whereClause = 				
+			"( " + 
+				"( "+CacheTableManager.FIELD_DTEND+" > "+dtStart+" AND NOT "+CacheTableManager.FIELD_DTEND_FLOAT+" )"+
+					" OR "+
+				"( "+CacheTableManager.FIELD_DTEND+" - "+offsetS+" > "+dtStart+" AND "+CacheTableManager.FIELD_DTEND_FLOAT+" )"+
+					" OR "+
+				"( "+CacheTableManager.FIELD_DTEND+" ISNULL )"+
+			" ) AND ( "+
+				"( "+CacheTableManager.FIELD_DTSTART+" < "+dtEnd+" AND NOT "+CacheTableManager.FIELD_DTSTART_FLOAT+" )"+
+					" OR "+
+				"( "+CacheTableManager.FIELD_DTSTART+" - "+offsetE+" < "+dtEnd+" AND "+CacheTableManager.FIELD_DTSTART_FLOAT+" )"+
+					" OR "+
+				"( "+CacheTableManager.FIELD_DTSTART+" ISNULL )"+
+			")";
+			if ( CacheManager.DEBUG && Constants.LOG_DEBUG )
+				Log.println(Constants.LOGD, CacheManager.TAG,
+					"Selecting cache objects in "+range+": \nSELECT * FROM event_cache WHERE "+whereClause  );
+			
+			return this.query(null, whereClause, null, null,null,CacheTableManager.FIELD_DTSTART+" ASC");
+		}
+
 		
 		/**
 		 * Checks that the window has been populated with the requested range

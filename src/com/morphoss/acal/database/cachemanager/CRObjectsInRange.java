@@ -1,7 +1,6 @@
 package com.morphoss.acal.database.cachemanager;
 
 import java.util.ArrayList;
-import java.util.TimeZone;
 
 import android.content.ContentValues;
 
@@ -40,28 +39,7 @@ public class CRObjectsInRange extends CacheRequestWithResponse<ArrayList<CacheOb
 			return;
 		}
 
-		String dtStart = range.start.getMillis()+"";
-		String dtEnd = range.end.getMillis()+"";
-		String offset = TimeZone.getDefault().getOffset(range.start.getMillis())+"";
-		
-		
-		ArrayList<ContentValues> data = processor.query(null, 
-				"( " + 
-					"( "+CacheTableManager.FIELD_DTEND+" > ? AND NOT "+CacheTableManager.FIELD_DTEND_FLOAT+" )"+
-						" OR "+
-						"( "+CacheTableManager.FIELD_DTEND+" + ? > ? AND "+CacheTableManager.FIELD_DTEND_FLOAT+" )"+
-						" OR "+
-					"( "+CacheTableManager.FIELD_DTEND+" ISNULL )"+
-				" ) AND ( "+
-					"( "+CacheTableManager.FIELD_DTSTART+" < ? AND NOT "+CacheTableManager.FIELD_DTSTART_FLOAT+" )"+
-						" OR "+
-					"( "+CacheTableManager.FIELD_DTSTART+" + ? < ? AND "+CacheTableManager.FIELD_DTSTART_FLOAT+" )"+
-						" OR "+
-					"( "+CacheTableManager.FIELD_DTSTART+" ISNULL )"+
-				")",
-				new String[] {dtStart , offset, dtStart, dtEnd, offset, dtEnd},
-				null,null,CacheTableManager.FIELD_DTSTART+" ASC");
-		
+		ArrayList<ContentValues> data = processor.queryInRange(range);
 		for (ContentValues cv : data) 
 				result.add(CacheObject.fromContentValues(cv));
 		
