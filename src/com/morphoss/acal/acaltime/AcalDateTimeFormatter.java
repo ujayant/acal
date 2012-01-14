@@ -124,14 +124,15 @@ public class AcalDateTimeFormatter {
 	-	 * @param as24HourTime - from the pref
 	-	 * @return A nicely formatted string explaining the start/end of the event.
 	-	 */
-		public static String getDisplayTimeText(Context c, long viewDateStart, long viewDateEnd, long start, long end, boolean as24HourTime, boolean isAllDay ) {
+		public static String getDisplayTimeText(Context c, AcalDateTime viewDateStart, AcalDateTime viewDateEnd,
+												AcalDateTime start, AcalDateTime end, boolean as24HourTime, boolean isAllDay ) {
 			String timeText = "";
 			String timeFormatString = (as24HourTime ? "HH:mm" : "hh:mmaa");
 			SimpleDateFormat timeFormatter = new SimpleDateFormat(timeFormatString);
 	
-			Date st = new Date(start);
-			Date en = new Date(end);
-			if ( start < viewDateStart || end  > viewDateEnd ){
+			Date st = start.toJavaDate();
+			Date en = end.toJavaDate();
+			if ( start.before(viewDateStart) || end.after(viewDateEnd) ) {
 				if ( isAllDay ) {
 					timeFormatter = new SimpleDateFormat("MMM d");
 					timeText = c.getString(R.string.AllDaysInPeriod, timeFormatter.format(st), timeFormatter.format(en));
@@ -140,9 +141,9 @@ public class AcalDateTimeFormatter {
 					SimpleDateFormat startFormatter = timeFormatter;
 					SimpleDateFormat finishFormatter = timeFormatter;
 					
-					if ( start < viewDateStart )
+					if ( start.before(viewDateStart) )
 						startFormatter  = new SimpleDateFormat("MMM d, "+timeFormatString);
-					if ( end >= viewDateEnd )
+					if ( end.after(viewDateEnd) )
 						finishFormatter = new SimpleDateFormat("MMM d, "+timeFormatString);
 			
 					timeText = startFormatter.format(st)+" - " + finishFormatter.format(en);

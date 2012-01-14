@@ -46,9 +46,9 @@ import com.morphoss.acal.database.cachemanager.CacheObject;
 import com.morphoss.acal.database.resourcesmanager.ResourceChangedEvent;
 import com.morphoss.acal.database.resourcesmanager.ResourceChangedListener;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager;
+import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
 import com.morphoss.acal.database.resourcesmanager.ResourceResponse;
 import com.morphoss.acal.database.resourcesmanager.ResourceResponseListener;
-import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
 import com.morphoss.acal.database.resourcesmanager.requests.RRRequestInstance;
 import com.morphoss.acal.dataservice.CalendarInstance;
 import com.morphoss.acal.dataservice.Collection;
@@ -237,9 +237,8 @@ public class EventView extends AcalActivity implements  OnClickListener, Resourc
 			alarmList = event.getAlarms();
 			collectionId = event.getCollectionId();
 			repetition = event.getRRule();
-			timeText = AcalDateTimeFormatter.getDisplayTimeText(this,viewDate.getMillis(), viewDate.clone().addDays(1).getMillis(),
-					event.getStart().getMillis(), event.getEnd().getMillis(),
-					show24Hour, false);
+			timeText = AcalDateTimeFormatter.getDisplayTimeText(this,viewDate, AcalDateTime.addDays(viewDate,1),
+													event.getStart(), event.getEnd(), show24Hour, false);
 			
 		} else if (cacheObject != null) {
 			//load from cacheObject
@@ -248,9 +247,8 @@ public class EventView extends AcalActivity implements  OnClickListener, Resourc
 			location = cacheObject.getLocation();
 			description = "Loading...";
 			collectionId = cacheObject.getCollectionId();
-			timeText = AcalDateTimeFormatter.getDisplayTimeText(this,viewDate.getMillis(), viewDate.clone().addDays(1).getMillis(),
-					cacheObject.getStart(), cacheObject.getEnd(),
-					show24Hour, false);
+			timeText = AcalDateTimeFormatter.getDisplayTimeText(this,viewDate, AcalDateTime.addDays(viewDate,1),
+					cacheObject.getStartDateTime(), cacheObject.getEndDateTime(), show24Hour, false);
 			
 		} else {
 			title = "Loading data...";

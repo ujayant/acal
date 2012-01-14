@@ -25,14 +25,15 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View.OnClickListener;
 import android.view.View.OnCreateContextMenuListener;
+import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -52,7 +53,6 @@ import com.morphoss.acal.database.cachemanager.CacheObject;
 import com.morphoss.acal.database.cachemanager.CacheRequest;
 import com.morphoss.acal.database.cachemanager.CacheResponse;
 import com.morphoss.acal.database.cachemanager.CacheResponseListener;
-import com.morphoss.acal.database.cachemanager.CacheManager.CacheTableManager;
 import com.morphoss.acal.dataservice.Collection;
 
 /**
@@ -110,16 +110,17 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 	 */
 	public EventListAdapter(MonthView monthview, AcalDateTime date) {
 		this.context = monthview;
-		viewDate = date.clone();
-		viewDate.applyLocalTimeZone();
-		viewDate.setDaySecond(0);
+		viewDate = date.clone().applyLocalTimeZone().setDaySecond(0);
 		viewDateEnd = AcalDateTime.addDays(viewDate, 1);
+
+		Log.w(TAG,"Now viewing events on date "+viewDate);
+
 		cacheManager = CacheManager.getInstance(context, this);
 		cacheManager.sendRequest(getCacheRequest());
 	}
 
 	private CacheRequest getCacheRequest() {
-		return new CRObjectsInRange(new AcalDateRange(viewDate,viewDate.clone().addDays(1)), this);
+		return new CRObjectsInRange(new AcalDateRange(viewDate,viewDateEnd), this);
 	}
 	
 	/**
@@ -204,9 +205,8 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 			repeating.setVisibility(View.VISIBLE);
 		}
 		
-		time.setText(AcalDateTimeFormatter.getDisplayTimeText(context, viewDate.getMillis(), viewDateEnd.getMillis(),
-					event.getStart(), event.getEnd(),MonthView.prefs.getBoolean(context.getString(R.string.prefTwelveTwentyfour), false), event.isAllDay())
-					 );
+		time.setText(AcalDateTimeFormatter.getDisplayTimeText(context, viewDate, viewDateEnd, event.getStartDateTime(), event.getEndDateTime(),
+				MonthView.prefs.getBoolean(context.getString(R.string.prefTwelveTwentyfour), false), event.isAllDay()) );
 
 		if (event.getLocation() != null && event.getLocation().length() > 0 )
 			location.setText(event.getLocation());
@@ -313,15 +313,16 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 	
 
 	@Override
-	public void cacheChanged(CacheChangedEvent event) {
-		AcalDateRange myRange = new AcalDateRange(viewDate,viewDate.clone().addDays(1));
+	public void cacheChanged(CacheChangedEvent change) {
+		AcalDateRange myRange = new AcalDateRange(viewDate,viewDateEnd);
 		//up-date only if the change could have affected us
 		boolean update = false;
-		for (DataChangeEvent dce : event.getChanges()) {
-			Long sMills = dce.getData().getAsLong(CacheTableManager.FIELD_DTSTART);
-			Long eMills = dce.getData().getAsLong(CacheTableManager.FIELD_DTEND);
-			if (sMills == null || eMills == null) { update = true; break; }
-			if (sMills < myRange.end.getMillis() && eMills > myRange.start.getMillis()) { update = true; break; }
+		for (DataChangeEvent dce : change.getChanges()) {
+			CacheObject event = CacheObject.fromContentValues(dce.getData());
+			if ( myRange.overlaps(event.getStartDateTime(), event.getEndDateTime()) ) {
+				update = true;
+				break;
+			}
 		}
 		
 		if (update) cacheManager.sendRequest(new CRObjectsInRange(myRange,this));
