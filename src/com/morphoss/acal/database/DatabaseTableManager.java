@@ -9,8 +9,8 @@ import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteMisuseException;
-import android.util.Log;
 import android.os.Process;
+import android.util.Log;
 
 import com.morphoss.acal.Constants;
 
@@ -184,13 +184,13 @@ public abstract class DatabaseTableManager {
 		}
 		long time = System.currentTimeMillis()-this.dbYielded;
 		//Metric checking to make sure that the database is being used correctly.
-		if (time > 100) {
+		if ( (Constants.DEBUG_MODE && time > 700) || time > 2000 ) {
 			Log.w(TAG, "Database opened for excessive period of time ("+time+"ms) Without yield!:");
 			this.printStackTraceInfo(Log.WARN);
 		}
-		if (Constants.debugDatabaseManager) {
+		if (Constants.debugDatabaseManager && Constants.LOG_DEBUG ) {
 			time = System.currentTimeMillis()- this.dbOpened;
-			Log.d(TAG, "Database opened for "+time+"ms");
+			Log.println(Constants.LOGD, TAG, "Database opened for "+time+"ms");
 		}
 		this.dataChanged(changes);
 		changes = null;
