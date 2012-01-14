@@ -487,7 +487,7 @@ public class AlarmQueueManager implements Runnable, ResourceChangedListener  {
 			super.beginTransaction();
 			try {
 				for (DataChangeEvent change : changes) {
-					this.yeild();
+					this.yield();
 					super.delete(FIELD_RID+" = ?", new String[]{change.getData().getAsLong(ResourceTableManager.RESOURCE_ID)+""});
 					switch (change.action) {
 						case INSERT:
@@ -526,6 +526,10 @@ public class AlarmQueueManager implements Runnable, ResourceChangedListener  {
 			catch ( VComponentCreationException e ) {
 				// @todo Auto-generated catch block
 				Log.w(TAG,"Auto-generated catch block", e);
+				return;
+			}
+			if ( vc == null ) {
+				Log.w(TAG,"Couldn't create VCalendar from resource "+r.getResourceId()+":\n"+r.getBlob());
 				return;
 			}
 			vc.appendAlarmInstancesBetween(alarmList, new AcalDateRange(after, AcalDateTime.addDays(after, 7)));

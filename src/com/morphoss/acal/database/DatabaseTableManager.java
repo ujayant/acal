@@ -47,7 +47,7 @@ public abstract class DatabaseTableManager {
 
 	
 	private long dbOpened;
-	private long dbYeilded;
+	private long dbYielded;
 	
 	public enum QUERY_ACTION { INSERT, UPDATE, DELETE, PENDING_RESOURCE };
 	
@@ -123,7 +123,7 @@ public abstract class DatabaseTableManager {
 		dbHelper = new AcalDBHelper(context);
 		changes = new ArrayList<DataChangeEvent>();
 		this.dbOpened = System.currentTimeMillis();
-		this.dbYeilded = dbOpened;
+		this.dbYielded = dbOpened;
 		switch (type) {
 		case OPEN_READ:
 			if (Constants.debugDatabaseManager && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG,"DB:"+this.getTableName()+" OPEN_READ:");
@@ -182,10 +182,10 @@ public abstract class DatabaseTableManager {
 		default:
 			throw new IllegalArgumentException("Invalid argument provided for openDB");
 		}
-		long time = System.currentTimeMillis()-this.dbYeilded;
+		long time = System.currentTimeMillis()-this.dbYielded;
 		//Metric checking to make sure that the database is being used correctly.
 		if (time > 100) {
-			Log.w(TAG, "Database opened for excessive period of time ("+time+"ms) Without yeild!:");
+			Log.w(TAG, "Database opened for excessive period of time ("+time+"ms) Without yield!:");
 			this.printStackTraceInfo(Log.WARN);
 		}
 		if (Constants.debugDatabaseManager) {
@@ -196,10 +196,10 @@ public abstract class DatabaseTableManager {
 		changes = null;
 	}
 	
-	public void yeild() {
-		if (Constants.debugDatabaseManager) Log.d(TAG, "Yeild Called.");
+	public void yield() {
+		if (Constants.debugDatabaseManager) Log.d(TAG, "Yield Called.");
 		if (db != null) {
-			this.dbYeilded = System.currentTimeMillis();
+			this.dbYielded = System.currentTimeMillis();
 			db.yieldIfContendedSafely();
 		}
 	}
@@ -294,7 +294,7 @@ public abstract class DatabaseTableManager {
 			if ( DatabaseTableManager.this.inTx ) {
 				for (DMAction action : actions) {
 					action.process(this);
-					this.yeild();
+					this.yield();
 				}
 			}
 			else {
@@ -302,7 +302,7 @@ public abstract class DatabaseTableManager {
 				openDb = true;
 				for (DMAction action : actions) {
 					action.process(this);
-					this.yeild();
+					this.yield();
 				}
 				setTxSuccessful();
 			}
