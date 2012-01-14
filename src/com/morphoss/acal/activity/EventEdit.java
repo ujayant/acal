@@ -483,7 +483,7 @@ ResourceChangedListener, ResourceResponseListener, OnFocusChangeListener {
 			// People expect an event starting on the 13th and ending on the 14th to be for
 			// two days.  For iCalendar it is one day, so we display the end date to be
 			// one day earlier than the actual setting, if we're viewing 
-			end.addDays(-1);
+			end = AcalDateTime.addDays(end,-1); // adds to copy.
 		}
 		btnEndDate.setText(AcalDateTimeFormatter.fmtFull(end, prefer24hourFormat));
 
@@ -778,6 +778,7 @@ ResourceChangedListener, ResourceResponseListener, OnFocusChangeListener {
 						newEnd.addDuration(delta);
 						if ( oldStart.isDate() != newDateTime.isDate() ) {
 							newEnd.setAsDate(newDateTime.isDate() );
+							if ( newDateTime.isDate() ) newEnd.addDays(1);
 						}
 						String oldTzId = oldStart.getTimeZoneId();
 						String newTzId = newDateTime.getTimeZoneId();
@@ -810,7 +811,9 @@ ResourceChangedListener, ResourceResponseListener, OnFocusChangeListener {
 			}
 			return new DateTimeDialog( this, end, prefer24hourFormat, false, true,
 					new DateTimeSetListener() { public void onDateTimeSet(AcalDateTime newDateTime) {
-						if ( newDateTime.isDate() ) newDateTime.addDays(1);
+						if ( event.getEnd().isDate() ) {
+						  newDateTime.setAsDate(true).addDays(1);
+						}
 						event.setEndDate(newDateTime);
 						updateLayout();
 					}
