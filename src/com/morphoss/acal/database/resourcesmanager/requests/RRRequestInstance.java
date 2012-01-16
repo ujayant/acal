@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import android.content.ContentValues;
 import android.util.Log;
 
+import com.morphoss.acal.Constants;
 import com.morphoss.acal.database.cachemanager.CacheObject;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager.ReadOnlyResourceTableManager;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
@@ -22,16 +23,16 @@ public class RRRequestInstance extends ReadOnlyResourceRequestWithResponse<Calen
 	private long rid;
 	private String rrid;
 	
-	public RRRequestInstance(ResourceResponseListener<CalendarInstance> callBack, CacheObject co) {
-		super(callBack);
-		this.rid = co.getResourceId();
-		this.rrid = co.getRecurrenceId();
-	}
-	
 	public RRRequestInstance(ResourceResponseListener<CalendarInstance> callBack, long resourceId, String recurrenceId) {
 		super(callBack);
 		this.rid = resourceId;
 		this.rrid = recurrenceId;
+		if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG, "Resource "+rid+", recurrence "+rrid+" is requested.");
+	}
+
+	
+	public RRRequestInstance(ResourceResponseListener<CalendarInstance> callBack, CacheObject co) {
+		this(callBack, co.getResourceId(), co.getRecurrenceId());
 	}
 	
 
@@ -73,7 +74,10 @@ public class RRRequestInstance extends ReadOnlyResourceRequestWithResponse<Calen
 	public class RRRequestInstanceResponse extends ResourceResponse<CalendarInstance> {
 
 		private CalendarInstance result = null;
-		public RRRequestInstanceResponse(CalendarInstance ci) { this.result = ci; }
+		public RRRequestInstanceResponse(CalendarInstance ci) {
+			this.result = ci;
+			if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG, "Resource "+ci.getResourceId()+", recurrence "+ci.getRecurrenceId()+" is returned.");
+		}
 		public RRRequestInstanceResponse(Exception e) { super(e); }
 		
 		@Override
