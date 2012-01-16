@@ -987,7 +987,7 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	 * @return this, for chaining.
 	 */
 	public AcalDateTime setAsDate(boolean newValue) {
-		setDaySecond(0);
+		if (newValue) setDaySecond(0);
 		isDate = newValue;
 		return this;
 	}
