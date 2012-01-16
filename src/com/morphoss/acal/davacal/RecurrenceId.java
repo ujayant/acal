@@ -36,6 +36,16 @@ public class RecurrenceId extends AcalProperty implements Comparable<RecurrenceI
 		thisAndFuture = (getParam(PARAM_RANGE) != null && getParam(PARAM_RANGE).equalsIgnoreCase(VALUE_THISANDFUTURE));
 	}
 
+	public RecurrenceId(AcalProperty aProp) {
+		super(PropertyName.RECURRENCE_ID.toString(), aProp.getValue());
+		String paramValue = aProp.getParam(AcalProperty.PARAM_VALUE);
+		if ( paramValue != null ) setParam(AcalProperty.PARAM_VALUE,paramValue);
+		paramValue = aProp.getParam(AcalProperty.PARAM_TZID);
+		if ( paramValue != null ) setParam(AcalProperty.PARAM_TZID,paramValue);
+		when = AcalDateTime.fromIcalendar(getValue(),getParam(AcalProperty.PARAM_VALUE), getParam(AcalProperty.PARAM_TZID));
+		thisAndFuture = (getParam(PARAM_RANGE) != null && getParam(PARAM_RANGE).equalsIgnoreCase(VALUE_THISANDFUTURE));
+	}
+
 	public boolean getThisAndFuture() {
 		return thisAndFuture;
 	}

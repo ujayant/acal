@@ -53,7 +53,7 @@ public class AcalProperty {
 	private boolean paramsSet = false;
 	private String name;
 	private String value;
-	String paramsBlob[];
+	private String paramsBlob[];
 
 	// These parameters are quite common so we'll use string parameters
 	public final static String PARAM_VALUE = "VALUE";
@@ -201,7 +201,8 @@ public class AcalProperty {
 			Log.v(TAG,"Removed '"+name+"' parameter '"+paramName+"'");
 	}
 
-	private synchronized void rebuildParamsBlob() {
+	public synchronized void rebuildParamsBlob() {
+		if ( !paramsSet ) populateParams();
 		if ( params == null || params.isEmpty() ) {
 			paramsBlob = new String[] { };
 			if ( DEBUG && Constants.LOG_VERBOSE )
