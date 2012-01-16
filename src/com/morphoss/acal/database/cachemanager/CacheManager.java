@@ -19,6 +19,8 @@ import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.database.AcalDBHelper;
+import com.morphoss.acal.database.CacheModifier;
+import com.morphoss.acal.database.CacheWindow;
 import com.morphoss.acal.database.DMDeleteQuery;
 import com.morphoss.acal.database.DMQueryBuilder;
 import com.morphoss.acal.database.DMQueryList;
@@ -53,7 +55,7 @@ import com.morphoss.acal.desktop.ShowUpcomingWidgetProvider;
  * @author Chris Noldus
  *
  */
-public class CacheManager implements Runnable, ResourceChangedListener,  ResourceResponseListener<ArrayList<Resource>> {
+public class CacheManager implements Runnable, ResourceChangedListener,  ResourceResponseListener<ArrayList<Resource>>, CacheModifier {
 
 	//The current instance
 	private static CacheManager instance = null;
@@ -64,6 +66,13 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 	private static final int DEF_MONTHS_AFTER = 3;		//relative to todays date
 	public static final boolean	DEBUG	= false && Constants.DEBUG_MODE;
 		
+	//Cache Window settings
+	private final long lookForward = 86400000L*7L*10L;	//10 weeks
+	private final long lookBack = 86400000L*7L*5L;	//5 week
+	private final long maxSize = 86400000L*7L*26L;	//26 weeks
+	private final long minPaddingForward = 86400000L*7L*5L;	//5 weeks
+	private final long minPaddingBack = 86400000L*7L*5L;	//5 weeks
+	private final long increment = 86400000L*7L*5L;	//5 weeks
 	
 	//Get an instance
 	public synchronized static CacheManager getInstance(Context context) {
@@ -330,11 +339,24 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		AcalDateRange range = null;
 		if (start >= 0 && end >= 0 ) range = new AcalDateRange(AcalDateTime.fromMillis(start), AcalDateTime.fromMillis(end));
 		
-		window = new CacheWindow(range);
+		
+		
+		window = new CacheWindow(lookForward, lookBack, maxSize, minPaddingBack,
+								minPaddingForward, increment, this, new AcalDateTime());
+		if (range != null) window.setWindowSize(range);
 				
 		rm.addListener(this);
 		releaseMetaLock();
 
+	}
+	
+
+	/**
+	 * This is called by the cache window when we should reduce our size.
+	 */
+	@Override
+	public void deleteRange(AcalDateRange range) {	
+		this.sendRequest(new CRReduceRangeSize(range));
 	}
 
 	/**
@@ -548,7 +570,8 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 			this.delete(null, null);
 			this.setTxSuccessful();
 			this.endTransaction();
-			window = new CacheWindow(null);
+			window = new CacheWindow(lookForward, lookBack, maxSize, minPaddingBack,
+					minPaddingForward, increment, CacheManager.this, new AcalDateTime());
 			Log.println(Constants.LOGW,TAG,"Cache cleared of possibly corrupt data.");
 		}
 		
@@ -610,6 +633,10 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		public void updateWindowToInclude(AcalDateRange range) {
 			window.expandWindow(range);
 			
+		}
+
+		public void removeRangeFromWindow(AcalDateRange range) {
+			window.reduceWindow(range);
 		}	
 		
 		/**
@@ -716,4 +743,5 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		Thread.currentThread().setPriority(priority);
 
 	}
+
 }

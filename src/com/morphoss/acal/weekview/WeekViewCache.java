@@ -11,6 +11,8 @@ import android.os.Message;
 
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
+import com.morphoss.acal.database.CacheModifier;
+import com.morphoss.acal.database.CacheWindow;
 import com.morphoss.acal.database.DataChangeEvent;
 import com.morphoss.acal.database.cachemanager.CRObjectsInWindow;
 import com.morphoss.acal.database.cachemanager.CacheChangedEvent;
@@ -19,7 +21,6 @@ import com.morphoss.acal.database.cachemanager.CacheManager;
 import com.morphoss.acal.database.cachemanager.CacheObject;
 import com.morphoss.acal.database.cachemanager.CacheResponse;
 import com.morphoss.acal.database.cachemanager.CacheResponseListener;
-import com.morphoss.acal.database.cachemanager.CacheWindow;
 import com.morphoss.acal.database.cachemanager.CRObjectsInWindow.CRObjectsInWindowResponse;
 
 /**
@@ -31,7 +32,7 @@ import com.morphoss.acal.database.cachemanager.CRObjectsInWindow.CRObjectsInWind
  * @author Chris Noldus
  *
  */
-public class WeekViewCache implements CacheChangedListener, CacheResponseListener<ArrayList<CacheObject>> {
+public class WeekViewCache implements CacheChangedListener, CacheResponseListener<ArrayList<CacheObject>>, CacheModifier {
 
 	private WeekViewDays callback;			//The view that is using this cache
 	private CacheManager cm;				//CacheManager for getting data
@@ -50,6 +51,15 @@ public class WeekViewCache implements CacheChangedListener, CacheResponseListene
 	
 	private static final int HANDLE_SAVE_NEW_DATA = 1;
 	private static final int HANDLE_RESET = 2;
+	
+	//Cache Window settings
+	private final long lookForward = 86400000L*7L*10L;	//4 weeks
+	private final long lookBack = 86400000L*7L*5L;	//1 week
+	private final long maxSize = 86400000L*7L*26L;	//10 weeks
+	private final long minPaddingForward = 86400000L*7L*5L;	//1 weeks
+	private final long minPaddingBack = 86400000L*3L;	//3 days
+	private final long increment = 86400000L*7L*5L;	//4 weeks
+
 	
 	/**
 	 * Handler for processing cache responses in GUI Thread
@@ -78,7 +88,8 @@ public class WeekViewCache implements CacheChangedListener, CacheResponseListene
 	public WeekViewCache(Context context, WeekViewDays callback) {
 		this.callback = callback;
 		cm = CacheManager.getInstance(context, this);
-		window = new CacheWindow(null);
+		window = new CacheWindow(lookForward, lookBack, maxSize, minPaddingBack,
+				minPaddingForward, increment, this, new AcalDateTime());
 	}
 	
 	/** must be called when no longer needed to prevent memory hole */
@@ -183,7 +194,8 @@ public class WeekViewCache implements CacheChangedListener, CacheResponseListene
 	}
 	
 	public void resetCache() {
-		window = new CacheWindow(null);
+		window = new CacheWindow(lookForward, lookBack, maxSize, minPaddingBack,
+				minPaddingForward, increment, this, new AcalDateTime());
 		DTimetables.clear();
 		HTimetable = null;
 		HSimpleList = null;
@@ -275,6 +287,18 @@ public class WeekViewCache implements CacheChangedListener, CacheResponseListene
 		WeekViewTimeTable timeTable = new WeekViewTimeTable(eventsForDays, false);
 		
 		this.DTimetables.put(day, timeTable);
+	}
+
+	@Override
+	public void deleteRange(AcalDateRange range) {
+		AcalDateTime cur = range.start.clone();
+		while (cur.before(range.end)) {
+			int doy = (int)cur.getYearDay();
+			partDayEventsInRange.remove(doy);
+			DTimetables.remove(doy);
+			cur.addDays(1);
+		}
+		window.reduceWindow(range);
 	}
 
 }
