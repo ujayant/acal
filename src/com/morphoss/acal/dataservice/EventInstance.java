@@ -12,7 +12,7 @@ import com.morphoss.acal.davacal.VEvent;
 public class EventInstance extends CalendarInstance {
 
 	public EventInstance(VEvent vEvent, long collectionId, long resourceId, RecurrenceId rrid ) {
-		super(vEvent.getTopParent(), collectionId, resourceId, rrid);
+		super(vEvent, collectionId, resourceId, rrid, false);
 
 	}
 

@@ -3,6 +3,7 @@ package com.morphoss.acal.dataservice;
 import java.util.ArrayList;
 
 import android.content.ContentValues;
+import android.util.Log;
 
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.acaltime.AcalDateTime;
@@ -65,7 +66,7 @@ public abstract class CalendarInstance {
 		this( calendar.getChildFromRecurrenceId(rrid), collectionId, resourceId, rrid, false);
 	}
 	
-	private CalendarInstance(Masterable masterInstance, long collectionId, long resourceId, RecurrenceId rrid, boolean delete) {
+	protected CalendarInstance(Masterable masterInstance, long collectionId, long resourceId, RecurrenceId rrid, boolean delete) {
 		this(collectionId,
 				resourceId,
 				masterInstance.getStart(),
@@ -156,10 +157,12 @@ public abstract class CalendarInstance {
 		Masterable obj;
 		if ( rrid == null )
 			obj = ((VCalendar)comp).getMasterChild();
-		else
+		else {
 			obj = ((VCalendar)comp).getChildFromRecurrenceId(RecurrenceId.fromString(rrid));
+		}
 
-		return getInstance(obj, res.getCollectionId(), res.getResourceId(), obj.getRecurrenceId() );
+		CalendarInstance inst =  getInstance(obj, res.getCollectionId(), res.getResourceId(), obj.getRecurrenceId() );
+		return inst;
 	}
 
 	
