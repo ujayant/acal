@@ -235,7 +235,7 @@ ResourceChangedListener, ResourceResponseListener, OnFocusChangeListener {
 					Intent ret = new Intent();
 					Bundle b = new Bundle();
 					b.putLong(EventView.RESOURCE_ID_KEY, (Long)msg.obj);
-					b.putLong(EventView.DTSTART_KEY, event.getStart().getMillis());
+					b.putString(EventView.RECURRENCE_ID_KEY, event.getStart().toPropertyString(PropertyName.RECURRENCE_ID));
 					ret.putExtras(b);			
 					setResult(RESULT_OK, ret);
 					saveSucceeded = true;

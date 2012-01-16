@@ -54,7 +54,6 @@ import com.morphoss.acal.dataservice.CalendarInstance;
 import com.morphoss.acal.dataservice.Collection;
 import com.morphoss.acal.dataservice.EventInstance;
 import com.morphoss.acal.davacal.AcalAlarm;
-import com.morphoss.acal.davacal.PropertyName;
 import com.morphoss.acal.service.aCalService;
 
 public class EventView extends AcalActivity implements  OnClickListener, ResourceChangedListener, ResourceResponseListener<CalendarInstance> {
@@ -70,7 +69,7 @@ public class EventView extends AcalActivity implements  OnClickListener, Resourc
 	
 	public static final String CACHE_INSTANCE_KEY = "CacheInstance";
 	public static final String RESOURCE_ID_KEY = "resourceid";
-	public static final String DTSTART_KEY = "start";
+	public static final String RECURRENCE_ID_KEY = "recurrenceid";
 	private static final int DEFAULT_SIDE_COLOUR = 0xff000000;
 	
 	private long rid;		//The resource ID for this event
@@ -147,14 +146,13 @@ public class EventView extends AcalActivity implements  OnClickListener, Resourc
 				this.rrid = cacheObject.getRecurrenceId();
 				
 				//request the fully implemented instance;
-				resourceManager.sendRequest(new RRRequestInstance(this, cacheObject));
+				resourceManager.sendRequest(new RRRequestInstance(this, this.rid, this.rrid));
 				
-			} else if (b.containsKey(RESOURCE_ID_KEY) && b.containsKey(DTSTART_KEY)) {
+			} else if (b.containsKey(RESOURCE_ID_KEY) && b.containsKey(RECURRENCE_ID_KEY)) {
 				this.rid = b.getLong(RESOURCE_ID_KEY);
-				long dtstart = b.getLong(DTSTART_KEY);
-				this.rrid = AcalDateTime.fromMillis(dtstart).toPropertyString(PropertyName.RECURRENCE_ID);
+				this.rrid = b.getString(RECURRENCE_ID_KEY);
 				//request the fully implemented instance;
-				resourceManager.sendRequest(new RRRequestInstance(this,rid, this.rrid));
+				resourceManager.sendRequest(new RRRequestInstance(this, this.rid, this.rrid));
 			}
 			else {
 				if (Constants.LOG_DEBUG)Log.d(TAG, "Calling activity has not provided required data.");
@@ -242,7 +240,7 @@ public class EventView extends AcalActivity implements  OnClickListener, Resourc
 			
 		} else if (cacheObject != null) {
 			//load from cacheObject
-			start = AcalDateTime.fromMillis(cacheObject.getStart());
+			start = cacheObject.getStartDateTime();
 			title = cacheObject.getSummary();
 			location = cacheObject.getLocation();
 			description = "Loading...";
@@ -368,7 +366,7 @@ public class EventView extends AcalActivity implements  OnClickListener, Resourc
 			case ADD: {
 				AcalDateTime dateTime = new AcalDateTime();
 				if (event != null) dateTime = event.getStart();
-				else if (cacheObject != null) dateTime =  AcalDateTime.fromMillis(cacheObject.getStart());
+				else if (cacheObject != null) dateTime =  cacheObject.getStartDateTime();
 				bundle.putInt(EventEdit.ACTION_KEY, EventEdit.ACTION_CREATE);
 				bundle.putParcelable(EventEdit.NEW_EVENT_DATE_TIME_KEY, dateTime);
 				eventEditIntent.putExtras(bundle);
@@ -385,13 +383,14 @@ public class EventView extends AcalActivity implements  OnClickListener, Resourc
 			}
 		}
 	}
+
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
     	if (requestCode == EDIT_EVENT && resultCode == RESULT_OK) {
 			Bundle b = data.getExtras();
 			this.cacheObject = null;
 			this.event = null;
-			if (b.containsKey(DTSTART_KEY))
-				this.rrid = AcalDateTime.fromMillis(b.getLong(DTSTART_KEY)).toPropertyString(PropertyName.RECURRENCE_ID);
+			if (b.containsKey(RECURRENCE_ID_KEY))
+				this.rrid = b.getString(RECURRENCE_ID_KEY);
 			if (b.containsKey(RESOURCE_ID_KEY))
 				this.rid = b.getLong(RESOURCE_ID_KEY);
 			if (this.rrid == null)
