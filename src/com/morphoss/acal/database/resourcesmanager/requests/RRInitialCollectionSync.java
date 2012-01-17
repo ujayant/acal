@@ -136,7 +136,7 @@ public class RRInitialCollectionSync implements ResourceRequest {
 				throw new ResourceProcessingException("No record for ID " + serverId);
 			}
 			requestor = AcalRequestor.fromServerValues(serverData);
-			requestor.setPath(collectionPath);
+			requestor.interpretUriString(collectionPath);
 		}
 		catch (Exception e) {
 			// Error getting data
