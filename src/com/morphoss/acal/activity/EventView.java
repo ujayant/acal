@@ -235,8 +235,9 @@ public class EventView extends AcalActivity implements  OnClickListener, Resourc
 			alarmList = event.getAlarms();
 			collectionId = event.getCollectionId();
 			repetition = event.getRRule();
+			boolean isAllDay = start.isDate();
 			timeText = AcalDateTimeFormatter.getDisplayTimeText(this,viewDate, AcalDateTime.addDays(viewDate,1),
-													event.getStart(), event.getEnd(), show24Hour, false);
+													event.getStart(), event.getEnd(), show24Hour, isAllDay );
 			
 		} else if (cacheObject != null) {
 			//load from cacheObject
@@ -246,7 +247,7 @@ public class EventView extends AcalActivity implements  OnClickListener, Resourc
 			description = "Loading...";
 			collectionId = cacheObject.getCollectionId();
 			timeText = AcalDateTimeFormatter.getDisplayTimeText(this,viewDate, AcalDateTime.addDays(viewDate,1),
-					cacheObject.getStartDateTime(), cacheObject.getEndDateTime(), show24Hour, false);
+					cacheObject.getStartDateTime(), cacheObject.getEndDateTime(), show24Hour, cacheObject.isAllDay());
 			
 		} else {
 			title = "Loading data...";
