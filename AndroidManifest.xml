@@ -246,6 +246,15 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".activity.JournalView"
+            android:launchMode="standard" >
+            <intent-filter>
+                <action android:name="com.morphoss.acal.activity.JournalView" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity
             android:name=".activity.TodoEdit"
             android:launchMode="standard" >
             <intent-filter>

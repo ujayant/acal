@@ -78,6 +78,7 @@ public class JournalView extends AcalActivity
 	
 	private static final int REFRESH = 0;
 	private static final int FAIL = 1;
+	public static final String KEY_CACHE_OBJECT = "cache_object";
 	
 	private Handler mHandler = new Handler() {
 		public void handleMessage(Message msg) {
@@ -103,7 +104,7 @@ public class JournalView extends AcalActivity
 		
 		Bundle b = this.getIntent().getExtras();
 		try {
-//			this.cacheJournal = (CacheObject) b.getParcelable(JournalEdit.KEY_CACHE_OBJECT);
+			this.cacheJournal = (CacheObject) b.getParcelable(KEY_CACHE_OBJECT);
 			rid = cacheJournal.getResourceId();
 			rrid = cacheJournal.getRecurrenceId();
 			resourceManager.sendRequest(new RRRequestInstance(this,rid, rrid));
@@ -118,7 +119,6 @@ public class JournalView extends AcalActivity
 
 		//Set up buttons
 		this.setupButton(R.id.journal_edit_button, EDIT);
-		this.setupButton(R.id.journal_add_button, ADD);
 		
 		this.collection = Collection.getInstance(cacheJournal.getCollectionId(), this);
 		this.populateLayout();

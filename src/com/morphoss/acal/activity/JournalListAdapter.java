@@ -258,13 +258,13 @@ public class JournalListAdapter extends BaseAdapter
 			CacheObject journal = (CacheObject) tag;
 			//start event activity
 			Bundle bundle = new Bundle();
-//			bundle.putParcelable(JournalEdit.KEY_CACHE_OBJECT, journal);
-//			Intent journalViewIntent = new Intent(context, JournalView.class);
-//			journalViewIntent.putExtras(bundle);
+			bundle.putParcelable(JournalView.KEY_CACHE_OBJECT, journal);
+		Intent journalViewIntent = new Intent(context, JournalView.class);
+			journalViewIntent.putExtras(bundle);
 			
 			if (DEBUG) Log.println(Constants.LOGD, TAG,
 					"Starting view activity for rid: "+journal.getResourceId()+", rrid: "+journal.getRecurrenceId()+", Summary: "+journal.getSummary());
-//			context.startActivity(journalViewIntent);
+			context.startActivity(journalViewIntent);
 		}
 	}
 
@@ -285,7 +285,7 @@ public class JournalListAdapter extends BaseAdapter
 					Bundle bundle = new Bundle();
 //					bundle.putParcelable(JournalEdit.KEY_CACHE_OBJECT, journal);
 //					bundle.putInt(JournalEdit.KEY_OPERATION, operation);
-//					Intent journalViewIntent = new Intent(context, JournalEdit.class);
+//				Intent journalViewIntent = new Intent(context, JournalEdit.class);
 //					journalViewIntent.putExtras(bundle);
 //					context.startActivity(journalViewIntent);
 					return true;

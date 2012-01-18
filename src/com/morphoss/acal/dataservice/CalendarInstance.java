@@ -3,7 +3,6 @@ package com.morphoss.acal.dataservice;
 import java.util.ArrayList;
 
 import android.content.ContentValues;
-import android.util.Log;
 
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.acaltime.AcalDateTime;
@@ -14,6 +13,7 @@ import com.morphoss.acal.davacal.RecurrenceId;
 import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VComponent;
 import com.morphoss.acal.davacal.VEvent;
+import com.morphoss.acal.davacal.VJournal;
 import com.morphoss.acal.davacal.VTodo;
 
 public abstract class CalendarInstance {
@@ -145,8 +145,11 @@ public abstract class CalendarInstance {
 		else if ( masterInstance instanceof VTodo ) {
 			return new TodoInstance((VTodo) masterInstance, collectionId, resourceId, rrid);
 		}
+		else if ( masterInstance instanceof VJournal ) {
+			return new JournalInstance((VJournal) masterInstance, collectionId, resourceId, rrid);
+		}
 		else {
-			throw new IllegalArgumentException("Resource does not map to a known Componant Type");
+			throw new IllegalArgumentException("Resource does not map to a known Component Type");
 		}
 	}
 
