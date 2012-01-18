@@ -159,7 +159,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 			else 
 				syncMarkedResources( originalData );
 			
-			if ( (serverData.getAsInteger(Servers.HAS_SYNC) != null && (1 == serverData.getAsInteger(Servers.HAS_SYNC))
+			if ( (StaticHelpers.toBoolean(serverData.getAsInteger(Servers.HAS_SYNC),false) && !this.synchronisationForced
 										? doRegularSyncReport()
 										: doRegularSyncPropfind() ) ) {
 				originalData =  processor.contentQueryMap(
@@ -763,14 +763,17 @@ public class RRSyncCollectionContents implements ResourceRequest {
 				prop = testPs.getNodesFromPath("prop").get(0);
 				break;
 			}
-/*
+
 			if ( multiGetWithData && statusText.equalsIgnoreCase("HTTP/1.1 404 OK") || statusText.equalsIgnoreCase("HTTP/1.1 201 Created")) {
 				prop = testPs.getNodesFromPath("prop").get(0);
 				List<DavNode> dataNodes = prop.getNodesFromPath(dataType + "-data");
-				if ( !dataNodes.isEmpty() ) ..... delete it?
+				if ( !dataNodes.isEmpty() ) {
+					// Force a synchronisation after this.
+					this.synchronisationForced = true;
+				}
 				break;
 			}
-*/
+
 		}
 		
 		if ( prop == null ) {
@@ -859,6 +862,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 
 		for (int hrefIndex = 0; hrefIndex < hrefs.length; hrefIndex++) {
 			path = collectionPath + hrefs[hrefIndex];
+			ContentValues originalValues = originalData.get(hrefs[hrefIndex]);
 
 			try {
 				in = requestor.doRequest("GET", path, headers, "");
@@ -895,23 +899,27 @@ public class RRSyncCollectionContents implements ResourceRequest {
 						catch (IOException e) {
 							Log.i(TAG,Log.getStackTraceString(e));
 						}
-						ContentValues cv = originalData.get(hrefs[hrefIndex]);
-						cv.put(ResourceTableManager.RESOURCE_DATA, resourceData.toString() );
+						originalValues.put(ResourceTableManager.RESOURCE_DATA, resourceData.toString() );
 						for (Header hdr : requestor.getResponseHeaders()) {
 							if (hdr.getName().equalsIgnoreCase("ETag")) {
-								cv.put(ResourceTableManager.ETAG, hdr.getValue());
+								originalValues.put(ResourceTableManager.ETAG, hdr.getValue());
 								break;
 							}
 						}
-						cv.put(ResourceTableManager.NEEDS_SYNC, 0);
-						queryList.addAction(processor.getNewUpdateQuery(cv, ResourceTableManager.RESOURCE_ID+" = ?", new String[]{cv.getAsString(ResourceTableManager.RESOURCE_ID)}));
+						originalValues.put(ResourceTableManager.NEEDS_SYNC, 0);
+						queryList.addAction(processor.getNewUpdateQuery(originalValues, ResourceTableManager.RESOURCE_ID+" = ?", new String[]{originalValues.getAsString(ResourceTableManager.RESOURCE_ID)}));
 						//changeList.add( new ResourceModification(WriteActions.UPDATE, cv, null) );
 						if (Constants.LOG_DEBUG)
 							Log.println(Constants.LOGD,TAG, "Get response for "+hrefs[hrefIndex] );
 						break;
 
+					case 404: // Not found.
+						queryList.addAction(processor.getNewDeleteQuery(ResourceTableManager.RESOURCE_ID+" = ?",
+								new String[]{originalValues.getAsString(ResourceTableManager.RESOURCE_ID)}));
+						break;
+						
 					default: // Unknown code
-						Log.w(TAG, "Status " + status + " on GET request for " + path);
+						Log.w(TAG, "Unhandled status " + status + " on GET request for " + path);
 				}
 			}
 		}
