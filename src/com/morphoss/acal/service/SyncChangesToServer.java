@@ -171,34 +171,24 @@ public class SyncChangesToServer extends ServiceJob implements BlockingResourceR
 		requestor.applyFromServer(serverData);
 
 		String collectionPath = collectionData.getAsString(DavCollections.COLLECTION_PATH);
+
 		String newData = pending.getAsString(ResourceTableManager.NEW_DATA);
 		String oldData = pending.getAsString(ResourceTableManager.OLD_DATA);
-		
+		String latestDbData = pending.getAsString(ResourceTableManager.RESOURCE_DATA);
+		Long resourceId = pending.getAsLong(ResourceTableManager.PEND_RESOURCE_ID);
+		Long pendingId = pending.getAsLong(ResourceTableManager.PENDING_ID);
+		String resourcePath = pending.getAsString(ResourceTableManager.RESOURCE_NAME);
 		
 		DMQueryBuilder builder = processor.getNewQueryBuilder().setAction(QUERY_ACTION.UPDATE);
-
-		ContentValues resourceData = null;
-		String latestDbData = null;
-		String eTag = null;
 
 		BasicHeader eTagHeader = null;
 		BasicHeader contentHeader = new BasicHeader("Content-type", getContentType(newData) );
 
-		Long resourceId = pending.getAsLong(ResourceTableManager.PEND_RESOURCE_ID);
-		Long pendingId = pending.getAsLong(ResourceTableManager.PENDING_ID);
-		resourceData = processor.getResource(resourceId);
-		if (resourceData == null) {
-			invalidPendingChange(pendingId, 
-						"Error getting resource data from DB - deleting invalid pending change record." );				
-			return;
-		}
-
-		latestDbData = resourceData.getAsString(ResourceTableManager.RESOURCE_DATA);
-		String resourcePath = resourceData.getAsString(ResourceTableManager.RESOURCE_NAME);
-		if ( oldData == null && latestDbData == null ) {
+		if ( oldData == null ) {
+			Log.i(TAG,"Writing new resource to "+resourcePath+", isNull: "+(resourcePath == null) );
 			eTagHeader = new BasicHeader("If-None-Match", "*" );
 
-			if ( resourcePath == null ) {
+			if ( resourcePath == null || resourcePath.equals("null") ) {
 				String contentExtension = getContentType(newData);
 				if ( contentExtension.length() > 14 && contentExtension.substring(0,13).equals("text/calendar") )
 					contentExtension = ".ics";
@@ -219,12 +209,13 @@ public class SyncChangesToServer extends ServiceJob implements BlockingResourceR
 				if ( resourcePath == null ) {
 						resourcePath = UUID.randomUUID().toString() + contentExtension;
 				}
-				resourceData.put(ResourceTableManager.RESOURCE_NAME, resourcePath);
 			}
 		}
 		else {
-			eTag = resourceData.getAsString(ResourceTableManager.ETAG);
-			eTagHeader = new BasicHeader("If-Match", eTag );
+			String eTag = pending.getAsString(ResourceTableManager.ETAG);
+			if ( eTag != null ) eTagHeader = new BasicHeader("If-Match", eTag );
+			Log.i(TAG,"Writing existing resource to "+resourcePath+", isNull: "+(resourcePath == null)+", etag: "+eTag );
+			Log.i(TAG,"\tResource: "+(oldData == null)+", latestDbData:\n=============================\n"+latestDbData+"======\n============\n" );
 
 			if ( newData == null ) {
 				builder.setAction(QUERY_ACTION.DELETE);
@@ -270,6 +261,10 @@ public class SyncChangesToServer extends ServiceJob implements BlockingResourceR
 			case 204: // Status No Content (normal for DELETE).
 			case 200: // Status OK. (normal for UPDATE)
 				if (DEBUG) Log.println(Constants.LOGD,TAG, "Response "+status+" against "+path);
+				ContentValues resourceData = new ContentValues();
+				resourceData.put(ResourceTableManager.RESOURCE_ID, resourceId);
+				resourceData.put(ResourceTableManager.COLLECTION_ID, collectionId);
+				resourceData.put(ResourceTableManager.RESOURCE_NAME, resourcePath);
 				resourceData.put(ResourceTableManager.RESOURCE_DATA, newData);
 				resourceData.put(ResourceTableManager.NEEDS_SYNC, 1);
 				resourceData.put(ResourceTableManager.ETAG, "unknown etag after PUT before sync");
@@ -289,7 +284,7 @@ public class SyncChangesToServer extends ServiceJob implements BlockingResourceR
 				DMAction action = builder.build();
 				
 				try {
-					processor.syncToServer(action, resourceData.getAsLong(ResourceTableManager.RESOURCE_ID), pendingId);
+					processor.syncToServer(action, resourceId, pendingId);
 				}
 				catch (Exception e) {
 					Log.w(TAG, action.toString()+": Exception applying resource modification: " + e.getMessage());
