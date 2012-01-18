@@ -388,7 +388,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 					if ( Constants.LOG_DEBUG )
 						Log.println(Constants.LOGD,TAG,"Updating node "+responseHref+" with "+builder.getAction().toString() );
 					// We are dealing with an update or insert
-					if ( !parseResponseNode(response, cv) ) continue;
+					if ( !parseResponseNode(response, cv, false) ) continue;
 					if ( cv.getAsInteger(ResourceTableManager.NEEDS_SYNC) == 1 ) needSyncAfterwards = true; 
 	
 				}
@@ -501,8 +501,8 @@ public class RRSyncCollectionContents implements ResourceRequest {
 					//action = WriteActions.INSERT;
 					builder.setAction(QUERY_ACTION.INSERT);
 				}
-				
-				if ( !parseResponseNode(response, cv) ) continue;
+
+				if ( !parseResponseNode(response, cv, false) ) continue;
 				if ( cv.getAsInteger(ResourceTableManager.NEEDS_SYNC) == 1 ) needSyncAfterwards = true; 
 
 				needSyncAfterwards = true; 
@@ -665,6 +665,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 			if ( m.find() ) toBeRemoved.add(m.group(1));
 		}
 
+		String pathOnServer =  StaticHelpers.pathOnServer(collectionPath);
 		int limit;
 		StringBuilder hrefList; 
 		for (int hrefIndex = 0; hrefIndex < hrefs.length; hrefIndex += nPerMultiget) {
@@ -673,7 +674,9 @@ public class RRSyncCollectionContents implements ResourceRequest {
 			
 			hrefList = new StringBuilder();
 			for (int i = hrefIndex; i < limit; i++) {
-				hrefList.append(String.format("<D:href>%s</D:href>\n", collectionPath + hrefs[i].toString()));
+				hrefList.append(String.format("<D:href>%s</D:href>\n", pathOnServer + hrefs[i].toString()));
+				if (Constants.LOG_DEBUG)
+					Log.w(TAG,"Fetching resource from: "+ pathOnServer + " " + hrefs[i].toString());
 			}
 		
 			if (Constants.LOG_DEBUG)
@@ -704,20 +707,18 @@ public class RRSyncCollectionContents implements ResourceRequest {
 
 				ContentValues cv = originalData.get(name);
 				DMQueryBuilder builder = processor.getNewQueryBuilder();
-				//WriteActions action = WriteActions.UPDATE;
 				builder.setAction(QUERY_ACTION.UPDATE);
 				
 				if ( cv == null ) {
 					cv = new ContentValues();
 					cv.put(ResourceTableManager.COLLECTION_ID, collectionId);
 					cv.put(ResourceTableManager.RESOURCE_NAME, name);
-					//action= WriteActions.INSERT;
 					builder.setAction(QUERY_ACTION.INSERT);
 				} else {
 					builder.setWhereClause(ResourceTableManager.RESOURCE_ID+" = ?");
 					builder.setwhereArgs(new String[]{cv.getAsString(ResourceTableManager.RESOURCE_ID)});
 				}
-				if ( !parseResponseNode(response, cv) ) continue;
+				if ( !parseResponseNode(response, cv, true) ) continue;
 				if ( cv.getAsString("COLLECTION") != null ) continue;
 
 				if (Constants.LOG_DEBUG)
@@ -753,7 +754,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 	 * </p>
 	 * @return true If we need to write to the database, false otherwise.
 	 */
-	private boolean parseResponseNode(DavNode responseNode, ContentValues cv) {
+	private boolean parseResponseNode(DavNode responseNode, ContentValues cv, boolean multiGetWithData) {
 
 		DavNode prop = null;
 		for ( DavNode testPs : responseNode.getNodesFromPath("propstat")) {
@@ -762,6 +763,14 @@ public class RRSyncCollectionContents implements ResourceRequest {
 				prop = testPs.getNodesFromPath("prop").get(0);
 				break;
 			}
+/*
+			if ( multiGetWithData && statusText.equalsIgnoreCase("HTTP/1.1 404 OK") || statusText.equalsIgnoreCase("HTTP/1.1 201 Created")) {
+				prop = testPs.getNodesFromPath("prop").get(0);
+				List<DavNode> dataNodes = prop.getNodesFromPath(dataType + "-data");
+				if ( !dataNodes.isEmpty() ) ..... delete it?
+				break;
+			}
+*/
 		}
 		
 		if ( prop == null ) {
