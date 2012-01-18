@@ -714,10 +714,30 @@ public class ResourceManager implements Runnable {
 		public ArrayList<ContentValues> getPendingResources() {
 			ArrayList<ContentValues> res = new ArrayList<ContentValues>();
 			beginReadQuery();
+			
+			// We need to explicitly specify all columns in this because otherwise we get the wrong _id
+			// in the resulting join.
 			Cursor mCursor = db.query(PENDING_DATABASE_TABLE+" JOIN "+RESOURCE_DATABASE_TABLE+
 					" ON ("+
 					PENDING_DATABASE_TABLE+"."+PEND_RESOURCE_ID+" = "+RESOURCE_DATABASE_TABLE+"."+RESOURCE_ID+
-					")", null, null, null, null, null, null);
+					")", new String[] {
+						PENDING_DATABASE_TABLE+"."+PENDING_ID,
+						PENDING_DATABASE_TABLE+"."+PEND_RESOURCE_ID,
+						PENDING_DATABASE_TABLE+"."+PEND_COLLECTION_ID,
+						PENDING_DATABASE_TABLE+"."+OLD_DATA,
+						PENDING_DATABASE_TABLE+"."+NEW_DATA,
+						PENDING_DATABASE_TABLE+"."+UID,
+						RESOURCE_DATABASE_TABLE+"."+RESOURCE_NAME,
+						RESOURCE_DATABASE_TABLE+"."+ETAG,
+						RESOURCE_DATABASE_TABLE+"."+LAST_MODIFIED,
+						RESOURCE_DATABASE_TABLE+"."+CONTENT_TYPE,
+						RESOURCE_DATABASE_TABLE+"."+RESOURCE_DATA,
+						RESOURCE_DATABASE_TABLE+"."+NEEDS_SYNC,
+						RESOURCE_DATABASE_TABLE+"."+EARLIEST_START,
+						RESOURCE_DATABASE_TABLE+"."+LATEST_END,
+						RESOURCE_DATABASE_TABLE+"."+EFFECTIVE_TYPE
+								
+					}, null, null, null, null, null);
 			this.yield();
 			if (mCursor.getCount() > 0) {
 				if ( ResourceManager.DEBUG && Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG, 
