@@ -44,14 +44,15 @@ public class Constants {
 	public static final Pattern rfc5545UnWrapper = Pattern.compile("\r?\n ",Pattern.DOTALL);
 	public final static Pattern splitOnCommas = Pattern.compile(",");
 	public static final Pattern	matchSegmentName	= Pattern.compile("([^/]+)$");
+	public final static Pattern matchProtocolServerPort = Pattern.compile("^https?://[^/]*");
 
 	/** Set this to false and all debug logging is turned off, everywhere */
 	public static final boolean DEBUG_MODE = false;
 
 	/** How much stuff to spit out into the logs */
 	public static final boolean LOG_VERBOSE = false && DEBUG_MODE;		//Very verbose play by play execution information
-	public static final boolean LOG_DEBUG = true && DEBUG_MODE;			//Information relevant to debugging tasks.
-	public static final boolean DEBUG_SETTINGS = true && DEBUG_MODE;	// Does the debugging menu appear in Settings
+	public static final boolean LOG_DEBUG = false && DEBUG_MODE;			//Information relevant to debugging tasks.
+	public static final boolean DEBUG_SETTINGS = false && DEBUG_MODE;	// Does the debugging menu appear in Settings
 
 	/** Since Andrew's device won't display logs at DEBUG level he needs a way to fake that! * /
 	public static final int LOGV = Log.INFO;  // Normally should be Log.VERBOSE of course.
@@ -71,7 +72,6 @@ public class Constants {
 	public static final boolean		debugCalendar					= false && DEBUG_MODE;
 	public static final boolean		debugSyncChangesToServer		= false && DEBUG_MODE;
 	public static final boolean		debugSyncCollectionContents		= false && DEBUG_MODE;
-	public static final boolean		debugCalendarDataService		= false && DEBUG_MODE;
 	public static final boolean		debugMonthView					= false && DEBUG_MODE;
 	public static final boolean		debugWeekView					= false && DEBUG_MODE;
 	public static final boolean		debugVComponent					= false && DEBUG_MODE;
