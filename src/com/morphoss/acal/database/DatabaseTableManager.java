@@ -244,19 +244,24 @@ public abstract class DatabaseTableManager {
 	//Some useful generic methods
 
 	public int delete(String whereClause, String[] whereArgs) {
-		if (Constants.debugDatabaseManager && Constants.LOG_VERBOSE) Log.println(Constants.LOGV,TAG,
+		if (Constants.debugDatabaseManager && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG,
 				"Deleting Row on "+this.getTableName()+":\n\tWhere: "+whereClause);
 		beginWriteQuery();
-		//First select or the row i'ds
+		//First select or the row id's
 		ArrayList<ContentValues> rows = this.query(null, whereClause, whereArgs, null,null,null);
 		int count = db.delete(getTableName(), whereClause, whereArgs);
+		endQuery();
 		if (count != rows.size()) {
 			if (Constants.debugDatabaseManager) Log.w(TAG, "Inconsistent number of rows deleted!");
 		}
-		for (ContentValues cv : rows) {
-			changes.add(new DataChangeEvent(QUERY_ACTION.DELETE,cv));
+		if (count == 0) {
+			if (Constants.debugDatabaseManager) Log.w(TAG, "No rows deleted for '"+whereClause+"' args: "+whereArgs.toString());
 		}
-		endQuery();
+		else {
+			for (ContentValues cv : rows) {
+				changes.add(new DataChangeEvent(QUERY_ACTION.DELETE,cv));
+			}
+		}
 		return count;
 	}
 
