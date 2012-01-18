@@ -233,4 +233,14 @@ public final class StaticHelpers {
 		else if ( zeroIsFalse == 0 ) return false;
 		else return true;
 	}
+
+	/**
+	 * Strip any leading protocol://server.domain:port from the incoming URL.
+	 * @param stripFromUrl
+	 * @return The URL which is the bare pathname
+	 */
+	public static String pathOnServer( String stripFromUrl ) {
+		Matcher m = Constants.matchProtocolServerPort.matcher(stripFromUrl);
+		return m.replaceAll("");
+	}
 }
