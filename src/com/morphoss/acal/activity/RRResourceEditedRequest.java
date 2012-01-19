@@ -27,8 +27,8 @@ public class RRResourceEditedRequest extends ResourceRequestWithResponse<Long> {
 	private int action;
 
 	public static final int ACTION_CREATE = 1;
-	public static final int ACTION_UPDATE = 1;
-	public static final int ACTION_DELETE = 1;
+	public static final int ACTION_UPDATE = 2;
+	public static final int ACTION_DELETE = 3;
 	
 	protected RRResourceEditedRequest(ResourceResponseListener<Long> callBack, long cid, long rid, VComponent vc, int action ) {
 		super(callBack);
@@ -70,11 +70,18 @@ public class RRResourceEditedRequest extends ResourceRequestWithResponse<Long> {
 			
 			if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD, TAG, 
 					"Adding Pending Table row for collection ID:"+collectionId+", resource ID: "+resourceId);
+
 			long result = processor.addPending(collectionId, resourceId, oldBlob, newBlob, uid);
+			
+			if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD, TAG, 
+					"Got result "+result+" when adding pending resource for "+collectionId+", resource ID: "+resourceId+
+					", Old:\n"+oldBlob+"\nNew:\n"+newBlob+"\n\tUID:"+uid);
+
 			if ( result < 0 ) 
 				this.fail();
 			else 
 				this.postResponse(new RRResourceEditedResponse(result));
+
 			
 		}
 		catch ( Exception e ) {
