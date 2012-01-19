@@ -197,20 +197,24 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 		AcalDateRange range = new AcalDateRange(startTime,endTime);
 		
 		//Get the current timetable
-		WeekViewTimeTable timeTable = dataCache.getMultiDayTimeTable(range, HDepth);
-		headerTimeTable = timeTable.getTimetable();
-		HDepth = timeTable.HDepth;	//TODO yucky side affect stuff
-		
-		if (headerTimeTable.length <=0) {	
-			this.PxH =0; 
-			PxD = TpX;
-			return; 
+		try {
+			WeekViewTimeTable timeTable = dataCache.getMultiDayTimeTable(range, HDepth);
+			headerTimeTable = timeTable.getTimetable();
+			HDepth = timeTable.HDepth;	//TODO yucky side affect stuff
+			
+			if (headerTimeTable.length <=0) {	
+				this.PxH =0; 
+				PxD = TpX;
+				return; 
+			}
+			PxH = HDepth*HIH;
+			
+			//save affected vars
+			PxD = TpX - PxH;
 		}
-		PxH = HDepth*HIH;
-		
-		//save affected vars
-		PxD = TpX - PxH;
-		
+		catch( Exception e ) {
+			Log.e(TAG,Log.getStackTraceString(e));
+		}
 	}
 
 
