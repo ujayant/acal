@@ -43,7 +43,7 @@
 	<application
 		android:debuggable="true"
 		android:description="@string/appDescription"
-		android:icon="@drawable/icon"
+		android:icon="@drawable/ic_launcher_events"
 		android:label="@string/appName"
 		android:theme="@android:style/Theme.NoTitleBar" >
 		<activity
@@ -57,7 +57,7 @@
 		<activity
 			android:name="aCalTasks"
 			android:description="@string/appDescriptionTasks"
-			android:icon="@drawable/icon_tasks"
+			android:icon="@drawable/ic_launcher_tasks"
 			android:label="@string/appNameTasks" >
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
@@ -67,7 +67,7 @@
 		<activity
 			android:name="aCalNotes"
 			android:description="@string/appDescriptionNotes"
-			android:icon="@drawable/icon_notes"
+			android:icon="@drawable/ic_launcher_journals"
 			android:label="@string/appNameNotes" >
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
@@ -84,7 +84,6 @@
 		</activity>
 		<activity
 			android:name=".activity.YearView"
-			android:icon="@drawable/icon"
 			android:label="@string/appActivityYearView"
 			android:launchMode="standard" >
 			<intent-filter>
@@ -94,7 +93,6 @@
 		</activity>
 		<activity
 			android:name=".weekview.WeekViewActivity"
-			android:icon="@drawable/icon"
 			android:label="@string/appActivityWeekView"
 			android:launchMode="standard" >
 			<intent-filter>
@@ -104,7 +102,6 @@
 		</activity>
 		<activity
 			android:name=".activity.serverconfig.ServerConfigList"
-			android:icon="@drawable/icon"
 			android:label="@string/appActivityServerConfigList"
 			android:launchMode="standard" >
 			<intent-filter>
@@ -114,7 +111,6 @@
 		</activity>
 		<activity
 			android:name=".activity.serverconfig.AddServerList"
-			android:icon="@drawable/icon"
 			android:label="@string/appActivityAddServerList"
 			android:launchMode="standard" >
 			<intent-filter>
@@ -124,7 +120,6 @@
 		</activity>
 		<activity
 			android:name=".activity.CollectionConfigList"
-			android:icon="@drawable/icon"
 			android:label="@string/appActivityCollectionConfigList"
 			android:launchMode="standard" >
 			<intent-filter>
@@ -134,7 +129,6 @@
 		</activity>
 		<activity
 			android:name=".activity.Settings"
-			android:icon="@drawable/icon"
 			android:label="@string/appActivitySettings"
 			android:launchMode="standard" >
 			<intent-filter>
@@ -144,7 +138,6 @@
 		</activity>
 		<activity
 			android:name=".activity.DebugSettings"
-			android:icon="@drawable/icon"
 			android:label="@string/appActivityDebugSettings"
 			android:launchMode="standard" >
 			<intent-filter>
@@ -178,6 +171,7 @@
 		</activity>
 		<activity
 			android:name=".activity.EventEdit"
+			android:icon="@drawable/ic_launcher_events"
 			android:launchMode="standard" >
 			<intent-filter>
 				<action android:name="com.morphoss.acal.activity.EventEdit" />
