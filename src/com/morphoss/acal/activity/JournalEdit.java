@@ -227,7 +227,7 @@ public class JournalEdit extends AcalActivity
 
 	private TextView journalContent;
 
-	private long	rid;
+	private long	rid = -1;
 
 	
 	public void onCreate(Bundle savedInstanceState) {
