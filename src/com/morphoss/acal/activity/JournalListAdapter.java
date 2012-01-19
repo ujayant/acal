@@ -259,7 +259,7 @@ public class JournalListAdapter extends BaseAdapter
 			//start event activity
 			Bundle bundle = new Bundle();
 			bundle.putParcelable(JournalView.KEY_CACHE_OBJECT, journal);
-		Intent journalViewIntent = new Intent(context, JournalView.class);
+			Intent journalViewIntent = new Intent(context, JournalView.class);
 			journalViewIntent.putExtras(bundle);
 			
 			if (DEBUG) Log.println(Constants.LOGD, TAG,
@@ -276,26 +276,22 @@ public class JournalListAdapter extends BaseAdapter
 			id = id & 0xffff;
 
 			CacheObject journal = getItem(id);
-//			int operation = JournalEdit.ACTION_EDIT;
+			int operation = JournalEdit.ACTION_EDIT;
 			switch( action ) {
 				case CONTEXT_COPY:
-//					operation = JournalEdit.ACTION_COPY;
+					operation = JournalEdit.ACTION_COPY;
 				case CONTEXT_EDIT:
 					//start JournalEdit activity
 					Bundle bundle = new Bundle();
-//					bundle.putParcelable(JournalEdit.KEY_CACHE_OBJECT, journal);
-//					bundle.putInt(JournalEdit.KEY_OPERATION, operation);
-//				Intent journalViewIntent = new Intent(context, JournalEdit.class);
-//					journalViewIntent.putExtras(bundle);
-//					context.startActivity(journalViewIntent);
+					bundle.putParcelable(JournalEdit.KEY_CACHE_OBJECT, journal);
+					bundle.putInt(JournalEdit.KEY_OPERATION, operation);
+					Intent journalEditIntent = new Intent(context, JournalEdit.class);
+					journalEditIntent.putExtras(bundle);
+					context.startActivity(journalEditIntent);
 					return true;
 				
 				case CONTEXT_DELETE:
-//					this.context.deleteJournal(id,JournalEdit.ACTION_DELETE_ALL);
-					return true;
-
-				case CONTEXT_COMPLETE:
-//					this.context.completeJournal(id,JournalEdit.ACTION_COMPLETE);
+					this.context.deleteJournal(id,JournalEdit.ACTION_DELETE_ALL);
 					return true;
 
 			}
