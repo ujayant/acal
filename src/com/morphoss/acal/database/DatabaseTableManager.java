@@ -255,7 +255,7 @@ public abstract class DatabaseTableManager {
 			if (Constants.debugDatabaseManager) Log.w(TAG, "Inconsistent number of rows deleted!");
 		}
 		if (count == 0) {
-			if (Constants.debugDatabaseManager) Log.w(TAG, "No rows deleted for '"+whereClause+"' args: "+whereArgs.toString());
+			if (Constants.debugDatabaseManager) Log.w(TAG, "No rows deleted for '"+whereClause+"' args: "+whereArgs);
 		}
 		else {
 			for (ContentValues cv : rows) {
