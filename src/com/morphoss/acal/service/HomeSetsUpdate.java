@@ -70,6 +70,7 @@ public class HomeSetsUpdate extends ServiceJob {
 "  <supported-report-set/>\n"+
 "  <supported-method-set/>\n"+
 "  <current-user-privilege-set/>\n"+
+"  <sync-token/>\n"+
 "  <CS:getctag/>\n"+
 "  <C:supported-calendar-component-set/>\n"+
 "  <C:calendar-timezone/>\n"+
