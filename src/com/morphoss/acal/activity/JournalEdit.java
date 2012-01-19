@@ -295,6 +295,7 @@ public class JournalEdit extends AcalActivity
 			this.action = ACTION_CREATE;
 			setJournal(new VJournal());
 			this.journal.setSummary(getString(R.string.NewJournalTitle));
+			this.journal.setStart(new AcalDateTime());
 		}
 	}
 
