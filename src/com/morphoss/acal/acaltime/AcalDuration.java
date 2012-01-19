@@ -245,16 +245,16 @@ import com.morphoss.acal.davacal.PropertyName;
 		if ( seconds == 0 && ((days / 7) * 7) == days ) {
 			result.append(Integer.toString((Math.abs(days) / 7)));
 			result.append(" week");
-			if ( days > 7 ) result.append("s");
+			if ( Math.abs(days) > 7 ) result.append("s");
 		}
 		else {
 			if ( days != 0 ) {
 				result.append(Math.abs(days));
 				result.append(" day");
-				if ( days > 1 ) result.append("s");
+				if ( Math.abs(days) > 1 ) result.append("s");
 			}
 			if ( seconds != 0) {
-				if ( days > 0 ) result.append(", ");
+				if ( Math.abs(days) > 0 ) result.append(", ");
 				int s = Math.abs(seconds);
 				int h = s / 3600;
 				s -= (h*3600);
@@ -272,7 +272,7 @@ import com.morphoss.acal.davacal.PropertyName;
 					if ( m > 1 ) result.append("s");
 				}
 				if ( s > 0 ) {
-					if ( m > 0 || h > 0 ) result.append(", ");
+					if ( m > 0 || (h > 0 && m == 0) ) result.append(", ");
 					result.append(s);
 					result.append(" second");
 					if ( s > 1 ) result.append("s");
