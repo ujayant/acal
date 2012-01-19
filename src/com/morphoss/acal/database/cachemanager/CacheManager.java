@@ -197,7 +197,6 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		ContentValues data = new ContentValues();
 		AcalDBHelper dbHelper = new AcalDBHelper(c);
 		SQLiteDatabase db = dbHelper.getWritableDatabase();
-		db.beginTransaction();
 		
 		//get current values
 		Cursor mCursor = db.query(META_TABLE, null, null, null, null, null, null);
@@ -206,6 +205,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 				mCursor.moveToFirst();
 				DatabaseUtils.cursorRowToContentValues(mCursor, data);
 				mCursor.close();
+				db.beginTransaction();
 				data.put(FIELD_CLOSED, !dirty);
 				if (!dirty && instance != null) {
 					AcalDateRange currentRange = instance.window.getCurrentWindow();
@@ -217,13 +217,13 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 				db.setTransactionSuccessful();
 			}
 			
-		 db.endTransaction();
 		}
 		catch( Exception e ) {
 			Log.i(TAG,Log.getStackTraceString(e));
 		}
 		finally {
 			if ( mCursor != null && !mCursor.isClosed()) mCursor.close();
+			if ( db.inTransaction() ) db.endTransaction();
 			db.close();
 			releaseMetaLock();
 		}
@@ -405,7 +405,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 
 			AcalDateRange range = window.getRequestedWindow();
 			if (range == null) {
-				Log.w(TAG, "Have response from range request but window says no range requested? aborting.");
+				Log.w(TAG, "Have response from range request but window says no range requested? Aborting!", new Exception(""));
 				return;
 			}
 			
