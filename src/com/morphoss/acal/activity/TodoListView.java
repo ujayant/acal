@@ -362,6 +362,7 @@ public class TodoListView extends AcalActivity implements OnClickListener {
 			break;
 		case ADD:
 			Intent todoEditIntent = new Intent(this, TodoEdit.class);
+			todoEditIntent.putExtra(TodoEdit.KEY_OPERATION, TodoEdit.ACTION_CREATE);
 			this.startActivity(todoEditIntent);
 			break;
 		default:
