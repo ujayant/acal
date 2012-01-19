@@ -56,20 +56,14 @@
                 android:layout_height="wrap_content"
                 android:paddingBottom="3sp" >
 
-                <LinearLayout
+                <TextView
+                    android:id="@+id/JournalDateLabel"
+                    style="@style/gen_label"
                     android:layout_width="100dp"
                     android:layout_height="wrap_content"
                     android:layout_marginRight="10sp"
-                    android:background="@color/themed_button_colour" >
-
-                    <TextView
-                        android:id="@+id/JournalDateLabel"
-                        style="@style/gen_label"
-                        android:layout_width="fill_parent"
-                        android:layout_height="fill_parent"
-                        android:gravity="center_vertical"
-                        android:text="@string/JournalDatePrompt" />
-                </LinearLayout>
+                    android:gravity="center_vertical"
+                    android:text="@string/JournalDatePrompt" />
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -100,15 +94,16 @@
             <ScrollView
                 android:layout_width="fill_parent"
                 android:layout_height="0dp"
-                android:layout_weight="1" >
+                android:layout_weight="1"
+                android:fillViewport="true" >
 
                 <EditText
                     android:id="@+id/JournalNotesContent"
                     style="@style/gen_content"
                     android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="fill_parent"
                     android:layout_below="@+id/JournalNotesLabel"
-                    android:gravity="bottom"
+                    android:gravity="top"
                     android:inputType="textMultiLine|textCapSentences|textLongMessage|textAutoCorrect" />
             </ScrollView>
 
