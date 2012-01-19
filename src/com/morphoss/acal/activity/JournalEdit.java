@@ -490,9 +490,10 @@ public class JournalEdit extends AcalActivity
 		try {
 			VCalendar vc = (VCalendar) journal.getTopParent();
 
+			AcalDateTime dtStart = journal.getStart();
 			if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,
 					"saveChanges: "+journal.getSummary()+
-					", starts "+journal.getStart().toPropertyString(PropertyName.DTSTART));
+					", starts "+(dtStart == null ? "not set" : dtStart.toPropertyString(PropertyName.DTSTART)));
 			//display savingdialog
 
 			int sendAction = RRResourceEditedRequest.ACTION_UPDATE;
@@ -510,8 +511,8 @@ public class JournalEdit extends AcalActivity
 
 		}
 		catch (Exception e) {
-			if ( e.getMessage() != null ) Log.d(TAG,e.getMessage());
-			if (Constants.LOG_DEBUG)Log.d(TAG,Log.getStackTraceString(e));
+			if ( e.getMessage() != null ) Log.println(Constants.LOGD,TAG,e.getMessage());
+			if (Constants.LOG_DEBUG)Log.println(Constants.LOGD,TAG,Log.getStackTraceString(e));
 			Toast.makeText(this, getString(R.string.ErrorSavingEvent), Toast.LENGTH_LONG).show();
 			return false;
 		}
