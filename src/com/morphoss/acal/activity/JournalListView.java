@@ -331,8 +331,9 @@ public class JournalListView extends AcalActivity implements OnClickListener {
 		int button = (int) ((Integer) clickedView.getTag());
 		switch (button) {
 		case ADD:
-//			Intent journalEditIntent = new Intent(this, JournalEdit.class);
-//			this.startActivity(journalEditIntent);
+			Intent journalEditIntent = new Intent(this, JournalEdit.class);
+			journalEditIntent.putExtra(JournalEdit.KEY_OPERATION, JournalEdit.ACTION_CREATE);
+			this.startActivity(journalEditIntent);
 			break;
 		default:
 			Log.w(TAG, "Unrecognised button was pushed in JournalListView.");

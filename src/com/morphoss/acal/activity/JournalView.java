@@ -52,6 +52,7 @@ import com.morphoss.acal.database.resourcesmanager.requests.RRRequestInstance;
 import com.morphoss.acal.dataservice.CalendarInstance;
 import com.morphoss.acal.dataservice.Collection;
 import com.morphoss.acal.dataservice.JournalInstance;
+import com.morphoss.acal.dataservice.Resource;
 import com.morphoss.acal.davacal.AcalAlarm;
 import com.morphoss.acal.service.aCalService;
 
@@ -217,19 +218,19 @@ public class JournalView extends AcalActivity
 			case EDIT: {
 				//start journal activity
 				Bundle bundle = new Bundle();
-//				bundle.putParcelable(JournalEdit.KEY_CACHE_OBJECT, cacheJournal);
-//				Intent journalEditIntent = new Intent(this, JournalEdit.class);
-//				journalEditIntent.putExtras(bundle);
-//				if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG, 
-//						"Starting activity for result request="+JournalEdit.ACTION_EDIT);
-//				this.startActivityForResult(journalEditIntent,JournalEdit.ACTION_EDIT);
+				bundle.putParcelable(JournalEdit.KEY_CACHE_OBJECT, cacheJournal);
+				Intent journalEditIntent = new Intent(this, JournalEdit.class);
+				journalEditIntent.putExtras(bundle);
+				if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG, 
+						"Starting activity for result request="+JournalEdit.ACTION_EDIT);
+				this.startActivityForResult(journalEditIntent,JournalEdit.ACTION_EDIT);
 				break;
 			}
 			case ADD: {
 				Bundle bundle = new Bundle();
-//				Intent journalEditIntent = new Intent(this, JournalEdit.class);
-	//			journalEditIntent.putExtras(bundle);
-//				this.startActivityForResult(journalEditIntent,JournalEdit.ACTION_CREATE);
+				Intent journalEditIntent = new Intent(this, JournalEdit.class);
+				journalEditIntent.putExtras(bundle);
+				this.startActivityForResult(journalEditIntent,JournalEdit.ACTION_CREATE);
 				break;
 			}
 		}
@@ -240,27 +241,27 @@ public class JournalView extends AcalActivity
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG, 
 				"onActivityResult request="+requestCode+", result="+resultCode);
-//    	if (requestCode == JournalEdit.ACTION_EDIT && resultCode == RESULT_OK) {
+    	if (requestCode == JournalEdit.ACTION_EDIT && resultCode == RESULT_OK) {
 			try {
 				Bundle b = data.getExtras();
-//				CacheObject tmpCache = (CacheObject) b.getParcelable(JournalEdit.KEY_CACHE_OBJECT);
-//				if ( tmpCache != null ) cacheJournal = tmpCache;
-//				String blob = b.getString(JournalEdit.KEY_VCALENDAR_BLOB);
-//				Resource resource = b.getParcelable(JournalEdit.KEY_OPERATION);
-//				if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG, "Received blob is:\n"+blob);
-//				this.journal = (JournalInstance) JournalInstance.fromResourceAndRRId(resource, rrid);
+				CacheObject tmpCache = (CacheObject) b.getParcelable(JournalEdit.KEY_CACHE_OBJECT);
+				if ( tmpCache != null ) cacheJournal = tmpCache;
+				String blob = b.getString(JournalEdit.KEY_VCALENDAR_BLOB);
+				Resource resource = b.getParcelable(JournalEdit.KEY_OPERATION);
+				if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG, "Received blob is:\n"+blob);
+				this.journal = (JournalInstance) JournalInstance.fromResourceAndRRId(resource, rrid);
 			}
 			catch (Exception e) {
 				if (Constants.LOG_DEBUG)Log.d(TAG, "Error getting data from caller: "+e.getMessage());
 			}
 			populateLayout();
-//    	}
-//    	else if (requestCode == JournalEdit.ACTION_CREATE && resultCode == RESULT_OK) {
-//			Intent res = new Intent();
-//			this.setResult(RESULT_OK, res);
+    	}
+    	else if (requestCode == JournalEdit.ACTION_CREATE && resultCode == RESULT_OK) {
+			Intent res = new Intent();
+			this.setResult(RESULT_OK, res);
 			this.finish();
     	}
-//  }
+  }
 
 
 	@Override
@@ -283,15 +284,15 @@ public class JournalView extends AcalActivity
 		}
 		if (DEBUG) Log.println(Constants.LOGD,TAG, "Successful Resource Response Received.");
 		CalendarInstance res = response.result();
-//		if (res instanceof JournalInstance) {
-//			this.journal = (JournalInstance) res;
-//			this.rid = this.journal.getResourceId();
-//			this.rrid = this.journal.getRecurrenceId();
+		if (res instanceof JournalInstance) {
+			this.journal = (JournalInstance) res;
+			this.rid = this.journal.getResourceId();
+			this.rrid = this.journal.getRecurrenceId();
 			mHandler.sendMessage(mHandler.obtainMessage(REFRESH));
 		}
-//		else {
-//			Log.e(TAG, "Resource Response was not a JournalInstance!");
-//		}
+		else {
+			Log.e(TAG, "Resource Response was not a JournalInstance!");
+		}
 	}
 	
-//}
+}

@@ -49,7 +49,10 @@ public class MethodsRequired {
 		// TODO Auto-generated method stub
 		
 	}
-
+	public void journalChanged(VCalendar vc, int action) {
+		// TODO Auto-generated method stub
+		
+	}
 	public int getNumberTodos() {
 		// TODO Auto-generated method stub
 		return 0;

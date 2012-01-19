@@ -264,6 +264,15 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".activity.JournalEdit"
+            android:launchMode="standard" >
+            <intent-filter>
+                <action android:name="com.morphoss.acal.activity.JournalEdit" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity
             android:name=".activity.ShowUpgradeChanges"
             android:launchMode="standard" >
             <intent-filter>

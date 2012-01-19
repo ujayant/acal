@@ -270,6 +270,7 @@
     <string name="incompleteTasksDue">Incomplete tasks due within a week</string>
     <string name="allTasksTitle">All Tasks</string>
     <string name="NewTaskTitle">New Task</string>
+    <string name="NewJournalTitle">New Note</string>
     <string name="TaskSaved">Task Saved.</string>
     <string name="TaskModifiedAll">Modified all instances of this task.</string>
     <string name="TaskModifiedOne">Modified single instance of this task.</string>
@@ -309,5 +310,6 @@
     <string name="Task">Task</string>
     <string name="weekends">weekends</string>
     <string name="weekdays">weekdays</string>
+    <string name="JournalDatePrompt">Date:</string>
 
 </resources>

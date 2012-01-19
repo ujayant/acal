@@ -18,6 +18,8 @@
 
 package com.morphoss.acal.davacal;
 
+import com.morphoss.acal.dataservice.JournalInstance;
+
 
 
 public class VJournal extends Masterable {
@@ -30,5 +32,12 @@ public class VJournal extends Masterable {
 	public VJournal( VCalendar parent ) {
 		super(VComponent.VJOURNAL, parent );
 	}
+	public  VJournal(JournalInstance journal) {
+		super(VComponent.VJOURNAL,journal);
 
+	}
+	public VJournal() {
+		this( new VCalendar() );
+	}
+	
 }
