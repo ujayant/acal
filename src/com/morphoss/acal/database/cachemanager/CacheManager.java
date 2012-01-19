@@ -11,6 +11,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.os.ConditionVariable;
 import android.util.Log;
 import android.widget.Toast;
@@ -215,6 +216,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 				}
 				db.update(META_TABLE, data, FIELD_ID+" = ?", new String[]{data.getAsLong(FIELD_ID)+""});
 				db.setTransactionSuccessful();
+				db.yieldIfContendedSafely();
 			}
 			
 		}
@@ -224,7 +226,12 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		finally {
 			if ( mCursor != null && !mCursor.isClosed()) mCursor.close();
 			if ( db.inTransaction() ) db.endTransaction();
-			db.close();
+			try {
+				db.close();
+			}
+			catch( SQLiteException e ) {
+				Log.e(TAG,Log.getStackTraceString(e));
+			}
 			releaseMetaLock();
 		}
 	}
