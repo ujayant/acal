@@ -18,6 +18,7 @@
 
 package com.morphoss.acal.activity;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.ContentValues;
@@ -52,7 +53,7 @@ import com.morphoss.acal.database.resourcesmanager.requests.RRRequestInstance;
 import com.morphoss.acal.dataservice.CalendarInstance;
 import com.morphoss.acal.dataservice.Collection;
 import com.morphoss.acal.dataservice.JournalInstance;
-import com.morphoss.acal.dataservice.MethodsRequired;
+import com.morphoss.acal.davacal.PropertyName;
 import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VJournal;
 import com.morphoss.acal.providers.DavCollections;
@@ -62,7 +63,7 @@ import com.morphoss.acal.widget.DateTimeSetListener;
 
 public class JournalEdit extends AcalActivity
 	implements OnCheckedChangeListener,
-				ResourceChangedListener, ResourceResponseListener<CalendarInstance> {
+				ResourceChangedListener, ResourceResponseListener {
 
 	public static final String TAG = "aCal JournalEdit";
 
@@ -77,6 +78,7 @@ public class JournalEdit extends AcalActivity
 	private int action = ACTION_NONE;
 	private static final int FROM_DIALOG = 10;
 	private static final int LOADING_DIALOG = 0xfeed;
+	private static final int SAVING_DIALOG = 9;
 
 	boolean prefer24hourFormat = false;
 
@@ -86,10 +88,6 @@ public class JournalEdit extends AcalActivity
 	public static final String	KEY_RESOURCE		= "Resource";
 	public static final String	KEY_VCALENDAR_BLOB	= "VCalendar";
 	
-
-	
-	private MethodsRequired dataRequest = new MethodsRequired();
-
 	//GUI Components
 	private Button btnStartDate;
 	private LinearLayout sidebar;
@@ -110,52 +108,126 @@ public class JournalEdit extends AcalActivity
 	private static final int CONFLICT = 2;
 	private static final int SHOW_LOADING = 3;
 	private static final int GIVE_UP = 4;
-	
+	private static final int SAVE_RESULT = 5;
+	private static final int SAVE_FAILED = 6;
+	private static final int SHOW_SAVING = 7;
+
+	private boolean saveSucceeded = false;
+	private boolean isSaving = false;
+	private boolean isLoading = false;
+
+
 	private Dialog loadingDialog = null;
+	private Dialog savingDialog = null;
+
 	private ResourceManager	resourceManager;
 
 	
 	private Handler mHandler = new Handler() {
 		public void handleMessage(Message msg) {
-			if ( msg.what == REFRESH ) {
-				if ( loadingDialog != null ) {
-					loadingDialog.dismiss();
-					loadingDialog = null;
-				}
-				updateLayout();
-			}
-			else if ( msg.what == CONFLICT ) {
-				Toast.makeText(
-						JournalEdit.this,
-						"The resource you are editing has been changed or deleted on the server.",
-						5).show();
-			}
-			else if ( msg.what == SHOW_LOADING ) {
-				if ( journal == null ) showDialog(LOADING_DIALOG);
-			}
-			else if ( msg.what == FAIL ) {
-				Toast.makeText(JournalEdit.this,
-						"Error loading data.", 5)
-						.show();
-				finish();
-				return;
-			}
-			else if ( msg.what == GIVE_UP ) {
-				if ( loadingDialog != null ) {
-					loadingDialog.dismiss();
+			
+			switch ( msg.what ) {
+				case REFRESH:
+					if ( loadingDialog != null ) {
+						loadingDialog.dismiss();
+						loadingDialog = null;
+					}
+					updateLayout();
+					break;
+				case CONFLICT:
 					Toast.makeText(
 							JournalEdit.this,
-							"Error loading event data.",
-							Toast.LENGTH_LONG).show();
+							"The resource you are editing has been changed or deleted on the server.",
+							5).show();
+
+				case SHOW_LOADING:
+					if ( journal == null ) showDialog(LOADING_DIALOG);
+					break;
+				case FAIL:
+					if ( isLoading ) {
+						Toast.makeText(JournalEdit.this,
+								"Error loading data.", 5)
+								.show();
+						isLoading = false;
+					}
+					else if ( isSaving ) {
+						isSaving = false;
+						if ( savingDialog != null ) savingDialog
+								.dismiss();
+						Toast.makeText(
+								JournalEdit.this,
+								"Something went wrong trying to save data.",
+								Toast.LENGTH_LONG).show();
+						setResult(Activity.RESULT_CANCELED,
+								null);
+					}
 					finish();
-					return;
-				}
+					break;
+				case GIVE_UP:
+					if ( loadingDialog != null ) {
+						loadingDialog.dismiss();
+						Toast.makeText(JournalEdit.this,
+								"Error loading event data.",
+								Toast.LENGTH_LONG).show();
+						finish();
+						return;
+					}
+					break;
+
+				case SHOW_SAVING:
+					isSaving = true;
+					showDialog(SAVING_DIALOG);
+					break;
+
+				case SAVE_RESULT:
+					// dismiss
+					// dialog
+					mHandler.removeMessages(SAVE_FAILED);
+					isSaving = false;
+					if ( savingDialog != null ) savingDialog
+							.dismiss();
+					long res = (Long) msg.obj;
+					if ( res >= 0 ) {
+						Intent ret = new Intent();
+//						Bundle b = new Bundle();
+//						b.putParcelable(JournalView.KEY_CACHE_OBJECT, (Long) msg.obj);
+//						b.putString( JournalView.RECURRENCE_ID_KEY, journal.getStart().toPropertyString(
+//												PropertyName.RECURRENCE_ID));
+//						ret.putExtras(b);
+						setResult(RESULT_OK, ret);
+						saveSucceeded = true;
+
+						finish();
+
+					}
+					else {
+						Toast.makeText(JournalEdit.this, "Error saving event data.", Toast.LENGTH_LONG).show();
+					}
+					break;
+
+				case SAVE_FAILED:
+					isSaving = false;
+					if ( savingDialog != null ) savingDialog
+							.dismiss();
+					if ( saveSucceeded ) {
+						// Don't know why we get here, but we do! - cancel save failed when save succeeds.
+						// we shouldn't see this anymore.
+						Log.w(TAG, "This should have been fixed now yay!", new Exception());
+					}
+					else {
+						Toast.makeText( JournalEdit.this, "Something went wrong trying to save data.", Toast.LENGTH_LONG).show();
+						setResult(Activity.RESULT_CANCELED, null);
+						finish();
+					}
+					break;
 			}
 			
 		}
 	};
 
 	private TextView journalContent;
+
+	private long	rid;
 
 	
 	public void onCreate(Bundle savedInstanceState) {
@@ -171,17 +243,17 @@ public class JournalEdit extends AcalActivity
 		// Get time display preference
 		prefer24hourFormat = prefs.getBoolean(getString(R.string.prefTwelveTwentyfour), false);
 
-		ContentValues[] taskCollections = DavCollections.getCollections( getContentResolver(), DavCollections.INCLUDE_TASKS );
-		if ( taskCollections.length == 0 ) {
+		ContentValues[] journalCollections = DavCollections.getCollections( getContentResolver(), DavCollections.INCLUDE_JOURNAL );
+		if ( journalCollections.length == 0 ) {
 			Toast.makeText(this, getString(R.string.errorMustHaveActiveCalendar), Toast.LENGTH_LONG);
 			this.finish();	// can't work if no active collections
 			return;
 		}
 
-		this.collectionsArray = new CollectionForArrayAdapter[taskCollections.length];
+		this.collectionsArray = new CollectionForArrayAdapter[journalCollections.length];
 		int count = 0;
 		long collectionId;
-		for (ContentValues cv : taskCollections ) {
+		for (ContentValues cv : journalCollections ) {
 			collectionId = cv.getAsLong(DavCollections._ID);
 			collectionsArray[count++] = new CollectionForArrayAdapter(this,collectionId);
 		}
@@ -199,6 +271,7 @@ public class JournalEdit extends AcalActivity
 			}
 			if ( b != null && b.containsKey(KEY_CACHE_OBJECT) ) {
 				CacheObject cacheJournal = (CacheObject) b.getParcelable(KEY_CACHE_OBJECT);
+				this.rid = cacheJournal.getResourceId();
 				resourceManager.sendRequest(new RRRequestInstance(this, cacheJournal.getResourceId(), cacheJournal.getRecurrenceId()));
 				mHandler.sendMessageDelayed(mHandler.obtainMessage(SHOW_LOADING), 50);
 				mHandler.sendMessageDelayed(mHandler.obtainMessage(GIVE_UP), 10000);
@@ -209,7 +282,13 @@ public class JournalEdit extends AcalActivity
 		}
 
 		if ( this.journal == null && currentOperation == ACTION_CREATE ) {
-			long preferredCollectionId = prefs.getLong(getString(R.string.DefaultCollection_PrefKey), -1);
+			long preferredCollectionId ;
+			try {
+				preferredCollectionId = prefs.getLong(getString(R.string.DefaultCollection_PrefKey), -1);
+			}
+			catch( Exception e ) {
+				preferredCollectionId = -1L;
+			}
 			if ( Collection.getInstance(preferredCollectionId, this) == null )
 				preferredCollectionId = collectionsArray[0].getCollectionId();
 
@@ -268,7 +347,7 @@ public class JournalEdit extends AcalActivity
 		this.journalName = (TextView) this.findViewById(R.id.JournalName);
 		journalName.setSelectAllOnFocus(action == ACTION_CREATE);
 
-		//Title
+		//Content
 		this.journalContent = (TextView) this.findViewById(R.id.JournalNotesContent);
 		journalContent.setSelectAllOnFocus(action == ACTION_CREATE);
 		
@@ -306,7 +385,7 @@ public class JournalEdit extends AcalActivity
 			}
 		});
 		
-		
+		if ( journal != null ) updateLayout();
 	}
 
 
@@ -349,7 +428,6 @@ public class JournalEdit extends AcalActivity
 		if ( spinnerPosition < collectionsArray.length )
 			//set the default according to value
 			spinnerCollection.setSelection(spinnerPosition);
-		
 		
 		btnStartDate.setText( AcalDateTimeFormatter.fmtFull( start, prefer24hourFormat) );
 
@@ -412,31 +490,32 @@ public class JournalEdit extends AcalActivity
 		try {
 			VCalendar vc = (VCalendar) journal.getTopParent();
 
-			// @journal This call will also need to send collectionId (and resourceId for updates) 
-			this.dataRequest.journalChanged(vc, action);
+			if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,
+					"saveChanges: "+journal.getSummary()+
+					", starts "+journal.getStart().toPropertyString(PropertyName.DTSTART));
+			//display savingdialog
 
-			Log.i(TAG,"Saving journal to collection "+currentCollection.getCollectionId()+" with action " + action );
-			if ( action == ACTION_CREATE )
-				Toast.makeText(this, getString(R.string.TaskSaved), Toast.LENGTH_LONG).show();
-			else if (action == ACTION_MODIFY_ALL)
-				Toast.makeText(this, getString(R.string.TaskModifiedAll), Toast.LENGTH_LONG).show();
+			int sendAction = RRResourceEditedRequest.ACTION_UPDATE;
+			if (action == ACTION_CREATE ) sendAction = RRResourceEditedRequest.ACTION_CREATE;
+			else if (action == ACTION_DELETE_ALL ) sendAction = RRResourceEditedRequest.ACTION_DELETE;
+			ResourceManager.getInstance(this)
+						.sendRequest(new RRResourceEditedRequest(this, currentCollection.collectionId, rid, vc, sendAction));
 
-			Intent ret = new Intent();
-			Bundle b = new Bundle();
-			b.putString(KEY_VCALENDAR_BLOB, vc.getCurrentBlob());
-			/*
-			b.putLong(KEY_RESOURCE, currentCollection.getAsInteger(DavCollections._ID));
-			*/
-			ret.putExtras(b);
-			this.setResult(RESULT_OK, ret);
+			//set message for 10 seconds to fail.
+			mHandler.sendEmptyMessageDelayed(SAVE_FAILED, 100000);
 
-			this.finish();
+			//showDialog(SAVING_DIALOG);
+			mHandler.sendEmptyMessageDelayed(SHOW_SAVING,50);
+
+
 		}
 		catch (Exception e) {
 			if ( e.getMessage() != null ) Log.d(TAG,e.getMessage());
 			if (Constants.LOG_DEBUG)Log.d(TAG,Log.getStackTraceString(e));
-			Toast.makeText(this, getString(R.string.TaskErrorSaving), Toast.LENGTH_LONG).show();
+			Toast.makeText(this, getString(R.string.ErrorSavingEvent), Toast.LENGTH_LONG).show();
+			return false;
 		}
+
 		return true;
 	}
 
@@ -496,13 +575,22 @@ public class JournalEdit extends AcalActivity
 
 
 	@Override
-	public void resourceResponse(ResourceResponse<CalendarInstance> response) {
+	public void resourceResponse(ResourceResponse response) {
 		int msg = FAIL;
-		if (response.wasSuccessful()) {
-			setJournal( new VJournal((JournalInstance) response.result()) );
-			msg = REFRESH;
+		Object result = response.result();
+		if (result == null) {
+			mHandler.sendMessage(mHandler.obtainMessage(msg));
 		}
-		mHandler.sendMessage(mHandler.obtainMessage(msg));
+		if (result instanceof CalendarInstance) {
+			if (response.wasSuccessful()) {
+				setJournal( new VJournal((JournalInstance) response.result()) );
+				msg = REFRESH;
+			}
+			mHandler.sendMessage(mHandler.obtainMessage(msg));		
+		}
+		else if (result instanceof Long) {
+			mHandler.sendMessage(mHandler.obtainMessage(SAVE_RESULT, result));
+		}
 	}
 
 }
