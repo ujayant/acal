@@ -40,7 +40,6 @@ import com.morphoss.acal.database.alarmmanager.AlarmRow;
 import com.morphoss.acal.database.cachemanager.CacheManager;
 import com.morphoss.acal.database.cachemanager.CacheObject;
 import com.morphoss.acal.dataservice.CalendarInstance;
-import com.morphoss.acal.dataservice.Resource;
 
 public class VCalendar extends VComponent implements Cloneable {
 	public static final String TAG = "aCal VCalendar";

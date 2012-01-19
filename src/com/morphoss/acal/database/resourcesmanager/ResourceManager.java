@@ -685,7 +685,7 @@ public class ResourceManager implements Runnable {
 				}
 				//trigger resource change event
 				ContentValues toReport = Resource.fromContentValues(newResource).toContentValues();
-				if ( newBlob == null || newBlob == "" )
+				if ( newBlob == null )
 					this.addChange(new DataChangeEvent(QUERY_ACTION.DELETE, toReport));
 				else
 					this.addChange(new DataChangeEvent(action, toReport));
@@ -702,7 +702,7 @@ public class ResourceManager implements Runnable {
 			}
 			
 			ServiceJob syncChanges = new SyncChangesToServer();
-			syncChanges.TIME_TO_EXECUTE = 5000;	// Wait five seconds before trying to sync to server.
+			syncChanges.TIME_TO_EXECUTE = 2000;	// Wait two seconds before trying to sync to server.
 			WorkerClass.getExistingInstance().addJobAndWake(syncChanges);
 			
 			return rid;

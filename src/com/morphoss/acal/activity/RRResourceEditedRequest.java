@@ -46,8 +46,9 @@ public class RRResourceEditedRequest extends ResourceRequestWithResponse<Long> {
 
 		Resource res = null;
 		try {
-			if ( action == ACTION_CREATE )
+			if ( action == ACTION_CREATE ) {
 				oldBlob = null;
+			}
 			else {
 				res = Resource.fromContentValues(
 					processor.query(null, ResourceTableManager.RESOURCE_ID+" = "+resourceId, null, null,null,null).get(0));
@@ -73,8 +74,8 @@ public class RRResourceEditedRequest extends ResourceRequestWithResponse<Long> {
 
 			long result = processor.addPending(collectionId, resourceId, oldBlob, newBlob, uid);
 			
-			if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD, TAG, 
-					"Got result "+result+" when adding pending resource for "+collectionId+", resource ID: "+resourceId+
+			if ( ResourceManager.DEBUG ) Log.println(Constants.LOGI, TAG, 
+					"Got result "+result+" when adding pending resource for "+collectionId+", resource ID: "+result+
 					", Old:\n"+oldBlob+"\nNew:\n"+newBlob+"\n\tUID:"+uid);
 
 			if ( result < 0 ) 

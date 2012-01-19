@@ -76,7 +76,7 @@ import com.morphoss.acal.widget.DateTimeDialog;
 import com.morphoss.acal.widget.DateTimeSetListener;
 
 public class EventEdit extends AcalActivity implements  OnClickListener, OnCheckedChangeListener,
-ResourceChangedListener, ResourceResponseListener, OnFocusChangeListener {
+							ResourceChangedListener, ResourceResponseListener, OnFocusChangeListener {
 
 	public static final String TAG = "aCal EventEdit";
 	public static final int APPLY = 0;
