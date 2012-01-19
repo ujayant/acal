@@ -674,9 +674,14 @@ public class RRSyncCollectionContents implements ResourceRequest {
 			
 			hrefList = new StringBuilder();
 			for (int i = hrefIndex; i < limit; i++) {
-				hrefList.append(String.format("<D:href>%s</D:href>\n", pathOnServer + hrefs[i].toString()));
-				if (Constants.LOG_DEBUG)
-					Log.w(TAG,"Fetching resource from: "+ pathOnServer + " " + hrefs[i].toString());
+				try {
+					hrefList.append(String.format("<D:href>%s</D:href>\n", pathOnServer + hrefs[i].toString()));
+					if (Constants.LOG_DEBUG)
+						Log.w(TAG,"Fetching resource from: "+ pathOnServer + " " + hrefs[i].toString());
+				}
+				catch( Exception e) {
+					Log.e(TAG,"Error syncing resource.", e);
+				}
 			}
 		
 			if (Constants.LOG_DEBUG)
