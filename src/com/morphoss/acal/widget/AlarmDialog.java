@@ -47,6 +47,7 @@ import com.morphoss.acal.davacal.AcalAlarm.RelateWith;
 
 public class AlarmDialog extends Dialog implements OnClickListener, OnSeekBarChangeListener {
 
+	private static final int	DURATION_SEEK_RANGE	= 75;
 	private Context context;
 	private Button okButton;
 	private Button cancelButton;
@@ -109,8 +110,11 @@ public class AlarmDialog extends Dialog implements OnClickListener, OnSeekBarCha
         cancelButton.setOnClickListener(this);
         beforeButton = (Button)this.findViewById(R.id.AlarmBeforeButton);
         beforeButton.setOnClickListener(this);
+        AcalTheme.setContainerFromTheme(beforeButton, AcalTheme.BUTTON);
+        
         relatedButton = (Button)this.findViewById(R.id.AlarmRelatedButton);
         relatedButton.setOnClickListener(this);
+        AcalTheme.setContainerFromTheme(relatedButton, AcalTheme.BUTTON);
 
         absoluteDateTimeButton = (Button) findViewById(R.id.AbsoluteDateTime);
         AcalTheme.setContainerFromTheme(absoluteDateTimeButton, AcalTheme.BUTTON);
@@ -119,8 +123,8 @@ public class AlarmDialog extends Dialog implements OnClickListener, OnSeekBarCha
         alarmTimeText = (TextView) this.findViewById(R.id.alarmTimeText);
         relativeDurationText = (TextView) this.findViewById(R.id.alarmRelativeDuration);
         alarmAdjustDuration = (SeekBar) this.findViewById(R.id.alarmAdjustDuration);
-        alarmAdjustDuration.setMax(120);
-        if ( offsetBefore ) alarmAdjustDuration.setProgress(120);
+        alarmAdjustDuration.setMax(DURATION_SEEK_RANGE);
+        if ( offsetBefore ) alarmAdjustDuration.setProgress(DURATION_SEEK_RANGE);
         
         relativeDurationLayout = (LinearLayout) findViewById(R.id.RelativeDurationLayout);
         absoluteAlarmTimeLayout = (LinearLayout) findViewById(R.id.AbsoluteAlarmTimeLayout);
