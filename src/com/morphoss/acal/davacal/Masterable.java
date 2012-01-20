@@ -32,6 +32,7 @@ import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.acaltime.AcalRepeatRule;
 import com.morphoss.acal.dataservice.CalendarInstance;
 import com.morphoss.acal.dataservice.EventInstance;
+import com.morphoss.acal.dataservice.JournalInstance;
 import com.morphoss.acal.dataservice.TodoInstance;
 
 public abstract class Masterable extends VComponent {
@@ -77,6 +78,8 @@ public abstract class Masterable extends VComponent {
 			return new VEvent((EventInstance) instance);
 		else if ( instance instanceof TodoInstance )
 			return new VTodo((TodoInstance) instance);
+		else if ( instance instanceof JournalInstance )
+			return new VJournal((JournalInstance) instance);
 		else
 			throw new IllegalArgumentException("fromCalendarInstance does not support "+instance.getClass());
 	}
