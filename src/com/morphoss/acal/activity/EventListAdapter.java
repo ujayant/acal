@@ -145,6 +145,7 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 	@Override
 	public Object getItem(int position) {
 		synchronized (dayEvents) {
+			if ( position >= dayEvents.size() ) return null;
 			return dayEvents.get(position);
 		}
 	}
