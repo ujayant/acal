@@ -1,13 +1,24 @@
 package com.morphoss.acal.activity.serverconfig;
 
 import java.net.URLEncoder;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
+import org.xbill.DNS.Lookup;
+import org.xbill.DNS.Name;
+import org.xbill.DNS.NameTooLongException;
+import org.xbill.DNS.Record;
+import org.xbill.DNS.ResolverConfig;
+import org.xbill.DNS.SRVRecord;
+import org.xbill.DNS.SimpleResolver;
+import org.xbill.DNS.TextParseException;
+import org.xbill.DNS.Type;
 
+import android.content.ContentValues;
 import android.util.Log;
 
 import com.morphoss.acal.Constants;
@@ -426,12 +437,12 @@ public class TestPort {
 	 */
 	public static boolean addSrvLookups(AcalRequestor requestor) {
 		
-		return false;
+//		return false;
 
 /*
  * The following code is tested, and works, but requires the DNSJava library.		
  */
-/*		
+/**/		
 		Name baseDomain = null;
 		Name sslPrefix = null;
 		Name plainPrefix = null;
@@ -501,7 +512,7 @@ public class TestPort {
 			}
 		}
 		return addedSome;
-*/
+/**/
 	}
 
 	
@@ -516,6 +527,14 @@ public class TestPort {
 
 	public int getAchievement() {
 		return achievement;
+	}
+
+
+	public void applyToServerSettings(ContentValues serverData) {
+		requestor.setPath(path);
+		requestor.setHostName(hostName);
+		requestor.setPortProtocol( port, (useSSL?1:0) );
+		requestor.applyToServerSettings(serverData);
 	}
 	
 }
