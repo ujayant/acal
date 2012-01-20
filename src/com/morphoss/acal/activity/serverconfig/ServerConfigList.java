@@ -42,6 +42,7 @@ import android.widget.Button;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 
+import com.morphoss.acal.AcalTheme;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.ServiceManager;
@@ -99,6 +100,7 @@ public class ServerConfigList extends ListActivity implements OnClickListener {
 
 		addServer = (Button) findViewById(R.id.AddServerButton);
 		addServer.setOnClickListener(this);
+		AcalTheme.setContainerFromTheme(addServer, AcalTheme.BUTTON);
 	}
 
 	/**
