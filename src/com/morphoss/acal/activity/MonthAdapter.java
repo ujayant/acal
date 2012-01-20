@@ -187,7 +187,7 @@ public class MonthAdapter extends BaseAdapter implements CacheChangedListener, C
 			gridHeight = parent.getHeight();
 			int boxWidth = (parent.getWidth() / 7) - 1;
 			boxHeight = (gridHeight / 7) + 1;
-			headerHeight = boxHeight - 7;
+			headerHeight = boxHeight - 10;
 			gridHeight = (boxHeight * 6) + headerHeight + 1;
 			if ( boxWidth > (boxHeight * 1.3) ) boxScaleFactor = 1.2f;
 			else if ( boxWidth < (boxHeight * 0.9) )  boxScaleFactor = 0.9f;
@@ -213,7 +213,7 @@ public class MonthAdapter extends BaseAdapter implements CacheChangedListener, C
 			}
 			dayColumnHeader.setGravity(Gravity.CENTER_HORIZONTAL | Gravity.TOP);
 			dayColumnHeader.setText(colText);
-			dayColumnHeader.setTextSize( TypedValue.COMPLEX_UNIT_PX, (float) 0.40 * boxScaleFactor * headerHeight);
+			dayColumnHeader.setTextSize( TypedValue.COMPLEX_UNIT_PX, (float) 0.55 * boxScaleFactor * headerHeight);
 			
 			ViewParent vp = dayColumnHeader.getParent();
 			if ( vp instanceof View ) {
