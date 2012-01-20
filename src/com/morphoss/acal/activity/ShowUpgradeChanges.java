@@ -32,6 +32,7 @@ import android.view.View.OnClickListener;
 import android.webkit.WebView;
 import android.widget.Button;
 
+import com.morphoss.acal.AcalTheme;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.aCal;
@@ -51,6 +52,7 @@ public class ShowUpgradeChanges extends AcalActivity implements OnClickListener 
 		this.setContentView(R.layout.changes_on_upgrade);
 		upgradeNotes = (WebView) this.findViewById(R.id.UpgradeNotes);
 		seenEm = (Button) this.findViewById(R.id.FinishedWithUpgradeNotes);
+		AcalTheme.setContainerFromTheme(seenEm, AcalTheme.BUTTON);
 
 		try {
 			Bundle b = this.getIntent().getExtras();
