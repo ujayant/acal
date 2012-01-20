@@ -166,8 +166,12 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 		this.setupButton(R.id.week_today_button, TODAY);
 		this.setupButton(R.id.week_month_button, MONTH);
 		this.setupButton(R.id.week_add_button, ADD);
-		//TODO - layout does not have a year view button at present.
-		//this.setupButton(R.id.week_year_button, YEAR);
+		
+		try {
+			//TODO - vertical layout does not have a year view button, so we'll just ignore the exception.
+			this.setupButton(R.id.week_year_button, YEAR);
+		}
+		catch( Exception e ) {}
 	
 		loadPrefs();
 		days.setOnTouchListener(days);
