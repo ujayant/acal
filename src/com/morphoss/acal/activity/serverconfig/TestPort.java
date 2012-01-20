@@ -388,19 +388,26 @@ public class TestPort {
 		else
 			testPortSet.clear();
 
-		testPortSet.add( new TestPort(requestor,443,true) );
-		testPortSet.add( new TestPort(requestor,8443,true) );
-		if ( ! requestor.getProtocol().equals("https") ) {
-			testPortSet.add( new TestPort(requestor,80,false) );
-			testPortSet.add( new TestPort(requestor,8008,false) );
+		if ( requestor.getPort() != -1 && requestor.getPort() != 80 && requestor.getPort() != 443 ) {
+			testPortSet.add( new TestPort(requestor,requestor.getPort(),true) );
+			if ( ! requestor.getProtocol().equals("https") ) {
+				testPortSet.add( new TestPort(requestor,requestor.getPort(),false) );
+			}
 		}
-		testPortSet.add( new TestPort(requestor,8843,true) );
-//		testPortSet.add( new TestPort(requestor,4443,true) );
-		testPortSet.add( new TestPort(requestor,8043,true) );
-//		testPortSet.add( new TestPort(requestor,8800,false) );
-//		testPortSet.add( new TestPort(requestor,8888,false) );
-//		testPortSet.add( new TestPort(requestor,7777,false) );
-
+		else {
+			testPortSet.add( new TestPort(requestor,443,true) );
+			testPortSet.add( new TestPort(requestor,8443,true) );
+			if ( ! requestor.getProtocol().equals("https") ) {
+				testPortSet.add( new TestPort(requestor,80,false) );
+				testPortSet.add( new TestPort(requestor,8008,false) );
+			}
+			testPortSet.add( new TestPort(requestor,8843,true) );
+//			testPortSet.add( new TestPort(requestor,4443,true) );
+			testPortSet.add( new TestPort(requestor,8043,true) );
+//			testPortSet.add( new TestPort(requestor,8800,false) );
+//			testPortSet.add( new TestPort(requestor,8888,false) );
+//			testPortSet.add( new TestPort(requestor,7777,false) );
+		}
 		return testPortSet.iterator();
 	}
 
@@ -408,6 +415,7 @@ public class TestPort {
 		if ( testPortSet == null ) return null;
 		return testPortSet.iterator();
 	}
+
 
 	/**
 	 * Using the dnsjava library, do a lookup for the SRV record for
