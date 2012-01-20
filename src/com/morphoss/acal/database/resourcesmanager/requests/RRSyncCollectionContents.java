@@ -269,7 +269,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 //							+ "<getlastmodified/>"
 //							+ "<" + dataType + "-data xmlns=\"" + nameSpace + "\"/>"
 						+ "</prop>"
-					+ "<sync-token>" + oldSyncToken + "</sync-token>"
+					+ (oldSyncToken == null ? "" : "<sync-token>" + oldSyncToken + "</sync-token>")
 					+ "</sync-collection>"
 				);
 
@@ -279,7 +279,10 @@ public class RRSyncCollectionContents implements ResourceRequest {
 			Log.i(TAG, "Unable to sync collection " + this.collectionPath + " (ID:" + this.collectionId
 						+ " - no data from server.");
 			syncWasCompleted = false;
-			return false;
+			Log.i("aCal","Sync report did not work.  Attempting sync via PROPFIND.");
+			syncToken = null;
+			updateCollectionToken(syncToken);
+			return doRegularSyncPropfind();
 		}
 /**
  * SOGO's sync-response looks like this (as of draft-1):
@@ -314,6 +317,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
    <status>HTTP/1.1 200 OK</status>
   </propstat>
  </response>
+ <sync-token>urn:,1322100412</sync-token>
 </multistatus>
  * 
  */
@@ -457,6 +461,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 						+ "<prop>"
 							+ "<getetag/>"
 							+ "<CS:getctag/>"
+							+ "<sync-token/>"
 						+ "</prop>"
 					+ "</propfind>"
 				);
