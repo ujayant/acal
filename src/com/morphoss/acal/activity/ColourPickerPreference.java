@@ -38,7 +38,7 @@ public class ColourPickerPreference extends DialogPreference  {
 
 	private Context context;
 	private ColourPickerDialog dialog;
-	private int colour;
+	private int colour = 0xFF808080;
 	
 	public ColourPickerPreference(Context context, AttributeSet attrs) {
 		super(context, attrs);
@@ -67,6 +67,7 @@ public class ColourPickerPreference extends DialogPreference  {
 	public View getView(View convertView, ViewGroup parent) {
 		View v = super.getView(convertView, parent);
 		TextView tv = (TextView) v.findViewById(android.R.id.title);
+		colour = getPersistedInt(colour);
 		tv.setTextColor(this.colour);
 		return v;
 	}
