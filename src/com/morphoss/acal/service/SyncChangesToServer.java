@@ -214,8 +214,10 @@ public class SyncChangesToServer extends ServiceJob implements BlockingResourceR
 		else {
 			String eTag = pending.getAsString(ResourceTableManager.ETAG);
 			if ( eTag != null ) eTagHeader = new BasicHeader("If-Match", eTag );
-			Log.i(TAG,"Writing existing resource to "+resourcePath+", isNull: "+(resourcePath == null)+", etag: "+eTag );
-			Log.i(TAG,"\tResource: "+(oldData == null)+", latestDbData:\n=============================\n"+latestDbData+"======\n============\n" );
+			if ( DEBUG && Constants.LOG_DEBUG ) {	
+				Log.println(Constants.LOGD, TAG,"Writing existing resource to "+resourcePath+", isNull: "+(resourcePath == null)+", etag: "+eTag+"\n"+
+						"\tResource: "+(oldData == null)+", latestDbData:\n=============================\n"+latestDbData+"<<<<<\n============\n" );
+			}
 
 			if ( newData == null ) {
 				builder.setAction(QUERY_ACTION.DELETE);
@@ -232,19 +234,15 @@ public class SyncChangesToServer extends ServiceJob implements BlockingResourceR
 		Header[] headers = new Header[] { eTagHeader, contentHeader};
 		
 		if (DEBUG)	
-			//Log.println(Constants.LOGD,TAG,	"Making "+action.toString()+" request to "+path);
 			Log.println(Constants.LOGD,TAG,	"Making "+builder.getAction().toString()+" request to "+path);
 
 		// If we made it this far we should do a sync on this collection ASAP after we're done
 		collectionsToSync.add(collectionId);
 		
 		InputStream in = null;
+		String method = (builder.getAction() == QUERY_ACTION.DELETE ? "DELETE" : "PUT"); 
 		try {
-			//if ( action == WriteActions.DELETE )
-			if (builder.getAction() == QUERY_ACTION.DELETE)
-				in = requestor.doRequest( "DELETE", path, headers, null);
-			else
-				in = requestor.doRequest( "PUT", path, headers, newData);
+			in = requestor.doRequest( method, path, headers, newData);
 		}
 		catch (ConnectionFailedException e) {
 			Log.w(TAG,"HTTP Connection failed: "+e.getMessage());
@@ -256,11 +254,11 @@ public class SyncChangesToServer extends ServiceJob implements BlockingResourceR
 		}
 			
 		int status = requestor.getStatusCode();
+		if (DEBUG) Log.println(Constants.LOGD,TAG, "Response "+status+" for "+method+" "+path);
 		switch (status) {
 			case 201: // Status Created (normal for INSERT).
 			case 204: // Status No Content (normal for DELETE).
 			case 200: // Status OK. (normal for UPDATE)
-				if (DEBUG) Log.println(Constants.LOGD,TAG, "Response "+status+" against "+path);
 				ContentValues resourceData = new ContentValues();
 				resourceData.put(ResourceTableManager.RESOURCE_ID, resourceId);
 				resourceData.put(ResourceTableManager.COLLECTION_ID, collectionId);
@@ -295,20 +293,20 @@ public class SyncChangesToServer extends ServiceJob implements BlockingResourceR
 			case 412: // Server won't accept it
 			case 403: // Server won't accept it
 			case 405: // Server won't accept it - Method not allowed
-				Log.w(TAG, builder.getAction().toString()+": Status " + status + " on request for " + path + " giving up on change.");
+				Log.w(TAG, builder.getAction().toString()+": Status " + status + " for " +method+" "+ path + " - giving up on change.");
 				processor.deletePendingChange(pendingId);
 				break;
 
 			default: // Unknown code
-				Log.w(TAG, builder.getAction().toString()+": Status " + status + " on request for " + path);
+				Log.w(TAG, builder.getAction().toString()+": Status " + status + " for " +method+" "+ path);
 				if ( in != null ) {
 					// Possibly we got an error message...
-					byte[] buffer = new byte[1024];
+					byte[] buffer = new byte[8192];
 					try {
-						in.read(buffer, 0, 1020);
+						in.read(buffer, 0, 8100);
 						System.setProperty("file.encoding","UTF-8");
 						String response = new String(buffer);
-						Log.i(TAG,"Server response was: "+response);
+						Log.i(TAG,"Full server response was:\n"+response);
 					}
 					catch (IOException e) {
 					}
