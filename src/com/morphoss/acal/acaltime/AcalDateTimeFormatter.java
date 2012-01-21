@@ -174,12 +174,24 @@ public class AcalDateTimeFormatter {
 
 		SimpleDateFormat formatter = new SimpleDateFormat(" MMM d, "+(as24HourTime ? "HH:mm" : "hh:mmaa"));
 
-		return (dtstart == null ? "" : c.getString(R.string.FromPrompt) + formatter.format(dtstart.toJavaDate())) +
+		return (dtstart == null ? "" : c.getString(R.string.FromPrompt) + format(formatter, dtstart)) +
 				(dtstart != null && due != null ? " - " : "") +
-				(due == null ? "" : c.getString(R.string.DuePrompt) + formatter.format(due.toJavaDate())) +
+				(due == null ? "" : c.getString(R.string.DuePrompt) + format(formatter, due)) +
 				(completed != null ? (due != null || dtstart != null ? ", " : "") + 
-						c.getString(R.string.CompletedPrompt) + formatter.format(completed.toJavaDate()):"")
+						c.getString(R.string.CompletedPrompt) + format(formatter,completed):"")
 				;
 	}
+
+	public static CharSequence getJournalTimeText(Context c, AcalDateTime dtstart, boolean as24HourTime) {
+		if ( dtstart == null ) return c.getString(R.string.Unscheduled);
+
+		SimpleDateFormat formatter = new SimpleDateFormat(" MMM d, "+(as24HourTime ? "HH:mm" : "hh:mmaa"));
+
+		return c.getString(R.string.FromPrompt) + format(formatter, dtstart);
+	}
+
 	
+	public static CharSequence format( SimpleDateFormat formatter, AcalDateTime when ) {
+		return formatter.format(when.toJavaDate());
+	}
 }
