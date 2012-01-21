@@ -277,7 +277,10 @@ public abstract class Masterable extends VComponent {
 
 	public void setToRecurrence(RecurrenceId targetRecurrence) {
 		this.setEditable();
+		if ( targetRecurrence == null ) throw new NullPointerException("Cannot setToRecurrence for a null RECURRENCE-ID");
 		RecurrenceId thisRecurrence = getRecurrenceId();
+		if ( thisRecurrence == null ) return;  // Nothing to do.
+
 		if ( targetRecurrence.when.isFloating() != thisRecurrence.when.isFloating() ) {
 			Log.w(TAG,"Target recurrence is "+targetRecurrence+" and this is "+thisRecurrence, new Exception(""));
 		}
