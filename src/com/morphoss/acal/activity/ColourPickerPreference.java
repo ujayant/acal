@@ -76,6 +76,7 @@ public class ColourPickerPreference extends DialogPreference  {
 		switch (whichButton) {
 			case Dialog.BUTTON_POSITIVE: {
 				this.colour = this.dialog.selectedColour;
+				this.persistInt(colour);
 				this.callChangeListener(this.dialog.selectedColour);
 				break;
 			}
