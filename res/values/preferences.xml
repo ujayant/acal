@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="prefDefaultCalendar">prefDefaultCalendar</string>
-    <string name="prefDefaultView">prefDefaultView</string>
+	<string name="prefDefaultCalendar">prefDefaultCalendar</string>
+	<string name="prefDefaultView">prefDefaultView</string>
 	<string name="prefTwelveTwentyfour">prefTwelveTwentyfour</string>
 	<string name="YearViewSize_PrefKey">YearViewNumMonths</string>
 	<string name="prefSnoozeDuration">SnoozeTime</string>
@@ -15,5 +15,5 @@
 	<string name="prefSelectedDate">prefSelectedDate</string>
 	<string name="prefDisplayedMonth">prefDisplayedMonth</string>
 	<string name="prefSavedSelectedDate">prefSavedSelectedDate</string>
-
+	<string name="prefThemeButtonColour">prefThemeButtonColour</string>
 </resources>

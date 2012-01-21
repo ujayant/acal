@@ -310,4 +310,7 @@
 	<string name="weekends">weekends</string>
 	<string name="weekdays">weekdays</string>
 	<string name="JournalDatePrompt">Date:</string>
+	<string name="AppearancePreferences">Appearance settings</string>
+	<string name="prefThemeButtonColour_Summary">The colour of buttons throughout the app.</string>
+	<string name="prefThemeButtonColour_Title">Button Colour</string>
 </resources>
