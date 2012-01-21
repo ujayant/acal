@@ -75,8 +75,6 @@ public class JournalView extends AcalActivity
 	private Long	rid;
 	private String	rrid;
 	
-	private Button	map = null;
-	
 	private static final int REFRESH = 0;
 	private static final int FAIL = 1;
 	public static final String KEY_CACHE_OBJECT = "cache_object";
@@ -128,9 +126,17 @@ public class JournalView extends AcalActivity
 	
 	private void populateLayout() {
 		String title = cacheJournal.getSummary();
+		String description = null;
+		AcalDateTime dtStart = cacheJournal.getStartDateTime();
 		if ( DEBUG ) Log.println(Constants.LOGD,TAG,
 				"Populating view layout for '"+title+"' with journal "+(journal==null?"un":"")+"set.");
 
+		if ( journal != null ) {
+			description = journal.getDescription();
+			title = journal.getSummary();
+			dtStart = journal.getStart();
+		}
+		
 		int colour = collection.getColour();
 		LinearLayout sidebar = (LinearLayout)this.findViewById(R.id.JournalViewColourBar);
 		sidebar.setBackgroundColor(colour);
@@ -142,19 +148,8 @@ public class JournalView extends AcalActivity
 		TextView time = (TextView) this.findViewById(R.id.JournalTimeContent);
 		time.setTextColor(colour);
 		
-		String location = null;
-		String description = null;
-		List<AcalAlarm> alarmList = null;
-		StringBuilder alarms = new StringBuilder();
-		AcalDateTime dtStart = cacheJournal.getStartDateTime();
-		AcalDateTime due = cacheJournal.getEndDateTime();
-		AcalDateTime completed = cacheJournal.getCompletedDateTime();
 		
-		if ( journal != null ) {
-			description = journal.getDescription();
-			dtStart = journal.getStart();
-		}
-		time.setText(AcalDateTimeFormatter.getTodoTimeText(this, dtStart, due, completed, prefs.getBoolean(getString(R.string.prefTwelveTwentyfour),true)));
+		time.setText(AcalDateTimeFormatter.getJournalTimeText(this, dtStart, prefs.getBoolean(getString(R.string.prefTwelveTwentyfour),true)));
 		
 		TextView notesView = (TextView) this.findViewById(R.id.JournalNotesContent);
 		notesView.setText(description);

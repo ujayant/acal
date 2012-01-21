@@ -29,6 +29,9 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import android.view.View;
+import android.view.View.OnFocusChangeListener;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
@@ -61,9 +64,10 @@ import com.morphoss.acal.service.aCalService;
 import com.morphoss.acal.widget.DateTimeDialog;
 import com.morphoss.acal.widget.DateTimeSetListener;
 
+@SuppressWarnings("rawtypes")
 public class JournalEdit extends AcalActivity
 	implements OnCheckedChangeListener,
-				ResourceChangedListener, ResourceResponseListener {
+				ResourceChangedListener, ResourceResponseListener, OnFocusChangeListener {
 
 	public static final String TAG = "aCal JournalEdit";
 
@@ -184,16 +188,15 @@ public class JournalEdit extends AcalActivity
 					// dialog
 					mHandler.removeMessages(SAVE_FAILED);
 					isSaving = false;
-					if ( savingDialog != null ) savingDialog
-							.dismiss();
+					if ( savingDialog != null ) savingDialog.dismiss();
 					long res = (Long) msg.obj;
 					if ( res >= 0 ) {
 						Intent ret = new Intent();
-//						Bundle b = new Bundle();
+						Bundle b = new Bundle();
 //						b.putParcelable(JournalView.KEY_CACHE_OBJECT, (Long) msg.obj);
 //						b.putString( JournalView.RECURRENCE_ID_KEY, journal.getStart().toPropertyString(
 //												PropertyName.RECURRENCE_ID));
-//						ret.putExtras(b);
+						ret.putExtras(b);
 						setResult(RESULT_OK, ret);
 						saveSucceeded = true;
 
@@ -207,8 +210,7 @@ public class JournalEdit extends AcalActivity
 
 				case SAVE_FAILED:
 					isSaving = false;
-					if ( savingDialog != null ) savingDialog
-							.dismiss();
+					if ( savingDialog != null ) savingDialog.dismiss();
 					if ( saveSucceeded ) {
 						// Don't know why we get here, but we do! - cancel save failed when save succeeds.
 						// we shouldn't see this anymore.
@@ -262,6 +264,7 @@ public class JournalEdit extends AcalActivity
 	}
 
 	
+	@SuppressWarnings("unchecked")
 	private void requestJournalResource() {
 		currentOperation = ACTION_EDIT;
 		try {
@@ -359,6 +362,20 @@ public class JournalEdit extends AcalActivity
 			spinnerCollection.setEnabled(false);
 			collectionsLayout.setVisibility(View.GONE);
 		}
+		else {
+			spinnerCollection.setOnItemSelectedListener( new OnItemSelectedListener() {
+
+				@Override
+				public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
+					setSelectedCollection(collectionsArray[arg2].getCollectionId());
+				}
+
+				@Override
+				public void onNothingSelected(AdapterView<?> arg0) {
+				}
+				
+			});
+		}
 
 		//date/time fields
 		btnStartDate = (Button) this.findViewById(R.id.JournalDateTime);
@@ -420,9 +437,11 @@ public class JournalEdit extends AcalActivity
 		}
 		journalName.setTextColor(colour);
 
-		ArrayAdapter<CollectionForArrayAdapter> collectionAdapter = new ArrayAdapter(this,android.R.layout.select_dialog_item, collectionsArray);
+		ArrayAdapter<CollectionForArrayAdapter> collectionAdapter
+					= new ArrayAdapter<CollectionForArrayAdapter>(this,android.R.layout.select_dialog_item, collectionsArray);
 		int spinnerPosition = 0;
-		while( spinnerPosition < collectionsArray.length && collectionsArray[spinnerPosition].getCollectionId() != currentCollection.getCollectionId())
+		while( spinnerPosition < collectionsArray.length &&
+				collectionsArray[spinnerPosition].getCollectionId() != currentCollection.getCollectionId())
 			spinnerPosition++;
 
 		spinnerCollection.setAdapter(collectionAdapter);
@@ -486,6 +505,7 @@ public class JournalEdit extends AcalActivity
 
 	}
 
+	@SuppressWarnings("unchecked")
 	private boolean saveChanges() {
 		
 		try {
@@ -528,28 +548,32 @@ public class JournalEdit extends AcalActivity
 
 	//Dialogs
 	protected Dialog onCreateDialog(int id) {
+		AlertDialog.Builder builder;
 		switch ( id ) {
+			case SAVING_DIALOG:
+				builder = new AlertDialog.Builder(this);
+				builder.setTitle(getString(R.string.Saving));
+				builder.setCancelable(false);
+				savingDialog = builder.create();
+				return savingDialog;
 			case LOADING_DIALOG:
-				AlertDialog.Builder builder = new AlertDialog.Builder(this);
-				builder.setTitle("Loading...");
+				builder = new AlertDialog.Builder(this);
+				builder.setTitle(getString(R.string.Loading));
 				builder.setCancelable(false);
 				loadingDialog = builder.create();
 				return loadingDialog;
 		}
 		if ( journal == null ) return null;
+		checkpointCurrentValues();
 
 		// Any dialogs after this point depend on journal having been initialised
 		AcalDateTime start = journal.getStart();
 		
-		Boolean dateTypeIsDate = null;
 		if ( start == null ) {
 			start = new AcalDateTime().applyLocalTimeZone().addDays(1);
 			int newSecond = ((start.getDaySecond() / 3600) + 2) * 3600;
 			if ( newSecond > 86399 ) start.addDays(1);
 			start.setDaySecond(newSecond % 86400);
-		}
-		else {
-			dateTypeIsDate = start.isDate();
 		}
 
 		switch ( id ) {
@@ -595,4 +619,14 @@ public class JournalEdit extends AcalActivity
 		}
 	}
 
+	private void checkpointCurrentValues() {
+		// Make sure the text fields are all preserved before we start any dialogs.
+		journal.setSummary(journalName.getText().toString());
+		journal.setDescription(journalContent.getText().toString());
+	}
+
+	@Override
+	public void onFocusChange(View v, boolean hasFocus) {
+		if ( !hasFocus ) checkpointCurrentValues();
+	}
 }
