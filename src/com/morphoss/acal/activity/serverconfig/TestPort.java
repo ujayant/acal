@@ -186,6 +186,7 @@ public class TestPort {
 		if ( Constants.debugCheckServerDialog ) Log.println(Constants.LOGD,TAG,
 				"Doing PROPFIND for current-user-principal on " + requestor.fullUrl() );
 		try {
+			requestor.setAuthRequired();
 			DavNode root = requestor.doXmlRequest("PROPFIND", null, pPathHeaders, pPathRequestData);
 			
 			int status = requestor.getStatusCode();
