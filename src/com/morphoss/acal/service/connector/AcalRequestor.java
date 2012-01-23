@@ -392,33 +392,40 @@ public class AcalRequestor {
 	}
 
 	
-	private Header buildAuthHeader() throws AuthenticationFailure {
-		String authValue;
-		switch( authType ) {
-			case Servers.AUTH_BASIC:
-				authValue = String.format("Basic %s", Base64Coder.encodeString(username+":"+password));
-				if ( Constants.LOG_VERBOSE )
+	private Header basicAuthHeader() {
+		String authValue = String.format("Basic %s", Base64Coder.encodeString(username+":"+password));
+		if ( Constants.LOG_VERBOSE )
 					Log.println(Constants.LOGV,TAG, "BasicAuthDebugging: '"+authValue+"'" );
-				break;
-			case Servers.AUTH_DIGEST:
-				String A1 = md5( username + ":" + authRealm + ":" + password);
-				String A2 = md5( method + ":" + path );
-				cnonce = md5(AcalConnectionPool.getUserAgent());
-				String printNC = String.format("%08x", ++authNC);
-				String responseString = A1+":"+nonce+":"+printNC+":"+cnonce+":auth:"+A2;
-				if ( Constants.LOG_VERBOSE && Constants.debugDavCommunication )
-					Log.println(Constants.LOGV,TAG, "DigestDebugging: '"+responseString+"'" );
-				String response = md5(responseString);
-				authValue = String.format("Digest realm=\"%s\", username=\"%s\", nonce=\"%s\", uri=\"%s\""
-							+ ", response=\"%s\", algorithm=\"%s\", cnonce=\"%s\", opaque=\"%s\", nc=\"%s\""
-							+ (qop == null ? "" : ", qop=\"auth\""),
-							authRealm, username, nonce, path,
-							response, algorithm, cnonce, opaque, printNC );
-				break;
+		return new BasicHeader("Authorization", authValue );
+	}
+
+	
+	private Header digestAuthHeader() {
+		String authValue;
+		String A1 = md5( username + ":" + authRealm + ":" + password);
+		String A2 = md5( method + ":" + path );
+		cnonce = md5(AcalConnectionPool.getUserAgent());
+		String printNC = String.format("%08x", ++authNC);
+		String responseString = A1+":"+nonce+":"+printNC+":"+cnonce+":auth:"+A2;
+		if ( Constants.LOG_VERBOSE && Constants.debugDavCommunication )
+			Log.println(Constants.LOGV,TAG, "DigestDebugging: '"+responseString+"'" );
+		String response = md5(responseString);
+		authValue = String.format("Digest realm=\"%s\", username=\"%s\", nonce=\"%s\", uri=\"%s\""
+					+ ", response=\"%s\", algorithm=\"%s\", cnonce=\"%s\", opaque=\"%s\", nc=\"%s\""
+					+ (qop == null ? "" : ", qop=\"auth\""),
+					authRealm, username, nonce, path,
+					response, algorithm, cnonce, opaque, printNC );
+		return new BasicHeader("Authorization", authValue );
+	}
+
+	
+	private Header buildAuthHeader() throws AuthenticationFailure {
+		switch( authType ) {
+			case Servers.AUTH_BASIC:	return basicAuthHeader();
+			case Servers.AUTH_DIGEST:	return digestAuthHeader();
 			default:
 				throw new AuthenticationFailure("Unknown authentication type");
 		}
-		return new BasicHeader("Authorization", authValue );
 	}
 
 	
@@ -613,6 +620,10 @@ public class AcalRequestor {
 
 			if ( authRequired && authType != Servers.AUTH_NONE)
 				request.addHeader(buildAuthHeader());
+			else if ( authRequired ) {
+				// Assume basicAuth
+				request.addHeader(basicAuthHeader());
+			}
 			
 			if (entityString != null) {
 				request.setEntity(new StringEntity(entityString.toString(),"UTF-8"));
