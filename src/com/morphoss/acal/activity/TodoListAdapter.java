@@ -49,7 +49,6 @@ import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDateTimeFormatter;
 import com.morphoss.acal.database.DataChangeEvent;
-import com.morphoss.acal.database.cachemanager.CRTodosByType;
 import com.morphoss.acal.database.cachemanager.CacheChangedEvent;
 import com.morphoss.acal.database.cachemanager.CacheChangedListener;
 import com.morphoss.acal.database.cachemanager.CacheManager;
@@ -57,6 +56,7 @@ import com.morphoss.acal.database.cachemanager.CacheObject;
 import com.morphoss.acal.database.cachemanager.CacheResponse;
 import com.morphoss.acal.database.cachemanager.CacheResponseListener;
 import com.morphoss.acal.database.cachemanager.CacheManager.CacheTableManager;
+import com.morphoss.acal.database.cachemanager.requests.CRTodosByType;
 import com.morphoss.acal.dataservice.Collection;
 
 /**

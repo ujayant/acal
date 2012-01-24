@@ -27,6 +27,10 @@ import com.morphoss.acal.database.DMQueryList;
 import com.morphoss.acal.database.DataChangeEvent;
 import com.morphoss.acal.database.DatabaseTableManager;
 import com.morphoss.acal.database.DatabaseTableManager.QUERY_ACTION;
+import com.morphoss.acal.database.cachemanager.requests.CRAddRangeResult;
+import com.morphoss.acal.database.cachemanager.requests.CRObjectsInRange;
+import com.morphoss.acal.database.cachemanager.requests.CRReduceRangeSize;
+import com.morphoss.acal.database.cachemanager.requests.CRResourceChanged;
 import com.morphoss.acal.database.resourcesmanager.ResourceChangedEvent;
 import com.morphoss.acal.database.resourcesmanager.ResourceChangedListener;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager;
@@ -74,23 +78,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 	private final long minPaddingBack = 86400000L*7L*5L;	//5 weeks
 	private final long increment = 86400000L*7L*5L;	//5 weeks
 	
-	//Get an instance
-	public synchronized static CacheManager getInstance(Context context) {
-		if (instance == null) instance = new CacheManager(context);
-		return instance;
-	}
-
-	//get and instance and add a callback handler to receive notfications of change
-	//It is vital that classes remove their handlers when terminating
-	public synchronized static CacheManager getInstance(Context context, CacheChangedListener listener) {
-		if (instance == null) {
-			instance = new CacheManager(context);
-			instance.checkDefaultWindow();
-		}
-		instance.addListener(listener);
-		return instance;
-	}
-
+	
 	private Context context;
 
 	private CacheWindow window;
@@ -116,7 +104,29 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 	
 	//Request Processor Instance
 	private CacheTableManager CTMinstance;
+	
+	private static volatile boolean resourceInTransaction = false;
+	private static Semaphore lockSem = new Semaphore(1, true);
+	
+	private static volatile boolean lockdb = false;
 
+	
+	//Get an instance
+	public synchronized static CacheManager getInstance(Context context) {
+		if (instance == null) instance = new CacheManager(context);
+		return instance;
+	}
+
+	//get and instance and add a callback handler to receive notfications of change
+	//It is vital that classes remove their handlers when terminating
+	public synchronized static CacheManager getInstance(Context context, CacheChangedListener listener) {
+		if (instance == null) {
+			instance = new CacheManager(context);
+			instance.checkDefaultWindow();
+		}
+		instance.addListener(listener);
+		return instance;
+	}
 
 	private CacheTableManager getCTMInstance() {
 		if (CTMinstance == null) CTMinstance = new CacheTableManager();
@@ -149,8 +159,6 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		en.addMonths(DEF_MONTHS_AFTER);
 		defaultRange = new AcalDateRange(st,en);
 		this.sendRequest(new CRObjectsInRange(defaultRange,null));
-
-		
 	}
 
 
@@ -174,10 +182,6 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		}
 	}
 
-	private static volatile boolean resourceInTransaction = false;
-	private static Semaphore lockSem = new Semaphore(1, true);
-	
-	private static volatile boolean lockdb = false;
 	public synchronized static void setResourceInTx(Context c, boolean inTx) {
 		resourceInTransaction = inTx;
 		if (inTx) {
@@ -199,45 +203,6 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		if (!lockdb) throw new IllegalStateException("Cant release a lock that hasnt been obtained!");
 		lockdb = false;
 	}
-	
-	private synchronized static void setDBisDirty(Context c, boolean dirty) {
-		acquireMetaLock();
-		ContentValues data = new ContentValues();
-		AcalDBHelper dbHelper = new AcalDBHelper(c);
-		SQLiteDatabase db = dbHelper.getWritableDatabase();
-		db.beginTransaction();
-		
-		//get current values
-		Cursor mCursor = db.query(META_TABLE, null, null, null, null, null, null);
-		try {
-			if (mCursor.getCount() >= 1) {
-				mCursor.moveToFirst();
-				DatabaseUtils.cursorRowToContentValues(mCursor, data);
-				mCursor.close();
-				data.put(FIELD_CLOSED, !dirty);
-				if (!dirty && instance != null) {
-					AcalDateRange currentRange = instance.window.getCurrentWindow();
-					if (currentRange == null) currentRange = new AcalDateRange(new AcalDateTime(), new AcalDateTime());
-					data.put(FIELD_START, currentRange.start.getMillis());
-					data.put(FIELD_END, currentRange.end.getMillis());
-				}
-				db.update(META_TABLE, data, FIELD_ID+" = ?", new String[]{data.getAsLong(FIELD_ID)+""});
-				db.setTransactionSuccessful();
-			}
-			
-		 db.endTransaction();
-		}
-		catch( Exception e ) {
-			Log.i(TAG,Log.getStackTraceString(e));
-		}
-		finally {
-			if ( mCursor != null && !mCursor.isClosed()) mCursor.close();
-			db.close();
-			releaseMetaLock();
-		}
-	}
-	
-	
 	
 	/**
 	 * Ensures that this classes closes properly. MUST be called before it is terminated
@@ -287,7 +252,6 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		rm = null;
 		releaseMetaLock();
 	}
-
 	/**
 	 * Called on start up. if safe==false flush cache. set safe to false regardless.
 	 */
@@ -349,8 +313,45 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		releaseMetaLock();
 
 	}
-	
 
+	
+	private synchronized static void setDBisDirty(Context c, boolean dirty) {
+		acquireMetaLock();
+		ContentValues data = new ContentValues();
+		AcalDBHelper dbHelper = new AcalDBHelper(c);
+		SQLiteDatabase db = dbHelper.getWritableDatabase();
+		db.beginTransaction();
+		
+		//get current values
+		Cursor mCursor = db.query(META_TABLE, null, null, null, null, null, null);
+		try {
+			if (mCursor.getCount() >= 1) {
+				mCursor.moveToFirst();
+				DatabaseUtils.cursorRowToContentValues(mCursor, data);
+				mCursor.close();
+				data.put(FIELD_CLOSED, !dirty);
+				if (!dirty && instance != null) {
+					AcalDateRange currentRange = instance.window.getCurrentWindow();
+					if (currentRange == null) currentRange = new AcalDateRange(new AcalDateTime(), new AcalDateTime());
+					data.put(FIELD_START, currentRange.start.getMillis());
+					data.put(FIELD_END, currentRange.end.getMillis());
+				}
+				db.update(META_TABLE, data, FIELD_ID+" = ?", new String[]{data.getAsLong(FIELD_ID)+""});
+				db.setTransactionSuccessful();
+			}
+			
+		 db.endTransaction();
+		}
+		catch( Exception e ) {
+			Log.i(TAG,Log.getStackTraceString(e));
+		}
+		finally {
+			if ( mCursor != null && !mCursor.isClosed()) mCursor.close();
+			db.close();
+			releaseMetaLock();
+		}
+	}
+		
 	/**
 	 * This is called by the cache window when we should reduce our size.
 	 */
@@ -516,6 +517,8 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		public static final String	RESOURCE_TYPE_VTODO		= "VTODO";
 		public static final String	RESOURCE_TYPE_VJOURNAL	= "VJOURNAL";
 		
+		private boolean windowOnly = false;
+		
 		/**
 		 * The current request being processed. Presently not used but may become useful.
 		 */
@@ -543,6 +546,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		 */
 		public synchronized void process(CacheRequest r) { 
 			//currentRequest = r;
+			this.windowOnly = false;
 			try {
 				r.process(this);
 				if (this.inTx) {
@@ -561,6 +565,9 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 			//currentRequest = null;
 		}
 
+		public void setWindowOnlyTrue() {
+			this.windowOnly = true;
+		}
 		
 		/**
 		 * Called when table is deemed to have been corrupted.
@@ -617,7 +624,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 			if (changes.isEmpty()) return;
 			synchronized (listeners) {
 				for (CacheChangedListener listener: listeners) {
-					CacheChangedEvent cce = new CacheChangedEvent(new ArrayList<DataChangeEvent>(changes));
+					CacheChangedEvent cce = new CacheChangedEvent(new ArrayList<DataChangeEvent>(changes),windowOnly);
 					listener.cacheChanged(cce);
 				}
 			}

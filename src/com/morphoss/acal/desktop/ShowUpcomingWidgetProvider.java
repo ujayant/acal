@@ -25,9 +25,9 @@ import com.morphoss.acal.aCal;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.activity.EventView;
 import com.morphoss.acal.database.AcalDBHelper;
-import com.morphoss.acal.database.cachemanager.CRGetNextNObjects;
 import com.morphoss.acal.database.cachemanager.CacheManager;
 import com.morphoss.acal.database.cachemanager.CacheObject;
+import com.morphoss.acal.database.cachemanager.requests.CRGetNextNObjects;
 import com.morphoss.acal.dataservice.Collection;
 
 public class ShowUpcomingWidgetProvider extends AppWidgetProvider {

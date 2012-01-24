@@ -44,7 +44,6 @@ import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDateTimeFormatter;
 import com.morphoss.acal.database.DataChangeEvent;
-import com.morphoss.acal.database.cachemanager.CRObjectsInRange;
 import com.morphoss.acal.database.cachemanager.CacheChangedEvent;
 import com.morphoss.acal.database.cachemanager.CacheChangedListener;
 import com.morphoss.acal.database.cachemanager.CacheManager;
@@ -53,6 +52,7 @@ import com.morphoss.acal.database.cachemanager.CacheRequest;
 import com.morphoss.acal.database.cachemanager.CacheResponse;
 import com.morphoss.acal.database.cachemanager.CacheResponseListener;
 import com.morphoss.acal.database.cachemanager.CacheManager.CacheTableManager;
+import com.morphoss.acal.database.cachemanager.requests.CRObjectsInRange;
 import com.morphoss.acal.dataservice.Collection;
 
 /**
@@ -314,6 +314,7 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 
 	@Override
 	public void cacheChanged(CacheChangedEvent event) {
+		if (event.isWindowOnly()) return;
 		AcalDateRange myRange = new AcalDateRange(viewDate,viewDate.clone().addDays(1));
 		//up-date only if the change could have affected us
 		boolean update = false;

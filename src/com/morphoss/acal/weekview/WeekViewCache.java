@@ -14,14 +14,14 @@ import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.database.CacheModifier;
 import com.morphoss.acal.database.CacheWindow;
 import com.morphoss.acal.database.DataChangeEvent;
-import com.morphoss.acal.database.cachemanager.CRObjectsInWindow;
 import com.morphoss.acal.database.cachemanager.CacheChangedEvent;
 import com.morphoss.acal.database.cachemanager.CacheChangedListener;
 import com.morphoss.acal.database.cachemanager.CacheManager;
 import com.morphoss.acal.database.cachemanager.CacheObject;
 import com.morphoss.acal.database.cachemanager.CacheResponse;
 import com.morphoss.acal.database.cachemanager.CacheResponseListener;
-import com.morphoss.acal.database.cachemanager.CRObjectsInWindow.CRObjectsInWindowResponse;
+import com.morphoss.acal.database.cachemanager.requests.CRObjectsInWindow;
+import com.morphoss.acal.database.cachemanager.requests.CRObjectsInWindow.CRObjectsInWindowResponse;
 
 /**
  * This class provides an in memory cache of event data for WeekView to prevent unnecessarily making cache requests. or

@@ -7,8 +7,8 @@ import android.util.Log;
 
 import com.morphoss.acal.database.alarmmanager.AlarmQueueManager;
 import com.morphoss.acal.database.alarmmanager.requests.ARRebuildRequest;
-import com.morphoss.acal.database.cachemanager.CRClearCacheRequest;
 import com.morphoss.acal.database.cachemanager.CacheManager;
+import com.morphoss.acal.database.cachemanager.requests.CRClearCacheRequest;
 
 public class TimezoneChangedReceiver extends BroadcastReceiver {
 

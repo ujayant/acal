@@ -30,8 +30,8 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.morphoss.acal.ServiceManager;
-import com.morphoss.acal.database.cachemanager.CRClearCacheRequest;
 import com.morphoss.acal.database.cachemanager.CacheManager;
+import com.morphoss.acal.database.cachemanager.requests.CRClearCacheRequest;
 import com.morphoss.acal.service.SyncChangesToServer;
 import com.morphoss.acal.service.WorkerClass;
 
