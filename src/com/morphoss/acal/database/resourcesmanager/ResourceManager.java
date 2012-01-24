@@ -713,6 +713,7 @@ public class ResourceManager implements Runnable {
 		@Override
 		public ArrayList<ContentValues> getPendingResources() {
 			ArrayList<ContentValues> res = new ArrayList<ContentValues>();
+			this.beginReadTransaction();
 			beginReadQuery();
 			
 			// We need to explicitly specify all columns in this because otherwise we get the wrong _id
@@ -753,6 +754,7 @@ public class ResourceManager implements Runnable {
 			mCursor.close();
 			this.yield();
 			endQuery();
+			this.endTransaction();
 			return res;
 		}
 	}
