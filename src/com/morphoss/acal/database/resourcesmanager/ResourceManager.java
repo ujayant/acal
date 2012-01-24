@@ -128,8 +128,9 @@ public class ResourceManager implements Runnable {
 
 				if (!readQueue.isEmpty()) {
 					//Tell the processor that we are about to send a buch of reads.
+					Log.i(TAG, "Begin read TX");
 					getRPInstance().beginReadTransaction();
-
+					
 					//Start all read processes
 					while (!readQueue.isEmpty()) {
 						if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG,readQueue.size()+" items in read queue.");
@@ -161,7 +162,9 @@ public class ResourceManager implements Runnable {
 					}
 
 					//tell processor that we are done
+					Log.i(TAG, "End read TX");
 					getRPInstance().endTransaction();
+					
 
 				}
 				else {
@@ -350,6 +353,7 @@ public class ResourceManager implements Runnable {
 		public void processRead(ReadOnlyResourceRequest request) {
 			try {
 				request.process(this);
+				this.yield();
 			} catch (ResourceProcessingException e) {
 				Log.e(TAG, "Error Processing Resource Request: "
 						+ Log.getStackTraceString(e));
@@ -713,7 +717,6 @@ public class ResourceManager implements Runnable {
 		@Override
 		public ArrayList<ContentValues> getPendingResources() {
 			ArrayList<ContentValues> res = new ArrayList<ContentValues>();
-			this.beginReadTransaction();
 			beginReadQuery();
 			
 			// We need to explicitly specify all columns in this because otherwise we get the wrong _id
@@ -754,7 +757,6 @@ public class ResourceManager implements Runnable {
 			mCursor.close();
 			this.yield();
 			endQuery();
-			this.endTransaction();
 			return res;
 		}
 	}

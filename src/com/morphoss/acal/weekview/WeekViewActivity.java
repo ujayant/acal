@@ -388,7 +388,7 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	private void setupButton(int id, int val) {
 		Button myButton = (Button) this.findViewById(id);
 		if ( myButton == null ) {
-			Log.e(TAG, "Cannot find button '" + id + "' by ID, to set value '" + val + "'", new Exception());
+			//Log.e(TAG, "Cannot find button '" + id + "' by ID, to set value '" + val + "'", new Exception());
 		}
 		else {
 			myButton.setOnClickListener(this);

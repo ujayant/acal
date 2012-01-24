@@ -128,11 +128,13 @@ public abstract class DatabaseTableManager {
 		case OPEN_READ:
 			if (Constants.debugDatabaseManager && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG,"DB:"+this.getTableName()+" OPEN_READ:");
 			if (Constants.debugDatabaseManager && Constants.LOG_VERBOSE) printStackTraceInfo(Log.VERBOSE);
+			saveStackTraceInfo();
 			db = dbHelper.getReadableDatabase();
 			break;
 		case OPEN_WRITE:
 			if (Constants.debugDatabaseManager && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG,"DB:"+this.getTableName()+" OPEN_WRITE:");
 			if (Constants.debugDatabaseManager && Constants.LOG_VERBOSE) printStackTraceInfo(Log.VERBOSE);
+			saveStackTraceInfo();
 			db = dbHelper.getWritableDatabase();
 			break;
 		case OPEN_READTX:
