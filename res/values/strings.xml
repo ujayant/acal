@@ -8,6 +8,7 @@
 	<string name="setButtonLabel">Set</string>
 	<string name="appDescription">A Calendar for Android which will store your events, tasks, notes and contacts on a remote CalDAV / CardDAV server, such as DAViCal (See: www.davical.org)</string>
 	<string name="appDescriptionTasks">A Task List for Android which will store your tasks on a remote CalDAV / CardDAV server, such as DAViCal (See: www.davical.org)</string>
+	<string name="appDescriptionNotes">A Task List for Android which will store your tasks on a remote CalDAV / CardDAV server, such as DAViCal (See: www.davical.org)</string>
 	<string name="Active">Active</string>
 	<string name="Add_Server">Add Server</string>
 	<string name="A_name_for_this_server_configuration">A name to use for this server configuration</string>
@@ -53,7 +54,7 @@
 	<string name="pActive_addressbook">Active Addressbook</string>
 	<string name="pActive_for_events">Active for Events</string>
 	<string name="pActive_for_journal">Active for Notes</string>
-	<string name="pActive_for_tasks">Actve for Tasks</string>
+	<string name="pActive_for_tasks">Active for Tasks</string>
 	<string name="pUse_Alarms">Use alarms in this collection?</string>
 	<string name="Use_Alarms">Alarms Enabled</string>
 	<string name="Active_addressbook">Is this collection used to store contacts?</string>
@@ -234,7 +235,7 @@
 	<string name="AlarmPreferences">Alarm settings</string>
 	<string name="GeneralPreferences">General settings</string>
 	<string name="checkServer">Validating server</string>
-	<string name="checkServer_Connecting">Connecting to server please wait...</string>
+	<string name="checkServer_Connecting">Connecting to server please wait…</string>
 	<string name="checkServer_Internet">Checking internet connectivity</string>
 	<string name="checkServer_SearchingForServer">Searching for CalDAV server at "%s"</string>
 	<string name="checkServer_DiscoveryCancelled">Server discovery was cancelled</string>
@@ -258,6 +259,7 @@
 	<string name="Todo">Todo</string>
 	<string name="Events">Events</string>
 	<string name="Tasks">Tasks</string>
+	<string name="Journals">Notes</string>
 	<string name="Unscheduled">Unscheduled</string>
 	<string name="ChooseAction">Choose Action</string>
 	<string name="SetCompleted">Set Completed</string>
@@ -267,6 +269,7 @@
 	<string name="incompleteTasksDue">Incomplete tasks due within a week</string>
 	<string name="allTasksTitle">All Tasks</string>
 	<string name="NewTaskTitle">New Task</string>
+	<string name="NewJournalTitle">New Note</string>
 	<string name="TaskSaved">Task Saved.</string>
 	<string name="TaskModifiedAll">Modified all instances of this task.</string>
 	<string name="TaskModifiedOne">Modified single instance of this task.</string>
@@ -279,6 +282,7 @@
 	<string name="plus">+</string>
 	<string name="url">URL:</string>
 	<string name="todoName">Todo Name:</string>
+	<string name="journalName">Journal Name:</string>
 	<string name="IsADate">Is a Date</string>
 	<string name="NotSet">Not Set</string>
 	<string name="Exactly">Exactly</string>
@@ -303,4 +307,12 @@
 	<string name="noScheduledEvents">No scheduled events</string>
 	<string name="Event">Event</string>
 	<string name="Task">Task</string>
+	<string name="weekends">weekends</string>
+	<string name="weekdays">weekdays</string>
+	<string name="JournalDatePrompt">Date:</string>
+	<string name="AppearancePreferences">Appearance settings</string>
+	<string name="prefThemeButtonColour_Summary">The colour of buttons throughout the app.</string>
+	<string name="prefThemeButtonColour_Title">Button Colour</string>
+	<string name="Saving">Saving…</string>
+	<string name="Loading">Loading…</string>
 </resources>

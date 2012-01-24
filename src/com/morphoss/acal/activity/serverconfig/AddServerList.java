@@ -23,11 +23,11 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 
+import com.morphoss.acal.AcalTheme;
 import com.morphoss.acal.R;
 
 public class AddServerList extends ListActivity implements OnClickListener {
@@ -46,6 +46,7 @@ public class AddServerList extends ListActivity implements OnClickListener {
 		updateListView();
 		
 		manualConfiguration = (Button) findViewById(R.id.AddServerButton);
+		AcalTheme.setContainerFromTheme(manualConfiguration, AcalTheme.BUTTON);
 		manualConfiguration.setOnClickListener(this);
 		manualConfiguration.setText(getString(R.string.NewManualServerConfiguration));
 		manualConfiguration.setTextSize(24);

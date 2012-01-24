@@ -41,30 +41,51 @@ public class RRGetUpcomingAlarms extends ReadOnlyBlockingRequestWithResponse<Arr
 		start -= AcalDateTime.SECONDS_IN_HOUR * 36 * 1000L;
 		end   += AcalDateTime.SECONDS_IN_DAY * 70 * 1000L;
 
+		StringBuilder whereClause = new StringBuilder(ResourceTableManager.COLLECTION_ID);
+		whereClause.append(" IN (");
+		boolean pastFirst = false;
 		for( Collection collection : alarmCollections.values() ) {
 			if ( (!collection.useForEvents && !collection.useForTasks) || !collection.alarmsEnabled ) continue;
+			if ( pastFirst ) whereClause.append(',');
+			else pastFirst = true;
+			whereClause.append(collection.collectionId);
+		}
+		if ( pastFirst ) {
+			whereClause.append(')');
+			whereClause.append(" AND (");
+			whereClause.append(ResourceTableManager.LATEST_END);
+			whereClause.append(" IS NULL OR ");
+			whereClause.append(ResourceTableManager.LATEST_END);
+			whereClause.append(" >= ");
+			whereClause.append(start);
+			whereClause.append(") AND (");
+			whereClause.append(ResourceTableManager.EARLIEST_START);
+			whereClause.append(" IS NULL OR ");
+			whereClause.append(ResourceTableManager.EARLIEST_START);
+			whereClause.append(" <= ");
+			whereClause.append(end);
+			whereClause.append(") AND (");
+			whereClause.append(ResourceTableManager.RESOURCE_DATA);
+			whereClause.append(" LIKE '%BEGIN:VALARM%' )");
 
-			ArrayList<ContentValues> cvs = processor.query(null, 
-					ResourceTableManager.COLLECTION_ID+" = ?"+
-							" AND ("+ResourceTableManager.LATEST_END+" IS NULL OR " + ResourceTableManager.LATEST_END+" >= ? )" +
-							" AND ("+ResourceTableManager.EARLIEST_START+" IS NULL OR "+ResourceTableManager.EARLIEST_START+" <= ? )" +
-							" AND ("+ResourceTableManager.RESOURCE_DATA+" LIKE '%BEGIN:VALARM%' )"
-							,
-					new String[]{collection.collectionId+"", start+"", end+""},
-															null,null,null);
+			ArrayList<ContentValues> cvs = processor.query(null, whereClause.toString(), null, null,null,null);
 
 			for (ContentValues cv : cvs) {
 				Resource r = Resource.fromContentValues(cv);
-				VCalendar vc;
 				try {
-					vc = (VCalendar) VCalendar.createComponentFromResource(r);
+					VCalendar vc = (VCalendar) VCalendar.createComponentFromResource(r);
+					vc.appendAlarmInstancesBetween(alarmList, new AcalDateRange(alarmsAfter, AcalDateTime.addDays(alarmsAfter, 7)));
 				}
 				catch ( VComponentCreationException e ) {
 					// @todo Auto-generated catch block
 					Log.w(ResourceManager.TAG,"Auto-generated catch block", e);
 					continue;
 				}
-				vc.appendAlarmInstancesBetween(alarmList, new AcalDateRange(alarmsAfter, AcalDateTime.addDays(alarmsAfter, 7)));
+				catch ( Exception e ) {
+					// @todo Auto-generated catch block
+					Log.w(ResourceManager.TAG,"Auto-generated catch block", e);
+					continue;
+				}
 			}
 		}
 		Collections.sort(alarmList);

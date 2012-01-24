@@ -203,7 +203,7 @@ public class CheckServerDialog {
 					serverData.put(Servers.HAS_CALDAV, 1);
 					successMessages.add(context.getString(R.string.serverSupportsCalDAV));
 					successMessages.add(String.format(context.getString(R.string.foundPrincipalPath), requestor.fullUrl()));
-					requestor.applyToServerSettings(serverData);
+					tester.applyToServerSettings(serverData);
 				}
 				else {
 					int maxAchievement = TestPort.PORT_IS_CLOSED;
@@ -214,7 +214,15 @@ public class CheckServerDialog {
 						testers = TestPort.reIterate();
 						do {
 							tester = testers.next();
-							if ( tester.getAchievement() > maxAchievement ) maxAchievement = tester.getAchievement(); 
+							if ( tester.getAchievement() > maxAchievement ) maxAchievement = tester.getAchievement();
+/*
+							if ( tester.getAchievement() == TestPort.HAS_CALDAV ) {
+								serverData.put(Servers.HAS_CALDAV, 1);
+								successMessages.add(context.getString(R.string.serverSupportsCalDAV));
+								successMessages.add(String.format(context.getString(R.string.foundPrincipalPath), requestor.fullUrl()));
+								tester.applyToServerSettings(serverData);
+							}
+*/
 						}
 						while ( testers.hasNext() );
 					}

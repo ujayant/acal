@@ -8,6 +8,7 @@ import java.util.List;
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
 
+import android.content.ContentValues;
 import android.util.Log;
 
 import com.morphoss.acal.Constants;
@@ -43,6 +44,7 @@ public class TestPort {
 	private Boolean authOK 		= null;
 	private Boolean hasDAV		= null;
 	private Boolean hasCalDAV 	= null;
+	private Boolean hasPrincipalURL 	= null;
 
 	public final static int NO_CONNECTION = 0;
 	public final static int PORT_IS_CLOSED = 1;
@@ -51,9 +53,11 @@ public class TestPort {
 	public final static int SERVER_SUPPORTS_DAV = 4;
 	public final static int AUTH_FAILED = 5;
 	public final static int AUTH_SUCCEEDED = 6;
-	public final static int HAS_CALDAV = 7;
+	public final static int HAS_PRINCIPAL_URL = 7;
+	public final static int HAS_CALDAV = 8;
 	
 	private int achievement = NO_CONNECTION;
+	private String principalCollectionHref = null;
 
 	/**
 	 * Construct based on values from the AcalRequestor
@@ -65,7 +69,7 @@ public class TestPort {
 		this.hostName = requestor.getHostName();
 		this.port = requestor.getPort();
 		this.useSSL = requestor.getProtocol().equals("https");
-		connectTimeOut = 200 + (useSSL ? 300 : 0);
+		connectTimeOut = 500 + (useSSL ? 300 : 0);
 	}
 
 
@@ -182,6 +186,7 @@ public class TestPort {
 		if ( Constants.debugCheckServerDialog ) Log.println(Constants.LOGD,TAG,
 				"Doing PROPFIND for current-user-principal on " + requestor.fullUrl() );
 		try {
+			requestor.setAuthRequired();
 			DavNode root = requestor.doXmlRequest("PROPFIND", null, pPathHeaders, pPathRequestData);
 			
 			int status = requestor.getStatusCode();
@@ -215,7 +220,7 @@ public class TestPort {
 				authOK = true;
 				setAchievement(AUTH_SUCCEEDED);
 
-				String principalCollectionHref = null;
+				principalCollectionHref  = null;
 				for ( DavNode response : root.getNodesFromPath("multistatus/response") ) {
 					String responseHref = response.getFirstNodeText("href"); 
 					if ( Constants.debugCheckServerDialog ) Log.println(Constants.LOGD, TAG, "Checking response for "+responseHref);
@@ -230,12 +235,14 @@ public class TestPort {
 									if ( Constants.debugCheckServerDialog ) Log.println(Constants.LOGD, TAG, "This is a principal URL :-)");
 									requestor.interpretUriString(responseHref);
 									setFieldsFromRequestor();
+									hasPrincipalURL = true;
 									return true;
 								}
 								else if ( thisTag.equals("current-user-principal") ) {
 									if ( Constants.debugCheckServerDialog ) Log.println(Constants.LOGD, TAG, "Found the principal URL :-)");
 									requestor.interpretUriString(prop.getFirstNodeText("href"));
 									setFieldsFromRequestor();
+									hasPrincipalURL = true;
 									return true;
 								}
 								else if ( thisTag.equals("principal-collection-set") ) {
@@ -311,7 +318,7 @@ public class TestPort {
 
 		if ( Constants.debugCheckServerDialog ) Log.println(Constants.LOGI,TAG,
 				"Starting CalDAV dependency discovery on "+requestor.fullUrl());
-		if ( !isOpen() || !hasDAV() || !authOK() ) return false;
+		if ( !isOpen() || !hasDAV() || !authOK() || !hasPrincipalUrl() ) return false;
 
 		if ( Constants.debugCheckServerDialog ) Log.println(Constants.LOGI,TAG, "All CalDAV dependencies are present.");
 		if ( hasCalDAV == null ) {
@@ -352,6 +359,23 @@ public class TestPort {
 				"Checking authOK which was: "+(authOK == null ? "uncertain, assumed OK" : (authOK ? "OK" : "bad")));
 		return (authOK == null || authOK ? true : false);
 	}
+
+
+	/**
+	 * Return whether or not we have a principal URL
+	 */
+	public boolean hasPrincipalUrl() {
+		if ( hasPrincipalURL == null ) {
+			if ( !doPropfindPrincipal(path) ) {
+				if ( principalCollectionHref != null ) {
+					// doPrincipalPropertyReport(principalCollectionHref);
+				}
+			}
+			if ( hasPrincipalURL == null ) hasPrincipalURL = true; 
+			
+		}
+		return hasPrincipalURL;
+	}
 	
 	/**
 	 * Returns a default ArrayList<TestPort> which can be used for probing a server to try
@@ -366,19 +390,26 @@ public class TestPort {
 		else
 			testPortSet.clear();
 
-		testPortSet.add( new TestPort(requestor,443,true) );
-		testPortSet.add( new TestPort(requestor,8443,true) );
-		if ( ! requestor.getProtocol().equals("https") ) {
-			testPortSet.add( new TestPort(requestor,80,false) );
-			testPortSet.add( new TestPort(requestor,8008,false) );
+		if ( requestor.getPort() != -1 && requestor.getPort() != 80 && requestor.getPort() != 443 ) {
+			testPortSet.add( new TestPort(requestor,requestor.getPort(),true) );
+			if ( ! requestor.getProtocol().equals("https") ) {
+				testPortSet.add( new TestPort(requestor,requestor.getPort(),false) );
+			}
 		}
-		testPortSet.add( new TestPort(requestor,8843,true) );
-//		testPortSet.add( new TestPort(requestor,4443,true) );
-		testPortSet.add( new TestPort(requestor,8043,true) );
-//		testPortSet.add( new TestPort(requestor,8800,false) );
-//		testPortSet.add( new TestPort(requestor,8888,false) );
-//		testPortSet.add( new TestPort(requestor,7777,false) );
-
+		else {
+			testPortSet.add( new TestPort(requestor,443,true) );
+			testPortSet.add( new TestPort(requestor,8443,true) );
+			if ( ! requestor.getProtocol().equals("https") ) {
+				testPortSet.add( new TestPort(requestor,80,false) );
+				testPortSet.add( new TestPort(requestor,8008,false) );
+			}
+			testPortSet.add( new TestPort(requestor,8843,true) );
+//			testPortSet.add( new TestPort(requestor,4443,true) );
+			testPortSet.add( new TestPort(requestor,8043,true) );
+//			testPortSet.add( new TestPort(requestor,8800,false) );
+//			testPortSet.add( new TestPort(requestor,8888,false) );
+//			testPortSet.add( new TestPort(requestor,7777,false) );
+		}
 		return testPortSet.iterator();
 	}
 
@@ -386,6 +417,7 @@ public class TestPort {
 		if ( testPortSet == null ) return null;
 		return testPortSet.iterator();
 	}
+
 
 	/**
 	 * Using the dnsjava library, do a lookup for the SRV record for
@@ -401,7 +433,7 @@ public class TestPort {
 /*
  * The following code is tested, and works, but requires the DNSJava library.		
  */
-/*		
+/** /		
 		Name baseDomain = null;
 		Name sslPrefix = null;
 		Name plainPrefix = null;
@@ -471,7 +503,7 @@ public class TestPort {
 			}
 		}
 		return addedSome;
-*/
+/**/
 	}
 
 	
@@ -486,6 +518,14 @@ public class TestPort {
 
 	public int getAchievement() {
 		return achievement;
+	}
+
+
+	public void applyToServerSettings(ContentValues serverData) {
+		requestor.setPath(path);
+		requestor.setHostName(hostName);
+		requestor.setPortProtocol( port, (useSSL?1:0) );
+		requestor.applyToServerSettings(serverData);
 	}
 	
 }

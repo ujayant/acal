@@ -21,10 +21,12 @@
 
 package com.morphoss.acal.activity;
 
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.preference.DialogPreference;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -36,7 +38,7 @@ public class ColourPickerPreference extends DialogPreference  {
 
 	private Context context;
 	private ColourPickerDialog dialog;
-	private int color;
+	private int colour = 0xFF808080;
 	
 	public ColourPickerPreference(Context context, AttributeSet attrs) {
 		super(context, attrs);
@@ -48,12 +50,12 @@ public class ColourPickerPreference extends DialogPreference  {
 		this.dialog = null;
 	}
 	
-	public int getColor() {
-		return this.color;
+	public int getColour() {
+		return this.colour;
 	}
 	
-	public void setColor(int color) {
-		this.color = color;
+	public void setColor(int colour) {
+		this.colour = colour;
 	}
 	
 	protected void showDialog() {
@@ -65,32 +67,34 @@ public class ColourPickerPreference extends DialogPreference  {
 	public View getView(View convertView, ViewGroup parent) {
 		View v = super.getView(convertView, parent);
 		TextView tv = (TextView) v.findViewById(android.R.id.title);
-		tv.setTextColor(this.color);
+		colour = getPersistedInt(colour);
+		tv.setTextColor(this.colour);
 		return v;
 	}
 	
 	
-	public void onClick(DialogInterface dialog, int which) {
-		switch (which) {
-		case -1: {
-				ColourPickerPreference.this.color = this.dialog.warnaBaru;
-				ColourPickerPreference.this.callChangeListener(this.dialog.warnaBaru);
+	public void onClick(DialogInterface dialog, int whichButton) {
+		switch (whichButton) {
+			case Dialog.BUTTON_POSITIVE: {
+				this.colour = this.dialog.selectedColour;
+				this.persistInt(colour);
+				this.callChangeListener(this.dialog.selectedColour);
 				break;
 			}
 		}
 	}
 	
 	protected View onCreateDialogView() {
-	dialog =  new ColourPickerDialog(this.context,color, new OnColourPickerListener() {
+	dialog =  new ColourPickerDialog(this.context,colour, new OnColourPickerListener() {
 
 			@Override
 			public void onCancel(ColourPickerDialog dialog) {
-				ColourPickerPreference.this.callChangeListener(color);				
+				ColourPickerPreference.this.callChangeListener(colour);				
 			}
 
 			@Override
 			public void onOk(ColourPickerDialog dialog, int color) {
-				ColourPickerPreference.this.color = color;
+				ColourPickerPreference.this.colour = color;
 				ColourPickerPreference.this.callChangeListener(color);
 			}
 			

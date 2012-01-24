@@ -34,8 +34,7 @@ public class CacheObject implements Parcelable, Comparable<CacheObject> {
 	
 	public static final int HAS_ALARM_FLAG = 		1;
 	public static final int RECURS_FLAG =			1<<1;
-//	public static final int DIRTY_FLAG = 			1<<2;  // Re-use for some other flag.
-	public static final int FLAG_ALL_DAY = 			1<<3;
+	public static final int FLAG_ALL_DAY = 			1<<2;
 	
 
 	

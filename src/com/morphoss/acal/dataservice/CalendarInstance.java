@@ -13,6 +13,7 @@ import com.morphoss.acal.davacal.RecurrenceId;
 import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VComponent;
 import com.morphoss.acal.davacal.VEvent;
+import com.morphoss.acal.davacal.VJournal;
 import com.morphoss.acal.davacal.VTodo;
 
 public abstract class CalendarInstance {
@@ -65,7 +66,7 @@ public abstract class CalendarInstance {
 		this( calendar.getChildFromRecurrenceId(rrid), collectionId, resourceId, rrid, false);
 	}
 	
-	private CalendarInstance(Masterable masterInstance, long collectionId, long resourceId, RecurrenceId rrid, boolean delete) {
+	protected CalendarInstance(Masterable masterInstance, long collectionId, long resourceId, RecurrenceId rrid, boolean delete) {
 		this(collectionId,
 				resourceId,
 				masterInstance.getStart(),
@@ -144,8 +145,11 @@ public abstract class CalendarInstance {
 		else if ( masterInstance instanceof VTodo ) {
 			return new TodoInstance((VTodo) masterInstance, collectionId, resourceId, rrid);
 		}
+		else if ( masterInstance instanceof VJournal ) {
+			return new JournalInstance((VJournal) masterInstance, collectionId, resourceId, rrid);
+		}
 		else {
-			throw new IllegalArgumentException("Resource does not map to a known Componant Type");
+			throw new IllegalArgumentException("Resource does not map to a known Component Type");
 		}
 	}
 
@@ -156,10 +160,12 @@ public abstract class CalendarInstance {
 		Masterable obj;
 		if ( rrid == null )
 			obj = ((VCalendar)comp).getMasterChild();
-		else
+		else {
 			obj = ((VCalendar)comp).getChildFromRecurrenceId(RecurrenceId.fromString(rrid));
+		}
 
-		return getInstance(obj, res.getCollectionId(), res.getResourceId(), obj.getRecurrenceId() );
+		CalendarInstance inst =  getInstance(obj, res.getCollectionId(), res.getResourceId(), obj.getRecurrenceId() );
+		return inst;
 	}
 
 	

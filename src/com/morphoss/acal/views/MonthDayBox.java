@@ -97,9 +97,9 @@ public class MonthDayBox extends TextView {
 			int eStart, eFinish;
 			for (CacheObject e : events) {
 				if ( e.isAllDay() ) continue;
-				eStart = (int) (e.getStart()/1000 - dayEpoch);
+				eStart = (int) (e.getStartDateTime().getMillis()/1000 - dayEpoch);
 				if ( eStart < 0 ) eStart = 0;
-				eFinish = (int) (e.getEnd()/1000 - dayEpoch);
+				eFinish = (int) (e.getEndDateTime().getMillis()/1000 - dayEpoch);
 				if ( eFinish > AcalDateTime.SECONDS_IN_DAY ) eFinish = AcalDateTime.SECONDS_IN_DAY;
 				if (eStart < dayStart) dayStart = eStart;
 				if (eFinish > dayFinish) dayFinish = eFinish;
@@ -115,9 +115,9 @@ public class MonthDayBox extends TextView {
 					eFinish = dayFinish - dayStart;
 				}
 				else {
-					eStart = (int) (event.getStart()/1000 - dayEpoch) - dayStart;
+					eStart = (int) (event.getStartDateTime().getMillis()/1000 - dayEpoch) - dayStart;
 					if ( eStart < 0 ) eStart = 0;
-					eFinish = (int) (event.getEnd()/1000 - dayEpoch) - dayStart;
+					eFinish = (int) (event.getEndDateTime().getMillis()/1000 - dayEpoch) - dayStart;
 				}
 				if ( eFinish < (eStart + (secsPerPixel * minBarHeight)) )
 					eFinish = eStart + (minBarHeight * secsPerPixel);
@@ -133,7 +133,8 @@ public class MonthDayBox extends TextView {
 				
 				if ( Constants.LOG_VERBOSE && Constants.debugMonthView )
 					Log.v(TAG, String.format("%d - %d: %s (%ds - %ds, %dspp, %dx,%dy, %dw,%dh, %d-%d)",
-								event.getStart()/1000, event.getEnd()/1000, event.getSummary(),
+								event.getStartDateTime().getMillis()/1000, event.getEndDateTime().getMillis()/1000,
+								"["+event.getStartDateTime().fmtIcal()+".."+event.getEndDateTime().fmtIcal()+"] "+event.getSummary(),
 								eStart, eFinish, secsPerPixel, x, y, barWidth, (int) height,
 								(int) y+(eStart/secsPerPixel), (int) y+(eFinish/secsPerPixel)));
 			}

@@ -126,19 +126,20 @@ public class Resource implements Parcelable {
 		long latestEnd = Long.MAX_VALUE;
 		boolean needsSync = false;
 		String effectiveType = "";
+		blob = cv.getAsString(ResourceTableManager.NEW_DATA);
 		AcalDateTime modTime = new AcalDateTime();
-		if ( cv.containsKey(ResourceTableManager.PEND_RESOURCE_ID) ) {
+		if ( blob != null && cv.containsKey(ResourceTableManager.PEND_RESOURCE_ID) ) {
 			cid = cv.getAsLong(ResourceTableManager.PEND_COLLECTION_ID);
 			rid = cv.getAsLong(ResourceTableManager.PEND_RESOURCE_ID);
-			blob = cv.getAsString(ResourceTableManager.NEW_DATA);
-			if (blob == null || blob.equals(""))
-				throw new IllegalArgumentException("Can not create resource out of pending deleted.");
 			pending = true;
 		}
-		else if (cv.containsKey(ResourceTableManager.RESOURCE_ID)) {
+		else if (cv.containsKey(ResourceTableManager.RESOURCE_ID) || cv.containsKey(ResourceTableManager.PEND_RESOURCE_ID)) {
 			try {
 				cid = cv.getAsLong(ResourceTableManager.COLLECTION_ID);
-				rid = cv.getAsLong(ResourceTableManager.RESOURCE_ID);
+				if ( blob == null && cv.containsKey(ResourceTableManager.PEND_RESOURCE_ID) )
+					rid = cv.getAsLong(ResourceTableManager.PEND_RESOURCE_ID);
+				else
+					rid = cv.getAsLong(ResourceTableManager.RESOURCE_ID);
 				blob = cv.getAsString(ResourceTableManager.RESOURCE_DATA);
 				effectiveType = cv.getAsString(ResourceTableManager.EFFECTIVE_TYPE);
 				try {

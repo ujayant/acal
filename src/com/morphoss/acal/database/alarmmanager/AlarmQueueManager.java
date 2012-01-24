@@ -18,6 +18,7 @@ import android.os.ConditionVariable;
 import android.util.Log;
 
 import com.morphoss.acal.Constants;
+import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.activity.AlarmActivity;
@@ -158,18 +159,15 @@ public class AlarmQueueManager implements Runnable, ResourceChangedListener  {
 		SQLiteDatabase db = dbHelper.getWritableDatabase();
 		//load start/end range from meta table
 		Cursor mCursor = db.query(META_TABLE, null, null, null, null, null, null);
-		int closedState = 0;
+		boolean wasClosedCleanly = false;
 		try {
 			if (mCursor.getCount() < 1) {
 				Log.i(TAG, "Initializing cache for first use.");
-				data.put(FIELD_CLOSED, 0);
-				rebuild();
-				
 			} else  {
 				mCursor.moveToFirst();
 				DatabaseUtils.cursorRowToContentValues(mCursor, data);
+				wasClosedCleanly = StaticHelpers.toBoolean(data.getAsInteger(FIELD_CLOSED), false);
 			}
-			closedState = data.getAsInteger(FIELD_CLOSED);
 		}
 		catch( Exception e ) {
 			Log.i(TAG,Log.getStackTraceString(e));
@@ -178,7 +176,7 @@ public class AlarmQueueManager implements Runnable, ResourceChangedListener  {
 			if ( mCursor != null ) mCursor.close();
 		}
 
-		if ( closedState == 0) {
+		if ( !wasClosedCleanly ) {
 			Log.i(TAG, "Rebuiliding alarm cache.");
 			rebuild();
 		}
@@ -487,7 +485,7 @@ public class AlarmQueueManager implements Runnable, ResourceChangedListener  {
 			super.beginTransaction();
 			try {
 				for (DataChangeEvent change : changes) {
-					this.yeild();
+					this.yield();
 					super.delete(FIELD_RID+" = ?", new String[]{change.getData().getAsLong(ResourceTableManager.RESOURCE_ID)+""});
 					switch (change.action) {
 						case INSERT:
@@ -526,6 +524,10 @@ public class AlarmQueueManager implements Runnable, ResourceChangedListener  {
 			catch ( VComponentCreationException e ) {
 				// @todo Auto-generated catch block
 				Log.w(TAG,"Auto-generated catch block", e);
+				return;
+			}
+			if ( vc == null ) {
+				Log.w(TAG,"Couldn't create VCalendar from resource "+r.getResourceId()+":\n"+r.getBlob());
 				return;
 			}
 			vc.appendAlarmInstancesBetween(alarmList, new AcalDateRange(after, AcalDateTime.addDays(after, 7)));

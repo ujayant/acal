@@ -44,7 +44,7 @@ public class TimePickerPreference extends DialogPreference implements
 	/**
 	 * The default value for this preference
 	 */
-	private String defaultValue;
+	private String defaultValue = "12:00";
  
 	/**
 	 * @param context
@@ -71,7 +71,7 @@ public class TimePickerPreference extends DialogPreference implements
 	private void initialize( Context context) {
 		setPersistent(true);
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-		defaultValue = prefs.getString(getKey(), "12:00");
+		defaultValue = prefs.getString(getKey(), defaultValue);
 	}
  
 	/*
@@ -107,7 +107,7 @@ public class TimePickerPreference extends DialogPreference implements
 	@Override
 	public void onTimeChanged(TimePicker view, int hour, int minute) {
  
-		persistString(hour + ":" + minute);
+		persistString(String.format("%02d:%02d",hour , minute));
 	}
  
 	/*

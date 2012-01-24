@@ -49,10 +49,12 @@ public class HomeSetDiscovery extends ServiceJob {
 
 	final private static String pHomeData = 
 "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-"<propfind xmlns=\"DAV:\" xmlns:C=\"urn:ietf:params:xml:ns:caldav\" xmlns:A=\"urn:ietf:params:xml:ns:carddav\">\n"+
+"<propfind xmlns=\""+Constants.NS_DAV+"\""+
+"    xmlns:C=\""+Constants.NS_CALDAV+"\""+
+"    xmlns:CARD=\""+Constants.NS_CARDDAV+"\">"+
 " <prop>\n"+
 "  <C:calendar-home-set/>\n"+
-"  <A:addressbook-home-set/>\n"+
+"  <CARD:addressbook-home-set/>\n"+
 " </prop>\n"+
 "</propfind>";
 

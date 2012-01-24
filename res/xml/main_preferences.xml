@@ -98,4 +98,14 @@
 			android:summary="@string/prefWeekViewDayWidth_Summary"
 			android:title="@string/prefWeekViewDayWidth_Title" />
 	</PreferenceScreen>
+	<PreferenceScreen android:title="@string/AppearancePreferences" >
+		<com.morphoss.acal.activity.ColourPickerPreference
+			android:defaultValue="-53216"
+			android:enabled="true"
+			android:key="@string/prefThemeButtonColour"
+			android:persistent="true"
+			android:selectable="true"
+			android:summary="@string/prefThemeButtonColour_Summary"
+			android:title="@string/prefThemeButtonColour_Title" />
+	</PreferenceScreen>
 </PreferenceScreen>

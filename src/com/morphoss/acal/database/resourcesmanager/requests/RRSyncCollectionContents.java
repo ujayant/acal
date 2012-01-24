@@ -111,15 +111,15 @@ public class RRSyncCollectionContents implements ResourceRequest {
 	 * @param collectionId
 	 * @param forceSync
 	 */
-	public RRSyncCollectionContents(int collectionId, boolean forceSync ) {
+	public RRSyncCollectionContents(long collectionId, boolean forceSync ) {
 		this.collectionId = collectionId;
 		this.synchronisationForced = forceSync;
 	}
 	
 	
 	@Override
-	public void process(WriteableResourceTableManager processor)	throws ResourceProcessingException {
-		this.processor = processor;
+	public void process(WriteableResourceTableManager writeProcessor)	throws ResourceProcessingException {
+		this.processor = writeProcessor;
 		if ( Constants.debugHeap ) AcalDebug.heapDebug(TAG, "SyncCollectionContents start");
 		if ( collectionId < 0 || !getCollectionInfo()) {
 			Log.w(TAG, "Could not read collection " + collectionId + " for server " + serverId
@@ -159,7 +159,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 			else 
 				syncMarkedResources( originalData );
 			
-			if ( (serverData.getAsInteger(Servers.HAS_SYNC) != null && (1 == serverData.getAsInteger(Servers.HAS_SYNC))
+			if ( (StaticHelpers.toBoolean(serverData.getAsInteger(Servers.HAS_SYNC),false) && !this.synchronisationForced
 										? doRegularSyncReport()
 										: doRegularSyncPropfind() ) ) {
 				originalData =  processor.contentQueryMap(
@@ -231,7 +231,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 
 		try {
 			// get serverData
-			serverData = processor.getServerData(serverId);
+			serverData = processor.getServerRow(serverId);
 			if (serverData == null) throw new Exception("No record for ID " + serverId);
 			requestor = AcalRequestor.fromServerValues(serverData);
 			requestor.setPath(collectionPath);
@@ -269,7 +269,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 //							+ "<getlastmodified/>"
 //							+ "<" + dataType + "-data xmlns=\"" + nameSpace + "\"/>"
 						+ "</prop>"
-					+ "<sync-token>" + oldSyncToken + "</sync-token>"
+					+ (oldSyncToken == null ? "" : "<sync-token>" + oldSyncToken + "</sync-token>")
 					+ "</sync-collection>"
 				);
 
@@ -279,7 +279,10 @@ public class RRSyncCollectionContents implements ResourceRequest {
 			Log.i(TAG, "Unable to sync collection " + this.collectionPath + " (ID:" + this.collectionId
 						+ " - no data from server.");
 			syncWasCompleted = false;
-			return false;
+			Log.i("aCal","Sync report did not work.  Attempting sync via PROPFIND.");
+			syncToken = null;
+			updateCollectionToken(syncToken);
+			return doRegularSyncPropfind();
 		}
 /**
  * SOGO's sync-response looks like this (as of draft-1):
@@ -314,6 +317,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
    <status>HTTP/1.1 200 OK</status>
   </propstat>
  </response>
+ <sync-token>urn:,1322100412</sync-token>
 </multistatus>
  * 
  */
@@ -388,7 +392,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 					if ( Constants.LOG_DEBUG )
 						Log.println(Constants.LOGD,TAG,"Updating node "+responseHref+" with "+builder.getAction().toString() );
 					// We are dealing with an update or insert
-					if ( !parseResponseNode(response, cv) ) continue;
+					if ( !parseResponseNode(response, cv, false) ) continue;
 					if ( cv.getAsInteger(ResourceTableManager.NEEDS_SYNC) == 1 ) needSyncAfterwards = true; 
 	
 				}
@@ -457,6 +461,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 						+ "<prop>"
 							+ "<getetag/>"
 							+ "<CS:getctag/>"
+							+ "<sync-token/>"
 						+ "</prop>"
 					+ "</propfind>"
 				);
@@ -501,8 +506,8 @@ public class RRSyncCollectionContents implements ResourceRequest {
 					//action = WriteActions.INSERT;
 					builder.setAction(QUERY_ACTION.INSERT);
 				}
-				
-				if ( !parseResponseNode(response, cv) ) continue;
+
+				if ( !parseResponseNode(response, cv, false) ) continue;
 				if ( cv.getAsInteger(ResourceTableManager.NEEDS_SYNC) == 1 ) needSyncAfterwards = true; 
 
 				needSyncAfterwards = true; 
@@ -665,6 +670,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 			if ( m.find() ) toBeRemoved.add(m.group(1));
 		}
 
+		String pathOnServer =  StaticHelpers.pathOnServer(collectionPath);
 		int limit;
 		StringBuilder hrefList; 
 		for (int hrefIndex = 0; hrefIndex < hrefs.length; hrefIndex += nPerMultiget) {
@@ -673,7 +679,14 @@ public class RRSyncCollectionContents implements ResourceRequest {
 			
 			hrefList = new StringBuilder();
 			for (int i = hrefIndex; i < limit; i++) {
-				hrefList.append(String.format("<D:href>%s</D:href>\n", collectionPath + hrefs[i].toString()));
+				try {
+					hrefList.append(String.format("<D:href>%s</D:href>\n", pathOnServer + hrefs[i].toString()));
+					if (Constants.LOG_DEBUG)
+						Log.w(TAG,"Fetching resource from: "+ pathOnServer + " " + hrefs[i].toString());
+				}
+				catch( Exception e) {
+					Log.e(TAG,"Error syncing resource.", e);
+				}
 			}
 		
 			if (Constants.LOG_DEBUG)
@@ -704,20 +717,18 @@ public class RRSyncCollectionContents implements ResourceRequest {
 
 				ContentValues cv = originalData.get(name);
 				DMQueryBuilder builder = processor.getNewQueryBuilder();
-				//WriteActions action = WriteActions.UPDATE;
 				builder.setAction(QUERY_ACTION.UPDATE);
 				
 				if ( cv == null ) {
 					cv = new ContentValues();
 					cv.put(ResourceTableManager.COLLECTION_ID, collectionId);
 					cv.put(ResourceTableManager.RESOURCE_NAME, name);
-					//action= WriteActions.INSERT;
 					builder.setAction(QUERY_ACTION.INSERT);
 				} else {
 					builder.setWhereClause(ResourceTableManager.RESOURCE_ID+" = ?");
 					builder.setwhereArgs(new String[]{cv.getAsString(ResourceTableManager.RESOURCE_ID)});
 				}
-				if ( !parseResponseNode(response, cv) ) continue;
+				if ( !parseResponseNode(response, cv, true) ) continue;
 				if ( cv.getAsString("COLLECTION") != null ) continue;
 
 				if (Constants.LOG_DEBUG)
@@ -753,7 +764,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 	 * </p>
 	 * @return true If we need to write to the database, false otherwise.
 	 */
-	private boolean parseResponseNode(DavNode responseNode, ContentValues cv) {
+	private boolean parseResponseNode(DavNode responseNode, ContentValues cv, boolean multiGetWithData) {
 
 		DavNode prop = null;
 		for ( DavNode testPs : responseNode.getNodesFromPath("propstat")) {
@@ -762,6 +773,17 @@ public class RRSyncCollectionContents implements ResourceRequest {
 				prop = testPs.getNodesFromPath("prop").get(0);
 				break;
 			}
+
+			if ( multiGetWithData && statusText.equalsIgnoreCase("HTTP/1.1 404 OK") || statusText.equalsIgnoreCase("HTTP/1.1 201 Created")) {
+				prop = testPs.getNodesFromPath("prop").get(0);
+				List<DavNode> dataNodes = prop.getNodesFromPath(dataType + "-data");
+				if ( !dataNodes.isEmpty() ) {
+					// Force a synchronisation after this.
+					this.synchronisationForced = true;
+				}
+				break;
+			}
+
 		}
 		
 		if ( prop == null ) {
@@ -850,6 +872,7 @@ public class RRSyncCollectionContents implements ResourceRequest {
 
 		for (int hrefIndex = 0; hrefIndex < hrefs.length; hrefIndex++) {
 			path = collectionPath + hrefs[hrefIndex];
+			ContentValues originalValues = originalData.get(hrefs[hrefIndex]);
 
 			try {
 				in = requestor.doRequest("GET", path, headers, "");
@@ -886,23 +909,27 @@ public class RRSyncCollectionContents implements ResourceRequest {
 						catch (IOException e) {
 							Log.i(TAG,Log.getStackTraceString(e));
 						}
-						ContentValues cv = originalData.get(hrefs[hrefIndex]);
-						cv.put(ResourceTableManager.RESOURCE_DATA, resourceData.toString() );
+						originalValues.put(ResourceTableManager.RESOURCE_DATA, resourceData.toString() );
 						for (Header hdr : requestor.getResponseHeaders()) {
 							if (hdr.getName().equalsIgnoreCase("ETag")) {
-								cv.put(ResourceTableManager.ETAG, hdr.getValue());
+								originalValues.put(ResourceTableManager.ETAG, hdr.getValue());
 								break;
 							}
 						}
-						cv.put(ResourceTableManager.NEEDS_SYNC, 0);
-						queryList.addAction(processor.getNewUpdateQuery(cv, ResourceTableManager.RESOURCE_ID+" = ?", new String[]{cv.getAsString(ResourceTableManager.RESOURCE_ID)}));
+						originalValues.put(ResourceTableManager.NEEDS_SYNC, 0);
+						queryList.addAction(processor.getNewUpdateQuery(originalValues, ResourceTableManager.RESOURCE_ID+" = ?", new String[]{originalValues.getAsString(ResourceTableManager.RESOURCE_ID)}));
 						//changeList.add( new ResourceModification(WriteActions.UPDATE, cv, null) );
 						if (Constants.LOG_DEBUG)
 							Log.println(Constants.LOGD,TAG, "Get response for "+hrefs[hrefIndex] );
 						break;
 
+					case 404: // Not found.
+						queryList.addAction(processor.getNewDeleteQuery(ResourceTableManager.RESOURCE_ID+" = ?",
+								new String[]{originalValues.getAsString(ResourceTableManager.RESOURCE_ID)}));
+						break;
+						
 					default: // Unknown code
-						Log.w(TAG, "Status " + status + " on GET request for " + path);
+						Log.w(TAG, "Unhandled status " + status + " on GET request for " + path);
 				}
 			}
 		}

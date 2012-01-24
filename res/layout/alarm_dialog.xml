@@ -6,8 +6,9 @@
 	android:orientation="vertical" >
 	<TextView
 		android:id="@+id/alarmRelativeDuration"
-		android:layout_width="wrap_content"
+		android:layout_width="290sp"
 		android:layout_height="fill_parent"
+		android:layout_gravity="center_horizontal"
 		android:layout_marginLeft="15sp"
 		android:layout_marginRight="5sp"
 		android:layout_marginTop="3sp"
@@ -19,13 +20,14 @@
 		android:textColor="#ff000000" />
 	<TextView
 		android:id="@+id/alarmTimeText"
-		android:layout_width="wrap_content"
+		android:layout_width="290sp"
 		android:layout_height="wrap_content"
+		android:layout_gravity="center"
 		android:layout_marginLeft="15sp"
 		android:layout_marginRight="5sp"
 		android:layout_marginTop="3sp"
 		android:gravity="left"
-		android:text="7:00pm, 29 November 2011"
+		android:text="7:00pm, 29 September 2012"
 		android:textAppearance="?android:attr/textAppearanceLarge"
 		android:textColor="#ff000000" />
 	<LinearLayout
@@ -36,16 +38,20 @@
 		<LinearLayout
 			android:id="@+id/AbsoluteAlarmTimeLayout"
 			android:layout_width="fill_parent"
-			android:layout_height="wrap_content" >
+			android:layout_height="wrap_content"
+			android:layout_gravity="center|center_horizontal"
+			android:gravity="center_horizontal" >
 			<LinearLayout
-				android:layout_width="fill_parent"
+				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
-				android:background="@color/themed_button_colour" >
+				android:background="@color/themed_button_colour"
+				android:gravity="center" >
 				<Button
 					android:id="@+id/AbsoluteDateTime"
 					style="@style/themed_button_big"
-					android:layout_width="fill_parent"
+					android:layout_width="wrap_content"
 					android:layout_height="40sp"
+					android:layout_gravity="center_horizontal"
 					android:minHeight="36sp"
 					android:text="7:00pm, 29 November 2011" />
 			</LinearLayout>
@@ -53,7 +59,7 @@
 		<LinearLayout
 			android:id="@+id/RelativeDurationLayout"
 			android:layout_width="fill_parent"
-			android:layout_height="40sp"
+			android:layout_height="wrap_content"
 			android:orientation="vertical" >
 			<SeekBar
 				android:id="@+id/alarmAdjustDuration"
@@ -65,44 +71,85 @@
 				android:paddingRight="10sp" />
 		</LinearLayout>
 	</LinearLayout>
+	<!-- Themed buttons -->
 	<LinearLayout
 		android:id="@+id/ButtonLayout"
 		android:layout_width="fill_parent"
 		android:layout_height="wrap_content"
+		android:layout_gravity="center_horizontal"
 		android:gravity="center_horizontal"
 		android:weightSum="40" >
-		<Button
-			android:id="@+id/AlarmBeforeButton"
-			android:layout_width="100sp"
+		<LinearLayout
+			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
-			android:layout_margin="15sp"
-			android:minHeight="36sp"
-			android:text="Before"
-			android:textSize="24sp" />
-		<Button
-			android:id="@+id/AlarmRelatedButton"
-			android:layout_width="100sp"
+			android:padding="0sp" >
+			<LinearLayout
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:background="@color/themed_button_colour"
+				android:padding="0sp" >
+				<Button
+					android:id="@+id/AlarmBeforeButton"
+					style="@style/themed_bottom_button"
+					android:layout_width="100sp"
+					android:layout_height="wrap_content"
+					android:text="Before"
+					android:textSize="24sp" />
+			</LinearLayout>
+		</LinearLayout>
+		<LinearLayout
+			android:layout_width="0dp"
 			android:layout_height="wrap_content"
-			android:layout_margin="15sp"
-			android:minHeight="36sp"
-			android:text="Start"
-			android:textSize="24sp" />
+			android:layout_weight="2" >
+		</LinearLayout>
+		<LinearLayout
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:background="@color/themed_button_colour"
+			android:padding="0sp" >
+			<Button
+				android:id="@+id/AlarmRelatedButton"
+				style="@style/themed_bottom_button"
+				android:layout_width="100sp"
+				android:layout_height="wrap_content"
+				android:text="Start"
+				android:textSize="24sp" />
+		</LinearLayout>
 	</LinearLayout>
+	<!-- Theme buttons end -->
 	<LinearLayout
 		android:id="@+id/OkCancelLayout"
 		android:layout_width="fill_parent"
 		android:layout_height="wrap_content"
+		android:layout_gravity="center_horizontal"
 		android:gravity="center_horizontal"
-		android:paddingTop="10sp" >
+		android:paddingTop="30sp" >
+		<LinearLayout
+			android:layout_width="0dp"
+			android:layout_height="wrap_content"
+			android:layout_weight="2" >
+		</LinearLayout>
 		<Button
 			android:id="@+id/AlarmOkButton"
-			android:layout_width="90sp"
+			android:layout_width="100sp"
 			android:layout_height="wrap_content"
 			android:text="@string/ok" />
 		<Button
 			android:id="@+id/AlarmCancelButton"
-			android:layout_width="90sp"
+			android:layout_width="100sp"
 			android:layout_height="wrap_content"
 			android:text="@string/cancel" />
+		<LinearLayout
+			android:layout_width="0dp"
+			android:layout_height="wrap_content"
+			android:layout_weight="2" >
+		</LinearLayout>
 	</LinearLayout>
+	<!-- Blank text field to set width -->
+	<TextView
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:text="                                                                                   " >
+	</TextView>
+	<!-- Blank text field to set width ends -->
 </LinearLayout>

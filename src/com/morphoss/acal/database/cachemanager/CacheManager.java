@@ -1,6 +1,7 @@
 package com.morphoss.acal.database.cachemanager;
 
 import java.util.ArrayList;
+import java.util.TimeZone;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.Semaphore;
@@ -10,6 +11,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.os.ConditionVariable;
 import android.util.Log;
 import android.widget.Toast;
@@ -68,7 +70,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 	//Settings
 	private static final int DEF_MONTHS_BEFORE = -1;	//these 2 represent the default window size
 	private static final int DEF_MONTHS_AFTER = 3;		//relative to todays date
-	public static final boolean	DEBUG	= false && Constants.DEBUG_MODE;
+	public static final boolean	DEBUG	= true && Constants.DEBUG_MODE;
 		
 	//Cache Window settings
 	private final long lookForward = 86400000L*7L*10L;	//10 weeks
@@ -204,6 +206,50 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		lockdb = false;
 	}
 	
+	private synchronized static void setDBisDirty(Context c, boolean dirty) {
+		acquireMetaLock();
+		ContentValues data = new ContentValues();
+		AcalDBHelper dbHelper = new AcalDBHelper(c);
+		SQLiteDatabase db = dbHelper.getWritableDatabase();
+		
+		//get current values
+		Cursor mCursor = db.query(META_TABLE, null, null, null, null, null, null);
+		try {
+			if (mCursor.getCount() >= 1) {
+				mCursor.moveToFirst();
+				DatabaseUtils.cursorRowToContentValues(mCursor, data);
+				mCursor.close();
+				db.beginTransaction();
+				data.put(FIELD_CLOSED, !dirty);
+				if (!dirty && instance != null) {
+					AcalDateRange currentRange = instance.window.getCurrentWindow();
+					if (currentRange == null) currentRange = new AcalDateRange(new AcalDateTime(), new AcalDateTime());
+					data.put(FIELD_START, currentRange.start.getMillis());
+					data.put(FIELD_END, currentRange.end.getMillis());
+				}
+				db.update(META_TABLE, data, FIELD_ID+" = ?", new String[]{data.getAsLong(FIELD_ID)+""});
+				db.setTransactionSuccessful();
+				db.yieldIfContendedSafely();
+			}
+			
+		}
+		catch( Exception e ) {
+			Log.i(TAG,Log.getStackTraceString(e));
+		}
+		finally {
+			if ( mCursor != null && !mCursor.isClosed()) mCursor.close();
+			if ( db.inTransaction() ) db.endTransaction();
+			try {
+				db.close();
+			}
+			catch( SQLiteException e ) {
+				Log.e(TAG,Log.getStackTraceString(e));
+			}
+			releaseMetaLock();
+		}
+	}
+	
+	
 	/**
 	 * Ensures that this classes closes properly. MUST be called before it is terminated
 	 */
@@ -315,42 +361,6 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 	}
 
 	
-	private synchronized static void setDBisDirty(Context c, boolean dirty) {
-		acquireMetaLock();
-		ContentValues data = new ContentValues();
-		AcalDBHelper dbHelper = new AcalDBHelper(c);
-		SQLiteDatabase db = dbHelper.getWritableDatabase();
-		db.beginTransaction();
-		
-		//get current values
-		Cursor mCursor = db.query(META_TABLE, null, null, null, null, null, null);
-		try {
-			if (mCursor.getCount() >= 1) {
-				mCursor.moveToFirst();
-				DatabaseUtils.cursorRowToContentValues(mCursor, data);
-				mCursor.close();
-				data.put(FIELD_CLOSED, !dirty);
-				if (!dirty && instance != null) {
-					AcalDateRange currentRange = instance.window.getCurrentWindow();
-					if (currentRange == null) currentRange = new AcalDateRange(new AcalDateTime(), new AcalDateTime());
-					data.put(FIELD_START, currentRange.start.getMillis());
-					data.put(FIELD_END, currentRange.end.getMillis());
-				}
-				db.update(META_TABLE, data, FIELD_ID+" = ?", new String[]{data.getAsLong(FIELD_ID)+""});
-				db.setTransactionSuccessful();
-			}
-			
-		 db.endTransaction();
-		}
-		catch( Exception e ) {
-			Log.i(TAG,Log.getStackTraceString(e));
-		}
-		finally {
-			if ( mCursor != null && !mCursor.isClosed()) mCursor.close();
-			db.close();
-			releaseMetaLock();
-		}
-	}
 		
 	/**
 	 * This is called by the cache window when we should reduce our size.
@@ -427,7 +437,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 
 			AcalDateRange range = window.getRequestedWindow();
 			if (range == null) {
-				Log.w(TAG, "Have response from range request but window says no range requested? aborting.");
+				Log.w(TAG, "Have response from range request but window says no range requested? Aborting!", new Exception(""));
 				return;
 			}
 			
@@ -587,6 +597,40 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 			checkDefaultWindow();
 		}
 		
+		
+		/**
+		 * One specific common query for the cache is to fetch rows for a particular range of dates.
+		 * 
+		 * @param range Must not be null, or have either end null
+		 * @return
+		 */
+		public ArrayList<ContentValues> queryInRange( AcalDateRange range ) {
+			long dtStart = range.start.getMillis();
+			long dtEnd = range.end.getMillis();
+			int offsetS = TimeZone.getDefault().getOffset(range.start.getMillis());
+			int offsetE = TimeZone.getDefault().getOffset(range.start.getMillis());
+			
+			String whereClause = 				
+			"( " + 
+				"( "+CacheTableManager.FIELD_DTEND+" > "+dtStart+" AND NOT "+CacheTableManager.FIELD_DTEND_FLOAT+" )"+
+					" OR "+
+				"( "+CacheTableManager.FIELD_DTEND+" - "+offsetS+" > "+dtStart+" AND "+CacheTableManager.FIELD_DTEND_FLOAT+" )"+
+					" OR "+
+				"( "+CacheTableManager.FIELD_DTEND+" ISNULL )"+
+			" ) AND ( "+
+				"( "+CacheTableManager.FIELD_DTSTART+" < "+dtEnd+" AND NOT "+CacheTableManager.FIELD_DTSTART_FLOAT+" )"+
+					" OR "+
+				"( "+CacheTableManager.FIELD_DTSTART+" - "+offsetE+" < "+dtEnd+" AND "+CacheTableManager.FIELD_DTSTART_FLOAT+" )"+
+					" OR "+
+				"( "+CacheTableManager.FIELD_DTSTART+" ISNULL )"+
+			")";
+			if ( CacheManager.DEBUG && Constants.LOG_DEBUG )
+				Log.println(Constants.LOGD, CacheManager.TAG,
+					"Selecting cache objects in "+range+": \nSELECT * FROM event_cache WHERE "+whereClause  );
+			
+			return this.query(null, whereClause, null, null,null,CacheTableManager.FIELD_DTSTART+" ASC");
+		}
+
 		
 		/**
 		 * Checks that the window has been populated with the requested range

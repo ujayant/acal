@@ -9,8 +9,8 @@ import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteMisuseException;
-import android.util.Log;
 import android.os.Process;
+import android.util.Log;
 
 import com.morphoss.acal.Constants;
 
@@ -47,7 +47,7 @@ public abstract class DatabaseTableManager {
 
 	
 	private long dbOpened;
-	private long dbYeilded;
+	private long dbYielded;
 	
 	public enum QUERY_ACTION { INSERT, UPDATE, DELETE, PENDING_RESOURCE };
 	
@@ -123,7 +123,7 @@ public abstract class DatabaseTableManager {
 		dbHelper = new AcalDBHelper(context);
 		changes = new ArrayList<DataChangeEvent>();
 		this.dbOpened = System.currentTimeMillis();
-		this.dbYeilded = dbOpened;
+		this.dbYielded = dbOpened;
 		switch (type) {
 		case OPEN_READ:
 			if (Constants.debugDatabaseManager && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG,"DB:"+this.getTableName()+" OPEN_READ:");
@@ -182,24 +182,24 @@ public abstract class DatabaseTableManager {
 		default:
 			throw new IllegalArgumentException("Invalid argument provided for openDB");
 		}
-		long time = System.currentTimeMillis()-this.dbYeilded;
+		long time = System.currentTimeMillis()-this.dbYielded;
 		//Metric checking to make sure that the database is being used correctly.
-		if (time > 100) {
-			Log.w(TAG, "Database opened for excessive period of time ("+time+"ms) Without yeild!:");
+		if ( (Constants.DEBUG_MODE && time > 700) || time > 2000 ) {
+			Log.w(TAG, "Database opened for excessive period of time ("+time+"ms) Without yield!:");
 			this.printStackTraceInfo(Log.WARN);
 		}
-		if (Constants.debugDatabaseManager) {
+		if (Constants.debugDatabaseManager && Constants.LOG_DEBUG ) {
 			time = System.currentTimeMillis()- this.dbOpened;
-			Log.d(TAG, "Database opened for "+time+"ms");
+			Log.println(Constants.LOGD, TAG, "Database opened for "+time+"ms");
 		}
 		this.dataChanged(changes);
 		changes = null;
 	}
 	
-	public void yeild() {
-		if (Constants.debugDatabaseManager) Log.d(TAG, "Yeild Called.");
+	public void yield() {
+		if (Constants.debugDatabaseManager) Log.d(TAG, "Yield Called.");
 		if (db != null) {
-			this.dbYeilded = System.currentTimeMillis();
+			this.dbYielded = System.currentTimeMillis();
 			db.yieldIfContendedSafely();
 		}
 	}
@@ -244,19 +244,24 @@ public abstract class DatabaseTableManager {
 	//Some useful generic methods
 
 	public int delete(String whereClause, String[] whereArgs) {
-		if (Constants.debugDatabaseManager && Constants.LOG_VERBOSE) Log.println(Constants.LOGV,TAG,
+		if (Constants.debugDatabaseManager && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG,
 				"Deleting Row on "+this.getTableName()+":\n\tWhere: "+whereClause);
 		beginWriteQuery();
-		//First select or the row i'ds
+		//First select or the row id's
 		ArrayList<ContentValues> rows = this.query(null, whereClause, whereArgs, null,null,null);
 		int count = db.delete(getTableName(), whereClause, whereArgs);
+		endQuery();
 		if (count != rows.size()) {
 			if (Constants.debugDatabaseManager) Log.w(TAG, "Inconsistent number of rows deleted!");
 		}
-		for (ContentValues cv : rows) {
-			changes.add(new DataChangeEvent(QUERY_ACTION.DELETE,cv));
+		if (count == 0) {
+			if (Constants.debugDatabaseManager) Log.w(TAG, "No rows deleted for '"+whereClause+"' args: "+whereArgs);
 		}
-		endQuery();
+		else {
+			for (ContentValues cv : rows) {
+				changes.add(new DataChangeEvent(QUERY_ACTION.DELETE,cv));
+			}
+		}
 		return count;
 	}
 
@@ -294,7 +299,7 @@ public abstract class DatabaseTableManager {
 			if ( DatabaseTableManager.this.inTx ) {
 				for (DMAction action : actions) {
 					action.process(this);
-					this.yeild();
+					this.yield();
 				}
 			}
 			else {
@@ -302,7 +307,7 @@ public abstract class DatabaseTableManager {
 				openDb = true;
 				for (DMAction action : actions) {
 					action.process(this);
-					this.yeild();
+					this.yield();
 				}
 				setTxSuccessful();
 			}

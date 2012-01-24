@@ -1,5 +1,8 @@
 package com.morphoss.acal;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewParent;
@@ -18,6 +21,13 @@ public final class AcalTheme {
 	public static final int BACKGROUND = 2;
 	private static final String	TAG	= "AcalTheme";
 
+	public static SharedPreferences prefs;
+	
+	public static void initializeTheme(Context context) {
+		prefs = PreferenceManager.getDefaultSharedPreferences(context);
+		themeButtonColour = prefs.getInt(context.getString(R.string.prefThemeButtonColour), themeButtonColour);
+		Log.i(TAG,"Set theme button colour to "+themeButtonColour);
+	}	
 
 	final public static View getContainerView(View someView) {
 		ViewParent vp;

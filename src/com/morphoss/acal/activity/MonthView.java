@@ -191,12 +191,6 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 
 		gestureDetector = new GestureDetector(this);
 
-		// Set up buttons
-		this.setupButton(R.id.month_today_button, TODAY, getString(R.string.Today));
-		this.setupButton(R.id.month_week_button, WEEK, getString(R.string.Week));
-		this.setupButton(R.id.month_year_button, YEAR, getString(R.string.Year));
-		this.setupButton(R.id.month_add_button, ADD, "+");
-
 		AcalDateTime currentDate = new AcalDateTime().applyLocalTimeZone();
 		selectedDate = currentDate.clone();
 		displayedMonth = currentDate;
@@ -222,6 +216,12 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 		super.onResume();
 		Log.v(TAG,TAG + " - onResume");
 
+		// Set up buttons
+		this.setupButton(R.id.month_today_button, TODAY, getString(R.string.Today));
+		this.setupButton(R.id.month_week_button, WEEK, getString(R.string.Week));
+		this.setupButton(R.id.month_year_button, YEAR, getString(R.string.Year));
+		this.setupButton(R.id.month_add_button, ADD, "+");
+		
 		selectedDate = new AcalDateTime().applyLocalTimeZone();
 		displayedMonth = new AcalDateTime().applyLocalTimeZone();
 		if ( prefs.getLong(getString(R.string.prefSavedSelectedDate), 0) > (System.currentTimeMillis() - (3600000L * 6))) {

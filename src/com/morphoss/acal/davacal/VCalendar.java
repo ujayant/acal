@@ -40,7 +40,6 @@ import com.morphoss.acal.database.alarmmanager.AlarmRow;
 import com.morphoss.acal.database.cachemanager.CacheManager;
 import com.morphoss.acal.database.cachemanager.CacheObject;
 import com.morphoss.acal.dataservice.CalendarInstance;
-import com.morphoss.acal.dataservice.Resource;
 
 public class VCalendar extends VComponent implements Cloneable {
 	public static final String TAG = "aCal VCalendar";
@@ -358,6 +357,8 @@ public class VCalendar extends VComponent implements Cloneable {
 
 	public boolean appendAlarmInstancesBetween(ArrayList<AlarmRow> alarmList, AcalDateRange rangeRequested) {
 		try {
+			if ( Constants.debugAlarms && Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG, 
+					"Appending alarm instances for VCALENDAR (resourceId "+this.resourceId+") within "+rangeRequested);
 			if ( hasRepeatRule == null && repeatRule == null ) checkRepeatRule();
 			if ( !hasRepeatRule ) {
 				if ( this.hasAlarm() ) {

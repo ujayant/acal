@@ -48,7 +48,7 @@ public class ColourPickerDialog {
 	public View primaryView;
 	
 	private float satudp;
-	public int warnaBaru;
+	public int selectedColour;
 	private float hue;
 	private float sat;
 	private float val;
@@ -64,7 +64,7 @@ public class ColourPickerDialog {
 	
 	public ColourPickerDialog(Context context, int color, OnColourPickerListener listener) {
 		this.listener = listener;
-		this.warnaBaru = color;
+		this.selectedColour = color;
 		Color.colorToHSV(color, tmp01);
 		this.hue = tmp01[0];
 		this.sat = tmp01[1];
@@ -103,11 +103,11 @@ public class ColourPickerDialog {
 					hue = 360.f - 360.f / ukuranUiPx * y;
 					if (hue == 360.f) hue = 0.f;
 					
-					warnaBaru = hitungWarna();
+					selectedColour = hitungWarna();
 					// update view
 					viewKotak.setHue(hue);
 					positionSlider();
-					viewWarnaBaru.setBackgroundColor(warnaBaru);
+					viewWarnaBaru.setBackgroundColor(selectedColour);
 					
 					return true;
 				}
@@ -133,10 +133,10 @@ public class ColourPickerDialog {
 					sat = (1.f / ukuranUiPx * x);
 					val = 1.f - (1.f / ukuranUiPx * y);
 
-					warnaBaru = hitungWarna();
+					selectedColour = hitungWarna();
 					// update view
 					positionPointer();
-					viewWarnaBaru.setBackgroundColor(warnaBaru);
+					viewWarnaBaru.setBackgroundColor(selectedColour);
 					
 					return true;
 				}
@@ -151,7 +151,7 @@ public class ColourPickerDialog {
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
 				if (ColourPickerDialog.this.listener != null) {
-					ColourPickerDialog.this.listener.onOk(ColourPickerDialog.this, warnaBaru);
+					ColourPickerDialog.this.listener.onOk(ColourPickerDialog.this, selectedColour);
 				}
 			}
 		});

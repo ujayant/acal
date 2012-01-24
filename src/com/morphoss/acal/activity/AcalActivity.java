@@ -1,5 +1,7 @@
 package com.morphoss.acal.activity;
 
+import com.morphoss.acal.AcalTheme;
+
 import android.app.Activity;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -13,4 +15,10 @@ public abstract class AcalActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		prefs = PreferenceManager.getDefaultSharedPreferences(this);
 	}	
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+		AcalTheme.initializeTheme(this);
+	}
 }

@@ -20,6 +20,7 @@ package com.morphoss.acal.service.connector;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
@@ -235,11 +236,16 @@ public class AcalRequestor {
 	/**
 	 * Interpret the URI in the string to set protocol, host, port & path for the next request.
 	 * If the URI only matches a path part then protocol/host/port will be unchanged. This call
-	 * will only allow for path parts that are anchored to the web root.  This is generally used
-	 * internally for following Location: redirects.
+	 * will only allow for path parts that are anchored to the web root.  This is used internally
+	 * for following Location: redirects.
+	 * 
+	 * This is also used to interpret the 'path' parameter to the request calls generally.
+	 * 
 	 * @param uriString
 	 */
 	public void interpretUriString(String uriString) {
+
+		if ( uriString == null ) return;
 
 		// Match a URL, including an ipv6 address like http://[DEAD:BEEF:CAFE:F00D::]:8008/
 		final Pattern uriMatcher = Pattern.compile(
@@ -317,6 +323,8 @@ public class AcalRequestor {
 
 		// WWW-Authenticate: Digest realm="DAViCal CalDAV Server", qop="auth", nonce="55a1a0c53c0f337e4675befabeff6a122b5b78de", opaque="52295deb26cc99c2dcc6614e70ed471f7a163e7a", algorithm="MD5"
 		// WWW-Authenticate: Digest realm="SabreDAV",qop="auth",nonce="4f08e719a85d0",opaque="df58bdff8cf60599c939187d0b5c54de"
+		// WWW-Authenticate:digest nonce="130183646896936966342199963268042751958404602087869166446", realm="Test Realm", algorithm="md5"
+
 				
 		if ( Constants.LOG_VERBOSE && Constants.debugDavCommunication )
 			Log.println(Constants.LOGV,TAG,"Interpreting '"+authRequestHeader+"'");
@@ -327,17 +335,21 @@ public class AcalRequestor {
 				Log.println(Constants.LOGV,TAG,"Interpreting Element: '"+he.toString()+"' ("+he.getName()+":"+he.getValue()+")");
 			name = he.getName();
 
-			if ( name.equalsIgnoreCase("Basic realm") ) { 
+			if ( name.length() > 7 && name.substring(0, 7).equalsIgnoreCase("Digest ") ) { 
+				authType = Servers.AUTH_DIGEST;
+				qop = null;
+				algorithm = "md5";
+				name = name.substring(7);
+				if ( Constants.LOG_VERBOSE && Constants.debugDavCommunication )
+					Log.println(Constants.LOGV,TAG,"Found '"+getAuthTypeName(authType)+"' auth, realm: "+authRealm);
+			}
+			else if ( name.length() > 6 && name.substring(0, 6).equalsIgnoreCase("Basic ") ) { 
 				authType = Servers.AUTH_BASIC;
 				name = name.substring(6);
 			}
-			else if ( name.equalsIgnoreCase("Digest realm") ) { 
-				authType = Servers.AUTH_DIGEST;
-				qop = "auth";
-				algorithm = "MD5";
+
+			if ( name.equalsIgnoreCase("realm") ) {
 				authRealm = he.getValue();
-				if ( Constants.LOG_VERBOSE && Constants.debugDavCommunication )
-					Log.println(Constants.LOGV,TAG,"Found '"+getAuthTypeName(authType)+"' auth, realm: "+authRealm);
 			}
 			else if ( name.equalsIgnoreCase("nonce") ) {
 				nonce = he.getValue();
@@ -346,14 +358,17 @@ public class AcalRequestor {
 				opaque = he.getValue();
 			}
 			else if ( name.equalsIgnoreCase("qop") ) {
-				if ( !he.getValue().equalsIgnoreCase(qop) ) {
-					Log.w(TAG, "Digest Auth requested qop of '"+he.getValue()+"' but we only support '"+qop+"'");
+				if ( !he.getValue().equalsIgnoreCase("auth") ) {
+					Log.w(TAG, "Digest Auth requested qop of '"+he.getValue()+"' but we only support 'auth'");
 				}
 			}
 			else if ( name.equalsIgnoreCase("algorithm") ) {
 				if ( !he.getValue().equalsIgnoreCase(algorithm) ) {
 					Log.w(TAG, "Digest Auth requested algorithm of '"+he.getValue()+"' but we only support '"+algorithm+"'");
 				}
+			}
+			else {
+				Log.w(TAG, "Digest Auth requested algorithm of '"+he.getValue()+"' but we only support '"+algorithm+"'");
 			}
 		}
 
@@ -377,33 +392,40 @@ public class AcalRequestor {
 	}
 
 	
-	private Header buildAuthHeader() throws AuthenticationFailure {
-		String authValue;
-		switch( authType ) {
-			case Servers.AUTH_BASIC:
-				authValue = String.format("Basic %s", Base64Coder.encodeString(username+":"+password));
-				if ( Constants.LOG_VERBOSE )
+	private Header basicAuthHeader() {
+		String authValue = String.format("Basic %s", Base64Coder.encodeString(username+":"+password));
+		if ( Constants.LOG_VERBOSE )
 					Log.println(Constants.LOGV,TAG, "BasicAuthDebugging: '"+authValue+"'" );
-				break;
-			case Servers.AUTH_DIGEST:
-				String A1 = md5( username + ":" + authRealm + ":" + password);
-				String A2 = md5( method + ":" + path );
-				cnonce = md5(AcalConnectionPool.getUserAgent());
-				String printNC = String.format("%08x", ++authNC);
-				String responseString = A1+":"+nonce+":"+printNC+":"+cnonce+":auth:"+A2;
-				if ( Constants.LOG_VERBOSE && Constants.debugDavCommunication )
-					Log.println(Constants.LOGV,TAG, "DigestDebugging: '"+responseString+"'" );
-				String response = md5(responseString);
-				authValue = String.format("Digest realm=\"%s\", username=\"%s\", nonce=\"%s\", uri=\"%s\""
-							+ ", response=\"%s\", algorithm=\"%s\", cnonce=\"%s\", opaque=\"%s\", nc=\"%s\""
-							+ (qop == null ? "" : ", qop=\"auth\""),
-							authRealm, username, nonce, path,
-							response, algorithm, cnonce, opaque, printNC );
-				break;
+		return new BasicHeader("Authorization", authValue );
+	}
+
+	
+	private Header digestAuthHeader() {
+		String authValue;
+		String A1 = md5( username + ":" + authRealm + ":" + password);
+		String A2 = md5( method + ":" + path );
+		cnonce = md5(AcalConnectionPool.getUserAgent());
+		String printNC = String.format("%08x", ++authNC);
+		String responseString = A1+":"+nonce+":"+printNC+":"+cnonce+":auth:"+A2;
+		if ( Constants.LOG_VERBOSE && Constants.debugDavCommunication )
+			Log.println(Constants.LOGV,TAG, "DigestDebugging: '"+responseString+"'" );
+		String response = md5(responseString);
+		authValue = String.format("Digest realm=\"%s\", username=\"%s\", nonce=\"%s\", uri=\"%s\""
+					+ ", response=\"%s\", algorithm=\"%s\", cnonce=\"%s\", opaque=\"%s\", nc=\"%s\""
+					+ (qop == null ? "" : ", qop=\"auth\""),
+					authRealm, username, nonce, path,
+					response, algorithm, cnonce, opaque, printNC );
+		return new BasicHeader("Authorization", authValue );
+	}
+
+	
+	private Header buildAuthHeader() throws AuthenticationFailure {
+		switch( authType ) {
+			case Servers.AUTH_BASIC:	return basicAuthHeader();
+			case Servers.AUTH_DIGEST:	return digestAuthHeader();
 			default:
 				throw new AuthenticationFailure("Unknown authentication type");
 		}
-		return new BasicHeader("Authorization", authValue );
 	}
 
 	
@@ -598,6 +620,10 @@ public class AcalRequestor {
 
 			if ( authRequired && authType != Servers.AUTH_NONE)
 				request.addHeader(buildAuthHeader());
+			else if ( authRequired ) {
+				// Assume basicAuth
+				request.addHeader(basicAuthHeader());
+			}
 			
 			if (entityString != null) {
 				request.setEntity(new StringEntity(entityString.toString(),"UTF-8"));
@@ -743,6 +769,7 @@ public class AcalRequestor {
 		}
 		catch (SocketException e) {
 			Log.i(TAG, e.getClass().getSimpleName() + ": " + e.getMessage() + " to " + fullUrl() );
+			return null;
 		}
 		catch (ConnectionPoolTimeoutException e)		{
 			Log.i(TAG, e.getClass().getSimpleName() + ": " + e.getMessage() + " to " + fullUrl() );
@@ -750,15 +777,19 @@ public class AcalRequestor {
 		}
 		catch (SocketTimeoutException e)		{
 			Log.i(TAG, e.getClass().getSimpleName() + ": " + e.getMessage() + " to " + fullUrl() );
-			throw new ConnectionFailedException( e.getClass().getSimpleName() + ": " + fullUrl() );
+			return null;
 		}
 		catch (ConnectTimeoutException e)		{
 			Log.i(TAG, e.getClass().getSimpleName() + ": " + e.getMessage() + " to " + fullUrl() );
-			throw new ConnectionFailedException( e.getClass().getSimpleName() + ": " + fullUrl() );
+			return null;
 		}
 		catch ( UnknownHostException e ) {
 			Log.i(TAG, e.getClass().getSimpleName() + ": " + e.getMessage() + " to " + fullUrl() );
-			throw new ConnectionFailedException( e.getClass().getSimpleName() + ": " + fullUrl() );
+			return null;
+		}
+		catch ( IOException e ) {
+			Log.i(TAG, e.getClass().getSimpleName() + ": " + e.getMessage() + " to " + fullUrl() );
+			return null;
 		}
 		catch (Exception e) {
 			Log.println(Constants.LOGD,TAG,Log.getStackTraceString(e));
@@ -778,7 +809,7 @@ public class AcalRequestor {
 	 * supplying these (if possible).  Likewise the method will follow up to five redirects
 	 * before giving up on a request.
 	 * @param method
-	 * @param path
+	 * @param pathOrUrl
 	 * @param headers
 	 * @param entity
 	 * @return
@@ -786,11 +817,11 @@ public class AcalRequestor {
 	 * @throws SSLException
 	 * @throws ConnectionFailedException 
 	 */
-	public InputStream doRequest( String method, String path, Header[] headers, String entity )
+	public InputStream doRequest( String method, String pathOrUrl, Header[] headers, String entity )
 			throws SendRequestFailedException, SSLException, ConnectionFailedException {
 		InputStream result = null;
 		this.method = method;
-		if ( path != null ) this.path = path;
+		interpretUriString(pathOrUrl);
 		try {
 			if ( Constants.LOG_DEBUG )
 				Log.println(Constants.LOGD,TAG, String.format("%s request on %s", method, fullUrl()) );
