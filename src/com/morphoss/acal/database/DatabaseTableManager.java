@@ -101,8 +101,13 @@ public abstract class DatabaseTableManager {
 		}
 		finally {
 			if ( c != null ) c.close();
+			while (c!=null) {
+				if (c.isClosed()) c = null;
+				try { Thread.sleep(10); } catch (Exception e) {}
+			}
 		}
 		endQuery();
+		
 		return result;
 	}
 
@@ -164,6 +169,11 @@ public abstract class DatabaseTableManager {
 	protected void closeDB(final int type) {
 		if (db == null) throw new SQLiteMisuseException("Tried to close a DB that wasn't opened");
 		db.close();
+		while (db.isOpen()) {
+			try {
+				Thread.sleep(10); 
+			} catch (Exception e) {}
+		}
 		dbHelper.close();
 		db = null;
 		dbHelper = null;

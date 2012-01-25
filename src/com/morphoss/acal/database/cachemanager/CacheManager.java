@@ -238,9 +238,18 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		}
 		finally {
 			if ( mCursor != null && !mCursor.isClosed()) mCursor.close();
+			while (mCursor!=null) {
+				if (mCursor.isClosed()) mCursor = null;
+				try { Thread.sleep(10); } catch (Exception e) {}
+			}
 			if ( db.inTransaction() ) db.endTransaction();
 			try {
 				db.close();
+				while (db.isOpen()) {
+					try {
+						Thread.sleep(10); 
+					} catch (Exception e) {}
+				}
 			}
 			catch( SQLiteException e ) {
 				Log.e(TAG,Log.getStackTraceString(e));
