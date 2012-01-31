@@ -44,7 +44,7 @@ import com.morphoss.acal.service.WorkerClass;
 public class ResourceManager implements Runnable {
 	// The current instance
 	private static ResourceManager instance = null;
-	public static boolean DEBUG = true && Constants.DEBUG_MODE;
+	public static boolean DEBUG = false && Constants.DEBUG_MODE;
 
 	private volatile int numReadsProcessing = 0;
 
