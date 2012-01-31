@@ -49,11 +49,6 @@ public class RRInitialCollectionSync implements ResourceRequest {
 	private aCalService acalService;
 	private WriteableResourceTableManager processor;
 
-	private Header[] syncHeaders = new Header[] {
-			new BasicHeader("Depth","1"),
-			new BasicHeader("Content-Type","text/xml; encoding=UTF-8")
-	};
-	
 	private final String syncData = "<?xml version=\"1.0\" encoding=\"utf-8\"?>"+
 										"<sync-collection xmlns=\"DAV:\">"+
 											"<sync-token/>"+
@@ -157,7 +152,7 @@ public class RRInitialCollectionSync implements ResourceRequest {
 		}
 		else {
 
-			DavNode root = requestor.doXmlRequest("REPORT", collectionPath, syncHeaders, syncData);
+			DavNode root = requestor.doXmlRequest("REPORT", collectionPath, SynchronisationJobs.getReportHeaders(1), syncData);
 			if (requestor.getStatusCode() == 404) {
 				Log.i(TAG, "Sync REPORT got 404 on " + collectionPath + " so a HomeSetsUpdate is being scheduled.");
 				ServiceJob sj = new HomeSetsUpdate(serverId);

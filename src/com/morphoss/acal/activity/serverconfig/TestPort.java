@@ -6,13 +6,13 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.http.Header;
-import org.apache.http.message.BasicHeader;
 
 import android.content.ContentValues;
 import android.util.Log;
 
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.providers.Servers;
+import com.morphoss.acal.service.SynchronisationJobs;
 import com.morphoss.acal.service.connector.AcalRequestor;
 import com.morphoss.acal.service.connector.SendRequestFailedException;
 import com.morphoss.acal.xml.DavNode;
@@ -25,6 +25,7 @@ public class TestPort {
 					"<resourcetype/>"+
 					"<current-user-principal/>"+
 					"<principal-collection-set/>"+
+					"<owner/>"+
 				"</prop>"+
 			"</propfind>";
 
@@ -40,11 +41,6 @@ public class TestPort {
 					"<A:addressbook-home-set/>"+
 				"</prop>"+
 			"</principal-match>";
-
-	private static final Header[] pPathHeaders = new Header[] {
-		new BasicHeader("Depth","0"),
-		new BasicHeader("Content-Type","text/xml; charset=UTF-8")
-	};
 
 	private final AcalRequestor requestor;
 	int port;
@@ -200,7 +196,7 @@ public class TestPort {
 				"Doing PROPFIND for current-user-principal on " + requestor.fullUrl() );
 		try {
 			requestor.setAuthRequired();
-			DavNode root = requestor.doXmlRequest("PROPFIND", null, pPathHeaders, pPathRequestData);
+			DavNode root = requestor.doXmlRequest("PROPFIND", null, SynchronisationJobs.getReportHeaders(0), pPathRequestData);
 			
 			int status = requestor.getStatusCode();
 			if ( Constants.debugCheckServerDialog )
@@ -248,7 +244,8 @@ public class TestPort {
 								hasPrincipalURL = true;
 								return true;
 							}
-							String href = propStat.getFirstNodeText("prop/current-user-principal/href");
+							String href = null;
+							href = propStat.getFirstNodeText("prop/current-user-principal/href");
 							if ( href != null && !href.equals("") ) {
 								if ( Constants.debugCheckServerDialog ) Log.println(Constants.LOGD, TAG, "Found the current-user-principal URL :-) at '"+href+"'");
 								requestor.interpretUriString(href);
@@ -304,7 +301,7 @@ public class TestPort {
 				"Doing PROPFIND for current-user-principal on " + requestor.fullUrl() );
 		try {
 			requestor.setAuthRequired();
-			DavNode root = requestor.doXmlRequest("REPORT", null, pPathHeaders, pPrincipalMatchSelf);
+			DavNode root = requestor.doXmlRequest("REPORT", null, SynchronisationJobs.getReportHeaders(0), pPrincipalMatchSelf);
 			
 			int status = requestor.getStatusCode();
 			if ( Constants.debugCheckServerDialog )
