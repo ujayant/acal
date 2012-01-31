@@ -210,7 +210,7 @@ public abstract class DatabaseTableManager {
 	
 	public void yield() {
 		if (Constants.debugDatabaseManager) Log.d(TAG, "Yield Called.");
-		if (db != null) {
+		if (db != null && (inTx || inReadTx)) {
 			this.dbYielded = System.currentTimeMillis();
 			db.yieldIfContendedSafely();
 		}
