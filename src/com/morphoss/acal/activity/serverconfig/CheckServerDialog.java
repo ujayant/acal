@@ -130,7 +130,6 @@ public class CheckServerDialog {
 				requestor = AcalRequestor.fromServerValues(serverData);
 			else {
 				requestor = AcalRequestor.fromSimpleValues(serverData);
-				requestor.applyToServerSettings(serverData);
 			}
 			try {
 				checkServer();
@@ -156,6 +155,8 @@ public class CheckServerDialog {
 			TestPort tester = null;
 			successMessages = new ArrayList<String>();
 			try {
+				Log.w(TAG, "Checking server with hostName: " + requestor.getHostName());
+
 				// Step 1, check for internet connectivity
 				updateProgress(context.getString(R.string.checkServer_Internet));
 				if ( !checkInternetConnected() ) {
@@ -168,7 +169,7 @@ public class CheckServerDialog {
 					updateProgress(context.getString(R.string.checkServer_SearchingForServer, requestor.fullUrl()));
 					if ( !tester.hasCalDAV() ) {
 						// Try harder!
-						requestor.applyFromServer(serverData);
+						requestor.applyFromServer(serverData, false);
 						tester.reProbe();
 					}
 				}
@@ -178,7 +179,7 @@ public class CheckServerDialog {
 
 					do {
 						tester = testers.next();
-						requestor.applyFromServer(serverData);
+						requestor.applyFromServer(serverData, true);
 						requestor.setPortProtocol(tester.port, (tester.useSSL?1:0));
 						updateProgress(context.getString(R.string.checkServer_SearchingForServer, requestor.fullUrl()));
 					}
@@ -189,7 +190,7 @@ public class CheckServerDialog {
 						testers = TestPort.reIterate();
 						do {
 							tester = testers.next();
-							requestor.applyFromServer(serverData);
+							requestor.applyFromServer(serverData, true);
 							requestor.setPortProtocol(tester.port, (tester.useSSL?1:0));
 							tester.reProbe(); // Extend the timeout
 							updateProgress(context.getString(R.string.checkServer_SearchingForServer, requestor.fullUrl()));

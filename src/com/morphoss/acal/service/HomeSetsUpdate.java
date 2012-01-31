@@ -165,7 +165,7 @@ public class HomeSetsUpdate extends ServiceJob {
 		cursor.close();
 
 		try {
-			requestor.applyFromServer(serverData);
+			requestor.applyFromServer(serverData,false);
 			DavNode root = requestor.doXmlRequest("PROPFIND", homeSet, pCalendarHeaders, pCalendarRequest);
 			if (requestor.getStatusCode() == 404) {
 				Log.i(TAG, "PROPFIND got 404 on " + homeSet + " so a HomeSetDiscovery is being scheduled.");

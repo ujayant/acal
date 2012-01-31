@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
-import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.security.MessageDigest;
@@ -33,6 +32,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLProtocolException;
 
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
@@ -70,8 +70,8 @@ public class AcalRequestor {
 	
 	// Basic URI components
 	private String hostName = null;
-	private String path = "/";
-	private String protocol = "http";
+	private String path = null;
+	private String protocol = null;
 	private int port = 0;
 	private String method = "PROPFIND";
 
@@ -100,6 +100,9 @@ public class AcalRequestor {
 	private int redirectLimit = 5;
 	private int redirectCount = 0;
 
+
+	public final static String PROTOCOL_HTTP = "http";
+	public final static String PROTOCOL_HTTPS = "https";
 	
 	/**
 	 * Construct an uninitialised AcalRequestor.  After calling this you will need to
@@ -137,20 +140,7 @@ public class AcalRequestor {
 	 */
 	public static AcalRequestor fromSimpleValues( ContentValues cvServerData ) {
 		AcalRequestor result = new AcalRequestor();
-
-		result.protocol = "http";
-		result.hostName = null;
-		result.port = 0;
-		result.path = "/";
-		result.path = null;
-		result.authType = Servers.AUTH_NONE;
-		result.interpretUriString(cvServerData.getAsString(Servers.SUPPLIED_USER_URL));
-
-		if ( result.hostName == null ) result.hostName = "invalid";
-		if ( result.path == null ) result.path = "/";
-
-		if ( !result.initialised ) result.initialise();
-
+		result.applyFromServer(cvServerData, true);
 		return result;
 	}
 
@@ -164,7 +154,7 @@ public class AcalRequestor {
 	 */
 	public static AcalRequestor fromServerValues( ContentValues cvServerData ) {
 		AcalRequestor result = new AcalRequestor();
-		result.applyFromServer(cvServerData);
+		result.applyFromServer(cvServerData, false);
 		return result;
 	}
 
@@ -176,16 +166,29 @@ public class AcalRequestor {
 	 * @param cvServerData
 	 * @param simpleSetup true/false whether to use only the 'simple' values to initialise from
 	 */
-	public void applyFromServer( ContentValues cvServerData ) {
-		setHostName(cvServerData.getAsString(Servers.HOSTNAME));
-		setPath(cvServerData.getAsString(Servers.PRINCIPAL_PATH));
-
-		String portString = cvServerData.getAsString(Servers.PORT);
-		int tmpPort = 0;
-		if ( portString != null && portString.length() > 0 ) tmpPort = Integer.parseInt(portString);
-		setPortProtocol(tmpPort, cvServerData.getAsInteger(Servers.USE_SSL));
-
-		setAuthType(cvServerData.getAsInteger(Servers.AUTH_TYPE));
+	public void applyFromServer( ContentValues cvServerData, boolean simpleSetup ) {
+		if ( simpleSetup ) {
+			protocol = null;
+			hostName = null;
+			port = 0;
+			path = null;
+			authType = Servers.AUTH_NONE;
+			interpretUriString(cvServerData.getAsString(Servers.SUPPLIED_USER_URL));
+		}
+		else {
+			setHostName(cvServerData.getAsString(Servers.HOSTNAME));
+			setPath(cvServerData.getAsString(Servers.PRINCIPAL_PATH));
+	
+			String portString = cvServerData.getAsString(Servers.PORT);
+			int tmpPort = 0;
+			if ( portString != null && portString.length() > 0 ) tmpPort = Integer.parseInt(portString);
+			setPortProtocol(tmpPort, cvServerData.getAsInteger(Servers.USE_SSL));
+	
+			setAuthType(cvServerData.getAsInteger(Servers.AUTH_TYPE));
+	
+		}
+		if ( hostName == null ) hostName = "invalid";
+		if ( path == null ) path = "/";
 
 		authRequired = ( authType != Servers.AUTH_NONE );
 		username = cvServerData.getAsString(Servers.USERNAME);
@@ -210,7 +213,7 @@ public class AcalRequestor {
 	 */
 	public void applyToServerSettings(ContentValues cvServerData) {
 		cvServerData.put(Servers.HOSTNAME, hostName);
-		cvServerData.put(Servers.USE_SSL, (protocol.equals("https")?1:0));
+		cvServerData.put(Servers.USE_SSL, (protocol.equals(PROTOCOL_HTTPS)?1:0));
 		cvServerData.put(Servers.PORT, port);
 		cvServerData.put(Servers.PRINCIPAL_PATH, path);
 		cvServerData.put(Servers.AUTH_TYPE, authType );
@@ -267,7 +270,7 @@ public class AcalRequestor {
 				if ( Constants.LOG_VERBOSE ) Log.println(Constants.LOGV,TAG,"Found protocol '"+m.group(1)+"'");
 				protocol = m.group(1);
 				if ( m.group(3) == null || m.group(3).equals("") ) {
-					port = (protocol.equals("http") ? 80 : 443);
+					port = (protocol.equals(PROTOCOL_HTTP) ? 80 : 443);
 				}
 			}
 			if ( m.group(2) != null ) {
@@ -278,7 +281,7 @@ public class AcalRequestor {
 				if ( Constants.LOG_VERBOSE ) Log.println(Constants.LOGV,TAG,"Found port '"+m.group(3)+"'");
 				port = Integer.parseInt(m.group(3));
 				if ( m.group(1) != null && (port == 0 || port == 80 || port == 443) ) {
-					port = (protocol.equals("http") ? 80 : 443);
+					port = (protocol.equals(PROTOCOL_HTTP) ? 80 : 443);
 				}
 			}
 			if ( m.group(4) != null && !m.group(4).equals("") ) {
@@ -453,9 +456,9 @@ public class AcalRequestor {
 	 * @param newProtocol As an integer where 1 is https and anything else is http
 	 */
 	public void setPortProtocol(Integer newPort, Integer newProtocol) {
-		protocol = (newProtocol == null || newProtocol == 1 ? "https" : "http");
+		protocol = (newProtocol == null || newProtocol == 1 ? PROTOCOL_HTTPS : PROTOCOL_HTTP);
 		if ( newPort == null || newPort < 1 || newPort > 65535 || newPort == 80 || newPort == 443 )
-			port = (protocol.equals("http") ? 80 : 443);
+			port = (protocol.equals(PROTOCOL_HTTP) ? 80 : 443);
 		else
 			port = newPort;
 	}
@@ -469,9 +472,9 @@ public class AcalRequestor {
 	 * @param newProtocol As a string like 'http' or 'https'
 	 */
 	public void setPortProtocol(Integer newPort, String newProtocol) {
-		protocol = (newProtocol == null ? protocol : (newProtocol.equals("https") ? "https" : "http"));
+		protocol = (newProtocol == null ? protocol : (newProtocol.equals(PROTOCOL_HTTPS) ? PROTOCOL_HTTPS : PROTOCOL_HTTP));
 		if ( newPort == null || newPort < 1 || newPort > 65535 || newPort == 80 || newPort == 443 )
-			port = (protocol.equals("http") ? 80 : 443);
+			port = (protocol.equals(PROTOCOL_HTTP) ? 80 : 443);
 		else
 			port = newPort;
 	}
@@ -541,7 +544,7 @@ public class AcalRequestor {
 		return protocol
 				+ "://"
 				+ hostName
-				+ ((protocol.equals("http") && port == 80) || (protocol.equals("https") && port == 443) ? "" : ":"+Integer.toString(port));
+				+ ((protocol.equals(PROTOCOL_HTTP) && port == 80) || (protocol.equals(PROTOCOL_HTTPS) && port == 443) ? "" : ":"+Integer.toString(port));
 	}
 
 	
@@ -640,9 +643,10 @@ public class AcalRequestor {
 			}
 			
 			int requestPort = -1;
+			if ( this.protocol == null ) this.protocol = PROTOCOL_HTTP;
 			String requestProtocol = this.protocol;
-			if ( (this.protocol.equals("http") && this.port != 80 )
-						|| ( this.protocol.equals("https") && this.port != 443 )
+			if ( (this.protocol.equals(PROTOCOL_HTTP) && this.port != 80 )
+						|| ( this.protocol.equals(PROTOCOL_HTTPS) && this.port != 443 )
 				) {
 				requestPort = this.port;
 			}
@@ -757,6 +761,10 @@ public class AcalRequestor {
 			}
 
 		}
+		catch (SSLProtocolException e) {
+			Log.i(TAG, e.getClass().getSimpleName() + ": " + e.getMessage() + " to " + fullUrl() );
+			return null;
+		}
 		catch (SSLException e) {
 			if ( Constants.LOG_DEBUG && Constants.debugDavCommunication )
 				Log.println(Constants.LOGD,TAG,Log.getStackTraceString(e));
@@ -766,10 +774,6 @@ public class AcalRequestor {
 			if ( Constants.LOG_DEBUG && Constants.debugDavCommunication )
 				Log.println(Constants.LOGD,TAG,Log.getStackTraceString(e));
 			throw e;
-		}
-		catch (SocketException e) {
-			Log.i(TAG, e.getClass().getSimpleName() + ": " + e.getMessage() + " to " + fullUrl() );
-			return null;
 		}
 		catch (ConnectionPoolTimeoutException e)		{
 			Log.i(TAG, e.getClass().getSimpleName() + ": " + e.getMessage() + " to " + fullUrl() );
@@ -932,6 +936,7 @@ public class AcalRequestor {
 	}
 
 	public void setHostName(String hostIn) {
+		if ( hostIn == null ) throw new NullPointerException("May not set hostName to null");
 		// This trick greatly reduces the occurrence of host not found errors. 
 		try { InetAddress.getByName(hostIn); } catch (UnknownHostException e1) { }
 		this.hostName = hostIn;
@@ -947,6 +952,13 @@ public class AcalRequestor {
 
 	public String getUserName() {
 		return this.username;
+	}
+
+	public boolean protocolEquals(String otherProtocol) {
+		if ( protocol == null && otherProtocol == null ) return true;
+		else if ( protocol == null ) return false;
+
+		return protocol.equals(otherProtocol);
 	}
 	
 }

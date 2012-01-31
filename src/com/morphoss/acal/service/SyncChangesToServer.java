@@ -168,7 +168,7 @@ public class SyncChangesToServer extends ServiceJob implements BlockingResourceR
 			processor.deleteInvalidCollectionRecord(collectionId);
 			return;
 		}
-		requestor.applyFromServer(serverData);
+		requestor.applyFromServer(serverData,false);
 
 		String collectionPath = collectionData.getAsString(DavCollections.COLLECTION_PATH);
 

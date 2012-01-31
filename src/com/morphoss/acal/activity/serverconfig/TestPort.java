@@ -28,6 +28,19 @@ public class TestPort {
 				"</prop>"+
 			"</propfind>";
 
+	private static final String pPrincipalMatchSelf = "<?xml version=\"1.0\" encoding=\"utf-8\"?>"+
+			"<principal-match " +
+					"xmlns=\""+Constants.NS_DAV+"\" " +
+					"xmlns:C=\""+Constants.NS_CALDAV+"\" "+
+					"xmlns:A=\""+Constants.NS_CARDDAV+"\">"+
+				"<self/>"+
+				"<prop>"+
+					"<resourcetype/>"+
+					"<C:calendar-home-set/>"+
+					"<A:addressbook-home-set/>"+
+				"</prop>"+
+			"</principal-match>";
+
 	private static final Header[] pPathHeaders = new Header[] {
 		new BasicHeader("Depth","0"),
 		new BasicHeader("Content-Type","text/xml; charset=UTF-8")
@@ -68,7 +81,7 @@ public class TestPort {
 		this.path = requestor.getPath();
 		this.hostName = requestor.getHostName();
 		this.port = requestor.getPort();
-		this.useSSL = requestor.getProtocol().equals("https");
+		this.useSSL = requestor.protocolEquals(AcalRequestor.PROTOCOL_HTTPS);
 		connectTimeOut = 500 + (useSSL ? 300 : 0);
 	}
 
@@ -228,38 +241,40 @@ public class TestPort {
 						if ( Constants.debugCheckServerDialog ) Log.println(Constants.LOGD, TAG, "Checking in propstat for "+responseHref);
 						if ( propStat.getFirstNodeText("status").equalsIgnoreCase("HTTP/1.1 200 OK") ) {
 							if ( Constants.debugCheckServerDialog ) Log.println(Constants.LOGD, TAG, "Found propstat 200 OK response for "+responseHref);
-							for ( DavNode prop : propStat.getNodesFromPath("prop/*") ) {
-								String thisTag = prop.getTagName(); 
-								if ( Constants.debugCheckServerDialog ) Log.println(Constants.LOGD, TAG, "Examining tag "+thisTag);
-								if ( thisTag.equals("resourcetype") && ! prop.getNodesFromPath("principal").isEmpty() ) {
-									if ( Constants.debugCheckServerDialog ) Log.println(Constants.LOGD, TAG, "This is a principal URL :-)");
-									requestor.interpretUriString(responseHref);
-									setFieldsFromRequestor();
-									hasPrincipalURL = true;
+							if ( !propStat.getNodesFromPath("prop/resourcetype/principal").isEmpty() ) {
+								if ( Constants.debugCheckServerDialog ) Log.println(Constants.LOGD, TAG, "This is a principal URL :-)");
+								requestor.interpretUriString(responseHref);
+								setFieldsFromRequestor();
+								hasPrincipalURL = true;
+								return true;
+							}
+							String href = propStat.getFirstNodeText("prop/current-user-principal/href");
+							if ( href != null && !href.equals("") ) {
+								if ( Constants.debugCheckServerDialog ) Log.println(Constants.LOGD, TAG, "Found the current-user-principal URL :-) at '"+href+"'");
+								requestor.interpretUriString(href);
+								setFieldsFromRequestor();
+								hasPrincipalURL = true;
+								return true;
+							}
+							
+							href = propStat.getFirstNodeText("prop/principal-collection-set/href");
+							if ( href != null && !href.equals("") ) {
+								principalCollectionHref = href;
+								if ( doPrincipalMatchSelf(href) ) {
 									return true;
 								}
-								else if ( thisTag.equals("current-user-principal") ) {
-									if ( Constants.debugCheckServerDialog ) Log.println(Constants.LOGD, TAG, "Found the principal URL :-)");
-									requestor.interpretUriString(prop.getFirstNodeText("href"));
-									setFieldsFromRequestor();
-									hasPrincipalURL = true;
-									return true;
-								}
-								else if ( thisTag.equals("principal-collection-set") ) {
-									principalCollectionHref = prop.getFirstNodeText("href");
-									String userName = URLEncoder.encode(requestor.getUserName(), "UTF-8");
-									if ( principalCollectionHref.length() > 0 && userName != null ) {
-										principalCollectionHref = principalCollectionHref + 
-												(principalCollectionHref.length() > 0 && principalCollectionHref.charAt(principalCollectionHref.length()-1) == '/' ? "" : "/") +
-												userName + "/";
-										if ( !principalCollectionHref.equals(requestPath) ) {
-											return doPropfindPrincipal(principalCollectionHref);
-										}
-										if ( Constants.debugCheckServerDialog ) Log.println(Constants.LOGD, TAG,
-												"We've tried this URL already.  Let's move on... "+requestPath);
+								String userName = URLEncoder.encode(requestor.getUserName(), "UTF-8");
+								if ( principalCollectionHref.length() > 0 && userName != null ) {
+									principalCollectionHref = principalCollectionHref + 
+											(principalCollectionHref.length() > 0 && principalCollectionHref.charAt(principalCollectionHref.length()-1) == '/' ? "" : "/") +
+											userName + "/";
+									if ( !principalCollectionHref.equals(requestPath) ) {
+										return doPropfindPrincipal(principalCollectionHref);
 									}
-									// @todo Next: Try a Depth: 1 propfind on the principalCollectionHref trying to match it to this user
+									if ( Constants.debugCheckServerDialog ) Log.println(Constants.LOGD, TAG,
+											"We've tried this URL already.  Let's move on... "+requestPath);
 								}
+								// @todo Next: Try a Depth: 1 propfind on the principalCollectionHref trying to match it to this user
 							}
 						}
 					}
@@ -267,6 +282,59 @@ public class TestPort {
 				
 				if ( principalCollectionHref != null ) {
 					
+				}
+			}
+		}
+		catch (Exception e) {
+			Log.e(TAG, "PROPFIND Error: " + e.getMessage());
+			Log.println(Constants.LOGD,TAG, Log.getStackTraceString(e));
+		}
+		return false;
+	}
+
+	
+	/**
+	 * Does a principal-match REPORT on the given path.
+	 * @param requestPath
+	 * @return
+	 */
+	private boolean doPrincipalMatchSelf( String requestPath ) {
+		if ( requestPath != null ) requestor.setPath(requestPath);
+		if ( Constants.debugCheckServerDialog ) Log.println(Constants.LOGD,TAG,
+				"Doing PROPFIND for current-user-principal on " + requestor.fullUrl() );
+		try {
+			requestor.setAuthRequired();
+			DavNode root = requestor.doXmlRequest("REPORT", null, pPathHeaders, pPrincipalMatchSelf);
+			
+			int status = requestor.getStatusCode();
+			if ( Constants.debugCheckServerDialog )
+				Log.println(Constants.LOGD,TAG, "PROPFIND request " + status + " on " + requestor.fullUrl() );
+
+			checkCalendarAccess(requestor.getResponseHeaders());
+
+			if ( status == 401 ) {
+				authOK = false;
+				setAchievement(AUTH_FAILED);
+			}
+			else if ( status == 207 ) {
+				if ( Constants.debugCheckServerDialog ) Log.println(Constants.LOGD,TAG, "Checking for principal path in response...");
+				
+				for ( DavNode response : root.getNodesFromPath("multistatus/response") ) {
+					String responseHref = response.getFirstNodeText("href"); 
+					if ( Constants.debugCheckServerDialog ) Log.println(Constants.LOGD, TAG, "Checking response for "+responseHref);
+					for ( DavNode propStat : response.getNodesFromPath("propstat") ) {
+						if ( Constants.debugCheckServerDialog ) Log.println(Constants.LOGD, TAG, "Checking in propstat for "+responseHref);
+						if ( propStat.getFirstNodeText("status").equalsIgnoreCase("HTTP/1.1 200 OK") ) {
+							if ( Constants.debugCheckServerDialog ) Log.println(Constants.LOGD, TAG, "Found propstat 200 OK response for "+responseHref);
+							if ( !propStat.getNodesFromPath("prop/resourcetype/principal").isEmpty() ) {
+								if ( Constants.debugCheckServerDialog ) Log.println(Constants.LOGD, TAG, "Got a principal URL from principal-match REPORT :-)");
+								requestor.interpretUriString(responseHref);
+								setFieldsFromRequestor();
+								hasPrincipalURL = true;
+								return true;
+							}
+						}
+					}
 				}
 			}
 		}
@@ -390,22 +458,28 @@ public class TestPort {
 		else
 			testPortSet.clear();
 
+		// In the below we check https if they *didn't* specify http, and vice-versa.  This logic means that 
+		// if they didn't specify *either* then we check *both*.
 		if ( requestor.getPort() != -1 && requestor.getPort() != 80 && requestor.getPort() != 443 ) {
-			testPortSet.add( new TestPort(requestor,requestor.getPort(),true) );
-			if ( ! requestor.getProtocol().equals("https") ) {
+			if ( ! requestor.protocolEquals("http") )
+				testPortSet.add( new TestPort(requestor,requestor.getPort(),true) );
+			if ( ! requestor.protocolEquals("https") )
 				testPortSet.add( new TestPort(requestor,requestor.getPort(),false) );
-			}
 		}
 		else {
-			testPortSet.add( new TestPort(requestor,443,true) );
-			testPortSet.add( new TestPort(requestor,8443,true) );
-			if ( ! requestor.getProtocol().equals("https") ) {
+			if ( ! requestor.protocolEquals("http") ) {
+				testPortSet.add( new TestPort(requestor,443,true) );
+				testPortSet.add( new TestPort(requestor,8443,true) );
+			}
+			if ( ! requestor.protocolEquals("https") ) {
 				testPortSet.add( new TestPort(requestor,80,false) );
 				testPortSet.add( new TestPort(requestor,8008,false) );
 			}
-			testPortSet.add( new TestPort(requestor,8843,true) );
-//			testPortSet.add( new TestPort(requestor,4443,true) );
-			testPortSet.add( new TestPort(requestor,8043,true) );
+			if ( ! requestor.protocolEquals("http") ) {
+				testPortSet.add( new TestPort(requestor,8843,true) );
+//				testPortSet.add( new TestPort(requestor,4443,true) );
+				testPortSet.add( new TestPort(requestor,8043,true) );
+			}
 //			testPortSet.add( new TestPort(requestor,8800,false) );
 //			testPortSet.add( new TestPort(requestor,8888,false) );
 //			testPortSet.add( new TestPort(requestor,7777,false) );
