@@ -279,7 +279,7 @@ public class Servers extends ContentProvider {
 			db.close();
 		}
 		
-		if ( !collectionIds.isEmpty() ) {
+		if ( collectionIds != null && !collectionIds.isEmpty() ) {
 			//Ask resource manager to delete resources
 			ResourceManager.getInstance(context).sendRequest(new RRDeleteByCollectionId(collectionIds));
 		}
