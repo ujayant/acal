@@ -43,6 +43,7 @@ import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.morphoss.acal.AcalTheme;
 import com.morphoss.acal.Constants;
@@ -695,9 +696,10 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 	}
 
 
-	public void deleteEvent(AcalDateTime day, int n, int action ) {
-		//TODO	
-		this.changeSelectedDate(this.selectedDate);
+	public void deleteEvent(AcalDateTime day, int n, int action, int instancesAll ) {
+		//TODO
+		Toast.makeText(this, "Delete is not yet implemented.", 5).show();
+		
 	}
 
 	
