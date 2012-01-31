@@ -230,6 +230,11 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 			public void onCreateContextMenu(ContextMenu menu, View view, ContextMenuInfo info) {
 				menu.setHeaderTitle(context.getString(R.string.Event));
 
+				CacheObject event = null;
+				synchronized(dayEvents) {
+					event = dayEvents.get(position);
+				}
+				menu.add(0, CONTEXT_EDIT + position, 0, context.getString(R.string.editSomeEvent, event.getSummary()));
 				menu.add(0, CONTEXT_COPY + position, 0, context.getString(R.string.newEventFromThis));
 				if (repeats) {
 					menu.add(0,CONTEXT_DELETE_ALL+position,0, context.getString(R.string.deleteAllInstances));
@@ -270,37 +275,38 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 	 * TODO - refactor
 	*/
 	public boolean contextClick(MenuItem item) {
-		return false;
-	/**
+
 		try {
 			int id = item.getItemId();
-			int action = id & 0xf0000;
+			int selectedAction = id & 0xf0000;
 			id = id & 0xffff;
 
-			EventInstance sae = (EventInstance)this.getItem(id);
-			sae.setOperation(EventInstance.EVENT_OPERATION_EDIT);
-			switch( action ) {
+			CacheObject sae = (CacheObject)this.getItem(id);
+			int action = EventEdit.ACTION_EDIT;
+			switch( selectedAction ) {
 				case CONTEXT_COPY:
-					sae.setOperation(EventInstance.EVENT_OPERATION_COPY);
+					action = EventEdit.ACTION_COPY;
 				case CONTEXT_EDIT:
 					//start EventEdit activity
 					Bundle bundle = new Bundle();
-					bundle.putParcelable("EventInstance", sae);
+					bundle.putInt(EventEdit.ACTION_KEY,action);
+					bundle.putLong(EventEdit.RESOURCE_ID_KEY, sae.getResourceId());
+					bundle.putString(EventEdit.RECCURENCE_ID_KEY, sae.getRecurrenceId());
 					Intent eventViewIntent = new Intent(context, EventEdit.class);
 					eventViewIntent.putExtras(bundle);
 					context.startActivity(eventViewIntent);
 					return true;
 				
 				case CONTEXT_DELETE_ALL:
-					this.context.deleteEvent(viewDate,id,WriteableEventInstance.ACTION_DELETE_ALL);
+					this.context.deleteEvent(viewDate,id,EventEdit.ACTION_DELETE, EventEdit.INSTANCES_ALL);
 					return true;
 
 				case CONTEXT_DELETE_JUSTTHIS:
-					this.context.deleteEvent(viewDate,id,WriteableEventInstance.ACTION_DELETE_SINGLE);
+					this.context.deleteEvent(viewDate,id,EventEdit.ACTION_DELETE, EventEdit.INSTANCES_SINGLE);
 					return true;
 
 				case CONTEXT_DELETE_FROMNOW:
-					this.context.deleteEvent(viewDate,id,WriteableEventInstance.ACTION_DELETE_ALL_FUTURE);
+					this.context.deleteEvent(viewDate,id,EventEdit.ACTION_DELETE, EventEdit.INSTANCES_THIS_FUTURE);
 					return true;
 			}
 			return false;
@@ -308,7 +314,7 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 		catch (ClassCastException e) {
 			return false;
 		}
-	*/	
+	
 	}
 	
 	
