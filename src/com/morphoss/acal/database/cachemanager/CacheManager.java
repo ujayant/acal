@@ -207,19 +207,28 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 	}
 	
 	private synchronized static void setDBisDirty(Context c, boolean dirty) {
-		acquireMetaLock();
 		ContentValues data = new ContentValues();
 		AcalDBHelper dbHelper = new AcalDBHelper(c);
-		SQLiteDatabase db = dbHelper.getWritableDatabase();
+		SQLiteDatabase db;
+		try {
+			db = dbHelper.getWritableDatabase();
+		}
+		catch( Exception e ) {
+			Log.e(TAG,"Unable to get writable database!", e);
+			return;
+		}
+
+		acquireMetaLock();
 		
 		//get current values
-		Cursor mCursor = db.query(META_TABLE, null, null, null, null, null, null);
+		Cursor mCursor = null;
 		try {
+			mCursor = db.query(META_TABLE, null, null, null, null, null, null);
 			if (mCursor.getCount() >= 1) {
 				mCursor.moveToFirst();
 				DatabaseUtils.cursorRowToContentValues(mCursor, data);
 				mCursor.close();
-				db.beginTransaction();
+				mCursor = null;
 				data.put(FIELD_CLOSED, !dirty);
 				if (!dirty && instance != null) {
 					AcalDateRange currentRange = instance.window.getCurrentWindow();
@@ -227,9 +236,9 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 					data.put(FIELD_START, currentRange.start.getMillis());
 					data.put(FIELD_END, currentRange.end.getMillis());
 				}
+//				db.beginTransaction();
 				db.update(META_TABLE, data, FIELD_ID+" = ?", new String[]{data.getAsLong(FIELD_ID)+""});
-				db.setTransactionSuccessful();
-				db.yieldIfContendedSafely();
+//				db.setTransactionSuccessful();
 			}
 			
 		}
@@ -237,15 +246,19 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 			Log.i(TAG,Log.getStackTraceString(e));
 		}
 		finally {
+//			if ( db.inTransaction() ) db.endTransaction();
+			releaseMetaLock();
 			if ( mCursor != null && !mCursor.isClosed()) mCursor.close();
-			while (mCursor!=null) {
+			int counter = 10;
+			while (mCursor!=null && counter-- > 0) {
 				if (mCursor.isClosed()) mCursor = null;
 				try { Thread.sleep(10); } catch (Exception e) {}
 			}
-			if ( db.inTransaction() ) db.endTransaction();
+
 			try {
 				db.close();
-				while (db.isOpen()) {
+				counter = 10;
+				while (db.isOpen() && counter-- > 0) {
 					try {
 						Thread.sleep(10); 
 					} catch (Exception e) {}
@@ -254,7 +267,6 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 			catch( SQLiteException e ) {
 				Log.e(TAG,Log.getStackTraceString(e));
 			}
-			releaseMetaLock();
 		}
 	}
 	
