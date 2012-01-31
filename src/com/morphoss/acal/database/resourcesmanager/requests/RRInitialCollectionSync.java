@@ -332,6 +332,11 @@ public class RRInitialCollectionSync implements ResourceRequest {
 		DavNode root = requestor.doXmlRequest("REPORT", collectionPath, SynchronisationJobs.getReportHeaders(1),
 				String.format(calendarQuery, from.fmtIcal(), until.fmtIcal()));
 
+		if ( root == null ) {
+			Log.println(Constants.LOGD,TAG, "REPORT failed for events "+from.toString()+" to "+until.toString()+" on "+requestor.fullUrl());
+			return;
+		}
+
 		//ArrayList<ResourceModification> changeList = new ArrayList<ResourceModification>(); 
 		DMQueryList queryList = processor.getNewQueryList();
 
