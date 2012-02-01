@@ -236,6 +236,9 @@ public class CheckServerDialog {
 						Log.w(TAG, "Found DAV but not CalDAV: " + requestor.fullUrl());
 						successMessages.add(context.getString(R.string.serverHasDAVNoCalDAV));
 					}
+					else if ( maxAchievement < TestPort.NO_DAV_RESPONSE ) {
+						successMessages.add(context.getString(R.string.couldNotDiscoverPort));
+					}
 					else {
 						Log.w(TAG, "Found no CalDAV");
 						serverData.put(Servers.HAS_CALDAV, 0);
