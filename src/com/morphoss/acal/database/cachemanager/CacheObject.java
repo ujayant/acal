@@ -325,10 +325,18 @@ public class CacheObject implements Parcelable, Comparable<CacheObject> {
 		return (int) (this.start - another.start);
 	}
 
+	/**
+	 * Is this a CacheObject of a VEVENT
+	 * @return
+	 */
 	public boolean isEvent() {
 		return CacheTableManager.RESOURCE_TYPE_VEVENT.equals(resourceType);
 	}
 
+	/**
+	 * Is this a CacheObject of a VTODO
+	 * @return
+	 */
 	public boolean isTodo() {
 		return CacheTableManager.RESOURCE_TYPE_VTODO.equals(resourceType);
 	}
