@@ -228,7 +228,6 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 				mCursor.moveToFirst();
 				DatabaseUtils.cursorRowToContentValues(mCursor, data);
 				mCursor.close();
-				mCursor = null;
 				data.put(FIELD_CLOSED, !dirty);
 				if (!dirty && instance != null) {
 					AcalDateRange currentRange = instance.window.getCurrentWindow();
