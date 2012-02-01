@@ -52,6 +52,7 @@ public class RRInitialCollectionSync implements ResourceRequest {
 	private final String syncData = "<?xml version=\"1.0\" encoding=\"utf-8\"?>"+
 										"<sync-collection xmlns=\"DAV:\">"+
 											"<sync-token/>"+
+											"<sync-level>1</sync-level>"+
 											"<prop>"+
 												"<getetag/>"+
 											"</prop>"+

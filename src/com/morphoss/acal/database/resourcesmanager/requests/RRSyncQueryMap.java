@@ -13,15 +13,21 @@ import com.morphoss.acal.database.resourcesmanager.ResourceResponse;
 public class RRSyncQueryMap extends BlockingResourceRequestWithResponse<Map<String,ContentValues>> {
 
 	private long collectionId;
+	private boolean needsSyncOnly;
 	
-	public RRSyncQueryMap(long collectionId) {
+	public RRSyncQueryMap(long collectionId, boolean needsSyncOnly) {
 		this.collectionId = collectionId;
+		this.needsSyncOnly = needsSyncOnly;
 	}
 	
 	@Override
 	public void process(WriteableResourceTableManager processor) throws ResourceProcessingException {
+		String syncSelection = "";
+		if ( needsSyncOnly )
+			syncSelection = " AND (" + ResourceTableManager.NEEDS_SYNC + " = 1 OR " + ResourceTableManager.RESOURCE_DATA + " IS NULL)";
+
 		Map<String, ContentValues> data = processor.contentQueryMap(
-				ResourceTableManager.COLLECTION_ID + " = ? AND (" + ResourceTableManager.NEEDS_SYNC + " = 1 OR " + ResourceTableManager.RESOURCE_DATA + " IS NULL)",
+				ResourceTableManager.COLLECTION_ID + " = ?"+ syncSelection,
 				new String[] { collectionId + "" });
 		this.postResponse(new RRSyncQueryMapResponse(data));
 	}

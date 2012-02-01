@@ -158,7 +158,7 @@ public class SyncCollectionContents extends ServiceJob {
 
 			// step 1 are there any 'needs_sync' in dav_resources?
 			Map<String, ContentValues> originalData = 
-				ResourceManager.getInstance(context).sendBlockingRequest(new RRSyncQueryMap(collectionId)).result();
+				ResourceManager.getInstance(context).sendBlockingRequest(new RRSyncQueryMap(collectionId,true)).result();
 				
 
 			if ( originalData.size() < 1 && ! timeToRun() ) {
@@ -180,7 +180,7 @@ public class SyncCollectionContents extends ServiceJob {
 										? doRegularSyncReport()
 										: doRegularSyncPropfind() ) ) {
 				originalData = 
-					ResourceManager.getInstance(context).sendBlockingRequest(new RRSyncQueryMap(collectionId)).result();
+					ResourceManager.getInstance(context).sendBlockingRequest(new RRSyncQueryMap(collectionId,true)).result();
 				syncMarkedResources(originalData);
 			}
 
@@ -293,6 +293,195 @@ public class SyncCollectionContents extends ServiceJob {
 
 	
 	/**
+		 * <p>
+		 * Do a sync run using a sync-collection REPORT against the collection, hopefully retrieving the -data
+		 * pseudo-properties at the same time, but in any case getting a list of changed resources to process.
+		 * Quick and light on the bandwidth, we hope.
+		 * </p>
+		 * 
+		 * @return true if we still need to syncMarkedResources() afterwards.
+		 */
+		private boolean doRegularSyncReport() {
+			DavNode root = doCalendarRequest("REPORT", 1,
+						"<?xml version=\"1.0\" encoding=\"utf-8\" ?>"
+						+ "<sync-collection xmlns=\"DAV:\">"
+							+ (oldSyncToken == null ? "<sync-token/>" : "<sync-token>" + oldSyncToken + "</sync-token>")
+							+ "<sync-level>1</sync-level>"
+							+ "<prop>"
+								+ "<getetag/>"
+	//							+ "<getlastmodified/>"
+	//							+ "<" + dataType + "-data xmlns=\"" + nameSpace + "\"/>"
+							+ "</prop>"
+						+ "</sync-collection>"
+					);
+	
+			boolean needSyncAfterwards = false; 
+	
+			if (root == null) {
+				Log.i(TAG, "Unable to sync collection " + this.collectionPath + " (ID:" + this.collectionId
+							+ " - no data from server.");
+				syncWasCompleted = false;
+				Log.i("aCal","Sync report did not work.  Attempting sync via PROPFIND.");
+				syncToken = null;
+				updateCollectionToken(syncToken);
+				return doRegularSyncPropfind();
+			}
+	/**
+	 * SOGO's sync-response looks like this (as of draft-1):
+	 *
+	<?xml version="1.0" encoding="utf-8"?>
+	<D:multistatus xmlns:D="DAV:">
+	 <D:sync-response>
+	  <D:href>/SOGo/dav/sogo2/Calendar/personal/351dc1af-2aa3-4d14-9704-eadbcfecaf7e.ics</D:href>
+	  <D:status>HTTP/1.1 200 OK</D:status>
+	  <D:propstat>
+	   <D:prop>
+	   <D:getetag>&quot;gcs00000001&quot;</D:getetag></D:prop>
+	   <D:status>HTTP/1.1 200 OK</D:status>
+	  </D:propstat>
+	 </D:sync-response>
+	 <D:sync-token>1322100412</D:sync-token>
+	</D:multistatus>
+	 *
+	 */
+	/**
+	 * Correct sync-response looks like this (as of draft-2 and later):
+	 *
+	<?xml version="1.0" encoding="utf-8" ?>
+	<multistatus xmlns="DAV:">
+	 <response>
+	  <href>/caldav.php/user1/home/DAYPARTY-77C6-4FB7-BDD3-6882E2F1BE74.ics</href>
+	  <propstat>
+	   <prop>
+	    <getetag>"165746adbab8bc0c8336a63cc5332ff2"</getetag>
+	    <getlastmodified>Dow, 01 Jan 2000 00:00:00 GMT</getlastmodified>
+	   </prop>
+	   <status>HTTP/1.1 200 OK</status>
+	  </propstat>
+	 </response>
+	 <sync-token>urn:,1322100412</sync-token>
+	</multistatus>
+	 * 
+	 */
+			
+			//ArrayList<ResourceModification> changeList = new ArrayList<ResourceModification>(); 
+			DMQueryList queryList = new DMQueryList();
+	
+			if (Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents )
+				Log.println(Constants.LOGV,TAG, "Start processing response");
+			List<DavNode> responses = root.getNodesFromPath("multistatus/response");
+			if ( responses.isEmpty() ) {
+				if ( errorCounter == 0 ) {
+					responses = root.getNodesFromPath("error/valid-sync-token");
+					errorCounter++;
+					
+					if ( ! responses.isEmpty() ) {
+						Log.i("aCal","We sent an invalid sync-token.  Retrying without a sync-token.");
+						syncToken = null;
+						updateCollectionToken(syncToken);
+						return doRegularSyncPropfind();
+					}
+				}
+	
+				responses = root.getNodesFromPath("multistatus/sync-response");
+				if ( ! responses.isEmpty() ) {
+					Log.e("aCal","CalDAV Server at "+requestor.getHostName()+" uses obsolete draft sync-response syntax. Falling back to inefficient PROPFIND.  Please upgrade your server.");
+	/*
+	 * We won't write it back to the server, because at least we can use this much as an indication that
+	 * something has changed, so we'll just fall through and do a PROPFIND sync.
+	 * 
+					serverData.put(Servers.HAS_SYNC,0);
+					Uri provider = ContentUris.withAppendedId(Servers.CONTENT_URI, serverData.getAsInteger(Servers._ID));
+					cr.update(provider, Servers.cloneValidColumns(serverData), null, null);
+	 */
+					return doRegularSyncPropfind();
+				}
+				responses = root.getNodesFromPath("multistatus/sync-token");
+				if ( responses.isEmpty() ) {
+					Log.i("aCal","No sync-token in sync-report response. Falling back to PROPFIND.");
+					updateCollectionToken(null);
+					return doRegularSyncPropfind();
+				}
+				
+			}
+			else {
+	
+				for (DavNode response : responses) {
+					String responseHref = response.segmentFromFirstHref("href");
+					if (Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents )
+						Log.println(Constants.LOGV,TAG, "Processing response for "+responseHref);
+					//WriteActions action = WriteActions.UPDATE;
+					DMQueryBuilder builder = new DMQueryBuilder();
+					builder.setAction(QUERY_ACTION.UPDATE);
+					
+					ContentValues cv = 
+						ResourceManager.getInstance(context).sendBlockingRequest(
+								new RRGetResourceInCollection(collectionId,responseHref)).result();
+	
+					if ( cv == null ) {
+						cv = new ContentValues();
+						cv.put(ResourceTableManager.COLLECTION_ID, collectionId);
+						cv.put(ResourceTableManager.RESOURCE_NAME, responseHref);
+						cv.put(ResourceTableManager.NEEDS_SYNC, 1 );
+						//action = WriteActions.INSERT;
+						builder.setAction(QUERY_ACTION.INSERT);
+					} else {
+						builder.setWhereClause(ResourceTableManager.RESOURCE_ID+" = ?");
+						builder.setwhereArgs(new String[] {cv.getAsString(ResourceTableManager.RESOURCE_ID)});
+					}
+					
+					List<DavNode> aNode = response.getNodesFromPath("status");
+					if ( aNode.isEmpty()
+								|| aNode.get(0).getText().equalsIgnoreCase("HTTP/1.1 201 Created")
+								|| aNode.get(0).getText().equalsIgnoreCase("HTTP/1.1 200 OK") ) {
+		
+						if ( Constants.LOG_DEBUG )
+							Log.println(Constants.LOGD,TAG,"Updating node "+responseHref+" with "+builder.getAction().toString() );
+						// We are dealing with an update or insert
+						if ( !parseResponseNode(response, cv, false) ) continue;
+						if ( cv.getAsInteger(ResourceTableManager.NEEDS_SYNC) == 1 ) needSyncAfterwards = true; 
+		
+					}
+					//else if ( action == WriteActions.INSERT ) {
+					else if ( builder.getAction()  == QUERY_ACTION.INSERT ) {				
+						// It looked like an INSERT because it's not in our DB, but in fact
+						// the status message was not 200/201 so it's a DELETE that we're
+						// seeing reflected back at us.
+						Log.i(TAG,"Ignoring delete sync on node '"+responseHref+"' which is already deleted from our DB." );
+					}
+					else {
+						// This really *is* a DELETE, since the status could only
+						// have said so.  Or we're getting invalid status messages
+						// and their events all deserve to die anyway!
+						if ( Constants.LOG_DEBUG )
+							Log.println(Constants.LOGD,TAG,"Deleting node '"+responseHref+"'with status: "+aNode.get(0).getText() );
+						//action = WriteActions.DELETE;
+						builder.setAction(QUERY_ACTION.DELETE);
+					}
+					root.removeSubTree(response);
+		
+					//changeList.add( new ResourceModification(action, cv, null) );
+					builder.setValues(cv);
+					queryList.addAction(builder.build());
+					
+					
+				}
+			}
+	
+			// Pull the syncToken we will update with.
+			syncToken = root.getFirstNodeText("multistatus/sync-token");
+			if ( Constants.LOG_DEBUG )
+				Log.println(Constants.LOGD,TAG,"Found sync token of '"+syncToken+"' in sync-report response." );
+			
+			//ResourceModification.commitChangeList(context, changeList, processor.getTableName(this));
+			ResourceManager.getInstance(context).sendBlockingRequest(
+					new RRBlockAndProcessQueryList(queryList));
+		
+			return needSyncAfterwards;
+		}
+
+
+	/**
 	 * <p>
 	 * Do a sync run using a PROPFIND against the collection and a pass through the DB comparing all resources
 	 * currently on file with the ones we got from the PROPFIND. Laborious and potentially bandwidth hogging.
@@ -324,8 +513,8 @@ public class SyncCollectionContents extends ServiceJob {
 
 
 		Map<String, ContentValues> ourResourceMap = 
-			ResourceManager.getInstance(context).sendBlockingRequest(new RRSyncQueryMap(collectionId)).result();
-		//ArrayList<ResourceModification> changeList = new ArrayList<ResourceModification>();
+			ResourceManager.getInstance(context).sendBlockingRequest(new RRSyncQueryMap(collectionId,false)).result();
+
 		DMQueryList queryList = new DMQueryList();
 
 		try {
@@ -604,195 +793,6 @@ public class SyncCollectionContents extends ServiceJob {
 
 		return true;
 	}
-
-	
-	/**
-	 * <p>
-	 * Do a sync run using a sync-collection REPORT against the collection, hopefully retrieving the -data
-	 * pseudo-properties at the same time, but in any case getting a list of changed resources to process.
-	 * Quick and light on the bandwidth, we hope.
-	 * </p>
-	 * 
-	 * @return true if we still need to syncMarkedResources() afterwards.
-	 */
-	private boolean doRegularSyncReport() {
-		DavNode root = doCalendarRequest("REPORT", 1,
-					"<?xml version=\"1.0\" encoding=\"utf-8\" ?>"
-					+ "<sync-collection xmlns=\"DAV:\">"
-						+ "<prop>"
-							+ "<getetag/>"
-//							+ "<getlastmodified/>"
-//							+ "<" + dataType + "-data xmlns=\"" + nameSpace + "\"/>"
-						+ "</prop>"
-					+ (oldSyncToken == null ? "" : "<sync-token>" + oldSyncToken + "</sync-token>")
-					+ "</sync-collection>"
-				);
-
-		boolean needSyncAfterwards = false; 
-
-		if (root == null) {
-			Log.i(TAG, "Unable to sync collection " + this.collectionPath + " (ID:" + this.collectionId
-						+ " - no data from server.");
-			syncWasCompleted = false;
-			Log.i("aCal","Sync report did not work.  Attempting sync via PROPFIND.");
-			syncToken = null;
-			updateCollectionToken(syncToken);
-			return doRegularSyncPropfind();
-		}
-/**
- * SOGO's sync-response looks like this (as of draft-1):
- *
-<?xml version="1.0" encoding="utf-8"?>
-<D:multistatus xmlns:D="DAV:">
- <D:sync-response>
-  <D:href>/SOGo/dav/sogo2/Calendar/personal/351dc1af-2aa3-4d14-9704-eadbcfecaf7e.ics</D:href>
-  <D:status>HTTP/1.1 200 OK</D:status>
-  <D:propstat>
-   <D:prop>
-   <D:getetag>&quot;gcs00000001&quot;</D:getetag></D:prop>
-   <D:status>HTTP/1.1 200 OK</D:status>
-  </D:propstat>
- </D:sync-response>
- <D:sync-token>1322100412</D:sync-token>
-</D:multistatus>
- *
- */
-/**
- * Correct sync-response looks like this (as of draft-2 and later):
- *
-<?xml version="1.0" encoding="utf-8" ?>
-<multistatus xmlns="DAV:">
- <response>
-  <href>/caldav.php/user1/home/DAYPARTY-77C6-4FB7-BDD3-6882E2F1BE74.ics</href>
-  <propstat>
-   <prop>
-    <getetag>"165746adbab8bc0c8336a63cc5332ff2"</getetag>
-    <getlastmodified>Dow, 01 Jan 2000 00:00:00 GMT</getlastmodified>
-   </prop>
-   <status>HTTP/1.1 200 OK</status>
-  </propstat>
- </response>
- <sync-token>urn:,1322100412</sync-token>
-</multistatus>
- * 
- */
-		
-		//ArrayList<ResourceModification> changeList = new ArrayList<ResourceModification>(); 
-		DMQueryList queryList = new DMQueryList();
-
-		if (Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents )
-			Log.println(Constants.LOGV,TAG, "Start processing response");
-		List<DavNode> responses = root.getNodesFromPath("multistatus/response");
-		if ( responses.isEmpty() ) {
-			if ( errorCounter == 0 ) {
-				responses = root.getNodesFromPath("error/valid-sync-token");
-				errorCounter++;
-				
-				if ( ! responses.isEmpty() ) {
-					Log.i("aCal","We sent an invalid sync-token.  Retrying without a sync-token.");
-					syncToken = null;
-					updateCollectionToken(syncToken);
-					return doRegularSyncPropfind();
-				}
-			}
-
-			responses = root.getNodesFromPath("multistatus/sync-response");
-			if ( ! responses.isEmpty() ) {
-				Log.e("aCal","CalDAV Server at "+requestor.getHostName()+" uses obsolete draft sync-response syntax. Falling back to inefficient PROPFIND.  Please upgrade your server.");
-/*
- * We won't write it back to the server, because at least we can use this much as an indication that
- * something has changed, so we'll just fall through and do a PROPFIND sync.
- * 
-				serverData.put(Servers.HAS_SYNC,0);
-				Uri provider = ContentUris.withAppendedId(Servers.CONTENT_URI, serverData.getAsInteger(Servers._ID));
-				cr.update(provider, Servers.cloneValidColumns(serverData), null, null);
- */
-				return doRegularSyncPropfind();
-			}
-			responses = root.getNodesFromPath("multistatus/sync-token");
-			if ( responses.isEmpty() ) {
-				Log.i("aCal","No sync-token in sync-report response. Falling back to PROPFIND.");
-				updateCollectionToken(null);
-				return doRegularSyncPropfind();
-			}
-			
-		}
-		else {
-
-			for (DavNode response : responses) {
-				String responseHref = response.segmentFromFirstHref("href");
-				if (Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents )
-					Log.println(Constants.LOGV,TAG, "Processing response for "+responseHref);
-				//WriteActions action = WriteActions.UPDATE;
-				DMQueryBuilder builder = new DMQueryBuilder();
-				builder.setAction(QUERY_ACTION.UPDATE);
-				
-				ContentValues cv = 
-					ResourceManager.getInstance(context).sendBlockingRequest(
-							new RRGetResourceInCollection(collectionId,responseHref)).result();
-
-				if ( cv == null ) {
-					cv = new ContentValues();
-					cv.put(ResourceTableManager.COLLECTION_ID, collectionId);
-					cv.put(ResourceTableManager.RESOURCE_NAME, responseHref);
-					cv.put(ResourceTableManager.NEEDS_SYNC, 1 );
-					//action = WriteActions.INSERT;
-					builder.setAction(QUERY_ACTION.INSERT);
-				} else {
-					builder.setWhereClause(ResourceTableManager.RESOURCE_ID+" = ?");
-					builder.setwhereArgs(new String[] {cv.getAsString(ResourceTableManager.RESOURCE_ID)});
-				}
-				
-				List<DavNode> aNode = response.getNodesFromPath("status");
-				if ( aNode.isEmpty()
-							|| aNode.get(0).getText().equalsIgnoreCase("HTTP/1.1 201 Created")
-							|| aNode.get(0).getText().equalsIgnoreCase("HTTP/1.1 200 OK") ) {
-	
-					if ( Constants.LOG_DEBUG )
-						Log.println(Constants.LOGD,TAG,"Updating node "+responseHref+" with "+builder.getAction().toString() );
-					// We are dealing with an update or insert
-					if ( !parseResponseNode(response, cv, false) ) continue;
-					if ( cv.getAsInteger(ResourceTableManager.NEEDS_SYNC) == 1 ) needSyncAfterwards = true; 
-	
-				}
-				//else if ( action == WriteActions.INSERT ) {
-				else if ( builder.getAction()  == QUERY_ACTION.INSERT ) {				
-					// It looked like an INSERT because it's not in our DB, but in fact
-					// the status message was not 200/201 so it's a DELETE that we're
-					// seeing reflected back at us.
-					Log.i(TAG,"Ignoring delete sync on node '"+responseHref+"' which is already deleted from our DB." );
-				}
-				else {
-					// This really *is* a DELETE, since the status could only
-					// have said so.  Or we're getting invalid status messages
-					// and their events all deserve to die anyway!
-					if ( Constants.LOG_DEBUG )
-						Log.println(Constants.LOGD,TAG,"Deleting node '"+responseHref+"'with status: "+aNode.get(0).getText() );
-					//action = WriteActions.DELETE;
-					builder.setAction(QUERY_ACTION.DELETE);
-				}
-				root.removeSubTree(response);
-	
-				//changeList.add( new ResourceModification(action, cv, null) );
-				builder.setValues(cv);
-				queryList.addAction(builder.build());
-				
-				
-			}
-		}
-
-		// Pull the syncToken we will update with.
-		syncToken = root.getFirstNodeText("multistatus/sync-token");
-		if ( Constants.LOG_DEBUG )
-			Log.println(Constants.LOGD,TAG,"Found sync token of '"+syncToken+"' in sync-report response." );
-		
-		//ResourceModification.commitChangeList(context, changeList, processor.getTableName(this));
-		ResourceManager.getInstance(context).sendBlockingRequest(
-				new RRBlockAndProcessQueryList(queryList));
-	
-		return needSyncAfterwards;
-	}
-
 
 	
 	/**
