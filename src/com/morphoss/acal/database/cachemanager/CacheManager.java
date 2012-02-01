@@ -625,7 +625,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		 * @param range Must not be null, or have either end null
 		 * @return
 		 */
-		public ArrayList<ContentValues> queryInRange( AcalDateRange range ) {
+		public ArrayList<ContentValues> queryInRange( AcalDateRange range, String cacheObjectType ) {
 			long dtStart = range.start.getMillis();
 			long dtEnd = range.end.getMillis();
 			int offsetS = TimeZone.getDefault().getOffset(range.start.getMillis());
@@ -639,12 +639,14 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 					" OR "+
 				"( "+CacheTableManager.FIELD_DTEND+" ISNULL )"+
 			" ) AND ( "+
-				"( "+CacheTableManager.FIELD_DTSTART+" < "+dtEnd+" AND NOT "+CacheTableManager.FIELD_DTSTART_FLOAT+" )"+
+				"( "+CacheTableManager.FIELD_DTSTART+" <= "+dtEnd+" AND NOT "+CacheTableManager.FIELD_DTSTART_FLOAT+" )"+
 					" OR "+
-				"( "+CacheTableManager.FIELD_DTSTART+" - "+offsetE+" < "+dtEnd+" AND "+CacheTableManager.FIELD_DTSTART_FLOAT+" )"+
+				"( "+CacheTableManager.FIELD_DTSTART+" - "+offsetE+" <= "+dtEnd+" AND "+CacheTableManager.FIELD_DTSTART_FLOAT+" )"+
 					" OR "+
 				"( "+CacheTableManager.FIELD_DTSTART+" ISNULL )"+
-			")";
+			")" +
+			( cacheObjectType == null ? "" : " AND "+CacheTableManager.FIELD_RESOURCE_TYPE+"='"+cacheObjectType+"'");
+
 			if ( CacheManager.DEBUG && Constants.LOG_DEBUG )
 				Log.println(Constants.LOGD, CacheManager.TAG,
 					"Selecting cache objects in "+range+": \nSELECT * FROM event_cache WHERE "+whereClause  );
