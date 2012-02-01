@@ -5,12 +5,13 @@ import java.util.ArrayList;
 import android.content.ContentValues;
 
 import com.morphoss.acal.acaltime.AcalDateRange;
+import com.morphoss.acal.database.cachemanager.CacheManager.CacheTableManager;
 import com.morphoss.acal.database.cachemanager.CacheObject;
 import com.morphoss.acal.database.cachemanager.CacheProcessingException;
 import com.morphoss.acal.database.cachemanager.CacheRequestWithResponse;
 import com.morphoss.acal.database.cachemanager.CacheResponse;
 import com.morphoss.acal.database.cachemanager.CacheResponseListener;
-import com.morphoss.acal.database.cachemanager.CacheManager.CacheTableManager;
+import com.morphoss.acal.davacal.VCalendar;
 
 /**
  * A CacheRequest that returns a List of CacheObjects that occur in the specified range.
@@ -24,6 +25,7 @@ import com.morphoss.acal.database.cachemanager.CacheManager.CacheTableManager;
 public class CRObjectsInRange extends CacheRequestWithResponse<ArrayList<CacheObject>> {
 
 	private AcalDateRange range;
+	private String objectType = null;
 	
 	/**
 	 * Request all CacheObjects in the range provided. Pass the result to the callback provided
@@ -35,6 +37,17 @@ public class CRObjectsInRange extends CacheRequestWithResponse<ArrayList<CacheOb
 		this.range = range;
 	}
 	
+	/**
+	 * Request all VEVENT CacheObjects in the range provided. Pass the result to the callback provided
+	 * @param range
+	 * @param callBack
+	 */
+	public static CRObjectsInRange EventsInRange(AcalDateRange range, CacheResponseListener<ArrayList<CacheObject>> callBack) {
+		CRObjectsInRange result = new CRObjectsInRange(range,callBack);
+		result.objectType = VCalendar.VEVENT;
+		return result;
+	}
+	
 	@Override
 	public void process(CacheTableManager processor)  throws CacheProcessingException{
 		final ArrayList<CacheObject> result = new ArrayList<CacheObject>();
@@ -44,7 +57,7 @@ public class CRObjectsInRange extends CacheRequestWithResponse<ArrayList<CacheOb
 			return;
 		}
 
-		ArrayList<ContentValues> data = processor.queryInRange(range);
+		ArrayList<ContentValues> data = processor.queryInRange(range,objectType);
 		for (ContentValues cv : data) 
 				result.add(CacheObject.fromContentValues(cv));
 		

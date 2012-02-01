@@ -11,12 +11,13 @@ import com.morphoss.acal.Constants;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.database.cachemanager.CacheManager;
+import com.morphoss.acal.database.cachemanager.CacheManager.CacheTableManager;
 import com.morphoss.acal.database.cachemanager.CacheObject;
 import com.morphoss.acal.database.cachemanager.CacheProcessingException;
 import com.morphoss.acal.database.cachemanager.CacheRequestWithResponse;
 import com.morphoss.acal.database.cachemanager.CacheResponse;
 import com.morphoss.acal.database.cachemanager.CacheResponseListener;
-import com.morphoss.acal.database.cachemanager.CacheManager.CacheTableManager;
+import com.morphoss.acal.davacal.VCalendar;
 
 /**
  * A CacheRequest that returns a Map CacheObjects that occur in the specified month.
@@ -32,6 +33,7 @@ public class CRObjectsInMonthByDay extends CacheRequestWithResponse<HashMap<Shor
 
 	private int month;
 	private int year;
+	private String objectType = null;
 	
 	public static final String TAG = "aCal CRObjectsInMonthByDay";
 	
@@ -45,7 +47,8 @@ public class CRObjectsInMonthByDay extends CacheRequestWithResponse<HashMap<Shor
 	
 	/**
 	 * Request all for the month provided. Pass the result to the callback provided
-	 * @param range
+	 * @param month
+	 * @param year
 	 * @param callBack
 	 */
 	public CRObjectsInMonthByDay(int month, int year, CacheResponseListener<HashMap<Short,ArrayList<CacheObject>>> callBack) {
@@ -53,6 +56,18 @@ public class CRObjectsInMonthByDay extends CacheRequestWithResponse<HashMap<Shor
 		construct = System.currentTimeMillis();
 		this.month = month;
 		this.year = year;
+	}
+
+	/**
+	 * Request all VEVENT CacheObjects for the month provided. Pass the result to the callback provided
+	 * @param month
+	 * @param year
+	 * @param callBack
+	 */
+	public static CRObjectsInMonthByDay EventsInMonthByDay(int month, int year, CacheResponseListener<HashMap<Short,ArrayList<CacheObject>>> callBack) {
+		CRObjectsInMonthByDay result = new CRObjectsInMonthByDay(month,year,callBack);
+		result.objectType = VCalendar.VEVENT;
+		return result;
 	}
 	
 	@Override
@@ -64,7 +79,7 @@ public class CRObjectsInMonthByDay extends CacheRequestWithResponse<HashMap<Shor
 		AcalDateRange range = new AcalDateRange(start,end);
 		
 		if (!processor.checkWindow(range)) {
-			//Wait give up - caller can decide to rerequest or waitf for cachechanged notification
+			//Wait give up - caller can decide to rerequest or wait for cachechanged notification
 			this.postResponse(new CREventsInMonthByDayResponse<HashMap<Short,ArrayList<CacheObject>>>(result));
 			pend = System.currentTimeMillis();
 			printMetrics();
@@ -72,13 +87,13 @@ public class CRObjectsInMonthByDay extends CacheRequestWithResponse<HashMap<Shor
 		}
 		
 		qstart  = System.currentTimeMillis();
-		ArrayList<ContentValues> data = processor.queryInRange(range);
+		ArrayList<ContentValues> data = processor.queryInRange(range,objectType);
 		qend  = System.currentTimeMillis();
 		int daysInMonth = start.getActualMaximum(AcalDateTime.DAY_OF_MONTH);
 		for (ContentValues value : data ) {
 			CacheObject co = CacheObject.fromContentValues(value);
 			start = co.getStartDateTime();
-			end = co.getEndDateTime();
+			end = co.getEndDateTime().addSeconds(-1);
 			for( short dayOfMonth = start.getMonthDay()
 					; dayOfMonth <= (end.getMonthDay() < start.getMonthDay() ? daysInMonth : end.getMonthDay())
 					; dayOfMonth++ ) {
