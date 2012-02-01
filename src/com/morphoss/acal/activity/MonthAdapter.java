@@ -93,7 +93,13 @@ public class MonthAdapter extends BaseAdapter implements CacheChangedListener, C
 					if (Constants.debugMonthView && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG, "New data for display.");
 					HashMap<Short,ArrayList<CacheObject>> data = (HashMap<Short,ArrayList<CacheObject>>)msg.obj;
 					for (short i = 1; i<= 31; i++) {
-						if (data.containsKey(i)) eventsByDay.put(i, data.get(i));
+						ArrayList<CacheObject> dayEvents = new ArrayList<CacheObject>();
+						if (data.containsKey(i)) {
+							for ( CacheObject co : data.get(i) ) {
+								if ( co.isEvent() ) dayEvents.add(co);
+							}
+						}
+						eventsByDay.put(i, dayEvents);
 					}
 					while (System.currentTimeMillis() < wait) {
 						Log.println(Constants.LOGD,TAG, "Waiting "+(wait-System.currentTimeMillis())+"ms for animation end.");

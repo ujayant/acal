@@ -89,11 +89,15 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 	
 	private Handler mHandler = new Handler() {
 		
+		@SuppressWarnings("unchecked")
 		@Override
 		public void handleMessage(Message msg) {
 			switch (msg.what) {
 				case HANDLER_NEW_LIST:
-					dayEvents = (ArrayList<CacheObject>)msg.obj;
+					dayEvents = new ArrayList<CacheObject>();
+					for ( CacheObject co : (ArrayList<CacheObject>)msg.obj ) {
+						if ( co.isEvent() ) dayEvents.add(co);
+					}
 					EventListAdapter.this.notifyDataSetChanged();
 					
 					break;
