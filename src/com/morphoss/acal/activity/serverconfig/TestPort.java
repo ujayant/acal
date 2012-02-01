@@ -64,9 +64,10 @@ public class TestPort {
 	public final static int AUTH_SUCCEEDED = 6;
 	public final static int HAS_PRINCIPAL_URL = 7;
 	public final static int HAS_CALDAV = 8;
+	public final static int IS_CALENDAR = 9;
 	
 	private int achievement = NO_CONNECTION;
-	private String principalCollectionHref = null;
+	private String calendarCollectionHref = null;
 
 	/**
 	 * Construct based on values from the AcalRequestor
@@ -229,7 +230,7 @@ public class TestPort {
 				authOK = true;
 				setAchievement(AUTH_SUCCEEDED);
 
-				principalCollectionHref  = null;
+				calendarCollectionHref  = null;
 				for ( DavNode response : root.getNodesFromPath("multistatus/response") ) {
 					String responseHref = response.getFirstNodeText("href"); 
 					if ( Constants.debugCheckServerDialog ) Log.println(Constants.LOGD, TAG, "Checking response for "+responseHref);
@@ -245,6 +246,19 @@ public class TestPort {
 								return true;
 							}
 							String href = null;
+							if ( !propStat.getNodesFromPath("prop/resourcetype/calendar").isEmpty() ) {
+								if ( Constants.debugCheckServerDialog ) Log.println(Constants.LOGD, TAG, "This is a calendar URL :-|");
+								href = propStat.getFirstNodeText("prop/owner/href");
+								if ( href != null ) {
+									requestor.interpretUriString(href);
+									setFieldsFromRequestor();
+									hasPrincipalURL = true;
+									hasCalDAV = true;
+									achievement = IS_CALENDAR;
+									calendarCollectionHref = responseHref;
+								}
+								return true;
+							}
 							href = propStat.getFirstNodeText("prop/current-user-principal/href");
 							if ( href != null && !href.equals("") ) {
 								if ( Constants.debugCheckServerDialog ) Log.println(Constants.LOGD, TAG, "Found the current-user-principal URL :-) at '"+href+"'");
@@ -256,7 +270,7 @@ public class TestPort {
 							
 							href = propStat.getFirstNodeText("prop/principal-collection-set/href");
 							if ( href != null && !href.equals("") ) {
-								principalCollectionHref = href;
+								String principalCollectionHref = href;
 								if ( doPrincipalMatchSelf(href) ) {
 									return true;
 								}
@@ -275,10 +289,6 @@ public class TestPort {
 							}
 						}
 					}
-				}
-				
-				if ( principalCollectionHref != null ) {
-					
 				}
 			}
 		}
@@ -431,11 +441,7 @@ public class TestPort {
 	 */
 	public boolean hasPrincipalUrl() {
 		if ( hasPrincipalURL == null ) {
-			if ( !doPropfindPrincipal(path) ) {
-				if ( principalCollectionHref != null ) {
-					// doPrincipalPropertyReport(principalCollectionHref);
-				}
-			}
+			doPropfindPrincipal(path);
 			if ( hasPrincipalURL == null ) hasPrincipalURL = true; 
 			
 		}
@@ -589,6 +595,11 @@ public class TestPort {
 
 	public int getAchievement() {
 		return achievement;
+	}
+
+
+	public String getCalendarPath() {
+		return calendarCollectionHref;
 	}
 
 
