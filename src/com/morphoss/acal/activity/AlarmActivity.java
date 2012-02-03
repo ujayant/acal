@@ -50,7 +50,6 @@ import com.morphoss.acal.database.alarmmanager.requests.ARGetNextDueAlarm;
 import com.morphoss.acal.database.alarmmanager.requests.ARUpdateAlarmState;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager;
 import com.morphoss.acal.database.resourcesmanager.requests.RRAlarmRowToAcalAlarm;
-import com.morphoss.acal.dataservice.EventInstance;
 import com.morphoss.acal.davacal.AcalAlarm;
 
 /**
@@ -78,10 +77,11 @@ public class AlarmActivity extends AcalActivity implements OnClickListener  {
 	private ImageView dismissButton;
 
 	//Constants
-	private static final int DIMISS = 0;
+	private static final int DISMISS = 0;
 	private static final int SNOOZE = 1;
 	private static final int MAP = 2;
-	private static final int SHORT_PAUSE_DURATION = 15;	//short pause 15 seconds if phone busy
+	private static final int PAUSE_BEFORE_AUDIO = 1500;	// pause 1500 milliseconds after display before starting audio alarm
+	private static final int SHORT_PAUSE_DURATION = 15;	// short pause 15 seconds if phone busy
 
 	//Audio Management
 	private MediaPlayer mediaPlayer;
@@ -359,21 +359,23 @@ public class AlarmActivity extends AcalActivity implements OnClickListener  {
 			if ( mediaPlayer == null ) vibrateMode = true;
 
 			//Finally, trigger media player or vibrator if we are NOT in a call
-			if (!inCall) {
-				if (vibrateMode) {
-					vibrator.vibrate(pattern, -1);
+			if (vibrateMode) {
+				if (!inCall) vibrator.vibrate(pattern, -1);
+			}
+			else {
+				for( int i=0; i<(PAUSE_BEFORE_AUDIO / 20); i++ ) {
+					try { Thread.sleep(20); } catch ( InterruptedException e ) { }
 				}
-				else {
+				if (!inCall) {
 					this.audioPlaying = true;
 					this.audioInterupted = false;
 					mediaPlayer.start();			
 				}
+				else {
+					this.audioPlaying = false;
+					this.audioInterupted = true;
+				}
 			} 
-			//if we are in a call, set state but don't start.
-			else if (!vibrateMode) {
-				this.audioPlaying = false;
-				this.audioInterupted = true;
-			}
 		}
 	}
 
