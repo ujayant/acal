@@ -20,6 +20,7 @@ package com.morphoss.acal.activity;
 
 import java.util.List;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.ContentValues;
@@ -32,22 +33,25 @@ import android.os.Message;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
+import android.view.ViewParent;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.Spinner;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.CompoundButton.OnCheckedChangeListener;
-import android.widget.SeekBar.OnSeekBarChangeListener;
 
 import com.morphoss.acal.AcalTheme;
 import com.morphoss.acal.Constants;
@@ -68,11 +72,12 @@ import com.morphoss.acal.dataservice.Collection;
 import com.morphoss.acal.dataservice.MethodsRequired;
 import com.morphoss.acal.dataservice.TodoInstance;
 import com.morphoss.acal.davacal.AcalAlarm;
+import com.morphoss.acal.davacal.AcalAlarm.ActionType;
+import com.morphoss.acal.davacal.AcalAlarm.RelateWith;
+import com.morphoss.acal.davacal.PropertyName;
 import com.morphoss.acal.davacal.VCalendar;
 import com.morphoss.acal.davacal.VComponent;
 import com.morphoss.acal.davacal.VTodo;
-import com.morphoss.acal.davacal.AcalAlarm.ActionType;
-import com.morphoss.acal.davacal.AcalAlarm.RelateWith;
 import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.service.aCalService;
 import com.morphoss.acal.widget.AlarmDialog;
@@ -81,7 +86,7 @@ import com.morphoss.acal.widget.DateTimeSetListener;
 
 public class TodoEdit extends AcalActivity
 	implements OnCheckedChangeListener, OnSeekBarChangeListener,
-				ResourceChangedListener, ResourceResponseListener<CalendarInstance> {
+				ResourceChangedListener, ResourceResponseListener {
 
 	public static final String TAG = "aCal TodoEdit";
 
@@ -108,6 +113,7 @@ public class TodoEdit extends AcalActivity
 	private static final int SET_REPEAT_RULE_DIALOG = 21;
 	private static final int INSTANCES_TO_CHANGE_DIALOG = 30;
 	private static final int LOADING_DIALOG = 0xfeed;
+	private static final int SAVING_DIALOG = 0xbeef;
 
 	boolean prefer24hourFormat = false;
 	
@@ -175,52 +181,114 @@ public class TodoEdit extends AcalActivity
 	private static final int CONFLICT = 2;
 	private static final int SHOW_LOADING = 3;
 	private static final int GIVE_UP = 4;
+	private static final int SAVE_RESULT = 5;
+	private static final int SAVE_FAILED = 6;
+	private static final int SHOW_SAVING = 7;
 	
 	private Dialog loadingDialog = null;
 	private ResourceManager	resourceManager;
 
-	
+	private Dialog savingDialog = null;
+
+	private long	rid = -1;
+
+		
 	private Handler mHandler = new Handler() {
+		private boolean saveSucceeded = false;
+		private boolean isSaving = false;
+		private boolean isLoading = false;
+
 		public void handleMessage(Message msg) {
-			if ( msg.what == REFRESH ) {
-				if ( loadingDialog != null ) {
-					loadingDialog.dismiss();
-					loadingDialog = null;
-				}
-				updateLayout();
-			}
-			else if ( msg.what == CONFLICT ) {
-				Toast.makeText(
-						TodoEdit.this,
-						"The resource you are editing has been changed or deleted on the server.",
-						5).show();
-			}
-			else if ( msg.what == SHOW_LOADING ) {
-				if ( todo == null ) showDialog(LOADING_DIALOG);
-			}
-			else if ( msg.what == FAIL ) {
-				Toast.makeText(TodoEdit.this,
-						"Error loading data.", 5)
-						.show();
-				finish();
-				return;
-			}
-			else if ( msg.what == GIVE_UP ) {
-				if ( loadingDialog != null ) {
-					loadingDialog.dismiss();
+			switch( msg.what ) {
+				case REFRESH:
+					if ( loadingDialog != null ) {
+						loadingDialog.dismiss();
+						loadingDialog = null;
+					}
+					updateLayout();
+					break;
+
+				case CONFLICT:
 					Toast.makeText(
 							TodoEdit.this,
-							"Error loading event data.",
-							Toast.LENGTH_LONG).show();
-					finish();
-					return;
-				}
-			}
+							"The resource you are editing has been changed or deleted on the server.",
+							5).show();
+					break;
+				case SHOW_LOADING:
+					if ( todo == null ) showDialog(LOADING_DIALOG);
+					break;
 			
+				case FAIL:
+					if ( isLoading ) {
+						Toast.makeText(TodoEdit.this, "Error loading data.", 5).show();
+						isLoading = false;
+					}
+					else if ( isSaving ) {
+						isSaving = false;
+						if ( savingDialog != null ) savingDialog
+								.dismiss();
+						Toast.makeText( TodoEdit.this, "Something went wrong trying to save data.", Toast.LENGTH_LONG).show();
+						setResult(Activity.RESULT_CANCELED, null);
+					}
+					finish();
+					break;
+				case GIVE_UP:
+					if ( loadingDialog != null ) {
+						loadingDialog.dismiss();
+						Toast.makeText(
+								TodoEdit.this,
+								"Error loading event data.",
+								Toast.LENGTH_LONG).show();
+						finish();
+						return;
+					}
+					break;
+
+				case SHOW_SAVING:
+					isSaving = true;
+					showDialog(SAVING_DIALOG);
+					break;
+	
+				case SAVE_RESULT:
+					// dismiss
+					// dialog
+					mHandler.removeMessages(SAVE_FAILED);
+					isSaving = false;
+					if ( savingDialog != null ) savingDialog.dismiss();
+					long res = (Long) msg.obj;
+					if ( res >= 0 ) {
+						Intent ret = new Intent();
+						Bundle b = new Bundle();
+						ret.putExtras(b);
+						setResult(RESULT_OK, ret);
+						saveSucceeded = true;
+	
+						finish();
+	
+					}
+					else {
+						Toast.makeText(TodoEdit.this, "Error saving event data.", Toast.LENGTH_LONG).show();
+					}
+					break;
+	
+				case SAVE_FAILED:
+					isSaving = false;
+					if ( savingDialog != null ) savingDialog.dismiss();
+					if ( saveSucceeded ) {
+						// Don't know why we get here, but we do! - cancel save failed when save succeeds.
+						// we shouldn't see this anymore.
+						Log.w(TAG, "This should have been fixed now yay!", new Exception());
+					}
+					else {
+						Toast.makeText( TodoEdit.this, "Something went wrong trying to save data.", Toast.LENGTH_LONG).show();
+						setResult(Activity.RESULT_CANCELED, null);
+						finish();
+					}
+					break;
+			}			
 		}
 	};
 
-	
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		this.setContentView(R.layout.todo_edit);
@@ -260,12 +328,13 @@ public class TodoEdit extends AcalActivity
 		currentOperation = ACTION_EDIT;
 		try {
 			Bundle b = this.getIntent().getExtras();
-			if ( b.containsKey(KEY_OPERATION) ) {
+			if ( b != null && b.containsKey(KEY_OPERATION) ) {
 				currentOperation = b.getInt(KEY_OPERATION);
 			}
-			if ( b.containsKey(KEY_CACHE_OBJECT) ) {
+			if ( b != null && b.containsKey(KEY_CACHE_OBJECT) ) {
 				CacheObject cacheTodo = (CacheObject) b.getParcelable(KEY_CACHE_OBJECT);
-				resourceManager.sendRequest(new RRRequestInstance(this, cacheTodo.getResourceId(), cacheTodo.getRecurrenceId()));
+				this.rid = cacheTodo.getResourceId();
+				resourceManager.sendRequest(new RRRequestInstance(this, rid, cacheTodo.getRecurrenceId()));
 				mHandler.sendMessageDelayed(mHandler.obtainMessage(SHOW_LOADING), 50);
 				mHandler.sendMessageDelayed(mHandler.obtainMessage(GIVE_UP), 10000);
 			}
@@ -278,6 +347,8 @@ public class TodoEdit extends AcalActivity
 			long preferredCollectionId = prefs.getLong(getString(R.string.DefaultCollection_PrefKey), -1);
 			if ( Collection.getInstance(preferredCollectionId, this) == null )
 				preferredCollectionId = collectionsArray[0].getCollectionId();
+
+			currentCollection = Collection.getInstance(preferredCollectionId, this);
 
 			this.todo = new VTodo();
 			this.todo.setSummary(getString(R.string.NewTaskTitle));
@@ -356,6 +427,21 @@ public class TodoEdit extends AcalActivity
 			spinnerCollection.setEnabled(false);
 			collectionsLayout.setVisibility(View.GONE);
 		}
+		else {
+			spinnerCollection.setOnItemSelectedListener( new OnItemSelectedListener() {
+
+				@Override
+				public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
+					setSelectedCollection(collectionsArray[arg2].getCollectionId());
+				}
+
+				@Override
+				public void onNothingSelected(AdapterView<?> arg0) {
+				}
+				
+			});
+		}
+
 
 		//date/time fields
 		btnStartDate = (Button) this.findViewById(R.id.TodoFromDateTime);
@@ -430,26 +516,34 @@ public class TodoEdit extends AcalActivity
 
 		String description = todo.getDescription();
 		notesView.setText(description);
-		
-		Integer colour = currentCollection.getColour();
+
+		Integer colour = (currentCollection == null ? 0x808080c0 : currentCollection.getColour());
 		if ( colour == null ) colour = 0x70a0a0a0;
 		sidebar.setBackgroundColor(colour);
 		sidebarBottom.setBackgroundColor(colour);
 		AcalTheme.setContainerColour(spinnerCollection,colour);
 
-		try {
-			// Attempt to set text colour that works with (hopefully) background colour. 
-			((TextView) spinnerCollection
-						.getSelectedView())
-						.setTextColor(AcalTheme.pickForegroundForBackground(colour));
-		}
-		catch( Exception e ) {
-			// Oh well.  Some other way then... @todo.
-			Log.i(TAG,"Think of another solution...",e);
+		if ( spinnerCollection != null ) {
+			try {
+				// Attempt to set text colour that works with (hopefully) background colour. 
+				((TextView) spinnerCollection
+							.getSelectedView())
+							.setTextColor(AcalTheme.pickForegroundForBackground(colour));
+			}
+			catch( Exception e ) {
+				// Oh well.  Some other way then... @todo.
+				Log.i(TAG,"Think of another solution...",e);
+				if ( spinnerCollection != null ) {
+					View v = spinnerCollection.getSelectedView();
+					ViewParent vp = (v==null ? null : v.getParent());
+					Log.i(TAG,"SelectedView is "+(v==null ? "null" : v.getClass().toString())+
+							", Parent is "+(vp==null ? "null" : vp.getClass().toString()));
+				}
+			}
 		}
 		todoName.setTextColor(colour);
 
-		ArrayAdapter<CollectionForArrayAdapter> collectionAdapter = new ArrayAdapter(this,android.R.layout.select_dialog_item, collectionsArray);
+		ArrayAdapter<CollectionForArrayAdapter> collectionAdapter = new ArrayAdapter<CollectionForArrayAdapter>(this,android.R.layout.select_dialog_item, collectionsArray);
 		int spinnerPosition = 0;
 		while( spinnerPosition < collectionsArray.length && collectionsArray[spinnerPosition].getCollectionId() != currentCollection.getCollectionId())
 			spinnerPosition++;
@@ -629,40 +723,38 @@ public class TodoEdit extends AcalActivity
 
 	}
 
+	@SuppressWarnings("unchecked")
 	private boolean saveChanges() {
 		
 		try {
 			VCalendar vc = (VCalendar) todo.getTopParent();
 
-			// @todo This call will also need to send collectionId (and resourceId for updates) 
-			this.dataRequest.todoChanged(vc, action);
+			AcalDateTime dtStart = todo.getStart();
+			if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,
+					"saveChanges: "+todo.getSummary()+
+					", starts "+(dtStart == null ? "not set" : dtStart.toPropertyString(PropertyName.DTSTART)));
 
-			Log.i(TAG,"Saving todo to collection "+currentCollection.getCollectionId()+" with action " + action );
-			if ( action == ACTION_CREATE )
-				Toast.makeText(this, getString(R.string.TaskSaved), Toast.LENGTH_LONG).show();
-			else if (action == ACTION_MODIFY_ALL)
-				Toast.makeText(this, getString(R.string.TaskModifiedAll), Toast.LENGTH_LONG).show();
-			else if (action == ACTION_MODIFY_SINGLE)
-				Toast.makeText(this, getString(R.string.TaskModifiedOne), Toast.LENGTH_LONG).show();
-			else if (action == ACTION_MODIFY_ALL_FUTURE)
-				Toast.makeText(this, getString(R.string.TaskModifiedThisAndFuture), Toast.LENGTH_LONG).show();
+			int sendAction = RRResourceEditedRequest.ACTION_UPDATE;
+			if (action == ACTION_CREATE ) sendAction = RRResourceEditedRequest.ACTION_CREATE;
+			else if (action == ACTION_DELETE_ALL ) sendAction = RRResourceEditedRequest.ACTION_DELETE;
+			ResourceManager.getInstance(this)
+						.sendRequest(new RRResourceEditedRequest(this, currentCollection.collectionId, rid, vc, sendAction));
 
-			Intent ret = new Intent();
-			Bundle b = new Bundle();
-			b.putString(KEY_VCALENDAR_BLOB, vc.getCurrentBlob());
-			/*
-			b.putLong(KEY_RESOURCE, currentCollection.getAsInteger(DavCollections._ID));
-			*/
-			ret.putExtras(b);
-			this.setResult(RESULT_OK, ret);
+			//set message for 10 seconds to fail.
+			mHandler.sendEmptyMessageDelayed(SAVE_FAILED, 100000);
 
-			this.finish();
+			//showDialog(SAVING_DIALOG);
+			mHandler.sendEmptyMessageDelayed(SHOW_SAVING,50);
+
+
 		}
 		catch (Exception e) {
-			if ( e.getMessage() != null ) Log.d(TAG,e.getMessage());
-			if (Constants.LOG_DEBUG)Log.d(TAG,Log.getStackTraceString(e));
-			Toast.makeText(this, getString(R.string.TaskErrorSaving), Toast.LENGTH_LONG).show();
+			if ( e.getMessage() != null ) Log.println(Constants.LOGD,TAG,e.getMessage());
+			if (Constants.LOG_DEBUG)Log.println(Constants.LOGD,TAG,Log.getStackTraceString(e));
+			Toast.makeText(this, getString(R.string.ErrorSavingEvent), Toast.LENGTH_LONG).show();
+			return false;
 		}
+
 		return true;
 	}
 
@@ -918,14 +1010,24 @@ public class TodoEdit extends AcalActivity
 	}
 
 
+	@SuppressWarnings("rawtypes")
 	@Override
-	public void resourceResponse(ResourceResponse<CalendarInstance> response) {
+	public void resourceResponse(ResourceResponse response) {
 		int msg = FAIL;
-		if (response.wasSuccessful()) {
-			setTodo( new VTodo((TodoInstance) response.result()) );
-			msg = REFRESH;
+		Object result = response.result();
+		if (result == null) {
+			mHandler.sendMessage(mHandler.obtainMessage(msg));
 		}
-		mHandler.sendMessage(mHandler.obtainMessage(msg));
+		else if (result instanceof CalendarInstance) {
+			if (response.wasSuccessful()) {
+				setTodo( new VTodo((TodoInstance) response.result()) );
+				msg = REFRESH;
+			}
+			mHandler.sendMessage(mHandler.obtainMessage(msg));		
+		}
+		else if (result instanceof Long) {
+			mHandler.sendMessage(mHandler.obtainMessage(SAVE_RESULT, result));
+		}
 	}
 
 }
