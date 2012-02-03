@@ -134,13 +134,13 @@ public abstract class DatabaseTableManager {
 			if (Constants.debugDatabaseManager && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG,"DB:"+this.getTableName()+" OPEN_READ:");
 			if (Constants.debugDatabaseManager && Constants.LOG_VERBOSE) printStackTraceInfo(Log.VERBOSE);
 			saveStackTraceInfo();
-			db = dbHelper.getReadableDatabase();
+			db = dbHelper.getAcalReadableDatabase();
 			break;
 		case OPEN_WRITE:
 			if (Constants.debugDatabaseManager && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG,"DB:"+this.getTableName()+" OPEN_WRITE:");
 			if (Constants.debugDatabaseManager && Constants.LOG_VERBOSE) printStackTraceInfo(Log.VERBOSE);
 			saveStackTraceInfo();
-			db = dbHelper.getWritableDatabase();
+			db = dbHelper.getAcalWritableDatabase();
 			break;
 		case OPEN_READTX:
 			if (Constants.debugDatabaseManager && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG,"DB:"+this.getTableName()+" OPEN_READTX:");
@@ -148,14 +148,14 @@ public abstract class DatabaseTableManager {
 			if (Constants.debugDatabaseManager && Constants.LOG_VERBOSE) printStackTraceInfo(Log.VERBOSE);
 			inTx = true;
 			inReadTx = true;
-			db = dbHelper.getReadableDatabase();
+			db = dbHelper.getAcalReadableDatabase();
 			break;
 		case OPEN_WRITETX:
 			if (Constants.debugDatabaseManager && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG,"DB:"+this.getTableName()+" OPEN_WRITETX:");
 			saveStackTraceInfo();
 			if (Constants.debugDatabaseManager && Constants.LOG_VERBOSE) printStackTraceInfo(Log.VERBOSE);
 			inTx = true;
-			db = dbHelper.getWritableDatabase();
+			db = dbHelper.getAcalWritableDatabase();
 			db.beginTransaction();
 			break;
 		default:

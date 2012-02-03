@@ -246,6 +246,8 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 			+",closed BOOLEAN"
 		+");";
 
+	private Context	context;
+
 	/**
 	 * Visible single argument constructor. Calls super with default values.
 	 * 
@@ -254,6 +256,7 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 	 */
 	public AcalDBHelper (Context context) {
 		super (context, DB_NAME+".db", null, DB_VERSION);
+		this.context = context;
 	}
 	
 	/**
@@ -410,4 +413,29 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 	//	Log.e(TAG,"Database opened: ");
 	//	Thread.dumpStack();
 	}
+
+
+	public SQLiteDatabase getAcalReadableDatabase() {
+		try {
+			return SQLiteDatabase.openDatabase(context.getDatabasePath(DB_NAME+".db").toString(), null, 
+					SQLiteDatabase.OPEN_READONLY | SQLiteDatabase.NO_LOCALIZED_COLLATORS);
+		}
+		catch( Exception e) {
+			Log.w(TAG,Log.getStackTraceString(e));
+		}
+		return getReadableDatabase(); 
+	}
+
+	
+	public SQLiteDatabase getAcalWritableDatabase() {
+		try {
+			return SQLiteDatabase.openDatabase(context.getDatabasePath(DB_NAME+".db").toString(), null, 
+					SQLiteDatabase.OPEN_READWRITE | SQLiteDatabase.NO_LOCALIZED_COLLATORS);
+		}
+		catch( Exception e) {
+			Log.w(TAG,Log.getStackTraceString(e));
+		}
+		return getReadableDatabase(); 
+	}
+	
 }
