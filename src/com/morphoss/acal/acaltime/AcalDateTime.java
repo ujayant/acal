@@ -1746,15 +1746,23 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 
 
 	/**
+	 * Gets an instance of AcalDateTime at the current time in the UTC timezone. 
+	 * @return
+	 */
+	public static AcalDateTime getUTCInstance() {
+		AcalDateTime answer = new AcalDateTime();
+		answer.tz = UTC;
+		answer.tzName = UTC_NAME;
+		return answer;
+	}
+
+
+	/**
 	 * Gets an instance of AcalDateTime at the current clock time in the current timezone. 
 	 * @return
 	 */
 	public static AcalDateTime getInstance() {
-		AcalDateTime answer = new AcalDateTime();
-		answer.tz = UTC;
-		answer.tzName = UTC_NAME;
-		answer.applyLocalTimeZone();
-		return answer;
+		return AcalDateTime.getUTCInstance().applyLocalTimeZone();
 	}
 
 
