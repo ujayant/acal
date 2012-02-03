@@ -34,9 +34,9 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.ViewParent;
-import android.view.View.OnClickListener;
 import android.view.animation.Animation;
 import android.view.animation.Animation.AnimationListener;
 import android.widget.BaseAdapter;
@@ -51,10 +51,10 @@ import com.morphoss.acal.database.DataChangeEvent;
 import com.morphoss.acal.database.cachemanager.CacheChangedEvent;
 import com.morphoss.acal.database.cachemanager.CacheChangedListener;
 import com.morphoss.acal.database.cachemanager.CacheManager;
+import com.morphoss.acal.database.cachemanager.CacheManager.CacheTableManager;
 import com.morphoss.acal.database.cachemanager.CacheObject;
 import com.morphoss.acal.database.cachemanager.CacheResponse;
 import com.morphoss.acal.database.cachemanager.CacheResponseListener;
-import com.morphoss.acal.database.cachemanager.CacheManager.CacheTableManager;
 import com.morphoss.acal.database.cachemanager.requests.CRObjectsInMonthByDay;
 import com.morphoss.acal.views.MonthDayBox;
 
@@ -158,7 +158,7 @@ public class MonthAdapter extends BaseAdapter implements CacheChangedListener, C
 		displayMonthLocalized.setMonthDay(1);
 		
 		//request data		
-		cacheManager.sendRequest(new CRObjectsInMonthByDay(displayMonthLocalized.getMonth(), displayMonthLocalized.getYear(), this));
+		cacheManager.sendRequest(CRObjectsInMonthByDay.EventsInMonthByDay(displayMonthLocalized.getMonth(), displayMonthLocalized.getYear(), this));
 	}
 
 
