@@ -116,18 +116,21 @@ public class JournalEdit extends AcalActivity
 	private static final int SAVE_FAILED = 6;
 	private static final int SHOW_SAVING = 7;
 
-	private boolean saveSucceeded = false;
-	private boolean isSaving = false;
-	private boolean isLoading = false;
-
-
 	private Dialog loadingDialog = null;
 	private Dialog savingDialog = null;
 
 	private ResourceManager	resourceManager;
 
+	private TextView journalContent;
+
+	private long	rid = -1;
+	
 	
 	private Handler mHandler = new Handler() {
+		private boolean saveSucceeded = false;
+		private boolean isSaving = false;
+		private boolean isLoading = false;
+
 		public void handleMessage(Message msg) {
 			
 			switch ( msg.what ) {
@@ -227,11 +230,6 @@ public class JournalEdit extends AcalActivity
 		}
 	};
 
-	private TextView journalContent;
-
-	private long	rid = -1;
-
-	
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		this.setContentView(R.layout.journal_edit);
@@ -275,7 +273,7 @@ public class JournalEdit extends AcalActivity
 			if ( b != null && b.containsKey(KEY_CACHE_OBJECT) ) {
 				CacheObject cacheJournal = (CacheObject) b.getParcelable(KEY_CACHE_OBJECT);
 				this.rid = cacheJournal.getResourceId();
-				resourceManager.sendRequest(new RRRequestInstance(this, cacheJournal.getResourceId(), cacheJournal.getRecurrenceId()));
+				resourceManager.sendRequest(new RRRequestInstance(this, this.rid, cacheJournal.getRecurrenceId()));
 				mHandler.sendMessageDelayed(mHandler.obtainMessage(SHOW_LOADING), 50);
 				mHandler.sendMessageDelayed(mHandler.obtainMessage(GIVE_UP), 10000);
 			}
@@ -607,7 +605,7 @@ public class JournalEdit extends AcalActivity
 		if (result == null) {
 			mHandler.sendMessage(mHandler.obtainMessage(msg));
 		}
-		if (result instanceof CalendarInstance) {
+		else if (result instanceof CalendarInstance) {
 			if (response.wasSuccessful()) {
 				setJournal( new VJournal((JournalInstance) response.result()) );
 				msg = REFRESH;
