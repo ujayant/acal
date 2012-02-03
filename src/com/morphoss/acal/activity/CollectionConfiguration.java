@@ -265,7 +265,7 @@ public class CollectionConfiguration extends PreferenceActivity implements OnPre
 			this.preferenceRoot.addPreference(preference);
 		}
 		catch( Exception e ) {
-			Log.e(TAG,"Failed to set prereference for "+title+":::"+key+":::"+summary);
+			Log.e(TAG,"Failed to set preference for "+title+":::"+key+":::"+summary);
 			Log.e(TAG,Log.getStackTraceString(e));
 		}
 	}
@@ -297,14 +297,37 @@ public class CollectionConfiguration extends PreferenceActivity implements OnPre
             preferenceHelper(activeAddressbook, getString(R.string.Active), DavCollections.ACTIVE_ADDRESSBOOK, defaultSummaries.get(DavCollections.ACTIVE_ADDRESSBOOK));        	
         }
         else {
-	        //active for events
-	        CheckBoxPreference activeEvents = new CheckBoxPreference(this);
-	        boolean check = (collectionData.getAsInteger(DavCollections.ACTIVE_EVENTS)!= null && collectionData.getAsInteger(DavCollections.ACTIVE_EVENTS) == 1);
-	        activeEvents.setChecked(check);
-            activeEvents.setTitle(R.string.pActive_for_events);
-	        activeEvents.setOnPreferenceChangeListener(this); 
-	        preferenceHelper(activeEvents, getString(R.string.Active), DavCollections.ACTIVE_EVENTS, defaultSummaries.get(DavCollections.ACTIVE_EVENTS));
+        	boolean check;
+	        if ( (collectionData.getAsInteger(DavCollections.HOLDS_EVENTS) != null) && collectionData.getAsInteger(DavCollections.HOLDS_EVENTS) == 1) {
+		        //active for events
+		        CheckBoxPreference activeEvents = new CheckBoxPreference(this);
+		        check = (collectionData.getAsInteger(DavCollections.ACTIVE_EVENTS)!= null && collectionData.getAsInteger(DavCollections.ACTIVE_EVENTS) == 1);
+		        activeEvents.setChecked(check);
+	            activeEvents.setTitle(R.string.pActive_for_events);
+		        activeEvents.setOnPreferenceChangeListener(this); 
+		        preferenceHelper(activeEvents, getString(R.string.pActive_for_events), DavCollections.ACTIVE_EVENTS, defaultSummaries.get(DavCollections.ACTIVE_EVENTS));
+	        }
 	
+
+	        if ( (collectionData.getAsInteger(DavCollections.HOLDS_TASKS) != null) && collectionData.getAsInteger(DavCollections.HOLDS_TASKS) == 1) {
+		        //active for tasks
+		        CheckBoxPreference activeTasks = new CheckBoxPreference(this);
+		        check = (collectionData.getAsInteger(DavCollections.ACTIVE_TASKS) != null && collectionData.getAsInteger(DavCollections.ACTIVE_TASKS) == 1);
+		        activeTasks.setChecked(check);
+	            activeTasks.setTitle(R.string.pActive_for_tasks);
+		        activeTasks.setOnPreferenceChangeListener(this); 
+		        preferenceHelper(activeTasks, getString(R.string.pActive_for_tasks), DavCollections.ACTIVE_TASKS, defaultSummaries.get(DavCollections.ACTIVE_TASKS));
+	        }
+	
+	        if ( (collectionData.getAsInteger(DavCollections.HOLDS_JOURNAL) != null) && collectionData.getAsInteger(DavCollections.HOLDS_JOURNAL) == 1) {
+		        //active for journal
+		        CheckBoxPreference activeJournal = new CheckBoxPreference(this);
+		        check = (collectionData.getAsInteger(DavCollections.ACTIVE_JOURNAL) != null && collectionData.getAsInteger(DavCollections.ACTIVE_JOURNAL) == 1);
+		        activeJournal.setChecked(check);
+	            activeJournal.setTitle(R.string.pActive_for_journal);
+		        activeJournal.setOnPreferenceChangeListener(this); 
+		        preferenceHelper(activeJournal, getString(R.string.pActive_for_journal), DavCollections.ACTIVE_JOURNAL, defaultSummaries.get(DavCollections.ACTIVE_JOURNAL));
+	        }
 
 	        //active for alarms
 	        CheckBoxPreference activeAlarms = new CheckBoxPreference(this);
@@ -314,22 +337,6 @@ public class CollectionConfiguration extends PreferenceActivity implements OnPre
 	        activeAlarms.setOnPreferenceChangeListener(this); 
 	        preferenceHelper(activeAlarms, getString(R.string.Use_Alarms), DavCollections.USE_ALARMS, defaultSummaries.get(DavCollections.USE_ALARMS));
 
-	        
-	        //active for tasks NOT Implemented
-	        /**CheckBoxPreference activeTasks = new CheckBoxPreference(this);
-	        check = (collectionData.getAsInteger(DavCollections.ACTIVE_TASKS) != null && collectionData.getAsInteger(DavCollections.ACTIVE_TASKS) == 1);
-	        activeTasks.setChecked(check);
-            activeTasks.setTitle(R.string.pActive_for_tasks);
-	        activeTasks.setOnPreferenceChangeListener(this); 
-	        preferenceHelper(activeTasks, getString(R.string.Active), DavCollections.ACTIVE_TASKS, defaultSummaries.get(DavCollections.ACTIVE_TASKS));
-	
-	        //active for journal
-	        CheckBoxPreference activeJournal = new CheckBoxPreference(this);
-	        check = (collectionData.getAsInteger(DavCollections.ACTIVE_JOURNAL) != null && collectionData.getAsInteger(DavCollections.ACTIVE_JOURNAL) == 1);
-	        activeJournal.setChecked(check);
-            activeJournal.setTitle(R.string.pActive_for_journal);
-	        activeJournal.setOnPreferenceChangeListener(this); 
-	        preferenceHelper(activeJournal, getString(R.string.Active), DavCollections.ACTIVE_JOURNAL, defaultSummaries.get(DavCollections.ACTIVE_JOURNAL)); */
         }
 
 
