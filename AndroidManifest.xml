@@ -175,20 +175,7 @@
 			android:launchMode="standard" >
 			<intent-filter>
 				<action android:name="com.morphoss.acal.activity.EventEdit" />
-				<action android:name="android.intent.action.VIEW" />
 				<category android:name="android.intent.category.DEFAULT" />
-				<data android:scheme="content" />
-				<data android:scheme="file" />
-				<data android:scheme="http" />
-				<data android:mimeType="application/ics" />
-				<data android:mimeType="text/calendar" />
-				<!-- the next two lines aren't working atm -->
-				<data
-					android:mimeType="application/octet-stream"
-					android:pathPattern=".*\\.ics" />
-				<data
-					android:mimeType="text/*"
-					android:pathPattern=".*\\.ics" />
 			</intent-filter>
 		</activity>
 		<activity
@@ -275,6 +262,7 @@
 		<service
 			android:name=".service.ContactsSyncAdapterService"
 			android:exported="true"
+			android:permission="android.permission.WRITE_CONTACTS"
 			android:process=":contacts" >
 			<intent-filter>
 				<action android:name="android.content.SyncAdapter" />
@@ -331,6 +319,27 @@
 			android:enabled="true" >
 			<intent-filter>
 				<action android:name="android.intent.action.TIMEZONE_CHANGED" />
+			</intent-filter>
+		</receiver>
+		<receiver
+			android:name=".receivers.iMIPReceiver"
+			android:enabled="true" >
+			<intent-filter>
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<data android:scheme="content" />
+				<data android:scheme="file" />
+				<data android:scheme="http" />
+				<data android:scheme="webcal" />
+				<data android:mimeType="application/ics" />
+				<data android:mimeType="text/calendar" />
+				<!-- the next two lines aren't working atm -->
+				<data
+					android:mimeType="application/octet-stream"
+					android:pathPattern=".*\\.ics" />
+				<data
+					android:mimeType="text/*"
+					android:pathPattern=".*\\.ics" />
 			</intent-filter>
 		</receiver>
 	</application>
