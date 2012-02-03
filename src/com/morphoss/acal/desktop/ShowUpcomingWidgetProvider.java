@@ -11,7 +11,6 @@ import android.appwidget.AppWidgetProvider;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -23,12 +22,11 @@ import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.aCal;
 import com.morphoss.acal.acaltime.AcalDateTime;
-import com.morphoss.acal.activity.EventView;
-import com.morphoss.acal.database.AcalDBHelper;
 import com.morphoss.acal.database.cachemanager.CacheManager;
 import com.morphoss.acal.database.cachemanager.CacheObject;
 import com.morphoss.acal.database.cachemanager.requests.CRGetNextNObjects;
 import com.morphoss.acal.dataservice.Collection;
+import com.morphoss.acal.davacal.VCalendar;
 
 public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 	
@@ -99,8 +97,6 @@ public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 					AcalDateTime dtstart = object.getStartDateTime();
 					AcalDateTime dtend = object.getEndDateTime();
 
-					long rid = object.getResourceId();
-						
 					//set up on click intent
 					Intent startApp = new Intent(context, aCal.class);
 					PendingIntent onClickIntent = PendingIntent.getActivity(context, 0, startApp, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -187,7 +183,7 @@ public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 		if ( Constants.debugHeap ) AcalDebug.heapDebug(TAG, "Widget getCurrentData");
 		if (Constants.LOG_DEBUG) Log.println(Constants.LOGD, TAG, "Retrieving current data");
 		
-		return CacheManager.getInstance(context).sendRequest(new CRGetNextNObjects(NUMBER_OF_EVENTS_TO_SHOW)).result();
+		return CacheManager.getInstance(context).sendRequest(new CRGetNextNObjects(NUMBER_OF_EVENTS_TO_SHOW,VCalendar.VEVENT)).result();
 	}
 
 	
