@@ -91,14 +91,22 @@ public class CRObjectsInMonthByDay extends CacheRequestWithResponse<HashMap<Shor
 		qend  = System.currentTimeMillis();
 		int daysInMonth = start.getActualMaximum(AcalDateTime.DAY_OF_MONTH);
 		for (ContentValues value : data ) {
-			CacheObject co = CacheObject.fromContentValues(value);
-			start = co.getStartDateTime();
-			end = co.getEndDateTime().addSeconds(-1);
-			for( short dayOfMonth = start.getMonthDay()
-					; dayOfMonth <= (end.getMonthDay() < start.getMonthDay() ? daysInMonth : end.getMonthDay())
-					; dayOfMonth++ ) {
-				if ( !result.containsKey(dayOfMonth) ) result.put(dayOfMonth, new ArrayList<CacheObject>());
-				result.get(dayOfMonth).add(co);
+			try {
+				CacheObject co = CacheObject.fromContentValues(value);
+				start = co.getStartDateTime();
+				end = co.getEndDateTime().addSeconds(-1);
+				if ( start == null ) start = end;
+				if ( start == null ) continue;
+				if ( end == null ) end = start;
+				for( short dayOfMonth = start.getMonthDay()
+						; dayOfMonth <= (end.getMonthDay() < start.getMonthDay() ? daysInMonth : end.getMonthDay())
+						; dayOfMonth++ ) {
+					if ( !result.containsKey(dayOfMonth) ) result.put(dayOfMonth, new ArrayList<CacheObject>());
+					result.get(dayOfMonth).add(co);
+				}
+			}
+			catch( Exception e) {
+				Log.w(TAG,Log.getStackTraceString(e));
 			}
 		}
 		
