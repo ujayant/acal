@@ -7,18 +7,23 @@ import android.content.ContentValues;
 
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.database.cachemanager.BlockingCacheRequestWithResponse;
-import com.morphoss.acal.database.cachemanager.CacheManager;
+import com.morphoss.acal.database.cachemanager.CacheManager.CacheTableManager;
 import com.morphoss.acal.database.cachemanager.CacheObject;
 import com.morphoss.acal.database.cachemanager.CacheProcessingException;
 import com.morphoss.acal.database.cachemanager.CacheResponse;
-import com.morphoss.acal.database.cachemanager.CacheManager.CacheTableManager;
 
 public class CRGetNextNObjects extends BlockingCacheRequestWithResponse<ArrayList<CacheObject>> {
 
 	private int numObjects;
+	private String cacheObjectType = null;
 	
 	public CRGetNextNObjects(int numObjects) {
 		this.numObjects = numObjects;
+	}
+
+	public CRGetNextNObjects(int numObjects, String objectType) {
+		this.numObjects = numObjects;
+		this.cacheObjectType = objectType;
 	}
 
 	@Override
@@ -45,7 +50,8 @@ public class CRGetNextNObjects extends BlockingCacheRequestWithResponse<ArrayLis
 					"( "+CacheTableManager.FIELD_DTSTART+" + ? < ? AND "+CacheTableManager.FIELD_DTSTART_FLOAT+" )"+
 						" OR "+
 					"( "+CacheTableManager.FIELD_DTSTART+" ISNULL )"+
-				")",
+				")" +
+					( cacheObjectType == null ? "" : " AND "+CacheTableManager.FIELD_RESOURCE_TYPE+"='"+cacheObjectType+"'"),
 				new String[] {dtStart , offset, dtStart, dtEnd, offset, dtEnd},
 				null,null,CacheTableManager.FIELD_DTSTART+" ASC LIMIT "+this.numObjects);
 			
