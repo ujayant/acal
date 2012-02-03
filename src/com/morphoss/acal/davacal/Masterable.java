@@ -164,6 +164,10 @@ public abstract class Masterable extends VComponent {
 	}
 
 
+	/**
+	 * Retrieve a list of AcalAlarm from the VALARM components in this component.
+	 * @return
+	 */
 	public ArrayList<AcalAlarm> getAlarms() {
 		ArrayList<AcalAlarm> alarms = new ArrayList<AcalAlarm>(); 
 		try {
@@ -178,7 +182,7 @@ public abstract class Masterable extends VComponent {
 						alarms.add( new AcalAlarm((VAlarm) child, this, getStart(), getEnd()) );
 					}
 					catch( IllegalStateException e ) {
-						Log.w(TAG,"Invalid alarm in list", e);
+						Log.i(TAG,"Ignoring invalid alarm.");
 					}
 				}
 			}
@@ -188,6 +192,7 @@ public abstract class Masterable extends VComponent {
 		return alarms;
 	}
 
+	
 	/**
 	 * Given a List of AcalAlarm's, make this Masterable have those as child components.
 	 * @param alarmList the list of alarms.
