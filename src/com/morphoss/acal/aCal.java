@@ -18,17 +18,23 @@
 
 package com.morphoss.acal;
 
+import java.util.Map.Entry;
+
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
+import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.text.format.DateFormat;
+import android.util.Log;
 
 import com.morphoss.acal.activity.AcalActivity;
 import com.morphoss.acal.activity.MonthView;
 import com.morphoss.acal.activity.ShowUpgradeChanges;
+import com.morphoss.acal.dataservice.Collection;
+import com.morphoss.acal.service.ServiceRequest;
 import com.morphoss.acal.service.aCalService;
 import com.morphoss.acal.weekview.WeekViewActivity;
 
@@ -43,7 +49,7 @@ public class aCal extends AcalActivity {
 		Intent serviceIntent = new Intent(this, aCalService.class);
 		serviceIntent.putExtra("UISTARTED", System.currentTimeMillis());
 		this.startService(serviceIntent);
-
+		
 		// Set all default preferences to reasonable values
 		PreferenceManager.setDefaultValues(this, R.xml.main_preferences, false);
 
@@ -69,6 +75,16 @@ public class aCal extends AcalActivity {
 	@Override
 	protected void onResume() {
 		super.onResume();
+		ServiceManager serviceManager = new ServiceManager(this);
+		ServiceRequest sr = serviceManager.getServiceRequest();
+		for( Entry<Long, Collection> c : Collection.getAllCollections(this).entrySet() ) {
+			try {
+				sr.syncCollectionNow(c.getKey());
+			}
+			catch ( RemoteException e ) {
+				Log.w(TAG,Log.getStackTraceString(e));
+			}
+		}
 	}
 
 	
