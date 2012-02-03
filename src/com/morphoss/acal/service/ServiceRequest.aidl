@@ -8,6 +8,6 @@ interface ServiceRequest {
 	void updateCollectionsFromHomeSets();
 
 	void homeSetDiscovery(int server);
-	void syncCollectionNow(int collectionId);
-	void fullCollectionResync(int collectionId);
+	void syncCollectionNow(long collectionId);
+	void fullCollectionResync(long collectionId);
 }  

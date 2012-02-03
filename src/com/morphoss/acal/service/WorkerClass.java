@@ -104,7 +104,7 @@ public class WorkerClass implements Runnable {
 	 * @param s
 	 */
 	private synchronized void addJob(ServiceJob s) {
-		if ( Constants.LOG_DEBUG ) Log.d(TAG, "Request to add new job " + s);
+		if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG, "Request to add new job " + s);
 
 		// If it's less than ten days assume offset from now.
 		if ( s.TIME_TO_EXECUTE < 864000000 ) {
@@ -124,22 +124,22 @@ public class WorkerClass implements Runnable {
 			}
 			if ( s.TIME_TO_EXECUTE < existing.TIME_TO_EXECUTE ) {
 				if ( Constants.LOG_DEBUG ) {
-					Log.d(TAG, "New job " + s);
-					Log.d(TAG, "Replaces old " + existing);
+					Log.println(Constants.LOGD, TAG, "New job " + s);
+					Log.println(Constants.LOGD, TAG, "Replaces old " + existing);
 				}
 				jobQueue.remove(existing);
 				jobQueue.add(s);
 			}
 			else {
 				if ( Constants.LOG_DEBUG ) {
-					Log.d(TAG, "Old job " + existing);
-					Log.d(TAG, "Eclipses new " + s);
+					Log.println(Constants.LOGD, TAG, "Old job " + existing);
+					Log.println(Constants.LOGD, TAG, "Eclipses new " + s);
 				}
 				return;
 			}
 
 		}
-		if ( Constants.LOG_DEBUG ) Log.d(TAG, "New job added " + s);
+		if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG, "New job added " + s);
 		jobQueue.add(s);
 	}
 
@@ -150,9 +150,12 @@ public class WorkerClass implements Runnable {
 	 * @param s
 	 */
 	public synchronized void addJobAndWake(ServiceJob s) {
-		if ( s != null ) {
+		try {
 			addJob(s);
 			this.runWorker.open();
+		}
+		catch( Exception e ) {
+			Log.e(TAG,Log.getStackTraceString(e));
 		}
 	}
 
@@ -250,7 +253,7 @@ public class WorkerClass implements Runnable {
 					timeOfLastAction = System.currentTimeMillis();
 				}
 				if ( Constants.LOG_VERBOSE ) Log.v(TAG, "Finished processing jobs. Scheduling next wakeup call.");
-				this.setWakupCall();
+				this.setWakeupCall();
 				runWorker.block();
 			}
 		}
@@ -270,7 +273,7 @@ public class WorkerClass implements Runnable {
 		}
 	}
 
-	private void setWakupCall() {
+	private void setWakeupCall() {
 		// Tell the service when it should wait till before assuming we've
 		// crashed
 		this.timeOfNextAction = System.currentTimeMillis() + (Constants.MAXIMUM_SERVICE_WORKER_DELAY_MS)
@@ -282,9 +285,11 @@ public class WorkerClass implements Runnable {
 				this.timeOfNextAction = jobQueue.peek().TIME_TO_EXECUTE + Constants.SERVICE_WORKER_GRACE_PERIOD;
 				timeTillNext = Math.max(0, jobQueue.peek().TIME_TO_EXECUTE - System.currentTimeMillis());
 			}
-
 		}
-		if ( Constants.LOG_VERBOSE ) Log.v(TAG, "Next checking jobQueue in " + (timeTillNext / 1000) + " seconds.");
+
+		if ( Constants.LOG_VERBOSE ) Log.println(Constants.LOGV, TAG,
+				"Next checking jobQueue in " + (timeTillNext / 1000) + " seconds.");
+
 		runWorker.close();
 
 		// Set 'wake up' timer. Should always be the LAST thing done.

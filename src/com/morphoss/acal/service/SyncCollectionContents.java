@@ -143,7 +143,7 @@ public class SyncCollectionContents extends ServiceJob {
 			return;
 		}
 
-		if (!(1 == serverData.getAsInteger(Servers.ACTIVE))) {
+		if ( !(1 == serverData.getAsInteger(Servers.ACTIVE)) ) {
 			if (Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG, 
 					"Server is no longer active - sync cancelled: " + serverData.getAsInteger(Servers.ACTIVE)
 							+ " " + serverData.getAsString(Servers.FRIENDLY_NAME));
@@ -162,6 +162,7 @@ public class SyncCollectionContents extends ServiceJob {
 				
 
 			if ( originalData.size() < 1 && ! timeToRun() ) {
+				calculateNextSchedulingTime();
 				scheduleNextInstance();
 				return;
 			}
@@ -184,7 +185,7 @@ public class SyncCollectionContents extends ServiceJob {
 				syncMarkedResources(originalData);
 			}
 
-			String lastSynchronized = new AcalDateTime().setMillis(start).fmtIcal();
+			String lastSynchronized = AcalDateTime.getUTCInstance().fmtIcal();
 			if ( syncWasCompleted ) {
 				// update last checked flag for collection
 				collectionData.put(DavCollections.LAST_SYNCHRONISED, lastSynchronized);
@@ -209,19 +210,10 @@ public class SyncCollectionContents extends ServiceJob {
 		if (Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents )
 			Log.println(Constants.LOGV,TAG, "Collection sync finished in " + (finish - start) + "ms");
 
+		calculateNextSchedulingTime();
 		scheduleNextInstance();
 
-		this.collectionData = null;
-		this.serverData = null;
-		this.context = null;
-		this.requestor = null;
 		if ( Constants.debugHeap ) AcalDebug.heapDebug(TAG, "SyncCollectionContents end");
-		
-		
-		if (scheduleNextInstance) {
-			this.TIME_TO_EXECUTE = getTimeToExecute();
-			context.addWorkerJob(this);
-		}
 	}
 	
 	/**
@@ -915,7 +907,7 @@ public class SyncCollectionContents extends ServiceJob {
 		return;
 	}
 	
-	private void scheduleNextInstance() {
+	private void calculateNextSchedulingTime() {
 		String lastSync = collectionData.getAsString(DavCollections.LAST_SYNCHRONISED);
 		timeToWait = minBetweenSyncs;
 		if ( lastSync != null ) {
@@ -925,7 +917,6 @@ public class SyncCollectionContents extends ServiceJob {
 
 			AcalDateTime lastRunTime = null;
 			lastRunTime = AcalDateTime.fromString(lastSync);
-			lastRunTime.applyLocalTimeZone();
 			timeToWait += (lastRunTime.getMillis() - System.currentTimeMillis());
 			
 			if ( minBetweenSyncs > timeToWait ) timeToWait = minBetweenSyncs;
@@ -937,9 +928,22 @@ public class SyncCollectionContents extends ServiceJob {
 						+"' in " + Long.toString(timeToWait / 1000) + " seconds.");
 		this.scheduleNextInstance = true;
 	}
+
 	
-	public long getTimeToExecute() {
-		return this.timeToWait;
+	private void scheduleNextInstance() {
+		this.collectionData = null;
+		this.serverData = null;
+		this.requestor = null;
+
+		if (scheduleNextInstance) {
+			this.TIME_TO_EXECUTE = timeToWait;
+			Log.println(Constants.LOGV,TAG,
+					"Scheduling next instance in " + this.TIME_TO_EXECUTE / 1000L + " seconds.");
+			context.addWorkerJob(this);
+		}
+
+		this.context = null;
+
 	}
 	
 	private boolean timeToRun() {
@@ -960,12 +964,12 @@ public class SyncCollectionContents extends ServiceJob {
 				Log.println(Constants.LOGV,TAG, "Synchronising now, since last_sync is null.");
 			return true; 
 		}
-		AcalDateTime lastRunTime = null;
+		AcalDateTime nextRunTime = null;
 
-		lastRunTime = AcalDateTime.fromString(lastSyncString);
-		if ( lastRunTime == null ) return true; 
+		nextRunTime = AcalDateTime.fromString(lastSyncString);
+		if ( nextRunTime == null ) return true;
 		
-		lastRunTime.applyLocalTimeZone();
+		AcalDateTime currentTime = AcalDateTime.getUTCInstance();
 		
 		ConnectivityManager conMan = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo netInfo = conMan.getActiveNetworkInfo();
@@ -975,15 +979,16 @@ public class SyncCollectionContents extends ServiceJob {
 		else
 			maxAgeMs = collectionData.getAsLong(DavCollections.MAX_SYNC_AGE_WIFI);
 
-		if ( maxAgeMs < minBetweenSyncs ) maxAgeMs = minBetweenSyncs; 
+		if ( maxAgeMs < minBetweenSyncs ) maxAgeMs = minBetweenSyncs;
+		nextRunTime.addSeconds(maxAgeMs/1000L);
 
 		if (Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents )
-			Log.println(Constants.LOGV,TAG, "Considering whether we are " + maxAgeMs / 1000 + "s past "
-						+ lastRunTime.fmtIcal() + "("+lastRunTime.getMillis()+") yet? "
-						+ "Now: " + new AcalDateTime().fmtIcal() + "("+System.currentTimeMillis()+")... So: "
-						+ ((maxAgeMs + lastRunTime.getMillis() < System.currentTimeMillis()) ? "yes" : "no"));
+			Log.println(Constants.LOGV,TAG, "Considering whether we are past "
+						+ nextRunTime.fmtIcal() + "("+nextRunTime.getMillis()+") yet? "
+						+ "Now: " + currentTime.fmtIcal() + "("+currentTime.getMillis()+")... So: "
+						+ (nextRunTime.getMillis() <= currentTime.getMillis() ? "yes" : "no"));
 
-		return (maxAgeMs + lastRunTime.getMillis() < System.currentTimeMillis());
+		return (nextRunTime.getMillis() <= currentTime.getMillis());
 	}
 
 

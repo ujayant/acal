@@ -18,9 +18,6 @@
 
 package com.morphoss.acal.service;
 
-import java.util.ArrayList;
-import java.util.PriorityQueue;
-
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -34,14 +31,9 @@ import android.util.Log;
 
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
-import com.morphoss.acal.acaltime.AcalDateRange;
-import com.morphoss.acal.acaltime.AcalDateTime;
-import com.morphoss.acal.acaltime.AcalDuration;
-import com.morphoss.acal.activity.AlarmActivity;
 import com.morphoss.acal.database.alarmmanager.AlarmQueueManager;
 import com.morphoss.acal.database.cachemanager.CacheManager;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager;
-import com.morphoss.acal.davacal.AcalAlarm;
 
 public class aCalService extends Service {
 
@@ -57,15 +49,6 @@ public class aCalService extends Service {
 	private CacheManager cm;
 	private AlarmQueueManager am;
 
-	// Alarms stuff in here temporarily but should be moved.
-	private static final AcalDateTime MIN_ALARM_AGE = AcalDateTime.addDuration(new AcalDateTime(), new AcalDuration("-PT4H"));	// now -4 hours
-	private PriorityQueue<AcalAlarm> alarmQueue = new PriorityQueue<AcalAlarm>();
-	private PriorityQueue<AcalAlarm> snoozeQueue = new PriorityQueue<AcalAlarm>();
-	private AcalDateTime lastTriggeredAlarmTime = MIN_ALARM_AGE;	//default start
-	private PendingIntent alarmIntent = null;
-	private AlarmManager alarmManager;
-	private long nextTriggerTime = Long.MAX_VALUE;
-	
 	//TODO remove this line
 	public static Context context;
 	
@@ -99,7 +82,7 @@ public class aCalService extends Service {
 		worker.addJobAndWake(new SyncChangesToServer());
 
 		// Start sync running for all active collections
-		SynchronisationJobs.startCollectionSync(worker, this);
+		SynchronisationJobs.startCollectionSync(worker, this, 5000L);
 
 	}
 
@@ -135,8 +118,11 @@ public class aCalService extends Service {
 				Log.i(TAG,"UI Started, requesting internal cache revalidation.");
 
 			ServiceJob job = new SynchronisationJobs(SynchronisationJobs.CACHE_RESYNC);
-			job.TIME_TO_EXECUTE = 15000L;
+			job.TIME_TO_EXECUTE = 5000L;
 			worker.addJobAndWake(job);
+
+			// Start sync running for all active collections
+			SynchronisationJobs.startCollectionSync(worker, this, 30000L);
 			
 		}
 	}
@@ -208,12 +194,11 @@ public class aCalService extends Service {
 
 		@Override
 		public void fullResync() throws RemoteException {
-			//databaseDispatcher.dispatchEvent(new DatabaseChangedEvent(DatabaseChangedEvent.DATABASE_INVALIDATED,null,null));
 			ServiceJob[] jobs = new ServiceJob[2];
 			jobs[0] = new SynchronisationJobs(SynchronisationJobs.HOME_SET_DISCOVERY);
 			jobs[1] = new SynchronisationJobs(SynchronisationJobs.HOME_SETS_UPDATE);
 			worker.addJobsAndWake(jobs);
-			SynchronisationJobs.startCollectionSync(worker, aCalService.this);
+			SynchronisationJobs.startCollectionSync(worker, aCalService.this, 15000L);
 		}
 
 		@Override
@@ -232,109 +217,18 @@ public class aCalService extends Service {
 		}
 
 		@Override
-		public void syncCollectionNow(int collectionId) throws RemoteException {
+		public void syncCollectionNow(long collectionId) throws RemoteException {
 			SyncCollectionContents job = new SyncCollectionContents(collectionId, true);
 			worker.addJobAndWake(job);
 		}
 
 		@Override
-		public void fullCollectionResync(int collectionId) throws RemoteException {
+		public void fullCollectionResync(long collectionId) throws RemoteException {
 			InitialCollectionSync job = new InitialCollectionSync(collectionId);
 			worker.addJobAndWake(job);
 		}
 	}
 	
-	/** Calculates the next time an alarm will go off AFTER the lastTriggeredAlarmtime 
-	 * If no alarm is found alarms are disabled. Otherwise, set the alarm trigger for this time
-	 */
-	private void updateAlarms( ArrayList<AcalAlarm> updatedAlarms) {
-		if (Constants.LOG_DEBUG)Log.d(TAG, "Rebuilding alarm queue. Last triggered Time: "+lastTriggeredAlarmTime);
-
-		//Avoid concurrent modification of active queue
-		synchronized(alarmQueue) {
-			PriorityQueue<AcalAlarm> newQueue = new PriorityQueue<AcalAlarm>();
-
-			//move all alarms that have the same time as lastTriggeredAlarmTime to this queue
-			while (!alarmQueue.isEmpty() && alarmQueue.peek().getNextTimeToFire().equals(lastTriggeredAlarmTime)) newQueue.offer(alarmQueue.poll());
-			if (Constants.LOG_DEBUG)Log.d(TAG,"Transferred "+newQueue.size()+" alarms from original queue that had timetofire=lasttrggeredtime");
-
-			//add All alarms for triggeredTime+1 to now+7D
-			AcalDateTime rangeStart = lastTriggeredAlarmTime.clone();
-			rangeStart.applyLocalTimeZone();  // Ensure we have the correct timezone applied.
-			rangeStart.addSeconds(1);
-			AcalDateTime currentTime = new AcalDateTime();
-			currentTime.applyLocalTimeZone();  // Ensure we have the correct timezone applied.
-			if ( rangeStart.after(currentTime) ) rangeStart = currentTime;
-			currentTime.addDays(7);
-			AcalDateRange alarmRange = new AcalDateRange( rangeStart, currentTime );	//Only look forward 1 day
-
-			ArrayList<AcalAlarm> alarms = updatedAlarms;
-			if (Constants.LOG_DEBUG) Log.d(TAG, "Found "+alarms.size()+" new alarms for range"+alarmRange);
-			for (AcalAlarm alarm : alarms) {  newQueue.offer(alarm); }
-			alarmQueue = newQueue;
-
-		}	//end synchronisation block
-		if (Constants.LOG_DEBUG)Log.d(TAG,"Setting next alarm trigger");
-		setNextAlarmTrigger();
-	}
-
-	private void setNextAlarmTrigger() {
-		if ( Constants.LOG_DEBUG ) Log.d(TAG, "Set next alarm trigger called");
-		synchronized( alarmQueue ) {
-			AcalAlarm nextReg = alarmQueue.peek();
-			AcalAlarm nextSnooze = snoozeQueue.peek();
-			if ( nextReg == null && nextSnooze == null ) {
-				if ( Constants.LOG_DEBUG ) Log.d(TAG, "No alarms in alarm queues. Not setting any alarm trigger.");
-				// Stop existing alarm trigger
-				if ( alarmIntent != null ) alarmManager.cancel(alarmIntent);
-				alarmIntent = null;
-				return;
-			}
-			if ( nextReg == null ) {
-				if ( Constants.LOG_DEBUG ) Log.d(TAG, "No regular alarms, just snoozes.");
-				createAlarmIntent(nextSnooze);
-				return;
-			}
-			else if ( nextSnooze == null ) {
-				if ( Constants.LOG_DEBUG ) Log.d(TAG, "No snooze alarms, just regulars.");
-				createAlarmIntent(nextReg);
-				return;
-			}
-			else {
-				if ( Constants.LOG_DEBUG ) Log.d(TAG, "Both regular and Snooze alarms queued.");
-				if ( nextReg.getNextTimeToFire().before(nextSnooze.getNextTimeToFire()) ) createAlarmIntent(nextReg);
-				else
-					createAlarmIntent(nextSnooze);
-				return;
-			}
-		}
-	}
-
-	// Changes the next alarm trigger time IFF its changed.
-	private synchronized void createAlarmIntent(AcalAlarm alarm) {
-		if ( Constants.LOG_DEBUG ) Log.d(TAG, "Creating Alarm Intent for alarm: " + alarm);
-		AcalDateTime now = new AcalDateTime();
-		now.applyLocalTimeZone();
-		long timeOfNextAlarm = (now.getDurationTo(alarm.getNextTimeToFire())).getTimeMillis()
-		+ now.getMillis();
-		if ( this.alarmIntent != null ) {
-			if ( timeOfNextAlarm == nextTriggerTime ) {
-				if ( Constants.LOG_DEBUG ) Log.d(TAG, "Alarm trigger time hasn't changed. Aborting.");
-				return; // no change
-			}
-			else {
-				alarmManager.cancel(alarmIntent);
-			}
-		}
-		nextTriggerTime = timeOfNextAlarm;
-		Intent intent = new Intent(this, AlarmActivity.class);
-		alarmIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_ONE_SHOT);
-		alarmManager.set(AlarmManager.RTC_WAKEUP, timeOfNextAlarm, alarmIntent);
-		//if ( Constants.LOG_DEBUG )
-		Log.d(TAG,
-				"Set alarm trigger for: " + timeOfNextAlarm + "/" + alarm.getNextTimeToFire());
-	}
-
 	
 }
 

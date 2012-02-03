@@ -39,7 +39,7 @@ public class RRInitialCollectionSync implements ResourceRequest {
 
 	private static final String TAG = "aCal RRInitialCollectionSync";
 	
-	private int collectionId = -2;
+	private long collectionId = -2;
 	private int serverId = -2;
 	private String collectionPath = null;
 	private ContentValues collectionValues = null;
@@ -79,13 +79,13 @@ public class RRInitialCollectionSync implements ResourceRequest {
 	"  </filter>\n"+
 	"</calendar-query>";
 	
-	public RRInitialCollectionSync(int collectionId) {
+	public RRInitialCollectionSync(long collectionId) {
 		this.collectionId = collectionId;
 		this.isCollectionIdAssigned = true;
 		collectionPath = null;
 	}
 
-	public RRInitialCollectionSync(int collectionId, int serverId, String collectionPath) {
+	public RRInitialCollectionSync(long collectionId, int serverId, String collectionPath) {
 		this.collectionId = collectionId;
 		this.serverId = serverId;
 		this.collectionPath = collectionPath;
@@ -343,7 +343,7 @@ public class RRInitialCollectionSync implements ResourceRequest {
 			ContentValues cv = null;
 			ArrayList<ContentValues> cvList = processor.query(null,
 										ResourceTableManager.COLLECTION_ID+"=? AND "+ResourceTableManager.RESOURCE_NAME+"=?",
-										new String[] {Integer.toString(collectionId), name}, null, null, null);
+										new String[] {Long.toString(collectionId), name}, null, null, null);
 			if (!cvList.isEmpty()) cv = cvList.get(0);
 
 			//WriteActions action = WriteActions.UPDATE;

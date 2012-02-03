@@ -45,16 +45,16 @@ public class InitialCollectionSync extends ServiceJob {
 	
 	private RRInitialCollectionSync request;
 
-	public InitialCollectionSync (int collectionId ) {
+	public InitialCollectionSync (long collectionId ) {
 		request = new RRInitialCollectionSync(collectionId);
 		
 	}
 	
-	public InitialCollectionSync (int collectionId, int serverId, String collectionPath) {
+	public InitialCollectionSync (long collectionId, int serverId, String collectionPath) {
 		request = new RRInitialCollectionSync(collectionId, serverId, collectionPath);
 	}
 
-	public InitialCollectionSync ( int serverId, String collectionPath) {
+	public InitialCollectionSync (int serverId, String collectionPath) {
 		request = new RRInitialCollectionSync(serverId, collectionPath);
 	}
 	

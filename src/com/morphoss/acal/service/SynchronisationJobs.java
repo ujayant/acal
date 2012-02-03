@@ -108,13 +108,12 @@ public class SynchronisationJobs extends ServiceJob {
 	 * @param worker
 	 * @param context
 	 */
-	public static void startCollectionSync(WorkerClass worker, Context context) {
+	public static void startCollectionSync(WorkerClass worker, Context context, long startInMillis) {
 		ContentValues[] collectionsList = DavCollections.getCollections(context.getContentResolver(),
 					DavCollections.INCLUDE_ALL_ACTIVE);
 		String lastSyncString;
 		AcalDateTime lastSync;
 		int collectionId;
-		long timeOfFirst = System.currentTimeMillis() + 500;
 
 		for (ContentValues collectionValues : collectionsList) {
 			collectionId = collectionValues.getAsInteger(DavCollections._ID);
@@ -125,16 +124,16 @@ public class SynchronisationJobs extends ServiceJob {
 					// In this case we will schedule a normal sync on the collection
 					// which will hopefully be *much* lighter weight.
 					SyncCollectionContents job = new SyncCollectionContents(collectionId);
-					job.TIME_TO_EXECUTE = timeOfFirst;
+					job.TIME_TO_EXECUTE = startInMillis;
 					worker.addJobAndWake(job);
-					timeOfFirst += 5000;
+					startInMillis += 5000;
 				}
 			}
 			else {
 				InitialCollectionSync job = new InitialCollectionSync(collectionId);
-				job.TIME_TO_EXECUTE = timeOfFirst;
+				job.TIME_TO_EXECUTE = startInMillis;
 				worker.addJobAndWake(job);
-				timeOfFirst += 15000;
+				startInMillis += 15000;
 			}
 		}
 
