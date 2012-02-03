@@ -323,7 +323,7 @@ public class HomeSetsUpdate extends ServiceJob {
 		// colour
 		collectionColour = propstat.getFirstNodeText("prop/collection-colour");
 		if ( collectionColour == null ) {
-			collectionColour = propstat.getFirstNodeText("prop/calendar-colour");
+			collectionColour = propstat.getFirstNodeText("prop/calendar-color");
 			if ( collectionColour != null && collectionColour.length() > 7 ) {
 				// To make iCal RGBA fit Android ARGB spec we trim the alpha 
 				collectionColour = collectionColour.substring(0, 7);
