@@ -82,7 +82,18 @@ public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 			
 			
 			RemoteViews views = new RemoteViews(context.getPackageName(),R.layout.show_upcoming_widget_layout);
-			views.removeAllViews(R.id.upcoming_container);
+			if ( Build.VERSION.SDK_INT >= 7 ) {
+				try {
+					views.removeAllViews(R.id.upcoming_container);
+				}
+				catch( Exception e ) {
+					Log.i(TAG,"Probably running an old version of Android :-(",e);
+				}
+			}
+			else {
+				ViewGroup upcomingContainerGroup = (ViewGroup) inflater.inflate(R.layout.show_upcoming_widget_layout, null);
+				upcomingContainerGroup.removeAllViews();
+			}
 			
 			//Used to calculate when we should trigger an update.
 			long timeOfNextEventEnd = Long.MAX_VALUE;
