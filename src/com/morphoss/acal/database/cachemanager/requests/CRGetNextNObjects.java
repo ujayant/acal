@@ -21,9 +21,10 @@ public class CRGetNextNObjects extends BlockingCacheRequestWithResponse<ArrayLis
 		this.numObjects = numObjects;
 	}
 
-	public CRGetNextNObjects(int numObjects, String objectType) {
-		this.numObjects = numObjects;
-		this.cacheObjectType = objectType;
+	public static CRGetNextNObjects GetNextNEvents(int numObjects) {
+		CRGetNextNObjects result = new CRGetNextNObjects(numObjects);
+		result.cacheObjectType = CacheTableManager.RESOURCE_TYPE_VEVENT;
+		return result;
 	}
 
 	@Override

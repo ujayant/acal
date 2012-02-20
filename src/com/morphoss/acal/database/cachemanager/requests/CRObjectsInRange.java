@@ -11,7 +11,6 @@ import com.morphoss.acal.database.cachemanager.CacheProcessingException;
 import com.morphoss.acal.database.cachemanager.CacheRequestWithResponse;
 import com.morphoss.acal.database.cachemanager.CacheResponse;
 import com.morphoss.acal.database.cachemanager.CacheResponseListener;
-import com.morphoss.acal.davacal.VCalendar;
 
 /**
  * A CacheRequest that returns a List of CacheObjects that occur in the specified range.
@@ -44,7 +43,7 @@ public class CRObjectsInRange extends CacheRequestWithResponse<ArrayList<CacheOb
 	 */
 	public static CRObjectsInRange EventsInRange(AcalDateRange range, CacheResponseListener<ArrayList<CacheObject>> callBack) {
 		CRObjectsInRange result = new CRObjectsInRange(range,callBack);
-		result.objectType = VCalendar.VEVENT;
+		result.objectType = CacheTableManager.RESOURCE_TYPE_VEVENT;
 		return result;
 	}
 	

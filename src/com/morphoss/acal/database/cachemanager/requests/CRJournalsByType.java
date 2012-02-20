@@ -1,7 +1,6 @@
-package com.morphoss.acal.database.cachemanager;
+package com.morphoss.acal.database.cachemanager.requests;
 
 import java.util.ArrayList;
-import java.util.TimeZone;
 
 import android.content.ContentValues;
 import android.util.Log;
@@ -10,6 +9,11 @@ import com.morphoss.acal.Constants;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.database.cachemanager.CacheManager.CacheTableManager;
+import com.morphoss.acal.database.cachemanager.CacheObject;
+import com.morphoss.acal.database.cachemanager.CacheProcessingException;
+import com.morphoss.acal.database.cachemanager.CacheRequestWithResponse;
+import com.morphoss.acal.database.cachemanager.CacheResponse;
+import com.morphoss.acal.database.cachemanager.CacheResponseListener;
 
 /**
  * A CacheRequest that returns a List of CacheObjects which are tasks matching the specified criteria
@@ -45,9 +49,6 @@ public class CRJournalsByType extends CacheRequestWithResponse<ArrayList<CacheOb
 			this.postResponse(new CRJournalsByTypeResponse<ArrayList<CacheObject>>(result));
 			return;
 		}
-
-		String dtEnd = rangeEnd.getMillis()+"";
-		String offset = TimeZone.getDefault().getOffset(range.start.getMillis())+"";
 
 		String whereClause = CacheTableManager.FIELD_RESOURCE_TYPE +"= '"+CacheTableManager.RESOURCE_TYPE_VJOURNAL+"'";
 		

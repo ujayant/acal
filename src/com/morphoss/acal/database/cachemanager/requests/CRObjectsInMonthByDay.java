@@ -17,7 +17,6 @@ import com.morphoss.acal.database.cachemanager.CacheProcessingException;
 import com.morphoss.acal.database.cachemanager.CacheRequestWithResponse;
 import com.morphoss.acal.database.cachemanager.CacheResponse;
 import com.morphoss.acal.database.cachemanager.CacheResponseListener;
-import com.morphoss.acal.davacal.VCalendar;
 
 /**
  * A CacheRequest that returns a Map CacheObjects that occur in the specified month.
@@ -66,7 +65,7 @@ public class CRObjectsInMonthByDay extends CacheRequestWithResponse<HashMap<Shor
 	 */
 	public static CRObjectsInMonthByDay EventsInMonthByDay(int month, int year, CacheResponseListener<HashMap<Short,ArrayList<CacheObject>>> callBack) {
 		CRObjectsInMonthByDay result = new CRObjectsInMonthByDay(month,year,callBack);
-		result.objectType = VCalendar.VEVENT;
+		result.objectType = CacheTableManager.RESOURCE_TYPE_VEVENT;
 		return result;
 	}
 	

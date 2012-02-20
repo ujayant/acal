@@ -194,9 +194,11 @@ public class TodoListAdapter extends BaseAdapter
 		if ( todo == null ) return rowLayout;
 
 		Collection collection = Collection.getInstance(todo.getCollectionId(), context);
-		rowLayout.findViewById(R.id.TodoListItemIcons).setBackgroundColor(collection.getColour());
-		sideBar.setBackgroundColor(collection.getColour()); 
-		title.setTextColor(collection.getColour());
+		if ( collection != null ) {
+			rowLayout.findViewById(R.id.TodoListItemIcons).setBackgroundColor(collection.getColour());
+			sideBar.setBackgroundColor(collection.getColour()); 
+			title.setTextColor(collection.getColour());
+		}
 
 		title.setText((todo.getSummary() == null  || todo.getSummary().length() <= 0 )
 				? context.getString(R.string.NewTaskTitle)
@@ -215,7 +217,7 @@ public class TodoListAdapter extends BaseAdapter
 		if ( todo.hasAlarms() ) {
 			ImageView alarmed = (ImageView) rowLayout.findViewById(R.id.TodoListItemAlarmBell);
 			alarmed.setVisibility(View.VISIBLE);
-			if ( ! collection.alarmsEnabled ) alarmed.setBackgroundColor(Color.WHITE);
+			if ( collection != null && ! collection.alarmsEnabled ) alarmed.setBackgroundColor(Color.WHITE);
 		}
 		
 		if ( todo.getLocation() != null && todo.getLocation().length() > 0 )
