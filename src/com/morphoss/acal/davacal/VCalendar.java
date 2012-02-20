@@ -213,6 +213,7 @@ public class VCalendar extends VComponent implements Cloneable {
 				String rrule = parsedRule.toString();
 				m.removeProperties( new PropertyName[] {PropertyName.RRULE} );
 				m.addProperty(new AcalProperty(PropertyName.RRULE,rrule));
+				break;
 			
 			case EventEdit.INSTANCES_ALL:
 				return null;
