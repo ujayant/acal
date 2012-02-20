@@ -1751,8 +1751,10 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	 */
 	public static AcalDateTime getUTCInstance() {
 		AcalDateTime answer = new AcalDateTime();
+		answer.epoch = System.currentTimeMillis() / 1000L;
 		answer.tz = UTC;
 		answer.tzName = UTC_NAME;
+		answer.year = YEAR_NOT_SET;
 		return answer;
 	}
 
