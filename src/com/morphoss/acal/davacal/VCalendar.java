@@ -193,7 +193,6 @@ public class VCalendar extends VComponent implements Cloneable {
 		Masterable m = getMasterChild();
 		m.setEditable();
 
-		//TODO
 		switch (instances) {
 			case EventEdit.INSTANCES_SINGLE:
 				AcalProperty exDate = m.getProperty(PropertyName.EXDATE);
@@ -214,6 +213,10 @@ public class VCalendar extends VComponent implements Cloneable {
 				String rrule = parsedRule.toString();
 				m.removeProperties( new PropertyName[] {PropertyName.RRULE} );
 				m.addProperty(new AcalProperty(PropertyName.RRULE,rrule));
+			
+			case EventEdit.INSTANCES_ALL:
+				return null;
+
 			default: throw new InvalidCalendarActionException("Invalid action/instances combination.");
 		}
 
