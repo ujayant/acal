@@ -30,7 +30,7 @@ public class RRResourceEditedRequest extends ResourceRequestWithResponse<Long> {
 	public static final int ACTION_UPDATE = 2;
 	public static final int ACTION_DELETE = 3;
 	
-	protected RRResourceEditedRequest(ResourceResponseListener<Long> callBack, long cid, long rid, VComponent vc, int action ) {
+	public RRResourceEditedRequest(ResourceResponseListener<Long> callBack, long cid, long rid, VComponent vc, int action ) {
 		super(callBack);
 		this.collectionId = cid;
 		this.resourceId = rid;
