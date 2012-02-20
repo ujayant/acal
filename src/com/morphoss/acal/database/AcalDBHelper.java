@@ -415,7 +415,7 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 	}
 
 
-	public SQLiteDatabase getAcalReadableDatabase() {
+	public SQLiteDatabase getReadableDatabase() {
 		try {
 			return SQLiteDatabase.openDatabase(context.getDatabasePath(DB_NAME+".db").toString(), null, 
 					SQLiteDatabase.OPEN_READONLY | SQLiteDatabase.NO_LOCALIZED_COLLATORS);
@@ -423,11 +423,11 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 		catch( Exception e) {
 			Log.w(TAG,Log.getStackTraceString(e));
 		}
-		return getReadableDatabase(); 
+		return super.getReadableDatabase();
 	}
 
 	
-	public SQLiteDatabase getAcalWritableDatabase() {
+	public SQLiteDatabase getWritableDatabase() {
 		try {
 			return SQLiteDatabase.openDatabase(context.getDatabasePath(DB_NAME+".db").toString(), null, 
 					SQLiteDatabase.OPEN_READWRITE | SQLiteDatabase.NO_LOCALIZED_COLLATORS);
@@ -435,7 +435,7 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 		catch( Exception e) {
 			Log.w(TAG,Log.getStackTraceString(e));
 		}
-		return getReadableDatabase(); 
+		return super.getWritableDatabase(); 
 	}
 	
 }

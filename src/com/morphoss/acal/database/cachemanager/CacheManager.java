@@ -91,6 +91,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 	private Thread workerThread;
 	private boolean running = true;
 	private final ConcurrentLinkedQueue<CacheRequest> queue = new ConcurrentLinkedQueue<CacheRequest>();
+	private static final long	MAX_BLOCKING_REQUEST_WAIT	= 10000;
 
 	//DB Constants
 	private static final String META_TABLE = "event_cache_meta";
@@ -435,8 +436,11 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		threadHolder.open();
 		int priority = Thread.currentThread().getPriority();
 		Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
-		while (!request.isProcessed()) {
+		long stopWaiting = System.currentTimeMillis() + MAX_BLOCKING_REQUEST_WAIT; 
+		while ( !request.isProcessed() ) {
 			try { Thread.sleep(10); } catch (Exception e) {	}
+			if ( System.currentTimeMillis() > stopWaiting )
+				throw new IllegalStateException("Waited too long for "+request.getClass().getSimpleName()+" response!");
 		}
 		Thread.currentThread().setPriority(priority);
 		return request.getResponse();
@@ -580,17 +584,19 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 			try {
 				r.process(this);
 				if (this.inTx) {
-					this.endTransaction();
-					throw new CacheProcessingException("Process started a transaction without ending it!");
+					this.endTx();
+					throw new CacheProcessingException("Process started a transaction without ending it!\n    Request: "+r.getClass().getSimpleName());
 				}
 			} catch (CacheProcessingException e) {
-				Log.e(TAG, "Error Procssing Resource Request: "+Log.getStackTraceString(e));
+				Log.e(TAG, "Error Procssing Cache Request: "+Log.getStackTraceString(e));
 			} catch (Exception e) {
-				Log.e(TAG, "INVALID TERMINATION while processing Resource Request: "+Log.getStackTraceString(e));
+				Log.e(TAG, "INVALID TERMINATION while processing Cache Request: "+Log.getStackTraceString(e));
 			} finally {
 				//make sure db was closed properly
-				if (this.db != null)
-				try { endQuery(); } catch (Exception e) { }
+				if (this.db != null) {
+					Log.e(TAG, "INVALID TERMINATION while processing Cache Request: Database not closed!\n    Request: "+r.getClass().getSimpleName());
+					try { closeDB(); } catch (Exception e) { }
+				}
 			}
 			//currentRequest = null;
 		}
@@ -603,10 +609,12 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		 * Called when table is deemed to have been corrupted.
 		 */
 		private void clearCache() {
-			this.beginTransaction();
+			this.openDB(OPEN_WRITE);
+			this.beginTx();
 			this.delete(null, null);
 			this.setTxSuccessful();
-			this.endTransaction();
+			this.endTx();
+			this.closeDB();
 			window = new CacheWindow(lookForward, lookBack, maxSize, minPaddingBack,
 					minPaddingForward, increment, CacheManager.this, new AcalDateTime());
 			Log.println(Constants.LOGW,TAG,"Cache cleared of possibly corrupt data.");

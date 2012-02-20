@@ -127,9 +127,9 @@ public class ResourceManager implements Runnable {
 				if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG,readQueue.size()+" items in read queue, "+writeQueue.size()+" items in write queue");
 
 				if (!readQueue.isEmpty()) {
-					//Tell the processor that we are about to send a buch of reads.
-					Log.i(TAG, "Begin read TX");
-					getRPInstance().beginReadTransaction();
+					//Tell the processor that we are about to send a bunch of reads.
+					Log.i(TAG, "Begin a set of read queries.");
+					getRPInstance().openReadQuerySet();
 					
 					//Start all read processes
 					while (!readQueue.isEmpty()) {
@@ -162,8 +162,8 @@ public class ResourceManager implements Runnable {
 					}
 
 					//tell processor that we are done
-					Log.i(TAG, "End read TX");
-					getRPInstance().endTransaction();
+					Log.i(TAG, "End the set of read queries.");
+					getRPInstance().closeReadQuerySet();
 					
 
 				}
@@ -291,8 +291,10 @@ public class ResourceManager implements Runnable {
 		
 		public ArrayList<ContentValues> query(String[] columns, String selection, String[] selectionArgs,
 				String groupBy, String having, String orderBy);
-		
+
+		@Deprecated
 		public Map<String, ContentValues> contentQueryMap(String selection, String[] selectionArgs);
+		
 		public ContentValues getResource(long rid);
 		public ContentValues getResourceInCollection(long collectionId,	String name);
 		public ArrayList<ContentValues> getPendingResources();
@@ -376,9 +378,8 @@ public class ResourceManager implements Runnable {
 			try {
 				r.process(this);
 				if (this.inTx) {
-					this.endTransaction();
-					throw new ResourceProcessingException(
-					"Process started a transaction without ending it!");
+					this.endTx();
+					throw new ResourceProcessingException( "Process started a transaction without ending it!");
 				}
 			} catch (ResourceProcessingException e) {
 				Log.e(TAG, "Error Processing Resource Request: "
@@ -389,11 +390,9 @@ public class ResourceManager implements Runnable {
 						+ Log.getStackTraceString(e));
 			} finally {
 				// make sure db was closed properly
-				try {
-					if ( this.inTx ) this.endTransaction();
-					if ( this.db != null ) endQuery();
-				}
-				catch ( Exception e ) {
+				if (this.db != null) {
+					Log.e(TAG, "INVALID TERMINATION while processing Resource Request: Database not closed!");
+					try { closeDB(); } catch (Exception e) { }
 				}
 				r.setProcessed();
 			}
@@ -492,37 +491,43 @@ public class ResourceManager implements Runnable {
 		@Deprecated
 		public Map<String, ContentValues> contentQueryMap(String selection, String[] selectionArgs) {
 			Map<String, ContentValues> result = null;
-			beginReadTransaction();
-			Cursor mCursor = db.query(
-					RESOURCE_DATABASE_TABLE, 
-					null,
-					selection,
-					selectionArgs, 
-					null, null, null);
+
+			boolean openedInternally = false;
+			if ( db == null ) {
+				openedInternally = true;
+				openDB(OPEN_READ);
+			}
+
+			Cursor mCursor = db.query( RESOURCE_DATABASE_TABLE, null, selection, selectionArgs, null, null, null);
 			try {
-				ContentQueryMap cqm = new ContentQueryMap(mCursor,
-						ResourceTableManager.RESOURCE_NAME, false, null);
+				ContentQueryMap cqm = new ContentQueryMap(mCursor, ResourceTableManager.RESOURCE_NAME, false, null);
 				this.yield();
 				cqm.requery();
 				this.yield();
 				result = cqm.getRows();
+				this.yield();
 			}
 			catch( Exception e ) {
 				Log.i(TAG,Log.getStackTraceString(e));
 			}
 			finally {
 				if ( mCursor != null && !mCursor.isClosed() ) mCursor.close();
-				this.endTransaction();
+				if ( openedInternally ) closeDB();
 			}
-			this.yield();
 			return result;
 		}
 	
 		public void deleteByCollectionId(long id) {
 			if ( ResourceManager.DEBUG && Constants.LOG_DEBUG ) Log.println(Constants.LOGD, ResourceManager.TAG, 
 					"Deleting resources for collection "+id);
+
+			boolean openedInternally = false;
+			if ( db == null ) {
+				openedInternally = true;
+				openDB(OPEN_WRITE);
+			}
 			try {
-				this.beginTransaction();
+				this.beginTx();
 				db.delete(PENDING_DATABASE_TABLE, PEND_COLLECTION_ID+" = ?", new String[]{id+""});
 				delete(COLLECTION_ID + " = ?", new String[] { id + "" });
 				this.setTxSuccessful();
@@ -530,37 +535,83 @@ public class ResourceManager implements Runnable {
 			catch( Exception e) {
 				Log.e(TAG,"Error deleting resources for collection "+id, e);
 			}
-			this.endTransaction();
+			finally {
+				try {
+					this.endTx();
+				}
+				catch( Exception e ) {}
+				if ( openedInternally ) closeDB();
+			}
 		}
 
 		public boolean doSyncListAndToken(DMQueryList newChangeList, long collectionId, String syncToken) {
-			this.beginTransaction();
-			boolean success = this.processActions(newChangeList);
 
-			if ( syncToken != null && success) {
-				//Update sync token
-				ContentValues cv = new ContentValues();
-				cv.put(DavCollections.SYNC_TOKEN, syncToken);
-				db.update(DavCollections.DATABASE_TABLE, cv,
-						DavCollections._ID+"=?", new String[] {collectionId+""});
+			boolean success = false;
+			boolean openedInternally = false;
+			if ( db == null ) {
+				openedInternally = true;
+				openDB(OPEN_WRITE);
 			}
-			this.setTxSuccessful();
-			this.endTransaction();
+			boolean transactionInternally = false;
+			if ( !inTx ) {
+				beginTx();
+				transactionInternally = true;
+			}
+			try {
+				success = this.processActions(newChangeList);
+	
+				if ( syncToken != null && success) {
+					//Update sync token
+					ContentValues cv = new ContentValues();
+					cv.put(DavCollections.SYNC_TOKEN, syncToken);
+					db.update(DavCollections.DATABASE_TABLE, cv,
+							DavCollections._ID+"=?", new String[] {collectionId+""});
+				}
+			}
+			catch( Exception e) {
+				Log.e(TAG,"Error updating synced resources for collection "+collectionId, e);
+			}
+			finally {
+				if ( transactionInternally ) {
+					if ( success ) setTxSuccessful();
+					endTx();
+				}
+				if ( openedInternally ) closeDB();
+			}
 			return success;
 		}
 
 		public boolean syncToServer(DMAction action, long resourceId, long pendingId) {
-			this.beginTransaction();
-			action.process(this);
+			boolean openedInternally = false;
+			if ( db == null ) {
+				openedInternally = true;
+				openDB(OPEN_WRITE);
+			}
+			boolean transactionInternally = false;
+			if ( !inTx ) {
+				beginTx();
+				transactionInternally = true;
+			}
+			try {
+				action.process(this);
 
-			// We can retire this change now
-			int removed = db.delete(PENDING_DATABASE_TABLE, PENDING_ID+"="+pendingId, null);
-			this.setTxSuccessful();
-			this.endTransaction();
+				// We can retire this change now
+				int removed = db.delete(PENDING_DATABASE_TABLE, PENDING_ID+"="+pendingId, null);
+	
+				if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG, 
+						"Deleted "+removed+" pending_change record ID="+pendingId+" for resourceId="+resourceId);
 
-			if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG, 
-					"Deleted "+removed+" pending_change record ID="+pendingId+" for resourceId="+resourceId);
-
+			}
+			catch( Exception e) {
+				Log.e(TAG,"Error syncing resource "+resourceId+" for pending change "+pendingId+"\n  Action: "+action, e);
+			}
+			finally {
+				if ( transactionInternally ) {
+					setTxSuccessful();
+					endTx();
+				}
+				if ( openedInternally ) closeDB();
+			}
 			return true;
 
 		}
@@ -590,18 +641,34 @@ public class ResourceManager implements Runnable {
 		}
 		
 		public void deletePendingChange(long pendingId) {
-			this.beginWriteQuery();
-			int count = db.delete(PENDING_DATABASE_TABLE, PENDING_ID+" = ?", new String[]{pendingId+""});
-			if ( DEBUG && Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,
-					"Deleted "+count+" pending change records with ID "+pendingId);
-			this.endQuery();
+			boolean openedInternally = false;
+			if ( db == null ) {
+				openedInternally = true;
+				openDB(OPEN_WRITE);
+			}
+			try {
+				int count = db.delete(PENDING_DATABASE_TABLE, PENDING_ID+" = ?", new String[]{pendingId+""});
+				if ( DEBUG && Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,
+						"Deleted "+count+" pending change records with ID "+pendingId);
+			}
+			finally {
+				if ( openedInternally ) closeDB();
+			}
 		}
 
 		
 		public void updateCollection(long collectionId, ContentValues collectionData) {
-			this.beginWriteQuery();
-			db.update(DavCollections.DATABASE_TABLE, collectionData, DavCollections._ID+" =?", new String[]{collectionId+""});
-			this.endQuery();
+			boolean openedInternally = false;
+			if ( db == null ) {
+				openedInternally = true;
+				openDB(OPEN_WRITE);
+			}
+			try {
+				db.update(DavCollections.DATABASE_TABLE, collectionData, DavCollections._ID+" =?", new String[]{collectionId+""});
+			}
+			finally {
+				if ( openedInternally ) closeDB();
+			}
 
 		}
 
@@ -638,9 +705,18 @@ public class ResourceManager implements Runnable {
 			QUERY_ACTION action = QUERY_ACTION.PENDING_RESOURCE;;
 			Cursor mCursor = null;
 			ContentValues newResource = new ContentValues();
+			boolean openedInternally = false;
+			if ( db == null ) {
+				openedInternally = true;
+				openDB(OPEN_WRITE);
+			}
+			boolean transactionInternally = false;
+			if ( !inTx ) {
+				beginTx();
+				transactionInternally = true;
+			}
+			boolean success = false;
 			try {
-				
-				this.beginTransaction();				
 				if (oldBlob == null || oldBlob.equals("")) {
 					//Create New
 					newResource.put(COLLECTION_ID, cid);
@@ -695,14 +771,19 @@ public class ResourceManager implements Runnable {
 					this.addChange(new DataChangeEvent(action, toReport));
 				
 				//done
-				this.setTxSuccessful();
+				success = true;
 			}
 			catch ( Exception e ) {
 				Log.e(TAG, "Error updating pending resource: ", e);
+				success = false;
 			}
 			finally {
 				if ( mCursor != null && !mCursor.isClosed() ) mCursor.close();
-				this.endTransaction();
+				if ( transactionInternally ) {
+					if ( success ) setTxSuccessful();
+					endTx();
+				}
+				if ( openedInternally ) closeDB();
 			}
 			
 			ServiceJob syncChanges = new SyncChangesToServer();
@@ -717,11 +798,17 @@ public class ResourceManager implements Runnable {
 		@Override
 		public ArrayList<ContentValues> getPendingResources() {
 			ArrayList<ContentValues> res = new ArrayList<ContentValues>();
-			beginReadQuery();
-			
-			// We need to explicitly specify all columns in this because otherwise we get the wrong _id
-			// in the resulting join.
-			Cursor mCursor = db.query(PENDING_DATABASE_TABLE+" JOIN "+RESOURCE_DATABASE_TABLE+
+
+			boolean openedInternally = false;
+			if ( db == null ) {
+				openedInternally = true;
+				openDB(OPEN_READ);
+			}
+			Cursor mCursor = null;
+			try {
+				// We need to explicitly specify all columns in this because otherwise we get the wrong _id
+				// in the resulting join.
+				mCursor = db.query(PENDING_DATABASE_TABLE+" JOIN "+RESOURCE_DATABASE_TABLE+
 					" ON ("+
 					PENDING_DATABASE_TABLE+"."+PEND_RESOURCE_ID+" = "+RESOURCE_DATABASE_TABLE+"."+RESOURCE_ID+
 					")", new String[] {
@@ -742,21 +829,24 @@ public class ResourceManager implements Runnable {
 						RESOURCE_DATABASE_TABLE+"."+EFFECTIVE_TYPE
 								
 					}, null, null, null, null, null);
-			this.yield();
-			if (mCursor.getCount() > 0) {
-				if ( ResourceManager.DEBUG && Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG, 
-						"Found "+mCursor.getCount()+" pending changes");
-				for (mCursor.moveToFirst(); !mCursor.isAfterLast(); mCursor.moveToNext()) {
-					ContentValues vals = new ContentValues();
-					DatabaseUtils.cursorRowToContentValues(mCursor, vals);
-					res.add(vals);
-					this.yield();
+				this.yield();
+				if (mCursor.getCount() > 0) {
+					if ( ResourceManager.DEBUG && Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG, 
+							"Found "+mCursor.getCount()+" pending changes");
+					for (mCursor.moveToFirst(); !mCursor.isAfterLast(); mCursor.moveToNext()) {
+						ContentValues vals = new ContentValues();
+						DatabaseUtils.cursorRowToContentValues(mCursor, vals);
+						res.add(vals);
+						this.yield();
+					}
+						
 				}
-					
 			}
-			mCursor.close();
-			this.yield();
-			endQuery();
+			finally {
+				if ( mCursor != null ) mCursor.close();
+
+				if ( openedInternally ) closeDB();
+			}
 			return res;
 		}
 	}

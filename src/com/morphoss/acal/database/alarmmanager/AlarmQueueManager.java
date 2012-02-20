@@ -39,6 +39,7 @@ import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTable
 import com.morphoss.acal.database.resourcesmanager.requests.RRGetUpcomingAlarms;
 import com.morphoss.acal.dataservice.Resource;
 import com.morphoss.acal.davacal.VCalendar;
+import com.morphoss.acal.davacal.VComponent;
 import com.morphoss.acal.davacal.VComponentCreationException;
 
 /**
@@ -337,17 +338,19 @@ public class AlarmQueueManager implements Runnable, ResourceChangedListener  {
 			try {
 				request.process(this);
 				if (this.inTx) {
-					this.endTransaction();
+					this.endTx();
 					throw new AlarmProcessingException("Process started a transaction without ending it!");
 				}
 			} catch (AlarmProcessingException e) {
-				Log.e(TAG, "Error Procssing Resource Request: "+Log.getStackTraceString(e));
+				Log.e(TAG, "Error Processing Alarm Request: "+Log.getStackTraceString(e));
 			} catch (Exception e) {
-				Log.e(TAG, "INVALID TERMINATION while processing Resource Request: "+Log.getStackTraceString(e));
+				Log.e(TAG, "INVALID TERMINATION while processing Alarm Request: "+Log.getStackTraceString(e));
 			} finally {
 				//make sure db was closed properly
-				if (this.db != null)
-				try { endQuery(); } catch (Exception e) { }
+				if (this.db != null) {
+					Log.e(TAG, "INVALID TERMINATION while processing Alarm Request: Database not closed!");
+					try { closeDB(); } catch (Exception e) { }
+				}
 			}
 			if (Constants.debugAlarms) {
 				Log.d(TAG, "Processing of "+request.getClass()+" complete in "+(System.currentTimeMillis()-start)+"ms");
@@ -394,11 +397,13 @@ public class AlarmQueueManager implements Runnable, ResourceChangedListener  {
 			}
 			
 			//step 2 - begin db transaction, delete all existing and insert new list
-			beginTransaction();
+			super.openDB(OPEN_WRITE);
+			super.beginTx();
 			super.delete(null, null);
 			super.processActions(list);
 			super.setTxSuccessful();
-			endTransaction();
+			super.endTx();
+			super.closeDB();
 			Log.i(TAG, count+" entries added.");
 			//step 3 schedule alarm intent
 			scheduleAlarmIntent();
@@ -443,7 +448,8 @@ public class AlarmQueueManager implements Runnable, ResourceChangedListener  {
 		 */
 		public void updateAlarmState(AlarmRow row, ALARM_STATE state) {
 			//TODO add snooze capability - for now just dismiss.
-			super.beginTransaction();
+			super.openDB(OPEN_WRITE);
+			super.beginTx();
 			
 			//first remove any dismissed alarms
 			super.delete(FIELD_STATE+" = ?", new String[]{ALARM_STATE.DISMISSED.ordinal()+""});
@@ -457,7 +463,8 @@ public class AlarmQueueManager implements Runnable, ResourceChangedListener  {
 				//success
 				super.setTxSuccessful();
 			}
-			super.endTransaction();
+			super.endTx();
+			super.closeDB();
 			
 			
 			//Reschedule next intent.
@@ -482,7 +489,9 @@ public class AlarmQueueManager implements Runnable, ResourceChangedListener  {
 
 		//Deal with resource changes
 		public void processChanges(ArrayList<DataChangeEvent> changes) {
-			super.beginTransaction();
+
+			super.openDB(OPEN_WRITE);
+			super.beginTx();
 			try {
 				for (DataChangeEvent change : changes) {
 					this.yield();
@@ -500,7 +509,8 @@ public class AlarmQueueManager implements Runnable, ResourceChangedListener  {
 				Log.e(TAG, "Error processing resource changes: "+e+"\n"+Log.getStackTraceString(e));
 			}
 			super.setTxSuccessful();
-			super.endTransaction();
+			super.endTx();
+			super.closeDB();
 			//schedule alarm intent
 			scheduleAlarmIntent();
 			
@@ -508,6 +518,8 @@ public class AlarmQueueManager implements Runnable, ResourceChangedListener  {
 		}
 
 		private void populateTableFromResource(ContentValues data) {
+			if ( data == null || VComponent.VCARD.equalsIgnoreCase(data.getAsString(ResourceTableManager.EFFECTIVE_TYPE)) ) return;
+
 			//default start timestamp
 			AcalDateTime after = new AcalDateTime().applyLocalTimeZone();
 
@@ -519,7 +531,10 @@ public class AlarmQueueManager implements Runnable, ResourceChangedListener  {
 			Resource r = Resource.fromContentValues(data);
 			VCalendar vc;
 			try {
-				vc = (VCalendar) VCalendar.createComponentFromResource(r);
+				vc = (VCalendar) VComponent.createComponentFromResource(r);
+			}
+			catch ( ClassCastException e ) {
+				return;
 			}
 			catch ( VComponentCreationException e ) {
 				// @todo Auto-generated catch block
