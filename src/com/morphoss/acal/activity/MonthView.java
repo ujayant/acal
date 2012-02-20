@@ -23,18 +23,22 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.GestureDetector;
+import android.view.GestureDetector.OnGestureListener;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.GestureDetector.OnGestureListener;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.view.animation.Animation;
@@ -49,6 +53,13 @@ import com.morphoss.acal.AcalTheme;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateTime;
+import com.morphoss.acal.database.resourcesmanager.ResourceManager;
+import com.morphoss.acal.database.resourcesmanager.ResourceResponse;
+import com.morphoss.acal.database.resourcesmanager.ResourceResponseListener;
+import com.morphoss.acal.dataservice.CalendarInstance;
+import com.morphoss.acal.dataservice.EventInstance;
+import com.morphoss.acal.dataservice.Resource;
+import com.morphoss.acal.davacal.PropertyName;
 import com.morphoss.acal.service.aCalService;
 import com.morphoss.acal.weekview.WeekViewActivity;
 import com.morphoss.acal.widget.AcalViewFlipper;
@@ -95,7 +106,7 @@ import com.morphoss.acal.widget.AcalViewFlipper;
  * 
  */
 public class MonthView extends AcalActivity implements OnGestureListener,
-		OnTouchListener, OnClickListener {
+		OnTouchListener, OnClickListener, ResourceResponseListener<Long> {
 
 	public static final String TAG = "aCal MonthView";
 
@@ -154,6 +165,12 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 	public static final int PICK_MONTH_FROM_YEAR_VIEW = 0;
 	public static final int PICK_TODAY_FROM_EVENT_VIEW = 1;
 	public static final int PICK_DAY_FROM_WEEK_VIEW = 2;
+
+	protected static final int	SHOW_DELETING	= 0x100;
+	protected static final int	DELETE_SUCCEEDED	= 0x101;
+	protected static final int	DELETE_FAILED	= 0x102;
+
+	protected static final int	DELETING_DIALOG	= 0x200;
 
 	// Animations
 	Animation leftIn = null;
@@ -695,11 +712,87 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 		}
 	}
 
+	private Dialog	deletingDialog;
+	private Handler mHandler = new Handler() {
+		private boolean	deleteSucceeded = false;
+		
+		public void handleMessage(Message msg) {
 
-	public void deleteEvent(AcalDateTime day, int n, int action, int instancesAll ) {
+			switch (msg.what) {
+
+			case SHOW_DELETING: 
+				showDialog(DELETING_DIALOG);
+				break;
+
+			case DELETE_SUCCEEDED:
+				//dismiss dialog
+				mHandler.removeMessages(DELETE_FAILED);
+				if (deletingDialog != null) deletingDialog.dismiss();
+				deleteSucceeded = true;
+				break;
+
+			case DELETE_FAILED:
+				if (deletingDialog != null) deletingDialog.dismiss();
+				if ( deleteSucceeded ) {
+					// Don't know why we get here, but we do! - cancel save failed when save succeeds. we shouldn't see this anymore.
+					Log.w(TAG,"This should have been fixed now yay!",new Exception());
+				}
+				else {
+					Toast.makeText(MonthView.this, "Something went wrong trying to save the change.", Toast.LENGTH_LONG).show();
+				}
+				break;
+			}
+
+		}
+	};
+
+
+
+	public void deleteEvent(long resourceId, String recurrenceId, int action, int instances ) {
 		//TODO
 		Toast.makeText(this, "Delete is not yet implemented.", 5).show();
+
+		try {
+			Resource r = Resource.fromDatabase(this, resourceId);
+			EventInstance event = (EventInstance) CalendarInstance.fromResourceAndRRId(r, recurrenceId);
+
+			if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,
+					"saveChanges: "+event.getSummary()+
+					", starts "+event.getStart().toPropertyString(PropertyName.DTSTART)+
+					", with "+event.getAlarms().size()+" alarms.");
+			//display savingdialog
+
+			ResourceManager.getInstance(this).sendRequest(new RREventEditedRequest(this, event, action, instances));
+
+			//set message for 10 seconds to fail.
+			mHandler.sendEmptyMessageDelayed(DELETE_FAILED, 100000);
+
+			//showDialog(SAVING_DIALOG);
+			mHandler.sendEmptyMessageDelayed(SHOW_DELETING,50);
+
+
+		}
+		catch (Exception e) {
+			if ( e.getMessage() != null ) Log.d(TAG,e.getMessage());
+			if (Constants.LOG_DEBUG)Log.d(TAG,Log.getStackTraceString(e));
+			Toast.makeText(this, getString(R.string.ErrorSavingEvent), Toast.LENGTH_LONG).show();
+		}
 		
+	}
+
+	//Dialogs
+	protected Dialog onCreateDialog(int id) {
+
+		// These dialogs don't depend on 'event' having been initialised.
+		switch (id) {
+		case DELETING_DIALOG:
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			builder.setTitle(this.getString(R.string.Deleting));
+			builder.setCancelable(false);
+			deletingDialog = builder.create();
+			return deletingDialog;
+		}
+		return null;
 	}
 
 	
@@ -1052,5 +1145,15 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 	@Override
 	public boolean onSingleTapUp(MotionEvent upEvent) {
 		return false;
+	}
+
+	@Override
+	public void resourceResponse(ResourceResponse<Long> response) {
+		Object result = response.result();
+		if (result != null) {
+			if (result instanceof Long) {
+				mHandler.sendMessage(mHandler.obtainMessage(DELETE_SUCCEEDED, result));
+			}
+		}
 	}
 }

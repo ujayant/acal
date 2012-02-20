@@ -302,15 +302,15 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 					return true;
 				
 				case CONTEXT_DELETE_ALL:
-					this.context.deleteEvent(viewDate,id,EventEdit.ACTION_DELETE, EventEdit.INSTANCES_ALL);
+					this.context.deleteEvent(sae.getResourceId(), sae.getRecurrenceId(), EventEdit.ACTION_DELETE, EventEdit.INSTANCES_ALL);
 					return true;
 
 				case CONTEXT_DELETE_JUSTTHIS:
-					this.context.deleteEvent(viewDate,id,EventEdit.ACTION_DELETE, EventEdit.INSTANCES_SINGLE);
+					this.context.deleteEvent(sae.getResourceId(), sae.getRecurrenceId(), EventEdit.ACTION_DELETE, EventEdit.INSTANCES_SINGLE);
 					return true;
 
 				case CONTEXT_DELETE_FROMNOW:
-					this.context.deleteEvent(viewDate,id,EventEdit.ACTION_DELETE, EventEdit.INSTANCES_THIS_FUTURE);
+					this.context.deleteEvent(sae.getResourceId(), sae.getRecurrenceId(), EventEdit.ACTION_DELETE, EventEdit.INSTANCES_THIS_FUTURE);
 					return true;
 			}
 			return false;
