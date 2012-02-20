@@ -236,9 +236,9 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 					data.put(FIELD_START, currentRange.start.getMillis());
 					data.put(FIELD_END, currentRange.end.getMillis());
 				}
-//				db.beginTransaction();
+				db.beginTransaction();
 				db.update(META_TABLE, data, FIELD_ID+" = ?", new String[]{data.getAsLong(FIELD_ID)+""});
-//				db.setTransactionSuccessful();
+				db.setTransactionSuccessful();
 			}
 			
 		}
@@ -246,7 +246,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 			Log.i(TAG,Log.getStackTraceString(e));
 		}
 		finally {
-//			if ( db.inTransaction() ) db.endTransaction();
+			if ( db.inTransaction() ) db.endTransaction();
 			releaseMetaLock();
 			if ( mCursor != null && !mCursor.isClosed()) mCursor.close();
 			int counter = 10;
