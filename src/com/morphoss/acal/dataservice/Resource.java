@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.Map.Entry;
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
@@ -11,7 +12,10 @@ import android.util.Log;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.acaltime.AcalDateTime;
+import com.morphoss.acal.database.resourcesmanager.ResourceManager;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
+import com.morphoss.acal.database.resourcesmanager.ResourceResponse;
+import com.morphoss.acal.database.resourcesmanager.requests.RRRequestInstanceBlocking;
 
 
 public class Resource implements Parcelable {
@@ -117,6 +121,7 @@ public class Resource implements Parcelable {
 		return cv;
 	}
 
+	
 	public static Resource fromContentValues(ContentValues cv) {
 		long cid = -1;
 		long rid = -1;
@@ -173,8 +178,7 @@ public class Resource implements Parcelable {
 			}
 			throw new IllegalArgumentException("Resource ID Required");
 		}
-				
-		
+
 		
 		return new Resource(
 				cid,
@@ -193,6 +197,20 @@ public class Resource implements Parcelable {
 		
 	}
 
+	/**
+	 * Given a context and a resourceId we can retrieve a Resource from the database.
+	 * @param context
+	 * @param resourceId
+	 * @return
+	 */
+	public static Resource fromDatabase( Context context, long resourceId ) {
+		ResourceManager rm = ResourceManager.getInstance(context);
+		
+		ResourceResponse<ContentValues> cv = rm.sendBlockingRequest( new RRRequestInstanceBlocking(resourceId) );
+		return Resource.fromContentValues(cv.result());
+	}
+
+	
 	public boolean isPending() {
 		return this.pending;
 	}
