@@ -83,7 +83,7 @@ public abstract class DatabaseTableManager {
 		else throw new IllegalStateException("Can not add change when db is closed!");
 	}
 
-	protected void openDB(final int type) {
+	protected synchronized void openDB(final int type) {
 		if ( inReadQuerySet && type == OPEN_READ ) return;
 
 		if (db != null) {
@@ -141,7 +141,7 @@ public abstract class DatabaseTableManager {
 
 	protected void closeDB() {
 		if ( inReadQuerySet ) return;
-		if (inTx) {
+		if (!readOnlyDb && inTx) {
 			Log.println(Constants.LOGE, TAG, Log.getStackTraceString(new Exception("Transaction still open during database close!")));
 		}
 
