@@ -315,4 +315,5 @@
 	<string name="prefThemeButtonColour_Title">Button Colour</string>
 	<string name="Saving">Saving…</string>
 	<string name="Loading">Loading…</string>
+	<string name="Deleting">Deleting…</string>
 </resources>
