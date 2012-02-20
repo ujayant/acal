@@ -703,13 +703,13 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 		switch (id) {
 		case SAVING_DIALOG:
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
-			builder.setTitle("Saving...");
+			builder.setTitle(getString(R.string.Saving));
 			builder.setCancelable(false);
 			savingDialog = builder.create();
 			return savingDialog;
 		case LOADING_EVENT_DIALOG:
 			builder = new AlertDialog.Builder(this);
-			builder.setTitle("Loading...");
+			builder.setTitle(getString(R.string.Loading));
 			builder.setCancelable(false);
 			loadingDialog = builder.create();
 			return loadingDialog;
