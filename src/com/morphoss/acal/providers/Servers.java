@@ -263,7 +263,6 @@ public class Servers extends ContentProvider {
 		}
 		c.close();
 		
-		db = dbHelper.getWritableDatabase();
 		db.beginTransaction();
 		try {
 			db.delete(PathSets.DATABASE_TABLE, PathSets.SERVER_ID+"=?", params );
