@@ -192,8 +192,8 @@ public class SyncCollectionContents extends ServiceJob {
 				collectionData.put(DavCollections.NEEDS_SYNC, 0);
 				if ( syncToken != null ) {
 					collectionData.put(DavCollections.SYNC_TOKEN, syncToken);
-					if (Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents )
-						Log.i(TAG,"Updated collection record with new sync token '"+syncToken+"' at "+lastSynchronized);
+					if (Constants.LOG_DEBUG && Constants.debugSyncCollectionContents )
+						Log.println(Constants.LOGD,TAG,"Updated collection record with new sync token '"+syncToken+"' at "+lastSynchronized);
 				}
 				
 				ResourceManager.getInstance(context).sendBlockingRequest(
@@ -918,6 +918,12 @@ public class SyncCollectionContents extends ServiceJob {
 			AcalDateTime lastRunTime = null;
 			lastRunTime = AcalDateTime.fromString(lastSync);
 			timeToWait += (lastRunTime.getMillis() - System.currentTimeMillis());
+			
+			if ( timeToWait > 7200000 ) {
+				Log.println(Constants.LOGV,TAG, "lastSync='"+lastSync+"' and lastRunTime='"
+						+ lastRunTime.toString()
+						+"' so timeToWait=" + Long.toString(timeToWait / 1000) + " seconds.");
+			}
 			
 			if ( minBetweenSyncs > timeToWait ) timeToWait = minBetweenSyncs;
 		}
