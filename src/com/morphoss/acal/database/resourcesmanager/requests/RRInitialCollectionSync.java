@@ -7,9 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.http.Header;
-import org.apache.http.message.BasicHeader;
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -21,9 +18,9 @@ import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.database.DMQueryBuilder;
 import com.morphoss.acal.database.DMQueryList;
 import com.morphoss.acal.database.DatabaseTableManager.QUERY_ACTION;
-import com.morphoss.acal.database.resourcesmanager.ResourceProcessingException;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager.ResourceTableManager;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager.WriteableResourceTableManager;
+import com.morphoss.acal.database.resourcesmanager.ResourceProcessingException;
 import com.morphoss.acal.database.resourcesmanager.requesttypes.ResourceRequest;
 import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.providers.Servers;
