@@ -202,7 +202,7 @@ public abstract class DatabaseTableManager {
 		if ( db == null ) throw new IllegalStateException("Tried to end Tx when database is not open!");
 		if (!inTx)  throw new IllegalStateException("Tried to end Tx when not in TX");
 		try {
-			db.endTransaction();
+			if ( db.inTransaction() ) db.endTransaction();
 		}
 		catch( Exception e ) {
 			Log.println(Constants.LOGE, TAG,Log.getStackTraceString(e));
@@ -210,16 +210,15 @@ public abstract class DatabaseTableManager {
 		inTx = false;
 	}
 
-	private boolean doWeNeedADatabase(int type) {
-		boolean yesWeDo = false;
+	protected boolean doWeNeedADatabase(int type) {
 		if ( db == null ) {
-			yesWeDo = true;
-			openDB(OPEN_READ);
+			openDB(type);
+			return true;
 		}
-		return yesWeDo;
+		return false;
 	}
 
-	private boolean doWeNeedATransaction() {
+	protected boolean doWeNeedATransaction() {
 		if ( !inTx ) {
 			beginTx();
 			return true;
@@ -339,16 +338,10 @@ public abstract class DatabaseTableManager {
 	public boolean processActions(DMQueryList queryList) {
 		boolean openedInternally = doWeNeedADatabase(OPEN_WRITE);
 		if ( readOnlyDb  ) throw new IllegalStateException("Can not process query list when DB is read-only!");
-
-		List<DMAction> actions = queryList.getActions();
+		boolean transactionInternally = doWeNeedATransaction();
 		boolean res = false;
-		boolean transactionInternally = false;
-		if ( !inTx ) {
-			beginTx();
-			transactionInternally = true;
-		}
 		try {
-			for (DMAction action : actions) {
+			for (DMAction action : queryList.getActions()) {
 				action.process(this);
 				this.yield();
 			}
