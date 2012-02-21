@@ -210,9 +210,22 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 	private synchronized static void setDBisDirty(Context c, boolean dirty) {
 		ContentValues data = new ContentValues();
 		AcalDBHelper dbHelper = new AcalDBHelper(c);
-		SQLiteDatabase db;
+		SQLiteDatabase db = null;
 		try {
-			db = dbHelper.getWritableDatabase();
+			int attempts = 0;
+			while( attempts++ < 20 ) {
+				try {
+					db = dbHelper.getWritableDatabase();
+					break;
+				}
+				catch( Exception e ) {
+					Log.println(Constants.LOGD,TAG,"Unable to get writable database - retrying");
+				}
+				try { Thread.sleep(50); } catch (Exception e) {}
+			}
+			if ( db == null )
+				db = dbHelper.getWritableDatabase();
+
 		}
 		catch( Exception e ) {
 			Log.e(TAG,"Unable to get writable database!", e);
@@ -246,21 +259,31 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 			Log.i(TAG,Log.getStackTraceString(e));
 		}
 		finally {
-			if ( db.inTransaction() ) db.endTransaction();
-			releaseMetaLock();
 			if ( mCursor != null && !mCursor.isClosed()) mCursor.close();
-			int counter = 10;
+			int counter = 20;
 			while (mCursor!=null && counter-- > 0) {
 				if (mCursor.isClosed()) mCursor = null;
-				try { Thread.sleep(10); } catch (Exception e) {}
+				try { Thread.sleep(20); } catch (Exception e) {}
 			}
+
+			if ( db.inTransaction() ) try {
+				db.endTransaction();
+				counter = 20;
+				while (db.inTransaction() && counter-- > 0) {
+					try { Thread.sleep(20); } catch (Exception e) {}
+				}
+			}
+			catch( SQLiteException e ) {
+				Log.e(TAG,Log.getStackTraceString(e));
+			}
+			releaseMetaLock();
 
 			try {
 				db.close();
-				counter = 10;
+				counter = 20;
 				while (db.isOpen() && counter-- > 0) {
 					try {
-						Thread.sleep(10); 
+						Thread.sleep(20); 
 					} catch (Exception e) {}
 				}
 			}
