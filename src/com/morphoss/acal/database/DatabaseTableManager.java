@@ -98,51 +98,32 @@ public abstract class DatabaseTableManager {
 		changes = new ArrayList<DataChangeEvent>();
 		this.dbOpened = System.currentTimeMillis();
 		this.dbYielded = dbOpened;
-		if (Constants.debugDatabaseManager && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG,"DB:"+this.getTableName()+" OPEN_READ:");
+		if (Constants.debugDatabaseManager && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG,"DB:"+this.getTableName()+ " OPEN_" +(type == OPEN_READ ? "READ:" : "WRITE:"));
 		if (Constants.debugDatabaseManager && Constants.LOG_VERBOSE) printStackTraceInfo(Log.VERBOSE);
-		switch (type) {
+		switch ( type ) {
 			case OPEN_READ:
 				saveStackTraceInfo();
 				db = dbHelper.getReadableDatabase();
 				readOnlyDb = true;
 				break;
 			case OPEN_WRITE:
-				if (Constants.debugDatabaseManager && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG,"DB:"+this.getTableName()+" OPEN_WRITE:");
-				if (Constants.debugDatabaseManager && Constants.LOG_VERBOSE) printStackTraceInfo(Log.VERBOSE);
 				saveStackTraceInfo();
 				db = dbHelper.getWritableDatabase();
 				readOnlyDb = false;
 				break;
-/*
-			case OPEN_READTX:
-			if (Constants.debugDatabaseManager && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG,"DB:"+this.getTableName()+" OPEN_READTX:");
-			saveStackTraceInfo();
-			if (Constants.debugDatabaseManager && Constants.LOG_VERBOSE) printStackTraceInfo(Log.VERBOSE);
-			inTx = true;
-			inReadTx = true;
-			db = dbHelper.getReadableDatabase();
-			break;
-		case OPEN_WRITETX:
-			if (Constants.debugDatabaseManager && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG,"DB:"+this.getTableName()+" OPEN_WRITETX:");
-			saveStackTraceInfo();
-			if (Constants.debugDatabaseManager && Constants.LOG_VERBOSE) printStackTraceInfo(Log.VERBOSE);
-			inTx = true;
-			db = dbHelper.getWritableDatabase();
-			db.beginTransaction();
-			break;
-*/
-		default:
-			dbHelper.close();
-			dbHelper = null;
-			changes = null;
-			throw new IllegalArgumentException("Invalid argument provided for openDB");		
+			default:
+				dbHelper.close();
+				dbHelper = null;
+				changes = null;
+				throw new IllegalArgumentException("Invalid argument provided for openDB");
 		}
 	}
 
-	protected void closeDB() {
+	protected synchronized void closeDB() {
 		if ( inReadQuerySet ) return;
-		if (!readOnlyDb && inTx) {
+		if ( !readOnlyDb && inTx) {
 			Log.println(Constants.LOGE, TAG, Log.getStackTraceString(new Exception("Transaction still open during database close!")));
+			endTx();
 		}
 
 		if (db == null) throw new SQLiteMisuseException("Tried to close a DB that wasn't opened");
@@ -158,32 +139,20 @@ public abstract class DatabaseTableManager {
 		dbHelper = null;
 		Process.setThreadPriority(this.initialPriority);
 
-//		switch (type) {
-//		case CLOSE:
-			if (Constants.debugDatabaseManager && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG,"DB:"+this.getTableName()+" CLOSE:");
-			if (Constants.debugDatabaseManager && Constants.LOG_VERBOSE) printStackTraceInfo(Log.VERBOSE);
-//			break;
-//		case CLOSE_TX:
-//			if (Constants.debugDatabaseManager && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG,"DB:"+this.getTableName()+" CLOSETX:");
-//			if (Constants.debugDatabaseManager && Constants.LOG_VERBOSE) printStackTraceInfo(Log.VERBOSE);
-//			if (!inTx) throw new IllegalStateException("Tried to close a db transaction when not in one!");
-//			inTx = false;
-//			inReadTx = false;
-//			openStackTraceInfo = null;
-//			break;
-//		default:
-//			throw new IllegalArgumentException("Invalid argument provided for openDB");
-//		}
+		if (Constants.debugDatabaseManager && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG,"DB:"+this.getTableName()+" CLOSE:");
+		if (Constants.debugDatabaseManager && Constants.LOG_VERBOSE) printStackTraceInfo(Log.VERBOSE);
 
 		long time = System.currentTimeMillis()-this.dbYielded;
 		//Metric checking to make sure that the database is being used correctly.
-		if ( (Constants.DEBUG_MODE && time > 700) || time > 2000 ) {
-			Log.w(TAG, "Database opened for excessive period of time ("+time+"ms) Without yield!:");
-			this.printStackTraceInfo(Log.WARN);
-		}
-		if (Constants.debugDatabaseManager && Constants.LOG_DEBUG ) {
-			time = System.currentTimeMillis()- this.dbOpened;
-			Log.println(Constants.LOGD, TAG, "Database opened for "+time+"ms");
+		if ( !readOnlyDb ) {
+			if ( (Constants.DEBUG_MODE && time > 700) || time > 2000 ) {
+				Log.w(TAG, "Database opened for excessive period of time ("+time+"ms) Without yield!:");
+				this.printStackTraceInfo(Log.WARN);
+			}
+			if ( Constants.debugDatabaseManager && Constants.LOG_DEBUG ) {
+				time = System.currentTimeMillis()- this.dbOpened;
+				Log.println(Constants.LOGD, TAG, "Database opened for "+time+"ms");
+			}
 		}
 		this.dataChanged(changes);
 		changes = null;
@@ -210,24 +179,6 @@ public abstract class DatabaseTableManager {
 		}
 	}
 
-/*
-	protected void beginReadQuery() {
-		if ( db == null ) 
-			openDB(OPEN_READ);
-		else if (!inTx && db != null) throw new IllegalStateException("BeginReadQuery called in invalid state");
-	}
-
-	protected void endQuery() {
-		if (db == null) throw new IllegalStateException("End query called on closed db");
-		if (!inTx && !inReadTx) closeDB(CLOSE);
-	}
-
-	protected void beginWriteQuery() {
-		if (!inTx && db == null) openDB(OPEN_WRITE);
-		else if (inReadTx) throw new IllegalStateException("Can not begin write query while in ReadOnly tx");
-		else if (!inTx && db != null) throw new IllegalStateException("BeginWrite called when db already open and not in tx");
-	}
-*/
 
 	public synchronized void beginTx() {
 		if ( db == null ) throw new IllegalStateException("Tried to start Tx when database is not open!");
@@ -259,21 +210,22 @@ public abstract class DatabaseTableManager {
 		inTx = false;
 	}
 
-/*	
-	private void beginTransactionX() {
-		openDB(OPEN_WRITETX);
+	private boolean doWeNeedADatabase(int type) {
+		boolean yesWeDo = false;
+		if ( db == null ) {
+			yesWeDo = true;
+			openDB(OPEN_READ);
+		}
+		return yesWeDo;
 	}
 
-	private void beginReadTransactionX() {
-		openDB(OPEN_READTX);
+	private boolean doWeNeedATransaction() {
+		if ( !inTx ) {
+			beginTx();
+			return true;
+		}
+		return false;
 	}
-
-	private void endTransactionX() {
-		if (!inTx)  throw new IllegalStateException("Tried to end Tx when not in TX");
-		if (!inReadTx) db.endTransaction();
-		closeDB(CLOSE_TX);
-	}
-*/
 	
 	//Some useful generic methods
 
@@ -283,11 +235,8 @@ public abstract class DatabaseTableManager {
 		if (Constants.debugDatabaseManager && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG,"DB: "+this.getTableName()+" query:");
 		if (Constants.debugDatabaseManager && Constants.LOG_VERBOSE) printStackTraceInfo(Log.VERBOSE);
 	
-		boolean openedInternally = false;
-		if ( db == null ) {
-			openedInternally = true;
-			openDB(OPEN_READ);
-		}
+		boolean openedInternally = doWeNeedADatabase(OPEN_READ);
+
 		Cursor c = db.query(getTableName(), columns, selection, selectionArgs, groupBy, having, orderBy);
 		try {
 			if (c.getCount() > 0) {
@@ -302,9 +251,10 @@ public abstract class DatabaseTableManager {
 		}
 		finally {
 			if ( c != null ) c.close();
-			while (c!=null) {
+			while ( c != null ) {
 				if (c.isClosed()) c = null;
-				try { Thread.sleep(10); } catch (Exception e) {}
+				else
+					try { Thread.sleep(10); } catch (Exception e) {}
 			}
 			if ( openedInternally ) closeDB();
 		}
@@ -314,11 +264,7 @@ public abstract class DatabaseTableManager {
 
 	
 	public int delete(String whereClause, String[] whereArgs) {
-		boolean openedInternally = false;
-		if ( db == null ) {
-			openedInternally = true;
-			openDB(OPEN_WRITE);
-		}
+		boolean openedInternally = doWeNeedADatabase(OPEN_WRITE);
 
 		if ( readOnlyDb ) throw new IllegalStateException("Cannot delete when DB is read-only!");
 		if (Constants.debugDatabaseManager && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG,
@@ -352,12 +298,7 @@ public abstract class DatabaseTableManager {
 	}
 
 	public int update(ContentValues values, String whereClause, String[] whereArgs) {
-		boolean openedInternally = false;
-		if ( db == null ) {
-			openedInternally = true;
-			openDB(OPEN_WRITE);
-		}
-
+		boolean openedInternally = doWeNeedADatabase(OPEN_WRITE);
 		if ( readOnlyDb ) throw new IllegalStateException("Cannot update when DB is read-only!");
 		if (Constants.debugDatabaseManager && Constants.LOG_VERBOSE) Log.println(Constants.LOGV,TAG,
 				"Updating Row on "+this.getTableName()+":\n\t"+values.toString());
@@ -377,12 +318,7 @@ public abstract class DatabaseTableManager {
 	}
 
 	public long insert(String nullColumnHack, ContentValues values) {
-		boolean openedInternally = false;
-		if ( db == null ) {
-			openedInternally = true;
-			openDB(OPEN_WRITE);
-		}
-
+		boolean openedInternally = doWeNeedADatabase(OPEN_WRITE);
 		if ( readOnlyDb ) throw new IllegalStateException("Cannot insert when DB is read-only!");
 		if (Constants.debugDatabaseManager && Constants.LOG_VERBOSE) Log.println(Constants.LOGV, TAG, 
 				"Inserting Row on "+this.getTableName()+":\n\t"+values.toString());
@@ -401,12 +337,8 @@ public abstract class DatabaseTableManager {
 
 	
 	public boolean processActions(DMQueryList queryList) {
-		boolean openedInternally = false;
-		if ( db == null ) {
-			openedInternally = true;
-			openDB(OPEN_WRITE);
-		}
-		if ( readOnlyDb  ) throw new IllegalStateException("Can not insert when DB is read-only!");
+		boolean openedInternally = doWeNeedADatabase(OPEN_WRITE);
+		if ( readOnlyDb  ) throw new IllegalStateException("Can not process query list when DB is read-only!");
 
 		List<DMAction> actions = queryList.getActions();
 		boolean res = false;
