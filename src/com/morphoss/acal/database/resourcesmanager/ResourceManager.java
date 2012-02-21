@@ -377,9 +377,9 @@ public class ResourceManager implements Runnable {
 			if ( ResourceManager.DEBUG ) Log.println(Constants.LOGD,TAG,"Begin Processing");
 			try {
 				r.process(this);
-				if (this.inTx) {
+				if (this.db != null && this.inTx) {
 					this.endTx();
-					throw new ResourceProcessingException( "Process started a transaction without ending it!");
+					throw new ResourceProcessingException( "Process "+r.getClass().getSimpleName()+" started a transaction without ending it!");
 				}
 			} catch (ResourceProcessingException e) {
 				Log.e(TAG, "Error Processing Resource Request: "
@@ -391,7 +391,7 @@ public class ResourceManager implements Runnable {
 			} finally {
 				// make sure db was closed properly
 				if (this.db != null) {
-					Log.e(TAG, "INVALID TERMINATION while processing Resource Request: Database not closed!");
+					Log.e(TAG, "INVALID TERMINATION while processing Resource Request: Database not closed by "+r.getClass().getSimpleName()+"!");
 					try { closeDB(); } catch (Exception e) { }
 				}
 				r.setProcessed();
