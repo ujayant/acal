@@ -18,7 +18,6 @@
 
 package com.morphoss.acal.service;
 
-import android.content.ContentResolver;
 import android.content.ContentValues;
 
 import com.morphoss.acal.HashCodeUtil;
@@ -27,21 +26,10 @@ import com.morphoss.acal.database.resourcesmanager.requests.RRInitialCollectionS
 
 public class InitialCollectionSync extends ServiceJob {
 
-	private int collectionId = -2;
 	private int serverId = -2;
 	private String collectionPath = null;
 	ContentValues collectionValues = null;
-	private boolean isCollectionIdAssigned = false;
-	private boolean collectionNeedsSync = false;
-
-	
-	
-	private static final String TAG = "aCal InitialCollectionSync";
-	private ContentResolver cr;
 	public static final int MAX_RESULTS = 100;
-
-	
-
 	
 	private RRInitialCollectionSync request;
 
@@ -87,59 +75,10 @@ public class InitialCollectionSync extends ServiceJob {
 	}
 	
 	
-	/**
-	private int deleteRecords(SQLiteDatabase db, Map<String,ContentValues> toDelete) {
-		//database list now contains all the records we need to delete
-		String delIds = "";
-		boolean sep = false;
-		String names[] = new String[toDelete.size()];
-		toDelete.keySet().toArray(names);
-		for (String name : names) {
-			if (sep)delIds+=",";
-			else sep=true;
-			delIds+=toDelete.get(name).getAsInteger(OldDavResources._ID);
-
-			aCalService.databaseDispatcher.dispatchEvent(new DatabaseChangedEvent(
-						DatabaseChangedEvent.DATABASE_RECORD_DELETED, OldDavResources.class, toDelete.get(name)));
-		}
-		
-		if (delIds == null || delIds.equals("")) return 0;
-		
-		//remove from db
-		return db.delete( OldDavResources.DATABASE_TABLE, OldDavResources._ID+" IN ("+delIds+")", new String[] {  });
-	}
-*/
 	@Override
 	public String getDescription() {
-		// TODO Auto-generated method stub
-		return null;
+		return "Initial collection sync";
 	}
-	
-/*
-	public int updateRecords(SQLiteDatabase db, Map<String, ContentValues> toUpdate) {
-		String names[] = new String[toUpdate.size()];
-		toUpdate.keySet().toArray(names);
-		for (String name : names) {
-			ContentValues cv = toUpdate.get(name);
-			cv.put(DavResources.NEEDS_SYNC, 1);
-			cv.put(DavResources.COLLECTION_ID, this.collectionId);
-			// is this an update or insert?
-			String id = cv.getAsString(DavResources._ID);
-			WriteActions action;
-			if (id == null || id.equals("")) {
-				action = WriteActions.INSERT;
-			}
-			else {
-				action = WriteActions.UPDATE;
-			}
-
-			SynchronisationJobs.writeResource(db,action,cv);
-			collectionNeedsSync = true;
-			db.yieldIfContendedSafely();
-		}
-		return names.length;
-	}
-*/
 	
 
 
