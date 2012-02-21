@@ -18,7 +18,7 @@
 
 package com.morphoss.acal.service;
 
-import android.text.format.DateFormat;
+import com.morphoss.acal.acaltime.AcalDateTime;
 
 
 public abstract class ServiceJob implements Comparable<ServiceJob> {
@@ -36,9 +36,9 @@ public abstract class ServiceJob implements Comparable<ServiceJob> {
 	
 	public String toString() {
 		StringBuilder sb = new StringBuilder("At: ");
-		sb.append(DateFormat.format("yyyyMMdd'T'hhmmss'Z'",
-				TIME_TO_EXECUTE + (TIME_TO_EXECUTE < 864000000 ? System.currentTimeMillis() : 0))
-		);
+		AcalDateTime when = AcalDateTime.getUTCInstance();
+		when.setMillis(TIME_TO_EXECUTE + (TIME_TO_EXECUTE < 864000000 ? System.currentTimeMillis() : 0));
+		sb.append(when.fmtIcal());
 		sb.append(", Job: ");
 		sb.append(getDescription());
 		return sb.toString( );
