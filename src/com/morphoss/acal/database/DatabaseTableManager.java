@@ -1,13 +1,13 @@
 package com.morphoss.acal.database;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteMisuseException;
 import android.os.Process;
 import android.util.Log;
@@ -127,11 +127,13 @@ public abstract class DatabaseTableManager {
 		}
 
 		if (db == null) throw new SQLiteMisuseException("Tried to close a DB that wasn't opened");
+
 		db.close();
-		while (db.isOpen()) {
-			try {
-				Thread.sleep(10); 
-			} catch (Exception e) {}
+		// Hack to work around slow / old devices that return from db.close() without
+		// the database actually having been closed...
+		int counter = 20;
+		while (db.isOpen() && counter-- > 0) {
+			try { Thread.sleep(20); } catch (Exception e) {}
 		}
 		db = null;
 		openStackTraceInfo = null;
@@ -202,7 +204,19 @@ public abstract class DatabaseTableManager {
 		if ( db == null ) throw new IllegalStateException("Tried to end Tx when database is not open!");
 		if (!inTx)  throw new IllegalStateException("Tried to end Tx when not in TX");
 		try {
-			if ( db.inTransaction() ) db.endTransaction();
+			if ( db.inTransaction() ) try {
+				db.endTransaction();
+				
+				// Hack to work around slow / old devices that return from endTransaction without
+				// the transaction actually having been closed...
+				int counter = 20;
+				while (db.inTransaction() && counter-- > 0) {
+					try { Thread.sleep(20); } catch (Exception e) {}
+				}
+			}
+			catch( SQLiteException e ) {
+				Log.e(TAG,Log.getStackTraceString(e));
+			}
 		}
 		catch( Exception e ) {
 			Log.println(Constants.LOGE, TAG,Log.getStackTraceString(e));
