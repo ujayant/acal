@@ -179,6 +179,7 @@ public abstract class AcalRepeatRuleParser {
 	}
 
 	public void setUntil( AcalDateTime newUntil ) {
+		count = INFINITE_REPEAT_COUNT;
 		until = newUntil.clone();
 		count = INFINITE_REPEAT_COUNT;
 	}
