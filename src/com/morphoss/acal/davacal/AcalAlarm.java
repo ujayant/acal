@@ -125,7 +125,12 @@ public class AcalAlarm implements Serializable, Parcelable, Comparable<AcalAlarm
 	 */
 	public AcalAlarm( VAlarm component, Masterable parent, AcalDateTime start, AcalDateTime end ) {
 		this.blob = component.getCurrentBlob();
-		AcalProperty aProperty = component.getProperty(PropertyName.TRIGGER);
+		AcalProperty aProperty = component.getProperty("ACTION");
+		if ( aProperty == null ) throw new InvalidCalendarComponentException("A VALARM component must have an ACTION property.");
+		actionType = ( aProperty == null ? ActionType.IGNORED : ActionType.fromString(aProperty.getValue()));
+		
+		aProperty = component.getProperty(PropertyName.TRIGGER);
+		if ( aProperty == null ) throw new InvalidCalendarComponentException("A VALARM component must have a TRIGGER property.");
 		String related = aProperty.getParam("RELATED");
 		String valueType =  aProperty.getParam("VALUE");
 		AcalDuration tmpDuration = null;
@@ -167,9 +172,6 @@ public class AcalAlarm implements Serializable, Parcelable, Comparable<AcalAlarm
 				timeToFire = AcalDateTime.addDuration(end, relativeTime);
 		}
 
-		aProperty = component.getProperty("ACTION");
-		actionType = ( aProperty == null ? ActionType.IGNORED : ActionType.fromString(aProperty.getValue()));
-		
 		aProperty = component.getProperty("DESCRIPTION");
 		if ( aProperty == null || aProperty.getValue().equals("") || aProperty.getValue().equalsIgnoreCase("Default Mozilla Description") ) {
 			aProperty = parent.getProperty("SUMMARY");
