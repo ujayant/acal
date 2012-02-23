@@ -416,7 +416,7 @@ public class VCalendar extends VComponent implements Cloneable {
 				}
 				else {
 					if ( Constants.LOG_DEBUG && CacheManager.DEBUG )
-						Log.println(Constants.LOGD,TAG, "Building CacheObject instances in "+calendarRange+" from RepeatRule for id "+resourceId+", Summary: "+m.getSummary());
+						Log.println(Constants.LOGD,TAG, "Building CacheObject instances in "+calendarRange+" from RepeatRule for id "+collectionId+"/"+resourceId+", Summary: "+m.getSummary());
 
 					if ( calendarRange != null ) {
 						AcalDateRange intersection = rangeRequested.getIntersection(this.calendarRange);

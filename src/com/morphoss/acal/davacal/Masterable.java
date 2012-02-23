@@ -181,8 +181,8 @@ public abstract class Masterable extends VComponent {
 					try {
 						alarms.add( new AcalAlarm((VAlarm) child, this, getStart(), getEnd()) );
 					}
-					catch( IllegalStateException e ) {
-						Log.i(TAG,"Ignoring invalid alarm.");
+					catch( InvalidCalendarComponentException e ) {
+						Log.i(TAG,"Ignoring invalid alarm.\n"+child.getCurrentBlob());
 					}
 				}
 			}
