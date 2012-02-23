@@ -294,6 +294,11 @@ public class SyncCollectionContents extends ServiceJob {
 		 * @return true if we still need to syncMarkedResources() afterwards.
 		 */
 		private boolean doRegularSyncReport() {
+			if ( Constants.DISABLE_FEATURE_WEBDAV_SYNC ) {
+				Log.w("aCal","Sync report is disabled. Falling back to PROPFIND.");
+				return doRegularSyncPropfind();
+			}
+
 			DavNode root = doCalendarRequest("REPORT", 1,
 						"<?xml version=\"1.0\" encoding=\"utf-8\" ?>"
 						+ "<sync-collection xmlns=\"DAV:\">"
