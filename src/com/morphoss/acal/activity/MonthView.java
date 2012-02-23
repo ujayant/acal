@@ -749,8 +749,6 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 
 
 	public void deleteEvent(long resourceId, String recurrenceId, int action, int instances ) {
-		//TODO
-		Toast.makeText(this, "Delete is not yet implemented.", 5).show();
 
 		try {
 			Resource r = Resource.fromDatabase(this, resourceId);
