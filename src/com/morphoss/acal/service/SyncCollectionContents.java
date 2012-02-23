@@ -544,18 +544,31 @@ public class SyncCollectionContents extends ServiceJob {
 
 				needSyncAfterwards = true; 
 
-				//changeList.add( new ResourceModification(action, cv, null) );
 				builder.setValues(cv);
 				queryList.addAction(builder.build());
+
+				if ( queryList.size() > nPerMultiget ) {
+					ResourceManager.getInstance(context).sendBlockingRequest(new RRBlockAndProcessQueryList(queryList));
+					queryList = new DMQueryList();
+				}
 			}
 			
 			if ( ourResourceMap != null ) {
 				// Delete any records still in ourResourceMap (hence not on server any longer)
-				Set<String> names = ourResourceMap.keySet();
-				for( String name : names ) {
+				// We build the delete as a single query.
+				
+				StringBuilder inList = new StringBuilder(ResourceTableManager.RESOURCE_ID);
+				inList.append(" IN (");
+				boolean pastFirst = false;
+				for( String name : ourResourceMap.keySet() ) {
 					ContentValues cv = ourResourceMap.get(name);
-					queryList.addAction(new DMDeleteQuery(ResourceTableManager.RESOURCE_ID+" = ?", new String[]{cv.getAsString(ResourceTableManager.RESOURCE_ID)}));
-					//changeList.add( new ResourceModification(WriteActions.DELETE, cv, null) );
+					if ( pastFirst ) inList.append(',');
+					else pastFirst = true;
+					inList.append(cv.getAsString(ResourceTableManager.RESOURCE_ID));
+				}
+				if ( pastFirst ) {
+					inList.append(")");
+					queryList.addAction(new DMDeleteQuery(inList.toString(), null));
 				}
 			}
 			
@@ -567,9 +580,9 @@ public class SyncCollectionContents extends ServiceJob {
 			Log.e(TAG, Log.getStackTraceString(e));
 		}
 
-		//ResourceModification.commitChangeList(context, changeList, processor.getTableName(this));
-		ResourceManager.getInstance(context).sendBlockingRequest(
-				new RRBlockAndProcessQueryList(queryList));
+
+		if ( !queryList.isEmpty() )
+			ResourceManager.getInstance(context).sendBlockingRequest( new RRBlockAndProcessQueryList(queryList));
 		
 		return needSyncAfterwards;
 	}
@@ -684,11 +697,14 @@ public class SyncCollectionContents extends ServiceJob {
 						Log.w(TAG, "Unhandled status " + status + " on GET request for " + path);
 				}
 			}
+			if ( queryList.size() > nPerMultiget ) {
+				ResourceManager.getInstance(context).sendBlockingRequest(new RRBlockAndProcessQueryList(queryList));
+				queryList = new DMQueryList();
+			}
 		}
 
-		//ResourceModification.commitChangeList(context, changeList, processor.getTableName(this));
-		ResourceManager.getInstance(context).sendBlockingRequest(
-				new RRBlockAndProcessQueryList(queryList));
+		if ( !queryList.isEmpty() )
+			ResourceManager.getInstance(context).sendBlockingRequest(new RRBlockAndProcessQueryList(queryList));
 		
 
 		if (Constants.LOG_VERBOSE && Constants.debugSyncCollectionContents )
@@ -891,8 +907,7 @@ public class SyncCollectionContents extends ServiceJob {
 			}
 
 			//ResourceModification.commitChangeList(context, changeList, processor.getTableName(this));
-			ResourceManager.getInstance(context).sendBlockingRequest(
-					new RRBlockAndProcessQueryList(queryList));
+			ResourceManager.getInstance(context).sendBlockingRequest( new RRBlockAndProcessQueryList(queryList));
 			try { Thread.sleep(300); } catch ( InterruptedException e ) { }
 		}
 
