@@ -54,7 +54,7 @@ public class Constants {
 	public static final boolean LOG_DEBUG = false && DEBUG_MODE;			//Information relevant to debugging tasks.
 	public static final boolean DEBUG_SETTINGS = false && DEBUG_MODE;	// Does the debugging menu appear in Settings
 
-	/** Since Andrew's device won't display logs at DEBUG level he needs a way to fake that! * /
+	/** Since Andrew's device won't display logs at DEBUG level he needs a way to fake that! */
 	public static final int LOGV = Log.INFO;  // Normally should be Log.VERBOSE of course.
 	public static final int LOGD = Log.INFO;  // Normally should be Log.DEBUG of course.
 	public static final int LOGI = Log.WARN;  // Normally should be Log.INFO of course.
@@ -85,6 +85,9 @@ public class Constants {
 	public static final boolean		debugWidget						= false && DEBUG_MODE;
 	public static final boolean		debugSaxParser					= false && DEBUG_MODE;
 	
+	public static final boolean DISABLE_FEATURE_WEBDAV_SYNC			= false && DEBUG_MODE;
+	public static final boolean DISABLE_FEATURE_CURRENT_PRINCIPAL	= false && DEBUG_MODE;
+
 	public static final long DEFAULT_MAX_AGE_WIFI = 1000*60*30;		// The default to use when initialising a new collection
 	public static final long DEFAULT_MAX_AGE_3G = 1000*60*60*2;		// The default to use when initialising a new collection
 	

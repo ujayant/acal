@@ -41,7 +41,7 @@
 		android:resizeable="true"
 		android:smallScreens="true" />
 	<application
-		android:debuggable="true"
+		android:debuggable="false"
 		android:description="@string/appDescription"
 		android:icon="@drawable/ic_launcher_events"
 		android:label="@string/appName"
