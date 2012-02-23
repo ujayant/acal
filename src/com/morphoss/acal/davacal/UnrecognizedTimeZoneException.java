@@ -18,7 +18,7 @@
 
 package com.morphoss.acal.davacal;
 
-public class UnrecognizedTimeZoneException extends Exception {
+public class UnrecognizedTimeZoneException extends RuntimeException {
 
 	public UnrecognizedTimeZoneException(String msg) {
 		super(msg);
