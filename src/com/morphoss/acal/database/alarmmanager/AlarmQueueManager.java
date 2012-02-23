@@ -185,8 +185,7 @@ public class AlarmQueueManager implements Runnable, ResourceChangedListener  {
 		db.delete(META_TABLE, null, null);
 		data.remove(FIELD_ID);
 		this.metaRow = db.insert(META_TABLE, null, data);
-		db.close();
-		dbHelper.close();
+		dbHelper.close(db);
 		rm.addListener(this);
 		releaseMetaLock();
 
@@ -208,8 +207,7 @@ public class AlarmQueueManager implements Runnable, ResourceChangedListener  {
 		SQLiteDatabase db = dbHelper.getWritableDatabase();
 		//set CLOSED to true
 		db.update(META_TABLE, data, FIELD_ID+" = ?", new String[] {metaRow+""});
-		db.close();
-		dbHelper.close();
+		dbHelper.close(db);
 		
 		//dereference ourself so GC can clean up
 		instance = null;
@@ -337,10 +335,6 @@ public class AlarmQueueManager implements Runnable, ResourceChangedListener  {
 			}
 			try {
 				request.process(this);
-				if (this.inTx) {
-					this.endTx();
-					throw new AlarmProcessingException("Process started a transaction without ending it!");
-				}
 			} catch (AlarmProcessingException e) {
 				Log.e(TAG, "Error Processing Alarm Request: "+Log.getStackTraceString(e));
 			} catch (Exception e) {
@@ -348,7 +342,8 @@ public class AlarmQueueManager implements Runnable, ResourceChangedListener  {
 			} finally {
 				//make sure db was closed properly
 				if (this.db != null) {
-					Log.e(TAG, "INVALID TERMINATION while processing Alarm Request: Database not closed!");
+					if ( this.inTx ) this.endTx();
+					Log.e(TAG, "INVALID TERMINATION while processing "+request.getClass().getSimpleName()+" Alarm Request: Database not closed!");
 					try { closeDB(); } catch (Exception e) { }
 				}
 			}
@@ -511,14 +506,18 @@ public class AlarmQueueManager implements Runnable, ResourceChangedListener  {
 			super.setTxSuccessful();
 			super.endTx();
 			super.closeDB();
+
 			//schedule alarm intent
 			scheduleAlarmIntent();
-			
 
 		}
 
 		private void populateTableFromResource(ContentValues data) {
-			if ( data == null || VComponent.VCARD.equalsIgnoreCase(data.getAsString(ResourceTableManager.EFFECTIVE_TYPE)) ) return;
+			if ( data == null
+					|| VComponent.VCARD.equalsIgnoreCase(data.getAsString(ResourceTableManager.EFFECTIVE_TYPE))
+					|| ( data.getAsString(ResourceTableManager.RESOURCE_DATA) == null
+						&&  data.getAsString(ResourceTableManager.NEW_DATA) == null )
+					) return;
 
 			//default start timestamp
 			AcalDateTime after = new AcalDateTime().applyLocalTimeZone();

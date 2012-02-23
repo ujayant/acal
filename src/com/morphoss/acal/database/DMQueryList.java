@@ -13,4 +13,8 @@ public class DMQueryList {
 	public boolean isEmpty() {
 		return actions.isEmpty();
 	}
+	
+	public int size() {
+		return actions.size();
+	}
 }

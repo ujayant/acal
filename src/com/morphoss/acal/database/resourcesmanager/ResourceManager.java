@@ -154,11 +154,7 @@ public class ResourceManager implements Runnable {
 
 					//Wait until all processes have finished
 					while (this.numReadsProcessing > 0) {
-						try {
-							Thread.sleep(10);
-						} catch (Exception e) {
-
-						}
+						try { Thread.sleep(10);	} catch (Exception e) {	}
 					}
 
 					//tell processor that we are done

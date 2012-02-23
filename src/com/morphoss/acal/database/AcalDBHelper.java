@@ -18,11 +18,15 @@
 
 package com.morphoss.acal.database;
 
+import java.io.File;
+
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import com.morphoss.acal.Constants;
 import com.morphoss.acal.providers.Servers;
 
 /**
@@ -409,9 +413,6 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 	@Override
 	public void onOpen(SQLiteDatabase db) {
 		super.onOpen(db);
-		
-	//	Log.e(TAG,"Database opened: ");
-	//	Thread.dumpStack();
 	}
 
 
@@ -420,22 +421,52 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 			return SQLiteDatabase.openDatabase(context.getDatabasePath(DB_NAME+".db").toString(), null, 
 					SQLiteDatabase.OPEN_READONLY | SQLiteDatabase.NO_LOCALIZED_COLLATORS);
 		}
-		catch( Exception e) {
-			Log.w(TAG,Log.getStackTraceString(e));
+		catch( SQLiteException e) {
+			Log.i(TAG,e.getMessage());
 		}
-		return super.getReadableDatabase();
+		return getWritableDatabase();
 	}
 
 	
 	public SQLiteDatabase getWritableDatabase() {
-		try {
-			return SQLiteDatabase.openDatabase(context.getDatabasePath(DB_NAME+".db").toString(), null, 
-					SQLiteDatabase.OPEN_READWRITE | SQLiteDatabase.NO_LOCALIZED_COLLATORS);
-		}
-		catch( Exception e) {
-			Log.w(TAG,Log.getStackTraceString(e));
+		String dbPath = context.getDatabasePath(DB_NAME+".db").toString();
+
+		if ( new File(dbPath).exists() ) {
+			int attempts = 0;
+			while( attempts++ < 500 ) {
+				try {
+					return SQLiteDatabase.openDatabase( dbPath, null, 
+							SQLiteDatabase.OPEN_READWRITE | SQLiteDatabase.NO_LOCALIZED_COLLATORS);
+				}
+				catch( SQLiteException e) {
+					Log.println(Constants.LOGD,TAG,"Unable to get writable database - retrying");
+				}
+				try { Thread.sleep(10); } catch (Exception e) {}
+			}
+	
+			try {
+				return SQLiteDatabase.openDatabase(context.getDatabasePath(DB_NAME+".db").toString(), null, 
+						SQLiteDatabase.OPEN_READWRITE | SQLiteDatabase.NO_LOCALIZED_COLLATORS);
+			}
+			catch( SQLiteException e) {
+				Log.i(TAG,e.getMessage());
+			}
 		}
 		return super.getWritableDatabase(); 
 	}
+
 	
+	public synchronized void close(SQLiteDatabase db) {
+		try {
+			db.close();
+			int counter = 500;
+			while (db.isOpen() && counter-- > 0) {
+				try { Thread.sleep(20); } catch ( InterruptedException e ) { } 
+			}
+		}
+		catch( SQLiteException e ) {
+			Log.e(TAG,Log.getStackTraceString(e));
+		}
+		super.close();
+	}
 }

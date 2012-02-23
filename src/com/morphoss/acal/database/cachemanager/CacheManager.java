@@ -91,7 +91,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 	private Thread workerThread;
 	private boolean running = true;
 	private final ConcurrentLinkedQueue<CacheRequest> queue = new ConcurrentLinkedQueue<CacheRequest>();
-	private static final long	MAX_BLOCKING_REQUEST_WAIT	= 10000;
+	private static final long	MAX_BLOCKING_REQUEST_WAIT	= 20000;
 
 	//DB Constants
 	private static final String META_TABLE = "event_cache_meta";
@@ -249,9 +249,9 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 					data.put(FIELD_START, currentRange.start.getMillis());
 					data.put(FIELD_END, currentRange.end.getMillis());
 				}
-				db.beginTransaction();
+//				db.beginTransaction();
 				db.update(META_TABLE, data, FIELD_ID+" = ?", new String[]{data.getAsLong(FIELD_ID)+""});
-				db.setTransactionSuccessful();
+//				db.setTransactionSuccessful();
 			}
 			
 		}
@@ -278,18 +278,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 			}
 			releaseMetaLock();
 
-			try {
-				db.close();
-				counter = 20;
-				while (db.isOpen() && counter-- > 0) {
-					try {
-						Thread.sleep(20); 
-					} catch (Exception e) {}
-				}
-			}
-			catch( SQLiteException e ) {
-				Log.e(TAG,Log.getStackTraceString(e));
-			}
+			dbHelper.close(db);
 		}
 	}
 	
@@ -463,7 +452,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		while ( !request.isProcessed() ) {
 			try { Thread.sleep(10); } catch (Exception e) {	}
 			if ( System.currentTimeMillis() > stopWaiting )
-				throw new IllegalStateException("Waited too long for "+request.getClass().getSimpleName()+" response!");
+				throw new IllegalStateException("Waited too long ("+MAX_BLOCKING_REQUEST_WAIT/1000+"s) for "+request.getClass().getSimpleName()+" response!");
 		}
 		Thread.currentThread().setPriority(priority);
 		return request.getResponse();
@@ -806,7 +795,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 						if ( DEBUG && Constants.LOG_DEBUG ) {
 							Log.println(Constants.LOGD, TAG,
 									"Processing a resource changed for a " + comp.getEffectiveType() +
-									"ID: "+r.getResourceId()+", earliest: "+r.getEarliestStart()+", latest: "+r.getLatestEnd());
+									" Collection/ResourceID: "+r.getCollectionId()+"/"+r.getResourceId()+", earliest: "+r.getEarliestStart()+", latest: "+r.getLatestEnd());
 						}
 
 						newData = new ArrayList<CacheObject>();

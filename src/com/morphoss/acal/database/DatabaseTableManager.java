@@ -76,6 +76,9 @@ public abstract class DatabaseTableManager {
 			for (int i = base+1; i < stack.length && i< base+depth; i++)
 				info += "\n\t\t"+stack[i].toString(); 
 			Log.println(logLevel, TAG, info);
+			if ( openStackTraceInfo != null ) {
+				Log.println(logLevel, TAG,"  Database was opened here:\n"+openStackTraceInfo);
+			}
 	}
 	
 	protected void addChange(DataChangeEvent e) {
@@ -119,7 +122,7 @@ public abstract class DatabaseTableManager {
 		}
 	}
 
-	protected synchronized void closeDB() {
+	protected void closeDB() {
 		if ( inReadQuerySet ) return;
 		if ( !readOnlyDb && inTx) {
 			Log.println(Constants.LOGE, TAG, Log.getStackTraceString(new Exception("Transaction still open during database close!")));
@@ -127,17 +130,8 @@ public abstract class DatabaseTableManager {
 		}
 
 		if (db == null) throw new SQLiteMisuseException("Tried to close a DB that wasn't opened");
-
-		db.close();
-		// Hack to work around slow / old devices that return from db.close() without
-		// the database actually having been closed...
-		int counter = 20;
-		while (db.isOpen() && counter-- > 0) {
-			try { Thread.sleep(20); } catch (Exception e) {}
-		}
+		dbHelper.close(db);
 		db = null;
-		openStackTraceInfo = null;
-		dbHelper.close();
 		dbHelper = null;
 		Process.setThreadPriority(this.initialPriority);
 
@@ -156,6 +150,8 @@ public abstract class DatabaseTableManager {
 				Log.println(Constants.LOGD, TAG, "Database opened for "+time+"ms");
 			}
 		}
+		openStackTraceInfo = null;
+
 		this.dataChanged(changes);
 		changes = null;
 	}
@@ -209,7 +205,7 @@ public abstract class DatabaseTableManager {
 				
 				// Hack to work around slow / old devices that return from endTransaction without
 				// the transaction actually having been closed...
-				int counter = 20;
+				int counter = 500;
 				while (db.inTransaction() && counter-- > 0) {
 					try { Thread.sleep(20); } catch (Exception e) {}
 				}
