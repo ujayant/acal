@@ -9,10 +9,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: aCal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-11-28 00:18+1300\n"
-"PO-Revision-Date: 2011-11-27 11:18+0000\n"
-"Last-Translator: karora <andrew@mcmillan.net.nz>\n"
-"Language-Team: Spanish (Spain) (http://www.transifex.net/projects/p/acal/team/es_ES/)\n"
+"POT-Creation-Date: 2012-01-08 17:17+1300\n"
+"PO-Revision-Date: 2012-02-14 08:32+0000\n"
+"Last-Translator: Andrew McMillan <andrew@mcmillan.net.nz>\n"
+"Language-Team: Spanish (Spain) (http://www.transifex.net/projects/p/acal/language/es_ES/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -37,10 +37,7 @@ msgid "setButtonLabel"
 msgstr ""
 
 msgid "appDescription"
-msgstr ""
-"Una aplicación de calendario para Android que guarda tus citas, tareas, "
-"notas y contactos en un servidor CalDAV/CardDAV remoto, como DAViCal "
-"(visita: www.davical.org)"
+msgstr "Una aplicación de calendario para Android que guarda tus citas, tareas, notas y contactos en un servidor CalDAV/CardDAV remoto, como DAViCal (visita: www.davical.org)"
 
 msgid "appDescriptionTasks"
 msgstr ""
@@ -683,15 +680,16 @@ msgid "couldNotDiscoverPort"
 msgstr "No se ha podido encontrar el puerto HTTP para el servidor CalDAV"
 
 msgid "couldNotDiscoverPrincipal"
-msgstr ""
-"No se ha podido encontrar la ruta a la identidad - usando los valores "
-"propuestos"
+msgstr "No se ha podido encontrar la ruta a la identidad - usando los valores propuestos"
 
 msgid "foundPrincipalPath"
 msgstr "Se ha encontrado la ruta a la identidad en &quot;%s&quot;"
 
 msgid "serverSupportsCalDAV"
 msgstr "El servidor soporta CalDAV"
+
+msgid "serverHasDAVNoCalDAV"
+msgstr ""
 
 msgid "serverLacksCalDAV"
 msgstr "El servidor no tiene soporte CalDAV"
@@ -711,6 +709,12 @@ msgstr "Error de autenticación"
 msgid "WeekViewPreferences"
 msgstr "Preferencias de vista semanal"
 
+msgid "AlarmPreferences"
+msgstr ""
+
+msgid "GeneralPreferences"
+msgstr ""
+
 msgid "checkServer"
 msgstr "Validando servidor"
 
@@ -721,6 +725,9 @@ msgid "checkServer_Internet"
 msgstr "Comprobando conexión a internet"
 
 msgid "checkServer_SearchingForServer"
+msgstr ""
+
+msgid "checkServer_DiscoveryCancelled"
 msgstr ""
 
 msgid "serverRecordAlreadyExists"
@@ -799,6 +806,9 @@ msgid "dueTasksTitle"
 msgstr ""
 
 msgid "incompleteTasksTitle"
+msgstr ""
+
+msgid "incompleteTasksDue"
 msgstr ""
 
 msgid "allTasksTitle"
@@ -889,6 +899,30 @@ msgid "aCal_Mailing_Lists"
 msgstr ""
 
 msgid "aCal_is_Free_Software"
+msgstr ""
+
+msgid "TaskMarkedComplete"
+msgstr ""
+
+msgid "TaskDeleted"
+msgstr ""
+
+msgid "endsAt"
+msgstr ""
+
+msgid "Finished"
+msgstr ""
+
+msgid "days"
+msgstr ""
+
+msgid "noScheduledEvents"
+msgstr ""
+
+msgid "Event"
+msgstr ""
+
+msgid "Task"
 msgstr ""
 
 # SourceFileEnd:../res/values/strings.xml
@@ -1114,5 +1148,3 @@ msgstr ""
 
 msgid "tzNamePacificTongatapu"
 msgstr ""
-
-

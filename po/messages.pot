@@ -8,13 +8,13 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-01-08 17:17+1300\n"
+"POT-Creation-Date: 2012-03-01 08:33+1300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
 # SourceFileStart:../res/values/strings.xml
@@ -41,6 +41,11 @@ msgstr ""
 "davical.org)"
 
 msgid "appDescriptionTasks"
+msgstr ""
+"A Task List for Android which will store your tasks on a remote CalDAV / "
+"CardDAV server, such as DAViCal (See: www.davical.org)"
+
+msgid "appDescriptionNotes"
 msgstr ""
 "A Task List for Android which will store your tasks on a remote CalDAV / "
 "CardDAV server, such as DAViCal (See: www.davical.org)"
@@ -181,7 +186,7 @@ msgid "pActive_for_journal"
 msgstr "Active for Notes"
 
 msgid "pActive_for_tasks"
-msgstr "Actve for Tasks"
+msgstr "Active for Tasks"
 
 msgid "pUse_Alarms"
 msgstr "Use alarms in this collection?"
@@ -722,7 +727,7 @@ msgid "checkServer"
 msgstr "Validating server"
 
 msgid "checkServer_Connecting"
-msgstr "Connecting to server please wait..."
+msgstr "Connecting to server please wait…"
 
 msgid "checkServer_Internet"
 msgstr "Checking internet connectivity"
@@ -794,6 +799,9 @@ msgstr "Events"
 msgid "Tasks"
 msgstr "Tasks"
 
+msgid "Journals"
+msgstr "Notes"
+
 msgid "Unscheduled"
 msgstr "Unscheduled"
 
@@ -820,6 +828,9 @@ msgstr "All Tasks"
 
 msgid "NewTaskTitle"
 msgstr "New Task"
+
+msgid "NewJournalTitle"
+msgstr "New Note"
 
 msgid "TaskSaved"
 msgstr "Task Saved."
@@ -856,6 +867,9 @@ msgstr "URL:"
 
 msgid "todoName"
 msgstr "Todo Name:"
+
+msgid "journalName"
+msgstr "Journal Name:"
 
 msgid "IsADate"
 msgstr "Is a Date"
@@ -937,6 +951,33 @@ msgstr "Event"
 
 msgid "Task"
 msgstr "Task"
+
+msgid "weekends"
+msgstr "weekends"
+
+msgid "weekdays"
+msgstr "weekdays"
+
+msgid "JournalDatePrompt"
+msgstr "Date:"
+
+msgid "AppearancePreferences"
+msgstr "Appearance settings"
+
+msgid "prefThemeButtonColour_Summary"
+msgstr "The colour of buttons throughout the app."
+
+msgid "prefThemeButtonColour_Title"
+msgstr "Button Colour"
+
+msgid "Saving"
+msgstr "Saving…"
+
+msgid "Loading"
+msgstr "Loading…"
+
+msgid "Deleting"
+msgstr "Deleting…"
 
 # SourceFileEnd:../res/values/strings.xml
 # SourceFileStart:../res/values/timezonenames.xml

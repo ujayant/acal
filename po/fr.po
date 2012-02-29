@@ -12,10 +12,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: aCal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-12-03 23:18+1300\n"
-"PO-Revision-Date: 2012-01-04 22:26+0000\n"
-"Last-Translator: mcargnelli <matthieu.cargnelli@gmail.com>\n"
-"Language-Team: French (http://www.transifex.net/projects/p/acal/team/fr/)\n"
+"POT-Creation-Date: 2012-01-08 17:17+1300\n"
+"PO-Revision-Date: 2012-02-14 08:32+0000\n"
+"Last-Translator: Andrew McMillan <andrew@mcmillan.net.nz>\n"
+"Language-Team: French (http://www.transifex.net/projects/p/acal/language/fr/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -40,15 +40,10 @@ msgid "setButtonLabel"
 msgstr "OK"
 
 msgid "appDescription"
-msgstr ""
-"Un calendrier pour Android qui sauvegardera vos événements, tâches, notes et"
-" contacts sur un serveur CalDAV/CardDAV, tel que DAViCal (voir: "
-"www.davical.org)"
+msgstr "Un calendrier pour Android qui sauvegardera vos événements, tâches, notes et contacts sur un serveur CalDAV/CardDAV, tel que DAViCal (voir: www.davical.org)"
 
 msgid "appDescriptionTasks"
-msgstr ""
-"Une liste de tâches pour Android qui sauvegardera vos tâches sur un serveur "
-"distant CalDAV / CardDAV, comme DAViCAL (visitez : www.davical.org)"
+msgstr "Une liste de tâches pour Android qui sauvegardera vos tâches sur un serveur distant CalDAV / CardDAV, comme DAViCAL (visitez : www.davical.org)"
 
 msgid "Active"
 msgstr "Actif"
@@ -195,19 +190,16 @@ msgid "Use_Alarms"
 msgstr "Alarmes activées"
 
 msgid "Active_addressbook"
-msgstr ""
-"Est-ce que cette collection est utilisée pour enregistrer des contacts ?"
+msgstr "Est-ce que cette collection est utilisée pour enregistrer des contacts ?"
 
 msgid "Active_for_events"
-msgstr ""
-"Est-ce que cette collection est utilisée pour enregistrer des événements ?"
+msgstr "Est-ce que cette collection est utilisée pour enregistrer des événements ?"
 
 msgid "Active_for_journal"
 msgstr "Est-ce que cette collection est utilisée pour enregistrer des notes ?"
 
 msgid "Active_for_tasks"
-msgstr ""
-"Est-ce que cette collection est utilisée pour enregistrer des tâches ?"
+msgstr "Est-ce que cette collection est utilisée pour enregistrer des tâches ?"
 
 msgid "The_colour_associated_with_this_collection"
 msgstr "Couleur associée aux données de cette collection"
@@ -219,16 +211,13 @@ msgid "pMax_age_on_3g"
 msgstr "Synchronisation en 3G"
 
 msgid "The_maximum_age_for_data_while_on_3g"
-msgstr ""
-"Temps maximum (en minutes) avant la mise à jour lors de l'utilisation en 3G"
+msgstr "Temps maximum (en minutes) avant la mise à jour lors de l'utilisation en 3G"
 
 msgid "pMax_age_on_wifi"
 msgstr "Synchronisation en WIFI"
 
 msgid "The_maximum_age_for_data_while_on_wifi"
-msgstr ""
-"Temps maximum (en minutes) avant la mise à jour lors de l'utilisation en "
-"WIFI"
+msgstr "Temps maximum (en minutes) avant la mise à jour lors de l'utilisation en WIFI"
 
 msgid "Use_alarms_from_this_calendar"
 msgstr "Les alarmes pour ce calendrier doivent-elles êtres affichées ?"
@@ -394,9 +383,7 @@ msgid "Snooze_PrefTitle"
 msgstr "Délai de répétition"
 
 msgid "Snooze_PrefSummary"
-msgstr ""
-"Combien de minutes doit-on attendre lors de l'appui sur la fonction répéter "
-"avant de répéter l'alarme"
+msgstr "Combien de minutes doit-on attendre lors de l'appui sur la fonction répéter avant de répéter l'alarme"
 
 msgid "DefaultCollection_PrefTitle"
 msgstr "Collection par défaut"
@@ -609,9 +596,7 @@ msgid "ModifiedThisAndFuture"
 msgstr "Modifier cette occurrence et toutes les suivantes."
 
 msgid "ErrorSavingEvent"
-msgstr ""
-"Erreur d'enregistrement des données d'événement - Réessayer à nouveau s'il "
-"vous plaît."
+msgstr "Erreur d'enregistrement des données d'événement - Réessayer à nouveau s'il vous plaît."
 
 msgid "NewEventTitle"
 msgstr "Nouvel événement"
@@ -698,9 +683,7 @@ msgid "couldNotDiscoverPort"
 msgstr "Impossible de découvrir le port HTTP pour le serveur CalDAV"
 
 msgid "couldNotDiscoverPrincipal"
-msgstr ""
-"Impossible de découvrir le chemin principal - en utilisant les valeurs "
-"fournies."
+msgstr "Impossible de découvrir le chemin principal - en utilisant les valeurs fournies."
 
 msgid "foundPrincipalPath"
 msgstr "Chemin principal du serveur trouvé à &quot;%s&quot;"
@@ -751,8 +734,7 @@ msgid "checkServer_DiscoveryCancelled"
 msgstr "La recherche de serveur a été annulée"
 
 msgid "serverRecordAlreadyExists"
-msgstr ""
-"Un serveur existe déjà pour ce protocole, port, serveur ou utilisateur"
+msgstr "Un serveur existe déjà pour ce protocole, port, serveur ou utilisateur"
 
 msgid "newEventFromThis"
 msgstr "Copier vers un nouvel événement"
@@ -914,22 +896,13 @@ msgid "aCal_Website"
 msgstr "Le site web de <b>aCal</b> est %s"
 
 msgid "aCal_IRC_Channel"
-msgstr ""
-"Vous pouvez dialoguer avec les auteurs de aCal sur IRC sur &lt;a \n"
-"href=&quot;irc://irc.oftc.net/#acal&quot;>&quot;#acal on \n"
-"irc.oftc.net&lt;/a>"
+msgstr "Vous pouvez dialoguer avec les auteurs de aCal sur IRC sur &lt;a \nhref=&quot;irc://irc.oftc.net/#acal&quot;>&quot;#acal on \nirc.oftc.net&lt;/a>"
 
 msgid "aCal_Mailing_Lists"
-msgstr ""
-"les listes de diffusion &lt;em>aCal&lt;/em> sont publiques et \n"
-"vous pouvez y souscrire sur &lt;a href=&quot;http://lists.acal.me/&quot;>lists.acal.me&lt;/a>. Vous y trouverez également des archives."
+msgstr "les listes de diffusion &lt;em>aCal&lt;/em> sont publiques et \nvous pouvez y souscrire sur &lt;a href=&quot;http://lists.acal.me/&quot;>lists.acal.me&lt;/a>. Vous y trouverez également des archives."
 
 msgid "aCal_is_Free_Software"
-msgstr ""
-"aCal est un &quot;Logiciel Libre&quot; dont la licence est la GNU GPL v3 "
-"(General Public License v3 et plus). Vous pouvez télécharger le &lt;a "
-"href=&quot;http://gitorious.org/acal&quot;> code source de aCal depuis "
-"Gitorious&lt;/a>"
+msgstr "aCal est un &quot;Logiciel Libre&quot; dont la licence est la GNU GPL v3 (General Public License v3 et plus). Vous pouvez télécharger le &lt;a href=&quot;http://gitorious.org/acal&quot;> code source de aCal depuis Gitorious&lt;/a>"
 
 msgid "TaskMarkedComplete"
 msgstr "Tâches terminées."
@@ -940,11 +913,20 @@ msgstr "La tâche a été effacée."
 msgid "endsAt"
 msgstr "Se termine à %s"
 
+msgid "Finished"
+msgstr ""
+
 msgid "days"
 msgstr "Jours"
 
 msgid "noScheduledEvents"
 msgstr "Nombre d'événements prévus"
+
+msgid "Event"
+msgstr ""
+
+msgid "Task"
+msgstr ""
 
 # SourceFileEnd:../res/values/strings.xml
 # SourceFileStart:../res/values/timezonenames.xml
@@ -1169,5 +1151,3 @@ msgstr "Atlantique/Cap_Vert"
 
 msgid "tzNamePacificTongatapu"
 msgstr "Australie/Adelaide"
-
-

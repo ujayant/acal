@@ -9,10 +9,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: aCal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-12-03 23:18+1300\n"
-"PO-Revision-Date: 2011-12-12 17:27+0000\n"
-"Last-Translator: zenlord <zenlord@gmail.com>\n"
-"Language-Team: Dutch (Belgium/Flemish) (http://www.transifex.net/projects/p/acal/team/nl_BE/)\n"
+"POT-Creation-Date: 2012-01-08 17:17+1300\n"
+"PO-Revision-Date: 2012-02-14 08:32+0000\n"
+"Last-Translator: Andrew McMillan <andrew@mcmillan.net.nz>\n"
+"Language-Team: Dutch (Belgium) (http://www.transifex.net/projects/p/acal/language/nl_BE/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -37,15 +37,10 @@ msgid "setButtonLabel"
 msgstr "Stel in"
 
 msgid "appDescription"
-msgstr ""
-"Een kalender voor Android die uw afspraken, taken, notities en contacten "
-"bewaart op een externe CalDAV / CardDAV server, zoals davical (Zie: "
-"www.davical.org)"
+msgstr "Een kalender voor Android die uw afspraken, taken, notities en contacten bewaart op een externe CalDAV / CardDAV server, zoals davical (Zie: www.davical.org)"
 
 msgid "appDescriptionTasks"
-msgstr ""
-"Een takenlijst voor Android die uw taken bewaart op een externe CalDAV / "
-"CardDAV server, zoals davical (Zie: www.davical.org)"
+msgstr "Een takenlijst voor Android die uw taken bewaart op een externe CalDAV / CardDAV server, zoals davical (Zie: www.davical.org)"
 
 msgid "Active"
 msgstr "Actief"
@@ -129,8 +124,7 @@ msgid "A_URL_or_domain_name"
 msgstr "Een URL of domeinnaam voor uw agendaserver"
 
 msgid "The_servers_hostname"
-msgstr ""
-"De volledige hostnaam van de server zoals &quot;calendar.davical.com&quot;"
+msgstr "De volledige hostnaam van de server zoals &quot;calendar.davical.com&quot;"
 
 msgid "The_username_to_use"
 msgstr "De gebruikersnaam om te gebruiken voor authenticatie met de server"
@@ -208,8 +202,7 @@ msgid "The_colour_associated_with_this_collection"
 msgstr "De kleur voor gegevens uit deze collectie"
 
 msgid "The_timezone_new_events_default_to"
-msgstr ""
-"De tijdzone die wordt gebruikt voor nieuwe afspraken in deze collectie"
+msgstr "De tijdzone die wordt gebruikt voor nieuwe afspraken in deze collectie"
 
 msgid "pMax_age_on_3g"
 msgstr "Sync minuten op 3g"
@@ -387,9 +380,7 @@ msgid "Snooze_PrefTitle"
 msgstr "Snooze-tijd"
 
 msgid "Snooze_PrefSummary"
-msgstr ""
-"Hoeveel minuten worden notificaties uitgesteld wanneer de snooze-knop wordt "
-"ingedrukt?"
+msgstr "Hoeveel minuten worden notificaties uitgesteld wanneer de snooze-knop wordt ingedrukt?"
 
 msgid "DefaultCollection_PrefTitle"
 msgstr "Standaard Collectie"
@@ -689,8 +680,7 @@ msgid "couldNotDiscoverPort"
 msgstr "Kon HTTP-poort voor CalDAV-server niet vinden"
 
 msgid "couldNotDiscoverPrincipal"
-msgstr ""
-"Kon Principaal-pad niet vinden - de ingevoerde waarden worden gebruikt."
+msgstr "Kon Principaal-pad niet vinden - de ingevoerde waarden worden gebruikt."
 
 msgid "foundPrincipalPath"
 msgstr "Principaal-pad van server gevonden op &quot;%s&quot;"
@@ -699,9 +689,7 @@ msgid "serverSupportsCalDAV"
 msgstr "Server ondersteunt CalDAV."
 
 msgid "serverHasDAVNoCalDAV"
-msgstr ""
-"De server ondersteunt DAV en uw gebruikersnaam en wachtwoord werken, maar er"
-" werd geen ondersteuning gevonden voor CalDAV."
+msgstr "De server ondersteunt DAV en uw gebruikersnaam en wachtwoord werken, maar er werd geen ondersteuning gevonden voor CalDAV."
 
 msgid "serverLacksCalDAV"
 msgstr "Server ondersteunt geen CalDAV."
@@ -743,9 +731,7 @@ msgid "checkServer_DiscoveryCancelled"
 msgstr "Zoektocht naar server werd onderbroken"
 
 msgid "serverRecordAlreadyExists"
-msgstr ""
-"Er bestaat reeds een server voor dat protocol, poort, host, pad en "
-"gebruikersnaam"
+msgstr "Er bestaat reeds een server voor dat protocol, poort, host, pad en gebruikersnaam"
 
 msgid "newEventFromThis"
 msgstr "Kopiëren naar een nieuwe afspraak"
@@ -907,21 +893,13 @@ msgid "aCal_Website"
 msgstr "De <b>aCal</b> website is %s"
 
 msgid "aCal_IRC_Channel"
-msgstr ""
-"Je kan chatten met de aCal auteurs via IRC in &lt;a "
-"href=\"irc://irc.oftc.net/#acal\">\"#acal op irc.oftc.net&lt;/a>"
+msgstr "Je kan chatten met de aCal auteurs via IRC in &lt;a href=\"irc://irc.oftc.net/#acal\">\"#acal op irc.oftc.net&lt;/a>"
 
 msgid "aCal_Mailing_Lists"
-msgstr ""
-"De &lt;em>aCal&lt;/em> mailing lists zijn openbaar en je kan je abonneren op"
-" &lt;a href=\"http://lists.acal.me/\">lists.acal.me&lt;/a>. Ook de archieven"
-" kan je daar raadplegen."
+msgstr "De &lt;em>aCal&lt;/em> mailing lists zijn openbaar en je kan je abonneren op &lt;a href=\"http://lists.acal.me/\">lists.acal.me&lt;/a>. Ook de archieven kan je daar raadplegen."
 
 msgid "aCal_is_Free_Software"
-msgstr ""
-"aCal is \"Vrije Software\", uitgebracht onder een General Public License v3 "
-"of recenter.  De &lt;a href=\"http://gitorious.org/acal\">broncode &lt;/a> "
-"kan gedownload worden via Gitorious."
+msgstr "aCal is \"Vrije Software\", uitgebracht onder een General Public License v3 of recenter.  De &lt;a href=\"http://gitorious.org/acal\">broncode &lt;/a> kan gedownload worden via Gitorious."
 
 msgid "TaskMarkedComplete"
 msgstr "Taak gemarkeerd als voltooid."
@@ -932,11 +910,20 @@ msgstr "Taak verwijderd."
 msgid "endsAt"
 msgstr "Eindigt %s"
 
+msgid "Finished"
+msgstr ""
+
 msgid "days"
 msgstr "Dagen"
 
 msgid "noScheduledEvents"
 msgstr "Geen geplande afspraken"
+
+msgid "Event"
+msgstr ""
+
+msgid "Task"
+msgstr ""
 
 # SourceFileEnd:../res/values/strings.xml
 # SourceFileStart:../res/values/timezonenames.xml
@@ -1161,5 +1148,3 @@ msgstr "Pacific/Kwajalein"
 
 msgid "tzNamePacificTongatapu"
 msgstr "Pacific/Tongatapu"
-
-

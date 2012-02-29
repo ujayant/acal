@@ -8,10 +8,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: aCal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-11-28 00:18+1300\n"
-"PO-Revision-Date: 2011-11-27 11:18+0000\n"
-"Last-Translator: karora <andrew@mcmillan.net.nz>\n"
-"Language-Team: Polish (http://www.transifex.net/projects/p/acal/team/pl/)\n"
+"POT-Creation-Date: 2012-01-08 17:17+1300\n"
+"PO-Revision-Date: 2012-02-14 08:32+0000\n"
+"Last-Translator: Andrew McMillan <andrew@mcmillan.net.nz>\n"
+"Language-Team: Polish (http://www.transifex.net/projects/p/acal/language/pl/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -36,16 +36,10 @@ msgid "setButtonLabel"
 msgstr "Ustaw"
 
 msgid "appDescription"
-msgstr ""
-"Kalendarz dla systemu Android, który synchronizuje zdarzenia, zadania, "
-"notatki i kontakty z serwerem CalDAV / CardDAV, np. DAViCal "
-"(www.davical.org)"
+msgstr "Kalendarz dla systemu Android, który synchronizuje zdarzenia, zadania, notatki i kontakty z serwerem CalDAV / CardDAV, np. DAViCal (www.davical.org)"
 
 msgid "appDescriptionTasks"
-msgstr ""
-"Lista zadań dla systemu Android, która będzie przechowywać swoje zadania na "
-"zdalnym CalDAV / CardDAV serwerze, takim jak DAViCal (patrz: "
-"www.davical.org)"
+msgstr "Lista zadań dla systemu Android, która będzie przechowywać swoje zadania na zdalnym CalDAV / CardDAV serwerze, takim jak DAViCal (patrz: www.davical.org)"
 
 msgid "Active"
 msgstr "Aktywny"
@@ -595,8 +589,7 @@ msgid "ModifiedOneInstance"
 msgstr "Jedno wystąpienie tego zdarzenia zostało zmodyfikowane"
 
 msgid "ModifiedThisAndFuture"
-msgstr ""
-"To i wszystkie przyszłe wystąpienia tego zdarzenia zostały zmodyfikowane."
+msgstr "To i wszystkie przyszłe wystąpienia tego zdarzenia zostały zmodyfikowane."
 
 msgid "ErrorSavingEvent"
 msgstr "Błąd w zapisie zdarzenia - spróbuj ponownie."
@@ -694,6 +687,9 @@ msgstr "Znaleziono ścieżkę główną serwera na &quot;%s&quot;"
 msgid "serverSupportsCalDAV"
 msgstr "Serwer wspiera CalDAV."
 
+msgid "serverHasDAVNoCalDAV"
+msgstr ""
+
 msgid "serverLacksCalDAV"
 msgstr "Serwer nie wspiera CalDAV."
 
@@ -712,6 +708,12 @@ msgstr "Nie można przeprowadzić autentykacji na serwerze."
 msgid "WeekViewPreferences"
 msgstr "Ustawienia widoku tygodnia"
 
+msgid "AlarmPreferences"
+msgstr ""
+
+msgid "GeneralPreferences"
+msgstr ""
+
 msgid "checkServer"
 msgstr "Sprawdzanie serwera"
 
@@ -724,10 +726,11 @@ msgstr "Sprawdź łącze z internetem"
 msgid "checkServer_SearchingForServer"
 msgstr "Szukam serwera CalDAV na &quot;%s&quot;"
 
-msgid "serverRecordAlreadyExists"
+msgid "checkServer_DiscoveryCancelled"
 msgstr ""
-"Serwer już istnieje dlatego protokółu, port, hosta, ścieżki &amp; nazwy "
-"użytkownika"
+
+msgid "serverRecordAlreadyExists"
+msgstr "Serwer już istnieje dlatego protokółu, port, hosta, ścieżki &amp; nazwy użytkownika"
 
 msgid "newEventFromThis"
 msgstr "Kopiuj do nowego zdarzenia"
@@ -803,6 +806,9 @@ msgstr "Zadania w ciągu tygodnia"
 
 msgid "incompleteTasksTitle"
 msgstr "Niezakończone zadania"
+
+msgid "incompleteTasksDue"
+msgstr ""
 
 msgid "allTasksTitle"
 msgstr "Wszystkie zadania"
@@ -892,6 +898,30 @@ msgid "aCal_Mailing_Lists"
 msgstr ""
 
 msgid "aCal_is_Free_Software"
+msgstr ""
+
+msgid "TaskMarkedComplete"
+msgstr ""
+
+msgid "TaskDeleted"
+msgstr ""
+
+msgid "endsAt"
+msgstr ""
+
+msgid "Finished"
+msgstr ""
+
+msgid "days"
+msgstr ""
+
+msgid "noScheduledEvents"
+msgstr ""
+
+msgid "Event"
+msgstr ""
+
+msgid "Task"
 msgstr ""
 
 # SourceFileEnd:../res/values/strings.xml
@@ -1117,5 +1147,3 @@ msgstr ""
 
 msgid "tzNamePacificTongatapu"
 msgstr ""
-
-
