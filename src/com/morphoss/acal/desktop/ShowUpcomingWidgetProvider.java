@@ -12,9 +12,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.os.Build;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.ViewGroup;
 import android.widget.RemoteViews;
 
 import com.morphoss.acal.AcalDebug;
@@ -67,6 +69,7 @@ public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 		if (Constants.LOG_DEBUG && Constants.debugWidget) Log.println(Constants.LOGD, TAG,
 				"onUpdate Called...");
 		if ( Constants.debugHeap ) AcalDebug.heapDebug(TAG, "Widget onUpdate started");
+		LayoutInflater inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		for (int widgetId : appWidgetIds) {
 
 			Intent updateIntent = new Intent();	
