@@ -297,6 +297,7 @@ public class TodoEdit extends AcalActivity
 		startService(new Intent(this, aCalService.class));
 
 		resourceManager = ResourceManager.getInstance(this,this);
+		todo = null;
 		requestTodoResource();
 
 		// Get time display preference
@@ -321,17 +322,19 @@ public class TodoEdit extends AcalActivity
 		}
 
 		this.populateLayout();
+		if ( this.todo != null ) this.updateLayout();
 	}
 
 	
 	private void requestTodoResource() {
-		currentOperation = ACTION_EDIT;
+		currentOperation = ACTION_CREATE;
 		try {
 			Bundle b = this.getIntent().getExtras();
 			if ( b != null && b.containsKey(KEY_OPERATION) ) {
 				currentOperation = b.getInt(KEY_OPERATION);
 			}
 			if ( b != null && b.containsKey(KEY_CACHE_OBJECT) ) {
+				if ( currentOperation == ACTION_CREATE ) currentOperation = ACTION_EDIT;
 				CacheObject cacheTodo = (CacheObject) b.getParcelable(KEY_CACHE_OBJECT);
 				this.rid = cacheTodo.getResourceId();
 				resourceManager.sendRequest(new RRRequestInstance(this, rid, cacheTodo.getRecurrenceId()));
@@ -343,7 +346,7 @@ public class TodoEdit extends AcalActivity
 			Log.e(TAG, "No bundle from caller.", e);
 		}
 
-		if ( this.todo == null && currentOperation == ACTION_CREATE ) {
+		if ( currentOperation == ACTION_CREATE ) {
 			long preferredCollectionId = prefs.getLong(getString(R.string.DefaultCollection_PrefKey), -1);
 			if ( Collection.getInstance(preferredCollectionId, this) == null )
 				preferredCollectionId = collectionsArray[0].getCollectionId();
@@ -353,6 +356,7 @@ public class TodoEdit extends AcalActivity
 			this.todo = new VTodo();
 			this.todo.setSummary(getString(R.string.NewTaskTitle));
 			this.action = ACTION_CREATE;
+			this.todo.setPercentComplete(0);
 		}
 	}
 
@@ -521,9 +525,10 @@ public class TodoEdit extends AcalActivity
 		if ( colour == null ) colour = 0x70a0a0a0;
 		sidebar.setBackgroundColor(colour);
 		sidebarBottom.setBackgroundColor(colour);
-		AcalTheme.setContainerColour(spinnerCollection,colour);
+		todoName.setTextColor(colour);
 
 		if ( spinnerCollection != null ) {
+			AcalTheme.setContainerColour(spinnerCollection,colour);
 			try {
 				// Attempt to set text colour that works with (hopefully) background colour. 
 				((TextView) spinnerCollection
@@ -540,19 +545,19 @@ public class TodoEdit extends AcalActivity
 							", Parent is "+(vp==null ? "null" : vp.getClass().toString()));
 				}
 			}
+
+			ArrayAdapter<CollectionForArrayAdapter> collectionAdapter = new ArrayAdapter<CollectionForArrayAdapter>(this,android.R.layout.select_dialog_item, collectionsArray);
+			int spinnerPosition = 0;
+			while( spinnerPosition < collectionsArray.length && collectionsArray[spinnerPosition].getCollectionId() != currentCollection.getCollectionId())
+				spinnerPosition++;
+
+			spinnerCollection.setAdapter(collectionAdapter);
+			if ( spinnerPosition < collectionsArray.length )
+				//set the default according to value
+				spinnerCollection.setSelection(spinnerPosition);
+			
 		}
-		todoName.setTextColor(colour);
 
-		ArrayAdapter<CollectionForArrayAdapter> collectionAdapter = new ArrayAdapter<CollectionForArrayAdapter>(this,android.R.layout.select_dialog_item, collectionsArray);
-		int spinnerPosition = 0;
-		while( spinnerPosition < collectionsArray.length && collectionsArray[spinnerPosition].getCollectionId() != currentCollection.getCollectionId())
-			spinnerPosition++;
-
-		spinnerCollection.setAdapter(collectionAdapter);
-		if ( spinnerPosition < collectionsArray.length )
-			//set the default according to value
-			spinnerCollection.setSelection(spinnerPosition);
-		
 		
 		btnStartDate.setText( AcalDateTimeFormatter.fmtFull( start, prefer24hourFormat) );
 		btnDueDate.setText( AcalDateTimeFormatter.fmtFull( due, prefer24hourFormat) );
@@ -675,10 +680,10 @@ public class TodoEdit extends AcalActivity
 
 	private void setSelectedCollection(long collectionId) {
 
-		if ( Collection.getInstance(collectionId,this) != null )
+		if ( Collection.getInstance(collectionId,this) != null && (currentCollection == null || collectionId != currentCollection.collectionId) ) {
 			currentCollection = Collection.getInstance(collectionId,this);
-
-		this.updateLayout();
+			this.updateLayout();
+		}
 	}
 
 	
