@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
 	android:layout_width="fill_parent"
-	android:layout_height="wrap_content"
+	android:layout_height="fill_parent"
 	android:background="@drawable/morphossbg"
+	android:baselineAligned="false"
 	android:orientation="vertical"
 	android:weightSum="100" >
 	<LinearLayout
@@ -32,11 +33,13 @@
 		android:layout_width="fill_parent"
 		android:layout_height="36sp"
 		android:background="@color/bottom_bg"
+		android:baselineAligned="false"
 		android:gravity="bottom" >
 		<LinearLayout
 			android:layout_width="0px"
 			android:layout_height="fill_parent"
 			android:layout_weight="1"
+			android:background="#00000000"
 			android:gravity="center"
 			android:paddingLeft="1sp"
 			android:paddingRight="1sp" >
@@ -57,6 +60,7 @@
 			android:layout_width="0px"
 			android:layout_height="fill_parent"
 			android:layout_weight="1"
+			android:background="#00000000"
 			android:gravity="center"
 			android:paddingLeft="1sp"
 			android:paddingRight="1sp" >
@@ -79,6 +83,7 @@
 			android:layout_width="0px"
 			android:layout_height="fill_parent"
 			android:layout_weight="1"
+			android:background="#00000000"
 			android:gravity="center"
 			android:paddingLeft="1sp"
 			android:paddingRight="1sp" >
@@ -99,6 +104,7 @@
 			android:layout_width="0px"
 			android:layout_height="fill_parent"
 			android:layout_weight="1"
+			android:background="#00000000"
 			android:gravity="center"
 			android:paddingLeft="1sp"
 			android:paddingRight="1sp" >

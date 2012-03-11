@@ -4,13 +4,15 @@
 	android:layout_width="fill_parent"
 	android:layout_height="fill_parent"
 	android:background="@drawable/morphossbg"
+	android:baselineAligned="false"
 	android:orientation="vertical" >
 	<LinearLayout
 		xmlns:android="http://schemas.android.com/apk/res/android"
 		android:id="@+id/JournalViewBelowTitleLayout"
 		android:layout_width="fill_parent"
-		android:layout_height="fill_parent"
+		android:layout_height="0dp"
 		android:layout_weight="1"
+		android:background="#00000000"
 		android:orientation="horizontal" >
 		<!-- Color bar -->
 		<LinearLayout
@@ -32,7 +34,6 @@
 				android:id="@+id/JournalName"
 				android:layout_width="fill_parent"
 				android:layout_height="wrap_content"
-				android:layout_below="@+id/JournalEditTitle"
 				android:inputType="textCapSentences|textAutoCorrect|textEmailSubject"
 				android:paddingBottom="10sp"
 				android:paddingLeft="3sp"
@@ -72,7 +73,6 @@
 				style="@style/gen_label"
 				android:layout_width="fill_parent"
 				android:layout_height="wrap_content"
-				android:layout_below="@+id/JournalLocationLayout"
 				android:text="@string/NotesPrompt" />
 			<!-- title "note:" thingy end -->
 			<!-- scroll view of note thingy -->
@@ -85,8 +85,7 @@
 					android:id="@+id/JournalNotesContent"
 					style="@style/gen_content"
 					android:layout_width="fill_parent"
-					android:layout_height="fill_parent"
-					android:layout_below="@+id/JournalNotesLabel"
+					android:layout_height="wrap_content"
 					android:gravity="top"
 					android:inputType="textMultiLine|textCapSentences|textLongMessage|textAutoCorrect" />
 			</ScrollView>
@@ -96,7 +95,6 @@
 				android:id="@+id/JournalCollectionLayout"
 				android:layout_width="fill_parent"
 				android:layout_height="wrap_content"
-				android:layout_below="@+id/JournalRepeatsLayout"
 				android:paddingBottom="20sp" >
 				<!-- Repeats label and content -->
 				<TextView
@@ -124,11 +122,13 @@
 			<!-- actual button -->
 			<LinearLayout
 				android:layout_width="fill_parent"
-				android:layout_height="wrap_content" >
+				android:layout_height="wrap_content"
+				android:baselineAligned="false" >
 				<LinearLayout
 					android:layout_width="fill_parent"
 					android:layout_height="wrap_content"
 					android:layout_weight="1"
+					android:background="#00000000"
 					android:gravity="center"
 					android:padding="0sp" >
 					<LinearLayout
@@ -152,6 +152,7 @@
 					android:layout_width="fill_parent"
 					android:layout_height="wrap_content"
 					android:layout_weight="1"
+					android:background="#00000000"
 					android:gravity="center"
 					android:padding="0sp" >
 					<LinearLayout
