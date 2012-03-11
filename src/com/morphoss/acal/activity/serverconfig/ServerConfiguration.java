@@ -36,6 +36,9 @@ import android.preference.PreferenceScreen;
 import android.text.InputType;
 import android.text.method.PasswordTransformationMethod;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -103,7 +106,6 @@ public class ServerConfiguration extends PreferenceActivity implements OnPrefere
 	//The buttons
 	private Button apply;
 	private Button cancel;
-	private Button ifaceButton;
 	
 	private ServiceManager serviceManager;
 	
@@ -124,8 +126,6 @@ public class ServerConfiguration extends PreferenceActivity implements OnPrefere
 		apply.setEnabled(false);
 		cancel = (Button) findViewById(R.id.ServerConfiCancelButton);
 		cancel.setOnClickListener(this);
-		ifaceButton = (Button) findViewById(R.id.ServerConfigIfaceButton);
-		ifaceButton.setOnClickListener(this);
 		
 
 		//Validate ServerData
@@ -238,7 +238,6 @@ public class ServerConfiguration extends PreferenceActivity implements OnPrefere
 	public void onClick(View v) {
 		if (v.getId() == apply.getId())	applyButton();
 		else if (v.getId() == cancel.getId()) cancelButton();
-		else if (v.getId() == ifaceButton.getId()) ifaceButton();
 	}
 
 	private void cancelButton() {
@@ -252,24 +251,6 @@ public class ServerConfiguration extends PreferenceActivity implements OnPrefere
 		else {
 			saveData();
 			this.finish();
-		}
-	}
-	
-	private void ifaceButton() {
-		if (iface == INTERFACE_SIMPLE) {
-			this.iface = INTERFACE_ADVANCED;
-			ifaceButton.setText(getString(R.string.Simple));
-			//createPreferenceHierarchy();
-			//setPreferenceScreen(this.preferenceRoot);
-			//this.preferenceRoot.setOnPreferenceChangeListener(this);
-			updateSummaries();
-		} else {
-			this.iface = INTERFACE_SIMPLE;
-			ifaceButton.setText(getString(R.string.Advanced));
-			//createPreferenceHierarchy();
-			//setPreferenceScreen(this.preferenceRoot);
-			//this.preferenceRoot.setOnPreferenceChangeListener(this);
-			updateSummaries();
 		}
 	}
 	
@@ -513,6 +494,44 @@ public class ServerConfiguration extends PreferenceActivity implements OnPrefere
 		return ret;
 	}
 	
+	/**
+	 * <p>
+	 * Responsible for handling the menu button push.
+	 * </p>
+	 * 
+	 * @see android.app.Activity#onCreateOptionsMenu(android.view.Menu)
+	 */
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.advanced_settings_menu, menu);
+		return true;
+	}
+
+	/**
+	 * <p>
+	 * Called when the user selects an option from the options menu. Determines
+	 * what (if any) Activity should start.
+	 * </p>
+	 * 
+	 * @see android.app.Activity#onOptionsItemSelected(android.view.MenuItem)
+	 */
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// Handle item selection
+		switch ( item.getItemId() ) {
+			case R.id.advancedMenuItem:
+				if ( this.iface == INTERFACE_SIMPLE ) {
+					this.iface = INTERFACE_ADVANCED;
+					updateSummaries();
+				}
+				return true;
+			default:
+				return super.onOptionsItemSelected(item);
+		}
+	}
+
+
 	/************************************************************************
 	 * 							   VALIDATION METHODS                       *
 	 * **********************************************************************
