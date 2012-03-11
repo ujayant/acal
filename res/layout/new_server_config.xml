@@ -19,7 +19,7 @@
 		android:layout_width="fill_parent"
 		android:layout_height="wrap_content"
 		android:hint="@string/A_name_for_this_server_configuration"
-		android:inputType="textEmailSubject|textNoSuggestions" >
+		android:inputType="textCapSentences|textEmailSubject" >
 		<requestFocus />
 	</EditText>
 	<LinearLayout
@@ -60,7 +60,7 @@
 			android:layout_width="fill_parent"
 			android:layout_height="wrap_content"
 			android:hint="@string/Password"
-			android:inputType="textNoSuggestions" >
+			android:inputType="textNoSuggestions|textPassword" >
 		</EditText>
 	</LinearLayout>
 	<TextView
@@ -75,7 +75,7 @@
 		android:layout_width="fill_parent"
 		android:layout_height="wrap_content"
 		android:hint="@string/A_URL_or_domain_name"
-		android:inputType="textNoSuggestions" >
+		android:inputType="textUri" >
 	</EditText>
 	<LinearLayout
 		android:id="@+id/buttonLayout"
