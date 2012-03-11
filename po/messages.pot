@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-03-01 08:33+1300\n"
+"POT-Creation-Date: 2012-03-12 00:29+1300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -57,7 +57,7 @@ msgid "Add_Server"
 msgstr "Add Server"
 
 msgid "A_name_for_this_server_configuration"
-msgstr "A name to use for this server configuration"
+msgstr "A name for this server configuration"
 
 msgid "Authentication_Type"
 msgstr "Authentication Type"
@@ -67,6 +67,9 @@ msgstr "Simple Path"
 
 msgid "Simple_User_URL"
 msgstr "User URL"
+
+msgid "Server_URL"
+msgstr "Server URL:"
 
 msgid "Enter_a_brief_summary_of_the_event"
 msgstr "Enter a brief summary of the event"
@@ -129,7 +132,7 @@ msgid "The_path_on_the_server"
 msgstr "The path on the server, such as &quot;/caldav.php/user/&quot;"
 
 msgid "A_URL_or_domain_name"
-msgstr "A URL or domain name for your calendar server"
+msgstr "The URL or domain of your calendar server"
 
 msgid "The_servers_hostname"
 msgstr "The server's full hostname such as &quot;calendar.davical.com&quot;"
@@ -154,6 +157,9 @@ msgstr "New Event"
 
 msgid "appActivityServerConfigList"
 msgstr "Servers"
+
+msgid "appActivityServerConfiguration"
+msgstr "Server Configuration"
 
 msgid "appActivityAddServerList"
 msgstr "Server Templates"
@@ -978,6 +984,30 @@ msgstr "Loading…"
 
 msgid "Deleting"
 msgstr "Deleting…"
+
+msgid "NamePrompt"
+msgstr "Name:"
+
+msgid "ConfigureServer"
+msgstr "Configure Server"
+
+msgid "errorConfigMustHaveName"
+msgstr "The configuration must have a name."
+
+msgid "errorConfigMustHaveUserName"
+msgstr "The configuration must have a username."
+
+msgid "errorConfigMustHavePassword"
+msgstr "The configuration must have a password."
+
+msgid "errorConfigMustHaveURL"
+msgstr "The configuration must have a domain name or URL for the server."
+
+msgid "Skip"
+msgstr "Skip"
+
+msgid "Configure"
+msgstr "Configure"
 
 # SourceFileEnd:../res/values/strings.xml
 # SourceFileStart:../res/values/timezonenames.xml
