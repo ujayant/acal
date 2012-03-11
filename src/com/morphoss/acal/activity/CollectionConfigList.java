@@ -100,7 +100,8 @@ public class CollectionConfigList extends PreferenceActivity
 	private int[]	preferenceListIds;
 
 	// Needed for AcalAuthenticator
-	public static final String ACTION_CHOOSE = "com.morphoss.acal.activity.CollectionConfigList.ACTION_CHOOSE";
+//	public static final String ACTION_CHOOSE = "com.morphoss.acal.activity.CollectionConfigList.ACTION_CHOOSE";
+	public static final String ACTION_CHOOSE_ADDRESSBOOK = "com.morphoss.acal.ACTION_CHOOSE_ADDRESSBOOK";
 	
 	/**
 	 * Get the list of collections and create the list view.
@@ -372,7 +373,7 @@ public class CollectionConfigList extends PreferenceActivity
 	public boolean onPreferenceClick(Preference id) {
 		int collectionId = Integer.parseInt(id.getKey());
 		Intent i = this.getIntent();
-		if ( android.os.Build.VERSION.SDK_INT >= 7 && i != null && ACTION_CHOOSE.equals(i.getAction()) ) {
+		if ( android.os.Build.VERSION.SDK_INT >= 7 && i != null && ACTION_CHOOSE_ADDRESSBOOK.equals(i.getAction()) ) {
 			createAuthenticatedAccount(collectionId);
 		}
 		else {

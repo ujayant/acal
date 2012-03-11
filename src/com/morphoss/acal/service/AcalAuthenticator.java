@@ -66,7 +66,7 @@ public class AcalAuthenticator extends Service {
 
 			Log.println(Constants.LOGD,TAG,"addAccount was called");
 			final Intent i = new Intent(context, CollectionConfigList.class);
-			i.setAction(com.morphoss.acal.activity.CollectionConfigList.ACTION_CHOOSE);
+			i.setAction(com.morphoss.acal.activity.CollectionConfigList.ACTION_CHOOSE_ADDRESSBOOK);
 			i.putExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE, response);
 			final Bundle reply = new Bundle();
 			reply.putParcelable(AccountManager.KEY_INTENT, i);
