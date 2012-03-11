@@ -23,6 +23,8 @@ import java.util.HashMap;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.RemoteException;
@@ -30,6 +32,7 @@ import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
+import android.preference.PreferenceManager;
 import android.preference.Preference.OnPreferenceChangeListener;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceScreen;
@@ -63,7 +66,7 @@ import com.morphoss.acal.service.ServiceRequest;
  * or data persistence is changed in the future this class may need to be corrected.</p>
  *
  */
-public class ServerConfiguration extends PreferenceActivity implements OnPreferenceChangeListener, OnClickListener  {
+public class ServerConfiguration extends PreferenceActivity implements OnPreferenceChangeListener, OnClickListener, ServerConfigurator  {
 	
 	//Tag for log messages
 	public static final String TAG = "ServerConfiguration";
@@ -311,7 +314,10 @@ public class ServerConfiguration extends PreferenceActivity implements OnPrefere
 			serverData.put(Servers._ID, id);
 			//IMPORTANT if we don't change the mode its possible more than one record will be created.
 			serverData.put(KEY_MODE, MODE_EDIT);
-			//Find server capabilities
+
+			//Update that we have a configured server now.
+			SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+			prefs.edit().putInt(Constants.serverIsConfiguredPreference, 1).commit();
 			
 		} catch (Exception e) {
 			//error updating
@@ -646,5 +652,15 @@ public class ServerConfiguration extends PreferenceActivity implements OnPrefere
 		int toPut = ((Boolean)v? 1 : 0);
 		serverData.put(Servers.ACTIVE, toPut);
 		return true;
+	}
+
+	@Override
+	public boolean isAdvancedInterface() {
+		return iface == INTERFACE_ADVANCED;
+	}
+
+	@Override
+	public ConnectivityManager getConnectivityService() {
+		return (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE) ;
 	}
 }

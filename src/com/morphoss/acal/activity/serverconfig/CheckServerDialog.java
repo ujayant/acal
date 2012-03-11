@@ -60,7 +60,7 @@ public class CheckServerDialog {
 	private static final String TAG = "aCal CheckServerDialog";
 	private final Context context;
 	private final ContentValues serverData;
-	private final ServerConfiguration sc;
+	private final ServerConfigurator sc;
 	private AcalRequestor requestor;
 	private ProgressDialog dialog;
 
@@ -107,8 +107,8 @@ public class CheckServerDialog {
 	private RunAllTests	testRunner;
 	
 	
-	public CheckServerDialog(ServerConfiguration serverConfiguration, ContentValues serverData, Context cx, ServiceManager sm) {
-		this.advancedMode = (serverConfiguration.iface == ServerConfiguration.INTERFACE_ADVANCED);
+	public CheckServerDialog(ServerConfigurator serverConfiguration, ContentValues serverData, Context cx, ServiceManager sm) {
+		this.advancedMode = (serverConfiguration.isAdvancedInterface());
 		this.context = cx;
 		this.sc = serverConfiguration;
 		
@@ -315,7 +315,7 @@ public class CheckServerDialog {
 
 	private void createProgressDialog(String title, String message, String buttonText)
 	{
-		dialog = new ProgressDialog(sc);
+		dialog = new ProgressDialog((Context) sc);
 	    dialog.setTitle(title);
 	    dialog.setMessage(message);
 	    dialog.setButton(buttonText, new DialogInterface.OnClickListener() 
@@ -340,7 +340,7 @@ public class CheckServerDialog {
 	
 
 	private void showFailDialog(String msg) {
-		AlertDialog.Builder builder = new AlertDialog.Builder(sc);
+		AlertDialog.Builder builder = new AlertDialog.Builder((Context) sc);
 		builder.setMessage(
 					context.getString(R.string.serverFailedValidation)
 					+"\n\n" + msg +"\n\n"
@@ -353,7 +353,7 @@ public class CheckServerDialog {
 
 	private void showSuccessDialog(String msg) {
 
-		AlertDialog.Builder builder = new AlertDialog.Builder(sc);
+		AlertDialog.Builder builder = new AlertDialog.Builder((Context) sc);
 
 		try {
 			// Before we display the success dialog and especially before we start syncing it.
@@ -406,7 +406,7 @@ public class CheckServerDialog {
 	 */
 	private boolean checkInternetConnected() {
 		try {
-			ConnectivityManager connec = (ConnectivityManager) sc.getSystemService(Context.CONNECTIVITY_SERVICE);
+			ConnectivityManager connec = sc.getConnectivityService();
 			NetworkInfo netInfo = connec.getActiveNetworkInfo();
 			return  (netInfo != null && netInfo.isConnected());
 		}

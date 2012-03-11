@@ -33,6 +33,7 @@ import android.util.Log;
 import com.morphoss.acal.activity.AcalActivity;
 import com.morphoss.acal.activity.MonthView;
 import com.morphoss.acal.activity.ShowUpgradeChanges;
+import com.morphoss.acal.activity.serverconfig.NewServerConfiguration;
 import com.morphoss.acal.dataservice.Collection;
 import com.morphoss.acal.service.ServiceRequest;
 import com.morphoss.acal.service.aCalService;
@@ -65,13 +66,14 @@ public class aCal extends AcalActivity {
 				startActivity(new Intent(this, ShowUpgradeChanges.class));
 			}
 			else { 
-				startPreferredView(prefs,this);
+				startPreferredView(prefs, this, true);
 			}
 		}
 		catch (NameNotFoundException e) { }
 		this.finish();
 	}
 
+	
 	@Override
 	protected void onResume() {
 		super.onResume();
@@ -88,10 +90,14 @@ public class aCal extends AcalActivity {
 	}
 
 	
-	public static void startPreferredView( SharedPreferences sPrefs, Activity c ) {
+	public static void startPreferredView( SharedPreferences sPrefs, Activity c, boolean mayStartServerConfig ) {
 		Bundle bundle = new Bundle();
 		Intent startIntent = null;
-		if ( sPrefs.getBoolean(c.getString(R.string.prefDefaultView), false) ) {
+		
+		if ( mayStartServerConfig && prefs.getInt(Constants.serverIsConfiguredPreference, 0) == 0 ) {
+			startIntent = new Intent(c, NewServerConfiguration.class);
+		}
+		else if ( sPrefs.getBoolean(c.getString(R.string.prefDefaultView), false) ) {
 			startIntent = new Intent(c, WeekViewActivity.class);
 		}
 		else {

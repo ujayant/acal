@@ -154,6 +154,14 @@
 			</intent-filter>
 		</activity>
 		<activity
+			android:name=".activity.serverconfig.NewServerConfiguration"
+			android:launchMode="standard" >
+			<intent-filter>
+				<action android:name="com.morphoss.acal.activity.serverconfig.NewServerConfiguration" />
+				<category android:name="android.intent.category.DEFAULT" />
+			</intent-filter>
+		</activity>
+		<activity
 			android:name=".activity.CollectionConfiguration"
 			android:launchMode="standard" >
 			<intent-filter>
