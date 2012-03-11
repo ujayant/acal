@@ -35,6 +35,9 @@ GetOptions ('debug!'    => \$debug,
 
 usage() if ( $helpmeplease || ($extractmode && $buildmode) );
 
+my $code_dir = $0;
+$code_dir =~ s{/[^/]*$}{};
+chdir $code_dir;
 
 if ( $extractmode ) {
   # Update/extract the strings for the messages.po file
