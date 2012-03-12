@@ -2,8 +2,6 @@ package com.morphoss.acal.weekview;
 
 import java.util.ArrayList;
 
-import com.morphoss.acal.acaltime.AcalDateRange;
-
 /**
  * Calculates and stores a timetable of event data for a given set of data.
  * 

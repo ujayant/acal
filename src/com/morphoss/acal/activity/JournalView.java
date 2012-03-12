@@ -18,8 +18,6 @@
 
 package com.morphoss.acal.activity;
 
-import java.util.List;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -53,7 +51,6 @@ import com.morphoss.acal.dataservice.CalendarInstance;
 import com.morphoss.acal.dataservice.Collection;
 import com.morphoss.acal.dataservice.JournalInstance;
 import com.morphoss.acal.dataservice.Resource;
-import com.morphoss.acal.davacal.AcalAlarm;
 import com.morphoss.acal.service.aCalService;
 
 public class JournalView extends AcalActivity

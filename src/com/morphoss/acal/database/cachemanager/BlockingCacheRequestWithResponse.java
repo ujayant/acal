@@ -1,7 +1,5 @@
 package com.morphoss.acal.database.cachemanager;
 
-import com.morphoss.acal.database.cachemanager.CacheManager.CacheTableManager;
-import com.morphoss.acal.database.resourcesmanager.ResourceResponse;
 
 public abstract class BlockingCacheRequestWithResponse<E> extends CacheRequestWithResponse<E> implements BlockingCacheRequest {
 

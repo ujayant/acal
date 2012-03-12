@@ -367,7 +367,6 @@ public class HomeSetsUpdate extends ServiceJob {
 		//begin DB Operations
 		Cursor mCursor = null;
 		ServiceJob job = null; 
-		int	changeEvent;
 		try {
 			//First, check to see if a record exists
 			// TODO Maybe we should know this before we start thinking about

@@ -318,9 +318,9 @@ public class EventView extends AcalActivity implements  OnClickListener, Resourc
 		
 		if ( alarms != null  && ! alarms.equals("") ) {
 			textAlarms.setText(alarms);
-			textAlarms.setVisibility(View.VISIBLE);
+			alarmsLayout.setVisibility(View.VISIBLE);
 		} else {
-			textAlarms.setVisibility(View.GONE);
+			alarmsLayout.setVisibility(View.GONE);
 		}
 		
 		if (collection != null) {

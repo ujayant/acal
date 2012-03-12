@@ -29,6 +29,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 
 import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLHandshakeException;
 
 import org.apache.http.Header;
 
@@ -272,8 +273,15 @@ public class SyncCollectionContents extends ServiceJob {
 	 *         </p>
 	 */
 	private DavNode doCalendarRequest( String method, int depth, String xml) {
-		DavNode root = requestor.doXmlRequest(method, collectionPath,
-								SynchronisationJobs.getReportHeaders(depth), xml);
+		DavNode root;
+		try {
+			root = requestor.doXmlRequest(method, collectionPath,
+									SynchronisationJobs.getReportHeaders(depth), xml);
+		}
+		catch ( SSLHandshakeException e ) {
+			Log.w(TAG,"Error validating certificate", e);
+			return null;
+		}
 		if ( requestor.getStatusCode() == 404 ) {
 			Log.w(TAG,"Sync PROPFIND got 404 on "+collectionPath+" so a HomeSetsUpdate is being scheduled.");
 			ServiceJob sj = new HomeSetsUpdate(serverId);

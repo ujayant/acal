@@ -455,7 +455,8 @@ public class AcalRepeatRule {
 		this.appendEventsInstancesBetween(cacheList, range, true);
 	}
 	
-	private void appendEventsInstancesBetween(List eventList, AcalDateRange range, boolean cacheObjects) {
+	@SuppressWarnings("unchecked")
+	private void appendEventsInstancesBetween( @SuppressWarnings("rawtypes") List eventList, AcalDateRange range, boolean cacheObjects) {
 	
 		if ( range.start == null || range.end == null || eventList == null ) return;
 
@@ -587,19 +588,16 @@ public class AcalRepeatRule {
 		final Masterable masterInstance;
 		final AcalDateTime dtstart;
 		final AcalDateTime dtend;
-		final AcalDuration duration;
 		private RecurrenceId rrid = null;
 		
 		LocalEventInstance( Masterable masterIn, AcalDateTime dtstart, AcalDuration duration ) {
+			if ( duration.seconds < 0 || duration.days < 0 )
+				throw new IllegalArgumentException("Resource duration must be positive. UID: "+masterIn.getUID() );
+			if ( Constants.debugRepeatRule && duration.days > 10 )
+				throw new IllegalArgumentException();
 			this.masterInstance = masterIn;
 			this.dtstart = dtstart;
 			this.dtend = AcalDateTime.addDuration(dtstart, duration);
-			this.duration = duration;
-			if ( duration.seconds < 0 || duration.days < 0 )
-				throw new IllegalArgumentException("Resource duration must be positive. UID: "+masterIn.getUID() );
-			if ( Constants.debugRepeatRule && duration.days > 10 ) {
-				throw new IllegalArgumentException();
-			}
 		}
 
 		EventInstance getEventInstance() {

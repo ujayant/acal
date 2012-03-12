@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.net.ssl.SSLHandshakeException;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -150,7 +152,14 @@ public class RRInitialCollectionSync implements ResourceRequest {
 		}
 		else {
 
-			DavNode root = requestor.doXmlRequest("REPORT", collectionPath, SynchronisationJobs.getReportHeaders(1), syncData);
+			DavNode root;
+			try {
+				root = requestor.doXmlRequest("REPORT", collectionPath, SynchronisationJobs.getReportHeaders(1), syncData);
+			}
+			catch ( SSLHandshakeException e ) {
+				Log.w(TAG,"Certificate Problem", e);
+				return;
+			}
 			if (requestor.getStatusCode() == 404) {
 				Log.i(TAG, "Sync REPORT got 404 on " + collectionPath + " so a HomeSetsUpdate is being scheduled.");
 				ServiceJob sj = new HomeSetsUpdate(serverId);
@@ -322,8 +331,15 @@ public class RRInitialCollectionSync implements ResourceRequest {
 		if (Constants.LOG_DEBUG)
 			Log.println(Constants.LOGD,TAG, "Doing a recent sync of events from "+from.toString()+" to "+until.toString());			
 
-		DavNode root = requestor.doXmlRequest("REPORT", collectionPath, SynchronisationJobs.getReportHeaders(1),
-				String.format(calendarQuery, from.fmtIcal(), until.fmtIcal()));
+		DavNode root;
+		try {
+			root = requestor.doXmlRequest("REPORT", collectionPath, SynchronisationJobs.getReportHeaders(1),
+					String.format(calendarQuery, from.fmtIcal(), until.fmtIcal()));
+		}
+		catch ( SSLHandshakeException e ) {
+			Log.w(TAG,"SSL Handshake Exception", e);
+			return;
+		}
 
 		if ( root == null ) {
 			Log.println(Constants.LOGD,TAG, "REPORT failed for events "+from.toString()+" to "+until.toString()+" on "+requestor.fullUrl());

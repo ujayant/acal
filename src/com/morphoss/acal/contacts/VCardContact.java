@@ -52,7 +52,6 @@ public class VCardContact {
 	private AcalProperty uid = null;
 	private int sequence = 0;
 	
-	private Context context = null;
 	private ArrayList<ContentProviderOperation> ops = null;
 	private ContentResolver	cr;
 
@@ -141,7 +140,6 @@ public class VCardContact {
 
 	
 	public void writeToContact(Context context, Account account, Integer androidContactId) {
-		this.context = context;
 		this.cr = context.getContentResolver();
 		this.ops = new ArrayList<ContentProviderOperation>();
 		if ( androidContactId < 0 ) {

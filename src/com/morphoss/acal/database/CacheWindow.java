@@ -24,7 +24,6 @@ public class CacheWindow {
 	private long maxSize;
 	private long minPaddingBack;
 	private long minPaddingForward;
-	private long increment;
 	private boolean goingForward = true;
 
 	private CacheModifier callBack;		//needed for shrinking
@@ -59,7 +58,6 @@ public class CacheWindow {
 		this.maxSize = maxSize;
 		this.minPaddingBack = minPaddingBack;
 		this.minPaddingForward = minPaddingForward;
-		this.increment = increment;
 		this.callBack = callBack;
 		this.lastRequestedMidPoint = startPoint;
 		//calculate initial window request size

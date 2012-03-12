@@ -70,16 +70,11 @@ public class AlarmActivity extends AcalActivity implements OnClickListener  {
 	//GUI Components
 	private TextView header;
 	private TextView title;
-	private TextView location;
-	private TextView time;
 	private ImageView mapButton;
 	private ImageView snoozeButton;
 	private ImageView dismissButton;
 
 	//Constants
-	private static final int DISMISS = 0;
-	private static final int SNOOZE = 1;
-	private static final int MAP = 2;
 	private static final int PAUSE_BEFORE_AUDIO = 1500;	// pause 1500 milliseconds after display before starting audio alarm
 	private static final int SHORT_PAUSE_DURATION = 15;	// short pause 15 seconds if phone busy
 
@@ -175,8 +170,6 @@ public class AlarmActivity extends AcalActivity implements OnClickListener  {
 		//prepare gui elements
 		header = (TextView) this.findViewById(R.id.AlarmTitle);
 		title = (TextView) this.findViewById(R.id.AlarmContentTitleTextView);
-		location = (TextView) this.findViewById(R.id.AlarmContentLocationTextView1);
-		time = (TextView) this.findViewById(R.id.AlarmContentTimeTextView1);
 		mapButton = (ImageView) this.findViewById(R.id.map_button);
 		snoozeButton = (ImageView) this.findViewById(R.id.snooze_button);
 		dismissButton = (ImageView) this.findViewById(R.id.dismiss_button);

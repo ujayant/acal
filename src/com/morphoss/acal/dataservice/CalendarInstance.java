@@ -4,7 +4,6 @@ import java.util.ArrayList;
 
 import android.content.ContentValues;
 
-import com.morphoss.acal.Constants;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.davacal.AcalAlarm;
@@ -18,9 +17,6 @@ import com.morphoss.acal.davacal.VTodo;
 
 public abstract class CalendarInstance {
 
-	private static final String TAG = "aCal CalendarInstance";
-	private static final boolean DEBUG = true & Constants.DEBUG_MODE;
-	
 	protected long collectionId;
 	protected long resourceId;
 	protected AcalDateTime dtstart;

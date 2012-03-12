@@ -6,12 +6,11 @@ import java.util.TimeZone;
 import android.content.ContentValues;
 
 import com.morphoss.acal.acaltime.AcalDateRange;
-import com.morphoss.acal.database.cachemanager.CacheManager;
+import com.morphoss.acal.database.cachemanager.CacheManager.CacheTableManager;
 import com.morphoss.acal.database.cachemanager.CacheObject;
 import com.morphoss.acal.database.cachemanager.CacheProcessingException;
 import com.morphoss.acal.database.cachemanager.CacheRequestWithResponse;
 import com.morphoss.acal.database.cachemanager.CacheResponse;
-import com.morphoss.acal.database.cachemanager.CacheManager.CacheTableManager;
 import com.morphoss.acal.weekview.WeekViewCache;
 
 public class CRObjectsInWindow  extends CacheRequestWithResponse<ArrayList<CacheObject>> {

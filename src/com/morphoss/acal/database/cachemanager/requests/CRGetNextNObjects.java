@@ -53,9 +53,9 @@ public class CRGetNextNObjects extends BlockingCacheRequestWithResponse<ArrayLis
 					"( "+CacheTableManager.FIELD_DTSTART+" ISNULL )"+
 				")" +
 					( cacheObjectType == null ? "" : " AND "+CacheTableManager.FIELD_RESOURCE_TYPE+"='"+cacheObjectType+"'"),
-				new String[] {dtStart , offset, dtStart, dtEnd, offset, dtEnd},
-				null,null,CacheTableManager.FIELD_DTSTART+" ASC LIMIT "+this.numObjects);
-			
+				new String[] {dtStart , offset, dtStart, dtEnd, offset, dtEnd}, null, null,
+				CacheTableManager.FIELD_DTSTART+" + CASE WHEN "+CacheTableManager.FIELD_DTSTART_FLOAT+" THEN "+offset+" ELSE 0 END ASC " +
+						"LIMIT "+this.numObjects);
 		
 		ArrayList<CacheObject> res = new ArrayList<CacheObject>();
 		for (ContentValues obj : data) res.add(CacheObject.fromContentValues(obj));

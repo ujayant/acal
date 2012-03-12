@@ -69,7 +69,6 @@ import com.morphoss.acal.database.resourcesmanager.ResourceResponseListener;
 import com.morphoss.acal.database.resourcesmanager.requests.RRRequestInstance;
 import com.morphoss.acal.dataservice.CalendarInstance;
 import com.morphoss.acal.dataservice.Collection;
-import com.morphoss.acal.dataservice.MethodsRequired;
 import com.morphoss.acal.dataservice.TodoInstance;
 import com.morphoss.acal.davacal.AcalAlarm;
 import com.morphoss.acal.davacal.AcalAlarm.ActionType;
@@ -84,6 +83,7 @@ import com.morphoss.acal.widget.AlarmDialog;
 import com.morphoss.acal.widget.DateTimeDialog;
 import com.morphoss.acal.widget.DateTimeSetListener;
 
+@SuppressWarnings("rawtypes")
 public class TodoEdit extends AcalActivity
 	implements OnCheckedChangeListener, OnSeekBarChangeListener,
 				ResourceChangedListener, ResourceResponseListener {
@@ -140,8 +140,6 @@ public class TodoEdit extends AcalActivity
 
 	private String[] repeatRulesValues;
 	
-	private MethodsRequired dataRequest = new MethodsRequired();
-
 	//GUI Components
 	private Button btnStartDate;
 	private Button btnDueDate;
@@ -326,6 +324,7 @@ public class TodoEdit extends AcalActivity
 	}
 
 	
+	@SuppressWarnings("unchecked")
 	private void requestTodoResource() {
 		currentOperation = ACTION_CREATE;
 		try {
@@ -1015,7 +1014,6 @@ public class TodoEdit extends AcalActivity
 	}
 
 
-	@SuppressWarnings("rawtypes")
 	@Override
 	public void resourceResponse(ResourceResponse response) {
 		int msg = FAIL;
