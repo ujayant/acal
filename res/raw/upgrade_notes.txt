@@ -62,5 +62,8 @@ Fix display of messages when advanced configuration settings is used but they st
 Handle discovery of CardDAV addressbooks where addressbook-home-set differs from calendar-home-set.
 Fix handling of domain names with two parts.
 Fix force close processing invalid VCARD data in contacts sync adaptor.      
-v49=1.50
+v50=1.51
 Rewritten internal cache service.  Performance should generally be vastly improved.
+Interpose server setup screen if no servers are configured.
+Various fixes to SSL Certificate validation.
+New setting to disable certificate validation.
