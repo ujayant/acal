@@ -54,7 +54,7 @@ public class aCal extends AcalActivity {
 		// Set all default preferences to reasonable values
 		PreferenceManager.setDefaultValues(this, R.xml.main_preferences, false);
 
-		int lastRevision = prefs.getInt(Constants.lastRevisionPreference, 0);
+		int lastRevision = prefs.getInt(PrefNames.lastRevision, 0);
 
 		try {
 			int thisRevision = getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
@@ -94,7 +94,7 @@ public class aCal extends AcalActivity {
 		Bundle bundle = new Bundle();
 		Intent startIntent = null;
 		
-		if ( mayStartServerConfig && prefs.getInt(Constants.serverIsConfiguredPreference, 0) == 0 ) {
+		if ( mayStartServerConfig && prefs.getInt(PrefNames.serverIsConfigured, 0) == 0 ) {
 			startIntent = new Intent(c, NewServerConfiguration.class);
 		}
 		else if ( sPrefs.getBoolean(c.getString(R.string.prefDefaultView), false) ) {

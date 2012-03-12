@@ -48,7 +48,7 @@ public class aCalNotes extends Activity {
 		// Set all default preferences to reasonable values
 		PreferenceManager.setDefaultValues(this, R.xml.main_preferences, false);
 
-		int lastRevision = prefs.getInt(Constants.lastRevisionPreference, 0);
+		int lastRevision = prefs.getInt(PrefNames.lastRevision, 0);
 		if ( lastRevision == 0 ) {
 			// Default our 24hr pref to the system one.
 			prefs.edit().putBoolean(getString(R.string.prefTwelveTwentyfour), DateFormat.is24HourFormat(this)).commit();

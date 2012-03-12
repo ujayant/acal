@@ -11,6 +11,11 @@
 			android:summaryOff="@string/TwelveTwentyfour_OffSummary"
 			android:summaryOn="@string/TwelveTwentyfour_OnSummary"
 			android:title="@string/TwelveTwentyfour_PrefTitle" />
+		<CheckBoxPreference
+			android:key="@string/prefAllowSelfSignedCerts"
+			android:summaryOff="@string/prefAllowSelfSignedCerts_OffSummary"
+			android:summaryOn="@string/prefAllowSelfSignedCerts_OnSummary"
+			android:title="@string/prefAllowSelfSignedCerts_PrefTitle" />
 		<!-- This Preference is dynamically populated in AcalPreferences.java -->
 		<ListPreference
 			android:enabled="false"

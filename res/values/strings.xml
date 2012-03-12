@@ -326,4 +326,8 @@
 	<string name="errorConfigMustHaveURL">The configuration must have a domain name or URL for the server.</string>
 	<string name="Skip">Skip</string>
 	<string name="Configure">Configure</string>
+	<string name="prefAllowSelfSignedCerts_PrefTitle">Allow self-signed certificates</string>
+	<string name="prefAllowSelfSignedCerts_OnSummary">Allowed</string>
+	<string name="prefAllowSelfSignedCerts_OffSummary">Rejected</string>
+	<string name="SslCertificateError">There was a problem validating the SSL certificate.</string>
 </resources>

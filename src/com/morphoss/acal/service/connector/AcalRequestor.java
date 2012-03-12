@@ -32,6 +32,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLProtocolException;
 
 import org.apache.http.Header;
@@ -100,6 +101,11 @@ public class AcalRequestor {
 	private int redirectLimit = 5;
 	private int redirectCount = 0;
 
+	private DavRequest		request  = null;
+	private HttpResponse	response = null;
+
+	private boolean	debugThisRequest = false;
+
 
 	public final static String PROTOCOL_HTTP = "http";
 	public final static String PROTOCOL_HTTPS = "https";
@@ -110,8 +116,13 @@ public class AcalRequestor {
 	 * you will be able to make a request. 
 	 */
 	public AcalRequestor() {
+		debugThisRequest = Constants.debugDavCommunication;
 	}
 
+	public void enableDebugging() {
+		debugThisRequest = true;
+	}
+	
 	/**
 	 * Construct a new contentvalues from these path components.
 	 * @param hostIn
@@ -329,12 +340,12 @@ public class AcalRequestor {
 		// WWW-Authenticate:digest nonce="130183646896936966342199963268042751958404602087869166446", realm="Test Realm", algorithm="md5"
 
 				
-		if ( Constants.LOG_VERBOSE && Constants.debugDavCommunication )
+		if ( debugThisRequest )
 			Log.println(Constants.LOGV,TAG,"Interpreting '"+authRequestHeader+"'");
 
 		String name;
 		for( HeaderElement he : authRequestHeader.getElements() ) {
-			if ( Constants.LOG_VERBOSE && Constants.debugDavCommunication )
+			if ( debugThisRequest )
 				Log.println(Constants.LOGV,TAG,"Interpreting Element: '"+he.toString()+"' ("+he.getName()+":"+he.getValue()+")");
 			name = he.getName();
 
@@ -343,7 +354,7 @@ public class AcalRequestor {
 				qop = null;
 				algorithm = "md5";
 				name = name.substring(7);
-				if ( Constants.LOG_VERBOSE && Constants.debugDavCommunication )
+				if ( debugThisRequest )
 					Log.println(Constants.LOGV,TAG,"Found '"+getAuthTypeName(authType)+"' auth, realm: "+authRealm);
 			}
 			else if ( name.length() > 6 && name.substring(0, 6).equalsIgnoreCase("Basic ") ) { 
@@ -410,7 +421,7 @@ public class AcalRequestor {
 		cnonce = md5(AcalConnectionPool.getUserAgent());
 		String printNC = String.format("%08x", ++authNC);
 		String responseString = A1+":"+nonce+":"+printNC+":"+cnonce+":auth:"+A2;
-		if ( Constants.LOG_VERBOSE && Constants.debugDavCommunication )
+		if ( debugThisRequest )
 			Log.println(Constants.LOGV,TAG, "DigestDebugging: '"+responseString+"'" );
 		String response = md5(responseString);
 		authValue = String.format("Digest realm=\"%s\", username=\"%s\", nonce=\"%s\", uri=\"%s\""
@@ -573,7 +584,7 @@ public class AcalRequestor {
 	
 	private String getLocationHeader() {
 		for( Header h : responseHeaders ) {
-			if (Constants.LOG_VERBOSE && Constants.debugDavCommunication)
+			if (debugThisRequest)
 				Log.println(Constants.LOGV,TAG, "Looking for redirect in Header: " + h.getName() + ":" + h.getValue());
 			if (h.getName().equalsIgnoreCase("Location"))
 				return h.getValue();
@@ -585,7 +596,7 @@ public class AcalRequestor {
 	private Header getAuthHeader() {
 		Header selectedAuthHeader = null;
 		for( Header h : responseHeaders ) {
-			if (Constants.LOG_VERBOSE && Constants.debugDavCommunication)
+			if (debugThisRequest)
 				Log.println(Constants.LOGV,TAG, "Looking for auth in Header: " + h.getName() + ":" + h.getValue());
 			if ( h.getName().equalsIgnoreCase("WWW-Authenticate") ) {
 				// If this is a digest Auth header we will return with it
@@ -603,9 +614,106 @@ public class AcalRequestor {
 		return selectedAuthHeader;
 	}
 
-	
+	private String entityToString(HttpEntity entity) {
+		InputStream in;
+		StringBuilder total = new StringBuilder();
+		try {
+			in = entity.getContent();
+			BufferedReader r = new BufferedReader(new InputStreamReader(in),AcalConnectionPool.DEFAULT_BUFFER_SIZE);
+			String line;
+			while ( (line = r.readLine()) != null ) {
+			    total.append(line).append("\n");
+			}
+			in.close();
+		}
+		catch ( IllegalStateException e ) {
+			Log.w(TAG,"Auto-generated catch block", e);
+		}
+		catch ( IOException e ) {
+			Log.w(TAG,"Auto-generated catch block", e);
+		}
+		return total.toString();
+	}
 
 	
+	private void logEntityLines(int logLevel, String prefix, String entityString) {
+		for( String line : entityString.toString().split("\n") ) {
+			if ( line.length() == entityString.toString().length() ) {
+				int end;
+				int length = line.length();
+				for( int pos=0; pos < length; pos += LONG_LINE_WRAP_FOR_DEBUG ) {
+					end = pos+LONG_LINE_WRAP_FOR_DEBUG;
+					if ( end > length ) end = length;
+					Log.println(logLevel,TAG, prefix + line.substring(pos, end) );
+				}
+			}
+			else {
+				Log.println(logLevel,TAG, prefix + line.replaceAll("\r$", "") );
+			}
+		}
+	}
+
+	
+	/**
+	 * Log the full details of the request.
+	 * @param logLevel
+	 */
+	public void logRequest(int logLevel) {
+		Log.println(logLevel,TAG, method+" "+this.fullUrl());
+		if ( request == null ) {
+			Log.w(TAG,"Attempting to log request entity but request is null!");
+			return;
+		}
+
+		for ( Header h : request.getAllHeaders() ) {
+			Log.println(logLevel,TAG,"H>  "+h.getName()+":"+h.getValue() );
+		}
+		if ( request.getEntity() == null ) return;
+
+		String entityString = entityToString(request.getEntity()); 
+		if (entityString != null) {
+			Log.println(logLevel,TAG, "----------------------- vvv Request Body vvv -----------------------" );
+			logEntityLines(logLevel, "R>  ", entityString);
+			Log.println(logLevel,TAG, "----------------------- ^^^ Request Body ^^^ -----------------------" );
+		}
+	}
+
+	public InputStream logResponse(int logLevel) {
+		if ( response == null ) {
+			Log.w(TAG,"Attempting to log response entity but response is null!");
+			return null;
+		}
+		Log.println(logLevel,TAG, "RESPONSE: "+response.getStatusLine().getProtocolVersion()+" "+response.getStatusLine().getStatusCode()+" "+response.getStatusLine().getReasonPhrase() );
+
+		for (Header h : responseHeaders) {
+			Log.println(logLevel,TAG,"H<  "+h.getName()+": "+h.getValue() );
+		}
+
+		if ( response.getEntity() == null ) {
+			Log.println(logLevel,TAG,"Attempting to log response entity but response.getEntity() is null :-(");
+			return null;
+		}
+		
+		String entityString = entityToString(response.getEntity());
+		if (entityString != null) {
+			Log.println(logLevel,TAG, "----------------------- vvv Response Body vvv -----------------------" );
+			logEntityLines(logLevel, "R<  ", entityString);
+			Log.println(logLevel,TAG, "----------------------- ^^^ Response Body ^^^ -----------------------" );
+		}
+		return new ByteArrayInputStream( entityString.getBytes() );
+	}
+
+	/**
+	 * Marshall and send the request.
+	 * @param headers
+	 * @param entityString
+	 * @return
+	 * @throws SendRequestFailedException
+	 * @throws SSLException
+	 * @throws AuthenticationFailure
+	 * @throws ConnectionFailedException
+	 * @throws ConnectionPoolTimeoutException
+	 */
 	private synchronized InputStream sendRequest( Header[] headers, String entityString )
 									throws SendRequestFailedException, SSLException, AuthenticationFailure,
 									ConnectionFailedException, ConnectionPoolTimeoutException {
@@ -617,7 +725,7 @@ public class AcalRequestor {
 		statusCode = -1;
 		try {
 			// Create request and add headers and entity
-			DavRequest request = new DavRequest(method, this.fullUrl());
+			request = new DavRequest(method, this.fullUrl());
 //			request.addHeader(new BasicHeader("User-Agent", AcalConnectionPool.getUserAgent()));
 			if ( headers != null ) for (Header h : headers) request.addHeader(h);
 
@@ -651,52 +759,28 @@ public class AcalRequestor {
 				requestPort = this.port;
 			}
 
-			if ( Constants.LOG_DEBUG  ) {
+			if ( Constants.LOG_DEBUG || debugThisRequest ) {
 				Log.println(Constants.LOGD,TAG, String.format("Method: %s, Protocol: %s, Hostname: %s, Port: %d, Path: %s",
 							method, requestProtocol, hostName, requestPort, path) );
 			}
 			HttpHost host = new HttpHost(this.hostName, requestPort, requestProtocol);
 
-			if ( Constants.LOG_VERBOSE && Constants.debugDavCommunication ) {
-				Log.println(Constants.LOGV,TAG, method+" "+this.fullUrl());
-
-				for ( Header h : request.getAllHeaders() ) {
-					Log.println(Constants.LOGV,TAG,"H>  "+h.getName()+":"+h.getValue() );
-				}
-				if (entityString != null) {
-					Log.println(Constants.LOGV,TAG, "----------------------- vvv Request Body vvv -----------------------" );
-					for( String line : entityString.toString().split("\n") ) {
-						if ( line.length() == entityString.toString().length() ) {
-							int end;
-							int length = line.length();
-							for( int pos=0; pos < length; pos += LONG_LINE_WRAP_FOR_DEBUG ) {
-								end = pos+LONG_LINE_WRAP_FOR_DEBUG;
-								if ( end > length ) end = length;
-								Log.println(Constants.LOGV,TAG, "R>  " + line.substring(pos, end) );
-							}
-						}
-						else {
-							Log.println(Constants.LOGV,TAG, "R>  " + line.replaceAll("\r$", "") );
-						}
-					}
-					Log.println(Constants.LOGV,TAG, "----------------------- ^^^ Request Body ^^^ -----------------------" );
-				}
-			}
-			
+			if ( debugThisRequest ) logRequest(Constants.LOGV);
 			
 			// Send request and get response 
-			HttpResponse response = null;
+			response = null;
 
+			if ( Constants.debugHeap ) AcalDebug.heapDebug(TAG, "Making HTTP request");
 			try {
-				if ( Constants.debugHeap ) AcalDebug.heapDebug(TAG, "Making HTTP request");
 				response = httpClient.execute(host,request);
-				if ( Constants.debugHeap ) AcalDebug.heapDebug(TAG, "Finished HTTP request");
 			}
 			catch (ConnectionPoolTimeoutException e)		{
-				Log.i(TAG, e.getClass().getSimpleName() + ": " + e.getMessage() + " to " + fullUrl() );
-				Log.i(TAG, "Retrying...");
+				Log.println(Constants.LOGI,TAG, e.getClass().getSimpleName() + ": " + e.getMessage() + " to " + fullUrl() );
+				Log.println(Constants.LOGI,TAG, "Retrying...");
 				response = httpClient.execute(host,request);
 			}
+			if ( Constants.debugHeap ) AcalDebug.heapDebug(TAG, "Finished HTTP request");
+
 			this.responseHeaders = response.getAllHeaders();
 			this.statusCode = response.getStatusLine().getStatusCode();
 
@@ -706,39 +790,13 @@ public class AcalRequestor {
 			long finish = System.currentTimeMillis();
 			double timeTaken = ((double)(finish-start))/1000.0;
 
-			if ( Constants.LOG_DEBUG )
+			if ( Constants.LOG_DEBUG || debugThisRequest )
 				Log.println(Constants.LOGD,TAG, "Response: "+statusCode+", Sent: "+up+", Received: "+down+", Took: "+timeTaken+" seconds");
 			
-			if ( Constants.LOG_VERBOSE && Constants.debugDavCommunication ) {
-				Log.println(Constants.LOGV,TAG, "RESPONSE: "+response.getStatusLine().getProtocolVersion()+" "+response.getStatusLine().getStatusCode()+" "+response.getStatusLine().getReasonPhrase() );
-				for (Header h : responseHeaders) {
-					Log.println(Constants.LOGV,TAG,"H<  "+h.getName()+": "+h.getValue() );
-				}
-				if (entity != null) {
-					if ( Constants.LOG_DEBUG && Constants.debugDavCommunication ) {
-						Log.println(Constants.LOGV,TAG, "----------------------- vvv Response Body vvv -----------------------" );
-						InputStream in = entity.getContent();
-						BufferedReader r = new BufferedReader(new InputStreamReader(in),AcalConnectionPool.DEFAULT_BUFFER_SIZE);
-						StringBuilder total = new StringBuilder();
-						String line;
-						while ((line = r.readLine()) != null) {
-						    total.append(line);
-						    total.append("\n");
-							int end;
-							int length = line.length();
-							for( int pos=0; pos < length; pos += LONG_LINE_WRAP_FOR_DEBUG ) {
-								end = pos+LONG_LINE_WRAP_FOR_DEBUG;
-								if ( end > length ) end = length;
-								Log.println(Constants.LOGV,TAG, "R<  " + line.substring(pos, end).replaceAll("\r", "\\r") );
-							}
-						}
-						Log.println(Constants.LOGV,TAG, "----------------------- ^^^ Response Body ^^^ -----------------------" );
-						in.close();
-						return new ByteArrayInputStream( total.toString().getBytes() );
-					}
-				}
+			if ( debugThisRequest ) {
+				return logResponse(Constants.LOGV);
 			}
-			if (entity != null) {
+			else if (entity != null) {
 				if ( entity.getContentLength() > 0 ) return entity.getContent();
 
 				// Kind of admitting defeat here, but I can't track down why we seem
@@ -749,15 +807,8 @@ public class AcalRequestor {
 				// @todo: Check whether this problem was caused by failing to close the InputStream 
 				// and this hack can be removed...  Need to find a server which does not send Content-Length headers.
 				//
-				InputStream in = entity.getContent();
-				BufferedReader r = new BufferedReader(new InputStreamReader(in),AcalConnectionPool.DEFAULT_BUFFER_SIZE);
-				StringBuilder total = new StringBuilder();
-				String line;
-				while ( (line = r.readLine()) != null ) {
-				    total.append(line).append("\n");
-				}
-				in.close();
-				return new ByteArrayInputStream( total.toString().getBytes() );
+				String tmpEntity = entityToString(entity);
+				return new ByteArrayInputStream( tmpEntity.getBytes() );
 			}
 
 		}
@@ -765,13 +816,17 @@ public class AcalRequestor {
 			Log.i(TAG, e.getClass().getSimpleName() + ": " + e.getMessage() + " to " + fullUrl() );
 			return null;
 		}
+		catch (SSLHandshakeException e)		{
+			Log.i(TAG, e.getClass().getSimpleName() + ": " + e.getMessage() + " to " + fullUrl() );
+			throw e;
+		}
 		catch (SSLException e) {
-			if ( Constants.LOG_DEBUG && Constants.debugDavCommunication )
+			if ( debugThisRequest )
 				Log.println(Constants.LOGD,TAG,Log.getStackTraceString(e));
 			throw e;
 		}
 		catch (AuthenticationFailure e) {
-			if ( Constants.LOG_DEBUG && Constants.debugDavCommunication )
+			if ( debugThisRequest )
 				Log.println(Constants.LOGD,TAG,Log.getStackTraceString(e));
 			throw e;
 		}
@@ -823,14 +878,17 @@ public class AcalRequestor {
 	 */
 	public InputStream doRequest( String method, String pathOrUrl, Header[] headers, String entity )
 			throws SendRequestFailedException, SSLException, ConnectionFailedException {
+
+		if ( Constants.LOG_DEBUG || debugThisRequest )
+			Log.println(Constants.LOGD,TAG, String.format("%s request on %s", method, fullUrl()) );
+		
 		InputStream result = null;
 		this.method = method;
 		interpretUriString(pathOrUrl);
 		try {
-			if ( Constants.LOG_DEBUG )
-				Log.println(Constants.LOGD,TAG, String.format("%s request on %s", method, fullUrl()) );
 			result = sendRequest( headers, entity );
 		}
+		catch (SSLHandshakeException e) 		{ throw e; }
 		catch (SSLException e) 					{ throw e; }
 		catch (SendRequestFailedException e)	{ throw e; }
 		catch (ConnectionFailedException e)		{ throw e; }
@@ -865,7 +923,7 @@ public class AcalRequestor {
  */
 			String oldUrl = fullUrl();
 			interpretUriString(getLocationHeader());
-			if (Constants.LOG_DEBUG)
+			if (debugThisRequest)
 				Log.println(Constants.LOGD,TAG, method + " " +oldUrl+" redirected to: "+fullUrl());
 			if ( redirectCount++ < redirectLimit ) {
 				// Follow redirect
@@ -886,18 +944,16 @@ public class AcalRequestor {
 	 * @return <p>
 	 *         A DavNode which is the root of the multistatus response, or null if it couldn't be parsed.
 	 *         </p>
+	 * @throws SSLHandshakeException 
 	 */
-	public DavNode doXmlRequest( String method, String requestPath, Header[] headers, String xml) {
+	public DavNode doXmlRequest( String method, String requestPath, Header[] headers, String xml) throws SSLHandshakeException {
 		long start = System.currentTimeMillis();
 
-		if ( Constants.LOG_DEBUG )
-			Log.println(Constants.LOGD,TAG, String.format("%s XML request on %s", method, fullUrl()) );
-
+		InputStream responseStream = null;
 		DavNode root = null;
 		try {
-			InputStream responseStream = doRequest(method, requestPath, headers, xml);
+			responseStream = doRequest(method, requestPath, headers, xml);
 			if ( responseHeaders == null ) {
-				if ( responseStream != null ) responseStream.close();
 				return root;
 			}
 			for( Header h : responseHeaders ) {
@@ -912,17 +968,21 @@ public class AcalRequestor {
 				}
 			}
 			if ( statusCode == 404 || statusCode == 401 ) {
-				responseStream.close();
 				return root;
 			}
 			root = DavParserFactory.buildTreeFromXml(Constants.XMLParseMethod, responseStream );
 		}
+		catch (SSLHandshakeException e) 		{ throw e; }
 		catch (Exception e) {
 			Log.i(TAG, e.getMessage(), e);
 			return null;
 		}
+		finally {
+			if ( responseStream != null )
+				try { responseStream.close(); } catch ( IOException e ) {}
+		}
 		
-		if (Constants.LOG_VERBOSE)
+		if (debugThisRequest)
 			Log.println(Constants.LOGV,TAG, "Request and parse completed in " + (System.currentTimeMillis() - start) + "ms");
 		return root;
 	}

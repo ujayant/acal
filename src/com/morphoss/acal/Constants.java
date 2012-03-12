@@ -103,8 +103,6 @@ public class Constants {
 	
 	public static final String URLEncoding = "utf-8";
 	
-	public static final String lastRevisionPreference = "prefLastRevision";
-	public static final String	serverIsConfiguredPreference	= "prefServerIsConfigured";
 	public static final PARSEMETHOD	XMLParseMethod	= DavParserFactory.PARSEMETHOD.SAX;
 	
 }

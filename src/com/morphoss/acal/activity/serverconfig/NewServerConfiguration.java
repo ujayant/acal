@@ -34,6 +34,7 @@ import android.widget.Toast;
 
 import com.morphoss.acal.AcalTheme;
 import com.morphoss.acal.Constants;
+import com.morphoss.acal.PrefNames;
 import com.morphoss.acal.R;
 import com.morphoss.acal.ServiceManager;
 import com.morphoss.acal.aCal;
@@ -105,7 +106,7 @@ public class NewServerConfiguration extends AcalActivity implements OnClickListe
 		finally {
 			if ( result != null && !result.isClosed() ) result.close();
 		}
-		prefs.edit().putInt(Constants.serverIsConfiguredPreference, 1).commit();
+		prefs.edit().putInt(PrefNames.serverIsConfigured, 1).commit();
 		return true;
 	}
 
@@ -204,7 +205,7 @@ public class NewServerConfiguration extends AcalActivity implements OnClickListe
 			int id = Integer.parseInt(result.getPathSegments().get(0));
 			if (id < 0) throw new Exception("Failed to add server");
 			serverData.put(Servers._ID, id);
-			prefs.edit().putInt(Constants.serverIsConfiguredPreference, 1).commit();
+			prefs.edit().putInt(PrefNames.serverIsConfigured, 1).commit();
 			
 		} catch (Exception e) {
 			//error updating

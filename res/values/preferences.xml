@@ -16,4 +16,9 @@
 	<string name="prefDisplayedMonth">prefDisplayedMonth</string>
 	<string name="prefSavedSelectedDate">prefSavedSelectedDate</string>
 	<string name="prefThemeButtonColour">prefThemeButtonColour</string>
+	<string name="prefLastRevision">LastRevision</string>
+	<string name="prefServerIsConfigured">ServerIsConfigured</string>
+	<string name="prefApprovedCertificates">ApprovedCertificates</string>
+	<string name="prefUnapprovedCertificates">UnapprovedCertificates</string>
+	<string name="prefAllowSelfSignedCerts">AllowSelfSignedCerts</string>
 </resources>

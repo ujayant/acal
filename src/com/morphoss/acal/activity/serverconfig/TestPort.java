@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.net.ssl.SSLHandshakeException;
+
 import org.apache.http.Header;
 
 import android.content.ContentValues;
@@ -56,15 +58,16 @@ public class TestPort {
 	private Boolean hasPrincipalURL 	= null;
 
 	public final static int NO_CONNECTION = 0;
-	public final static int PORT_IS_CLOSED = 1;
-	public final static int PORT_IS_OPEN = 2;
-	public final static int NO_DAV_RESPONSE = 3;
-	public final static int SERVER_SUPPORTS_DAV = 4;
-	public final static int AUTH_FAILED = 5;
-	public final static int AUTH_SUCCEEDED = 6;
-	public final static int HAS_PRINCIPAL_URL = 7;
-	public final static int HAS_CALDAV = 8;
-	public final static int IS_CALENDAR = 9;
+	public final static int PORT_IS_CLOSED = 3;
+	public final static int PORT_IS_OPEN = 5;
+	public final static int SSL_FAILED = 7;
+	public final static int NO_DAV_RESPONSE = 10;
+	public final static int SERVER_SUPPORTS_DAV = 11;
+	public final static int AUTH_FAILED = 16;
+	public final static int AUTH_SUCCEEDED = 17;
+	public final static int HAS_PRINCIPAL_URL = 20;
+	public final static int HAS_CALDAV = 25;
+	public final static int IS_CALENDAR = 30;
 	
 	private int achievement = NO_CONNECTION;
 	private String calendarCollectionHref = null;
@@ -125,6 +128,9 @@ public class TestPort {
 				this.socketTimeOut = 15000;
 				this.connectTimeOut = 15000;
 				requestor.setTimeOuts(connectTimeOut,socketTimeOut);
+			}
+			catch (SSLHandshakeException e) {
+				setAchievement(SSL_FAILED);
 			}
 			catch (Exception e) {
 				if ( Constants.debugCheckServerDialog )
@@ -292,6 +298,9 @@ public class TestPort {
 				}
 			}
 		}
+		catch (SSLHandshakeException e) {
+			setAchievement(SSL_FAILED);
+		}
 		catch (Exception e) {
 			Log.e(TAG, "PROPFIND Error: " + e.getMessage());
 			Log.println(Constants.LOGD,TAG, Log.getStackTraceString(e));
@@ -344,6 +353,9 @@ public class TestPort {
 					}
 				}
 			}
+		}
+		catch (SSLHandshakeException e) {
+			setAchievement(SSL_FAILED);
 		}
 		catch (Exception e) {
 			Log.e(TAG, "PROPFIND Error: " + e.getMessage());
@@ -407,6 +419,9 @@ public class TestPort {
 				if ( Constants.debugCheckServerDialog )
 					Log.println(Constants.LOGD,TAG, "OPTIONS request " + status + " on " + requestor.fullUrl() );
 				checkCalendarAccess(requestor.getResponseHeaders());  // Updates 'hasCalDAV' if it finds it
+			}
+			catch (SSLHandshakeException e) {
+				setAchievement(SSL_FAILED);
 			}
 			catch (SendRequestFailedException e) {
 				Log.println(Constants.LOGD,TAG, "OPTIONS Error connecting to server: " + e.getMessage());

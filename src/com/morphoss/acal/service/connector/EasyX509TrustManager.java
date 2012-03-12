@@ -33,7 +33,9 @@ import javax.net.ssl.X509TrustManager;
 
 import android.util.Log;
 
+import com.morphoss.acal.AcalApplication;
 import com.morphoss.acal.Constants;
+import com.morphoss.acal.PrefNames;
 
 /**
  * @author olamy
@@ -70,27 +72,69 @@ public class EasyX509TrustManager implements X509TrustManager {
 	 * @see javax.net.ssl.X509TrustManager#checkServerTrusted(X509Certificate[],String authType)
 	 */
 	public void checkServerTrusted(X509Certificate[] certificates, String authType) throws CertificateException {
-		if ((certificates != null) && (certificates.length == 1)) {
-			if ( Constants.LOG_DEBUG ) Log.d(TAG,"Looks like a self-signed certificate. Checking validity..." );
-			try {
-				certificates[0].checkValidity();
-			}
-			catch( CertificateExpiredException ce ) {
-				Log.w(TAG,"CertificateExpiredException: " + ce.getMessage() );
-				Log.w(TAG,"Certificate for: " + certificates[0].getSubjectDN() );
-				Log.w(TAG,"      issued by: " + certificates[0].getIssuerDN() );
-				Log.w(TAG,"     expired on: " + certificates[0].getNotAfter() );
-			}
-			catch( CertificateNotYetValidException ce ) {
-				Log.w(TAG,"CertificateNotYetValidException: " + ce.getMessage() );
-				Log.w(TAG,"Certificate for: " + certificates[0].getSubjectDN() );
-				Log.w(TAG,"      issued by: " + certificates[0].getIssuerDN() );
-				Log.w(TAG,"     valid from: " + certificates[0].getNotBefore() );
-				Log.w(TAG,"     expires on: " + certificates[0].getNotAfter() );
-			}
+		if ( (certificates == null) || (certificates.length < 1) ) {
+			throw new CertificateException("Certificate is null!!!");
 		}
 		else {
-			standardTrustManager.checkServerTrusted(certificates, authType);
+			try {
+				standardTrustManager.checkServerTrusted(certificates, authType);
+			}
+			catch( CertificateExpiredException ce ) {
+				logCertificateException("CertificateExpiredException", ce, certificates );
+			}
+			catch( CertificateNotYetValidException ce ) {
+				logCertificateException("CertificateNotYetValidException", ce, certificates );
+			}
+			catch( CertificateException e ) {
+				Log.println(Constants.LOGI, TAG, e.getClass().getSimpleName() + " checking certificate.");
+				if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD,TAG,"Checking validity as if it were a self-signed certificate..." );
+				if ( checkLocallyApprovedCertificates(certificates) ) return;
+				
+				int i=0;
+				try {
+					for( ; i < certificates.length; i++ ) {
+						certificates[i].checkValidity();
+					}
+					if ( AcalApplication.getPreferenceBoolean(PrefNames.allowSelfSignedCerts, true) ) return;
+				}
+				catch( CertificateExpiredException ce ) {
+					logCertificateException("CertificateExpiredException", ce, certificates );
+				}
+				catch( CertificateNotYetValidException ce ) {
+					logCertificateException("CertificateNotYetValidException", ce, certificates );
+				}
+				catch( Exception ee ) {
+					String[] unApprovedCertificates = AcalApplication.getPreferenceString(PrefNames.unapprovedCertificates, "").split(",");
+					String certificate = certificates[i].getEncoded().toString();
+					int j=0;
+					for( ; j<unApprovedCertificates.length && !unApprovedCertificates[j].equals(certificate); j++);
+					if ( j == unApprovedCertificates.length ) {
+						String newCertificates = AcalApplication.getPreferenceString(PrefNames.unapprovedCertificates, "")+","+certificate;
+						AcalApplication.setPreferenceString(PrefNames.unapprovedCertificates, newCertificates);
+					}
+				}
+				throw e;
+			}
+		}
+	}
+
+	private boolean checkLocallyApprovedCertificates(X509Certificate[] certificates) {
+		String[] approvedCertificates = AcalApplication.getPreferenceString(PrefNames.approvedCertificates, "").split(",");
+		for( int i=0; i < certificates.length; i++ ) {
+			String certSig = Base64Coder.encode(certificates[i].getSignature()).toString();
+			for( int j=0; j<approvedCertificates.length; j++) {
+				if ( certSig.equals(approvedCertificates[j]) ) return true;
+			}
+		}
+		return false;
+	}
+
+	private void logCertificateException(String string, Exception ce, X509Certificate[] certificates) {
+		Log.w(TAG, string + ": " + ce.getMessage() );
+		for( int i=0; i < certificates.length; i++ ) {
+			Log.w(TAG,"Certificate for: " + certificates[i].getSubjectDN() );
+			Log.w(TAG,"      issued by: " + certificates[i].getIssuerDN() );
+			Log.w(TAG,"     valid from: " + certificates[i].getNotBefore() + ", to: " + certificates[0].getNotAfter() );
 		}
 	}
 

@@ -41,6 +41,7 @@
 		android:resizeable="true"
 		android:smallScreens="true" />
 	<application
+		android:name="com.morphoss.acal.AcalApplication"
 		android:debuggable="false"
 		android:description="@string/appDescription"
 		android:icon="@drawable/ic_launcher_events"

@@ -228,6 +228,10 @@ public class CheckServerDialog {
 						while ( testers.hasNext() );
 					}
 
+					if ( maxAchievement == TestPort.SSL_FAILED ) {
+						Log.w(TAG, "Failed SSL Validation: " + requestor.fullUrl());
+						successMessages.add(context.getString(R.string.SslCertificateError));
+					}
 					if ( maxAchievement == TestPort.AUTH_FAILED ) {
 						Log.w(TAG, "Failed Auth: " + requestor.fullUrl());
 						successMessages.add(context.getString(R.string.authenticationFailed));

@@ -33,7 +33,7 @@ import android.webkit.WebView;
 import android.widget.Button;
 
 import com.morphoss.acal.AcalTheme;
-import com.morphoss.acal.Constants;
+import com.morphoss.acal.PrefNames;
 import com.morphoss.acal.R;
 import com.morphoss.acal.aCal;
 
@@ -68,7 +68,7 @@ public class ShowUpgradeChanges extends AcalActivity implements OnClickListener 
 		catch (NameNotFoundException e) {
 			Log.e(aCal.TAG,Log.getStackTraceString(e));
 		}
-		int lastRevision = prefs.getInt(Constants.lastRevisionPreference, thisRevision - 1);
+		int lastRevision = prefs.getInt(PrefNames.lastRevision, thisRevision - 1);
 		if ( isRedisplay ) lastRevision = thisRevision - 5;
 		
 		StringBuilder upNotes = new StringBuilder("<html><head>" +
@@ -188,7 +188,7 @@ public class ShowUpgradeChanges extends AcalActivity implements OnClickListener 
 
 		if ( !isRedisplay ) {
 			// Save the new version preference
-			prefs.edit().putInt(Constants.lastRevisionPreference, thisRevision).commit();
+			prefs.edit().putInt(PrefNames.lastRevision, thisRevision).commit();
 			
 			aCal.startPreferredView(prefs,this,true);
 		}
