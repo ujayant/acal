@@ -16,6 +16,7 @@ import android.os.ConditionVariable;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.morphoss.acal.AcalApplication;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.acaltime.AcalDateRange;
@@ -197,7 +198,10 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 	
 	private synchronized static void acquireMetaLock() {
 		try { lockSem.acquire(); } catch (InterruptedException e1) {}
-		while (lockdb) try { Thread.sleep(10); } catch (Exception e) { }
+		if (lockdb) throw new IllegalStateException("Cant acquire a lock that hasnt been released!");
+		int count = 0;
+		while (lockdb && count++ < 500) try { Thread.sleep(10); } catch (Exception e) { }
+//		if ( count > 499 ) throw new RuntimeException("Unable to acquire metalock.");
 		lockdb = true;
 		lockSem.release();
 	}
@@ -339,9 +343,21 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		ContentValues data = new ContentValues();
 		AcalDBHelper dbHelper = new AcalDBHelper(context);
 		SQLiteDatabase db = dbHelper.getWritableDatabase();
+
 		//load start/end range from meta table
 		AcalDateTime defaultWindow = new AcalDateTime();
-		Cursor mCursor = db.query(META_TABLE, null, null, null, null, null, null);
+		Cursor mCursor = null;
+		try {
+			mCursor = db.query(META_TABLE, null, null, null, null, null, null);
+		}
+		catch( SQLiteException e ) {
+			AcalDBHelper.recoverDatabase(db);
+			db.close();
+			dbHelper.close();
+			releaseMetaLock();
+			AcalApplication.scheduleFullResync();
+			return;
+		}
 		int closedState = 0;
 		try {
 			if (mCursor.getCount() < 1) {
@@ -687,6 +703,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 				Log.println(Constants.LOGD,TAG,"Checking Cache Window: Current Window:"+ window);
 			}
 			boolean ret = false;
+			if (window == null) clearCache();
 			if (window.isWithinWindow(requestedRange))
 				ret = true;
 

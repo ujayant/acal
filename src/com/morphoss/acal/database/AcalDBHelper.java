@@ -277,21 +277,9 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 		db.beginTransaction();
 		// Create Database:
 		db.execSQL(DAV_SERVER_TABLE_SQL);
-		db.execSQL(DAV_PATH_SET_TABLE_SQL);
-		db.execSQL(DAV_COLLECTION_TABLE_SQL);
-		db.execSQL(DAV_RESOURCE_TABLE_SQL);
-		db.execSQL(PENDING_CHANGE_TABLE_SQL);
+		
+		createMostTables(db);
 
-		db.execSQL(EVENT_INDEX_SQL);
-		db.execSQL(TODO_INDEX_SQL);
-		
-		db.execSQL(RESOURCE_CACHE_TABLE_SQL);
-		db.execSQL(RESOURCE_CACHE_META_TABLE_SQL);
-		
-		db.execSQL(SHOW_UPCOMING_WIDGET_TABLE_SQL);
-		db.execSQL(ALARM_TABLE_SQL);
-		db.execSQL(ALARM_META_TABLE_SQL);
-		
 		db.setTransactionSuccessful();
 		db.endTransaction();
 	}
@@ -309,104 +297,87 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 	 */
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+		
+		Log.i(TAG,"Upgrading database from "+oldVersion+" to "+newVersion);
+		
 		// We drop tables in the reverse order to avoid constraint issues
 		db.beginTransaction();
 
-		if ( oldVersion == 9 ) {
-			db.execSQL("ALTER TABLE dav_collection ADD COLUMN sync_metadata BOOLEAN");
-			oldVersion++;
+		try {
+			if ( oldVersion == 9 ) {
+				db.execSQL("ALTER TABLE dav_collection ADD COLUMN sync_metadata BOOLEAN");
+				oldVersion++;
+			}
+	
+			if ( oldVersion == 10 ) {
+				db.execSQL("ALTER TABLE dav_server ADD COLUMN use_advanced BOOLEAN");
+				db.execSQL("ALTER TABLE dav_server ADD COLUMN prepared_config TEXT");
+				oldVersion++;
+			}
+			if ( oldVersion == 11 ) {
+				db.execSQL("ALTER TABLE dav_resource ADD COLUMN effective_type TEXT");
+				db.execSQL("UPDATE dav_resource SET effective_type = 'VCARD' WHERE lower(data) LIKE 'begin:vcard';");
+				db.execSQL("UPDATE dav_resource SET effective_type = 'VEVENT' WHERE lower(data) LIKE 'begin:vevent';");
+				db.execSQL("UPDATE dav_resource SET effective_type = 'VJOURNAL' WHERE lower(data) LIKE 'begin:vjournal';");
+				db.execSQL("UPDATE dav_resource SET effective_type = 'VTODO' WHERE lower(data) LIKE 'begin:vtodo';");
+				db.execSQL(EVENT_INDEX_SQL);
+				db.execSQL(TODO_INDEX_SQL);
+				oldVersion++;
+			}
+			if ( oldVersion == 12 ) {
+				db.execSQL("PRAGMA writable_schema = 1");
+				db.execSQL("UPDATE SQLITE_MASTER SET SQL = '"+DAV_SERVER_TABLE_SQL+"' WHERE name = '"+Servers.DATABASE_TABLE+"'");
+				db.execSQL("PRAGMA writable_schema = 0");
+				oldVersion++;
+			}
+	
+			if ( oldVersion == 13 ) {
+				db.execSQL(SHOW_UPCOMING_WIDGET_TABLE_SQL);
+				oldVersion++;
+			}
+			
+			if (oldVersion == 14) {
+				db.execSQL("DROP TABLE show_upcoming_widget_data");
+				db.execSQL(SHOW_UPCOMING_WIDGET_TABLE_SQL);
+				oldVersion++;
+			}
+			
+			if (oldVersion == 15) {
+				db.execSQL(RESOURCE_CACHE_TABLE_SQL);
+				db.execSQL(RESOURCE_CACHE_META_TABLE_SQL);
+				oldVersion++;
+			}
+			
+			if (oldVersion == 16) {
+				db.execSQL("DROP TABLE event_cache");
+				db.execSQL(RESOURCE_CACHE_TABLE_SQL);
+				oldVersion++;
+			}
+			
+			if (oldVersion == 17) {
+				db.execSQL("DROP TABLE pending_change");
+				db.execSQL(PENDING_CHANGE_TABLE_SQL);
+				oldVersion++;
+			}
+			if (oldVersion == 18) {
+				db.execSQL(ALARM_TABLE_SQL);
+				db.execSQL(ALARM_META_TABLE_SQL);
+				oldVersion++;
+			}
+			db.setTransactionSuccessful();
 		}
-
-		if ( oldVersion == 10 ) {
-			db.execSQL("ALTER TABLE dav_server ADD COLUMN use_advanced BOOLEAN");
-			db.execSQL("ALTER TABLE dav_server ADD COLUMN prepared_config TEXT");
-			oldVersion++;
+		catch( Exception e ) {
+			Log.e(TAG,"Failed to upgrade database carefully.", e);
 		}
-		if ( oldVersion == 11 ) {
-			db.execSQL("ALTER TABLE dav_resource ADD COLUMN effective_type TEXT");
-			db.execSQL("UPDATE dav_resource SET effective_type = 'VCARD' WHERE lower(data) LIKE 'begin:vcard';");
-			db.execSQL("UPDATE dav_resource SET effective_type = 'VEVENT' WHERE lower(data) LIKE 'begin:vevent';");
-			db.execSQL("UPDATE dav_resource SET effective_type = 'VJOURNAL' WHERE lower(data) LIKE 'begin:vjournal';");
-			db.execSQL("UPDATE dav_resource SET effective_type = 'VTODO' WHERE lower(data) LIKE 'begin:vtodo';");
-			db.execSQL(EVENT_INDEX_SQL);
-			db.execSQL(TODO_INDEX_SQL);
-			oldVersion++;
-		}
-		if ( oldVersion == 12 ) {
-			db.execSQL("PRAGMA writable_schema = 1");
-			db.execSQL("UPDATE SQLITE_MASTER SET SQL = '"+DAV_SERVER_TABLE_SQL+"' WHERE name = '"+Servers.DATABASE_TABLE+"'");
-			db.execSQL("PRAGMA writable_schema = 0");
-			oldVersion++;
-		}
-
-		if ( oldVersion == 13 ) {
-			db.execSQL(SHOW_UPCOMING_WIDGET_TABLE_SQL);
-			oldVersion++;
-		}
-		
-		if (oldVersion == 14) {
-			db.execSQL("DROP TABLE show_upcoming_widget_data");
-			db.execSQL(SHOW_UPCOMING_WIDGET_TABLE_SQL);
-			oldVersion++;
-		}
-		
-		if (oldVersion == 15) {
-			db.execSQL(RESOURCE_CACHE_TABLE_SQL);
-			db.execSQL(RESOURCE_CACHE_META_TABLE_SQL);
-			oldVersion++;
-		}
-		
-		if (oldVersion == 16) {
-			db.execSQL("DROP TABLE event_cache");
-			db.execSQL(RESOURCE_CACHE_TABLE_SQL);
-			oldVersion++;
-		}
-		
-		if (oldVersion == 17) {
-			db.execSQL("DROP TABLE pending_change");
-			db.execSQL(PENDING_CHANGE_TABLE_SQL);
-			oldVersion++;
-		}
-		if (oldVersion == 18) {
-			db.execSQL(ALARM_TABLE_SQL);
-			db.execSQL(ALARM_META_TABLE_SQL);
-			oldVersion++;
+		finally {
+			db.endTransaction();
 		}
 		
 		if ( oldVersion != newVersion ) {
 			// Fallback to try and drop all tables, except the server table and
 			// then recreate them.
-			try {
-				// Drop all the tables except the dav_server one.
-				db.execSQL("DROP TABLE event_cache_meta");
-				db.execSQL("DROP TABLE event_cache");
-				db.execSQL("DROP TABLE show_upcoming_widget_data");
-				db.execSQL("DROP TABLE dav_path_set");
-				db.execSQL("DROP TABLE dav_collection");
-				db.execSQL("DROP TABLE dav_resource");
-				db.execSQL("DROP TABLE pending_change");
-		
-				// Recreate the tables we just dropped.
-				db.execSQL(DAV_PATH_SET_TABLE_SQL);
-				db.execSQL(DAV_COLLECTION_TABLE_SQL);
-				db.execSQL(DAV_RESOURCE_TABLE_SQL);
-				db.execSQL(PENDING_CHANGE_TABLE_SQL);
-				db.execSQL(EVENT_INDEX_SQL);
-				db.execSQL(TODO_INDEX_SQL);
-				db.execSQL(RESOURCE_CACHE_TABLE_SQL);
-				db.execSQL(RESOURCE_CACHE_META_TABLE_SQL);
-				db.execSQL(SHOW_UPCOMING_WIDGET_TABLE_SQL);
-				db.setTransactionSuccessful();
-			}
-			catch( Exception e ) {
-				Log.e(TAG, "Database error recreating database", e);
-			}
+			recoverDatabase(db);
 		}
-		else {
-			db.setTransactionSuccessful();
-		}
-
-		db.endTransaction();
 		
 	}
 
@@ -468,5 +439,47 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 			Log.e(TAG,Log.getStackTraceString(e));
 		}
 		super.close();
+	}
+
+	public static void createMostTables(SQLiteDatabase db) {
+		Log.i(TAG,"Creating database tables for version " + DB_VERSION);
+		try {
+			db.execSQL(DAV_PATH_SET_TABLE_SQL);
+			db.execSQL(DAV_COLLECTION_TABLE_SQL);
+			db.execSQL(DAV_RESOURCE_TABLE_SQL);
+			db.execSQL(PENDING_CHANGE_TABLE_SQL);
+			db.execSQL(EVENT_INDEX_SQL);
+			db.execSQL(TODO_INDEX_SQL);
+			db.execSQL(RESOURCE_CACHE_TABLE_SQL);
+			db.execSQL(RESOURCE_CACHE_META_TABLE_SQL);
+			db.execSQL(SHOW_UPCOMING_WIDGET_TABLE_SQL);
+			db.execSQL(ALARM_TABLE_SQL);
+			db.execSQL(ALARM_META_TABLE_SQL);
+		}
+		catch( Exception e ) {
+			Log.e(TAG, "Database error creating database tables", e);
+		}
+	}
+
+	public static void recoverDatabase(SQLiteDatabase db) {
+		Log.i(TAG,"Recovering database to version " + DB_VERSION);
+		try {
+			// Drop all the tables except the dav_server one.
+			try { db.execSQL("DROP TABLE alarm_meta"); } catch( Exception e ) {}
+			try { db.execSQL("DROP TABLE alarms"); } catch( Exception e ) {}
+			try { db.execSQL("DROP TABLE event_cache_meta"); } catch( Exception e ) {}
+			try { db.execSQL("DROP TABLE event_cache"); } catch( Exception e ) {}
+			try { db.execSQL("DROP TABLE show_upcoming_widget_data"); } catch( Exception e ) {}
+			try { db.execSQL("DROP TABLE pending_change"); } catch( Exception e ) {}
+			try { db.execSQL("DROP TABLE dav_resource"); } catch( Exception e ) {}
+			try { db.execSQL("DROP TABLE dav_collection"); } catch( Exception e ) {}
+			try { db.execSQL("DROP TABLE dav_path_set"); } catch( Exception e ) {}
+	
+			// Recreate the tables we just dropped.
+			createMostTables(db);
+		}
+		catch( Exception e ) {
+			Log.e(TAG, "Database error recreating database", e);
+		}
 	}
 }
