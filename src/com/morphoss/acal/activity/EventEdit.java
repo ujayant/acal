@@ -75,6 +75,7 @@ import com.morphoss.acal.widget.AlarmDialog;
 import com.morphoss.acal.widget.DateTimeDialog;
 import com.morphoss.acal.widget.DateTimeSetListener;
 
+@SuppressWarnings("rawtypes")
 public class EventEdit extends AcalActivity implements  OnClickListener, OnCheckedChangeListener,
 							ResourceChangedListener, ResourceResponseListener, OnFocusChangeListener {
 
