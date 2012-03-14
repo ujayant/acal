@@ -47,7 +47,6 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 	public static final String TAG = "aCal - WeekViewDays";
 
 	private WeekViewActivity context; 
-	private AcalDateTime firstVisibleDay;
 	private WeekViewCache dataCache;
 	private WVCacheObject[][] headerTimeTable;
 
@@ -574,7 +573,7 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 		int scrolly = context.getScrollY();
 		int scrollx = context.getScrollX();
 		ArrayList<Object> result = new ArrayList<Object>();
-		result.add(this.firstVisibleDay.clone().addDays((int) ((x-scrollx) / WeekViewActivity.DAY_WIDTH)));
+		result.add(AcalDateTime.addDays(context.getCurrentDate(),(int) ((x - scrollx) / WeekViewActivity.DAY_WIDTH)));
 		if ( y < PxH ) result.add(-1);
 		else {
 			result.add((Integer) (int) ((y+scrolly) * WeekViewActivity.SECONDS_PER_PIXEL));

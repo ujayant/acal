@@ -30,17 +30,17 @@ import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.GestureDetector;
+import android.view.GestureDetector.OnGestureListener;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.Window;
-import android.view.ContextMenu.ContextMenuInfo;
-import android.view.GestureDetector.OnGestureListener;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
+import android.view.Window;
 import android.widget.Button;
 
 import com.morphoss.acal.AcalTheme;
@@ -441,8 +441,10 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 	}
 	
 	/**
-	 * TODO - context menyu items need to be brought in line to work with refactored activities.
+	 * TODO - context menu items need to be brought in line to work with refactored activities.
 	 */
+	private static final int CONTEXT_CHOICE_NEW_ALLDAY = -1;
+	private static final int CONTEXT_CHOICE_NEW_WITHIN_DAY = -2;
 	private List<Object>	underList;
 	private static final int	CONTEXT_ACTION_VIEW		= 0x100;
 	private static final int	CONTEXT_ACTION_EDIT		= 0x200;
@@ -458,12 +460,12 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 					lastDown.getRawY() - (header.getHeight() +StatusBarHeight ) );
 		if ( underList == null ) return;
 		AcalDateTime dayPressed = (AcalDateTime) underList.get(0);
-        menu.add(Menu.NONE, -1, Menu.NONE, getString(R.string.newAllDayEventOn, AcalDateTime.fmtDayMonthYear(dayPressed)));
+        menu.add(Menu.NONE, CONTEXT_CHOICE_NEW_ALLDAY, Menu.NONE, getString(R.string.newAllDayEventOn, AcalDateTime.fmtDayMonthYear(dayPressed)));
 
         int secPressed = (Integer) underList.get(1);
         if ( secPressed >= 0 ) {
         	if ( secPressed > 86400 ) secPressed = 86400;
-        	menu.add(Menu.NONE, -2, Menu.NONE, getString(R.string.newHourEventAt,
+        	menu.add(Menu.NONE, CONTEXT_CHOICE_NEW_WITHIN_DAY, Menu.NONE, getString(R.string.newHourEventAt,
         				String.format("%02d:%02d", secPressed/AcalDateTime.SECONDS_IN_HOUR,
         							((secPressed % AcalDateTime.SECONDS_IN_HOUR) / 1800) * 30 )
         					)
@@ -487,17 +489,19 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
 
 		if ( Constants.LOG_VERBOSE && Constants.debugWeekView ) Log.v(TAG,"OnContextItemSelected!");
         switch( item.getItemId() ) {
-        	case -1:
-        	case -2: {
+        	case CONTEXT_CHOICE_NEW_ALLDAY:
+        	case CONTEXT_CHOICE_NEW_WITHIN_DAY: {
         		//Edit Instance Selected
-        		CacheObject co = (CacheObject) underList.get(item.getItemId() & 0xFF);
         		Bundle bundle = new Bundle();
-    			bundle.putInt(EventEdit.ACTION_KEY, EventEdit.ACTION_EDIT);
-    			bundle.putLong(EventEdit.RESOURCE_ID_KEY, co.getResourceId());
-    			bundle.putString(EventEdit.RECCURENCE_ID_KEY, co.getRecurrenceId());
-    			Intent eventEditIntent = new Intent(this, EventEdit.class);
-    			eventEditIntent.putExtras(bundle);
-    			this.startActivity(eventEditIntent);
+        		AcalDateTime eventDate = (AcalDateTime) underList.get(0);
+                int eventSecs = ((Integer) underList.get(1)) / 1800;
+                if ( item.getItemId() == CONTEXT_CHOICE_NEW_WITHIN_DAY )
+                	eventDate = eventDate.setDaySecond(eventSecs*1800);
+				bundle.putParcelable(EventEdit.NEW_EVENT_DATE_TIME_KEY, eventDate);
+				bundle.putInt(EventEdit.ACTION_KEY, EventEdit.ACTION_CREATE);
+				Intent eventEditIntent = new Intent(this, EventEdit.class);
+				eventEditIntent.putExtras(bundle);
+				this.startActivity(eventEditIntent);
         		break;
         	}
         	default: {
