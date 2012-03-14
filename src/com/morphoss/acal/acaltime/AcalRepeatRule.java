@@ -455,8 +455,8 @@ public class AcalRepeatRule {
 		this.appendEventsInstancesBetween(cacheList, range, true);
 	}
 	
-	@SuppressWarnings("unchecked")
-	private void appendEventsInstancesBetween( @SuppressWarnings("rawtypes") List eventList, AcalDateRange range, boolean cacheObjects) {
+	@SuppressWarnings("unchecked") 
+	private void appendEventsInstancesBetween( List eventList, AcalDateRange range, boolean cacheObjects) {
 	
 		if ( range.start == null || range.end == null || eventList == null ) return;
 
