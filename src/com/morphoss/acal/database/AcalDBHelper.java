@@ -234,6 +234,10 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 			+",closed BOOLEAN"
 		+");";
 
+	private static final long now = System.currentTimeMillis();
+	public static final String SET_RESOURCE_CACHE_DIRTY_SQL = 
+			"INSERT INTO event_cache_meta (dtstart, dtend, count, closed) VALUES("+now+","+now+",0,0)";
+
 	public static final String ALARM_TABLE_SQL = 
 		"CREATE TABLE alarms ("
 	        +"_id INTEGER PRIMARY KEY AUTOINCREMENT"
@@ -249,6 +253,9 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 	        +"_id INTEGER PRIMARY KEY AUTOINCREMENT"
 			+",closed BOOLEAN"
 		+");";
+	public static final String CLEAR_ALARM_META_TABLE_SQL = "DELETE FROM alarm_meta"; 
+	public static final String SET_ALARM_TABLE_DIRTY_SQL = 
+			"INSERT INTO alarm_meta (closed) VALUES(0)";
 
 	private Context	context;
 
@@ -265,8 +272,7 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 	
 	/**
 	 * <p>
-	 * Called when database is first instantiated. Creates default schema. Will add
-	 * test data if Constants.CREATE_TEST_ENTRIES is true.
+	 * Called when database is first instantiated. Creates default schema.
 	 * </p>
 	 * 
 	 * @see android.database.sqlite.SQLiteOpenHelper#onCreate(android.database.sqlite.SQLiteDatabase)
@@ -274,14 +280,9 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 	 */
 	@Override
 	public void onCreate(SQLiteDatabase db) {
-		db.beginTransaction();
 		// Create Database:
 		db.execSQL(DAV_SERVER_TABLE_SQL);
-		
-		createMostTables(db);
-
-		db.setTransactionSuccessful();
-		db.endTransaction();
+		createMostTables(db,false);
 	}
 
 	/**
@@ -298,23 +299,26 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 		
-		Log.i(TAG,"Upgrading database from "+oldVersion+" to "+newVersion);
+		Log.i(TAG,"Attempting to upgrade database from "+oldVersion+" to "+newVersion);
 		
 		// We drop tables in the reverse order to avoid constraint issues
-		db.beginTransaction();
 
 		try {
 			if ( oldVersion == 9 ) {
-				db.execSQL("ALTER TABLE dav_collection ADD COLUMN sync_metadata BOOLEAN");
+				Log.i(TAG,"Updating database from version " + oldVersion);
 				oldVersion++;
+				Log.i(TAG,"Updating database to version " + oldVersion);
 			}
 	
 			if ( oldVersion == 10 ) {
+				Log.i(TAG,"Updating database from version " + oldVersion);
+				oldVersion++;
 				db.execSQL("ALTER TABLE dav_server ADD COLUMN use_advanced BOOLEAN");
 				db.execSQL("ALTER TABLE dav_server ADD COLUMN prepared_config TEXT");
-				oldVersion++;
 			}
 			if ( oldVersion == 11 ) {
+				Log.i(TAG,"Updating database from version " + oldVersion);
+				oldVersion++;
 				db.execSQL("ALTER TABLE dav_resource ADD COLUMN effective_type TEXT");
 				db.execSQL("UPDATE dav_resource SET effective_type = 'VCARD' WHERE lower(data) LIKE 'begin:vcard';");
 				db.execSQL("UPDATE dav_resource SET effective_type = 'VEVENT' WHERE lower(data) LIKE 'begin:vevent';");
@@ -322,61 +326,75 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 				db.execSQL("UPDATE dav_resource SET effective_type = 'VTODO' WHERE lower(data) LIKE 'begin:vtodo';");
 				db.execSQL(EVENT_INDEX_SQL);
 				db.execSQL(TODO_INDEX_SQL);
-				oldVersion++;
 			}
 			if ( oldVersion == 12 ) {
+				Log.i(TAG,"Updating database from version " + oldVersion);
+				oldVersion++;
 				db.execSQL("PRAGMA writable_schema = 1");
 				db.execSQL("UPDATE SQLITE_MASTER SET SQL = '"+DAV_SERVER_TABLE_SQL+"' WHERE name = '"+Servers.DATABASE_TABLE+"'");
 				db.execSQL("PRAGMA writable_schema = 0");
-				oldVersion++;
 			}
 	
 			if ( oldVersion == 13 ) {
-				db.execSQL(SHOW_UPCOMING_WIDGET_TABLE_SQL);
+				Log.i(TAG,"Updating database from version " + oldVersion);
 				oldVersion++;
+				db.execSQL(SHOW_UPCOMING_WIDGET_TABLE_SQL);
 			}
 			
 			if (oldVersion == 14) {
+				Log.i(TAG,"Updating database from version " + oldVersion);
+				oldVersion++;
 				db.execSQL("DROP TABLE show_upcoming_widget_data");
 				db.execSQL(SHOW_UPCOMING_WIDGET_TABLE_SQL);
-				oldVersion++;
 			}
 			
 			if (oldVersion == 15) {
+				Log.i(TAG,"Updating database from version " + oldVersion);
+				oldVersion++;
 				db.execSQL(RESOURCE_CACHE_TABLE_SQL);
 				db.execSQL(RESOURCE_CACHE_META_TABLE_SQL);
-				oldVersion++;
+				db.execSQL(SET_RESOURCE_CACHE_DIRTY_SQL);
 			}
 			
 			if (oldVersion == 16) {
+				Log.i(TAG,"Updating database from version " + oldVersion);
+				oldVersion++;
 				db.execSQL("DROP TABLE event_cache");
 				db.execSQL(RESOURCE_CACHE_TABLE_SQL);
-				oldVersion++;
+				db.execSQL("DELETE FROM event_cache_meta");
+				db.execSQL(SET_RESOURCE_CACHE_DIRTY_SQL);
+				db.execSQL("UPDATE dav_collection SET needs_sync=1, sync_token=NULL, collection_tag=NULL");
+				db.execSQL("DELETE FROM dav_resource");
 			}
 			
 			if (oldVersion == 17) {
+				Log.i(TAG,"Updating database from version " + oldVersion);
+				oldVersion++;
 				db.execSQL("DROP TABLE pending_change");
 				db.execSQL(PENDING_CHANGE_TABLE_SQL);
-				oldVersion++;
 			}
 			if (oldVersion == 18) {
+				Log.i(TAG,"Updating database from version " + oldVersion);
+				oldVersion++;
 				db.execSQL(ALARM_TABLE_SQL);
 				db.execSQL(ALARM_META_TABLE_SQL);
-				oldVersion++;
+				db.execSQL(SET_ALARM_TABLE_DIRTY_SQL);
 			}
-			db.setTransactionSuccessful();
+			
 		}
 		catch( Exception e ) {
 			Log.e(TAG,"Failed to upgrade database carefully.", e);
 		}
 		finally {
-			db.endTransaction();
 		}
 		
 		if ( oldVersion != newVersion ) {
 			// Fallback to try and drop all tables, except the server table and
 			// then recreate them.
-			recoverDatabase(db);
+			recoverDatabase(db,true);
+		}
+		else {
+			Log.i(TAG,"Database now upgraded to version " + newVersion);
 		}
 		
 	}
@@ -389,8 +407,10 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 
 	public SQLiteDatabase getReadableDatabase() {
 		try {
-			return SQLiteDatabase.openDatabase(context.getDatabasePath(DB_NAME+".db").toString(), null, 
+			SQLiteDatabase db = SQLiteDatabase.openDatabase(context.getDatabasePath(DB_NAME+".db").toString(), null, 
 					SQLiteDatabase.OPEN_READONLY | SQLiteDatabase.NO_LOCALIZED_COLLATORS);
+			if ( db.getVersion() == DB_VERSION ) return db;
+			db.close();
 		}
 		catch( SQLiteException e) {
 			Log.i(TAG,e.getMessage());
@@ -398,6 +418,17 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 		return getWritableDatabase();
 	}
 
+	private SQLiteDatabase openWritableDatabase( String dbPath ) {
+		SQLiteDatabase db = SQLiteDatabase.openDatabase( dbPath, null, 
+				SQLiteDatabase.OPEN_READWRITE | SQLiteDatabase.NO_LOCALIZED_COLLATORS);
+		if ( db.getVersion() == DB_VERSION ) return db;
+		db.beginTransaction();
+		onUpgrade(db, db.getVersion(), DB_VERSION);
+		db.setVersion(DB_VERSION);
+		db.setTransactionSuccessful();
+		db.endTransaction();
+		return db;
+	}
 	
 	public SQLiteDatabase getWritableDatabase() {
 		String dbPath = context.getDatabasePath(DB_NAME+".db").toString();
@@ -406,8 +437,7 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 			int attempts = 0;
 			while( attempts++ < 500 ) {
 				try {
-					return SQLiteDatabase.openDatabase( dbPath, null, 
-							SQLiteDatabase.OPEN_READWRITE | SQLiteDatabase.NO_LOCALIZED_COLLATORS);
+					return openWritableDatabase(dbPath);
 				}
 				catch( SQLiteException e) {
 					Log.println(Constants.LOGD,TAG,"Unable to get writable database - retrying");
@@ -416,8 +446,8 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 			}
 	
 			try {
-				return SQLiteDatabase.openDatabase(context.getDatabasePath(DB_NAME+".db").toString(), null, 
-						SQLiteDatabase.OPEN_READWRITE | SQLiteDatabase.NO_LOCALIZED_COLLATORS);
+				// Once more to catch the failure message...
+				return openWritableDatabase(dbPath);
 			}
 			catch( SQLiteException e) {
 				Log.i(TAG,e.getMessage());
@@ -432,7 +462,7 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 			db.close();
 			int counter = 500;
 			while (db.isOpen() && counter-- > 0) {
-				try { Thread.sleep(20); } catch ( InterruptedException e ) { } 
+				try { Thread.sleep(50); } catch ( InterruptedException e ) { } 
 			}
 		}
 		catch( SQLiteException e ) {
@@ -441,27 +471,35 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 		super.close();
 	}
 
-	public static void createMostTables(SQLiteDatabase db) {
+	
+	public static void createMostTables(SQLiteDatabase db, boolean keepCollections) {
 		Log.i(TAG,"Creating database tables for version " + DB_VERSION);
 		try {
-			db.execSQL(DAV_PATH_SET_TABLE_SQL);
-			db.execSQL(DAV_COLLECTION_TABLE_SQL);
+			if ( !keepCollections ) {
+				db.execSQL(DAV_PATH_SET_TABLE_SQL);
+				db.execSQL(DAV_COLLECTION_TABLE_SQL);
+			}
 			db.execSQL(DAV_RESOURCE_TABLE_SQL);
 			db.execSQL(PENDING_CHANGE_TABLE_SQL);
 			db.execSQL(EVENT_INDEX_SQL);
 			db.execSQL(TODO_INDEX_SQL);
+			
 			db.execSQL(RESOURCE_CACHE_TABLE_SQL);
 			db.execSQL(RESOURCE_CACHE_META_TABLE_SQL);
+			db.execSQL(SET_RESOURCE_CACHE_DIRTY_SQL);
+			
 			db.execSQL(SHOW_UPCOMING_WIDGET_TABLE_SQL);
+			
 			db.execSQL(ALARM_TABLE_SQL);
 			db.execSQL(ALARM_META_TABLE_SQL);
+			db.execSQL(SET_ALARM_TABLE_DIRTY_SQL);
 		}
 		catch( Exception e ) {
 			Log.e(TAG, "Database error creating database tables", e);
 		}
 	}
 
-	public static void recoverDatabase(SQLiteDatabase db) {
+	public static void recoverDatabase(SQLiteDatabase db, boolean keepCollections) {
 		Log.i(TAG,"Recovering database to version " + DB_VERSION);
 		try {
 			// Drop all the tables except the dav_server one.
@@ -472,11 +510,13 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 			try { db.execSQL("DROP TABLE show_upcoming_widget_data"); } catch( Exception e ) {}
 			try { db.execSQL("DROP TABLE pending_change"); } catch( Exception e ) {}
 			try { db.execSQL("DROP TABLE dav_resource"); } catch( Exception e ) {}
-			try { db.execSQL("DROP TABLE dav_collection"); } catch( Exception e ) {}
-			try { db.execSQL("DROP TABLE dav_path_set"); } catch( Exception e ) {}
+			if ( !keepCollections ) {
+				try { db.execSQL("DROP TABLE dav_collection"); } catch( Exception e ) {}
+				try { db.execSQL("DROP TABLE dav_path_set"); } catch( Exception e ) {}
+			}
 	
 			// Recreate the tables we just dropped.
-			createMostTables(db);
+			createMostTables(db,keepCollections);
 		}
 		catch( Exception e ) {
 			Log.e(TAG, "Database error recreating database", e);

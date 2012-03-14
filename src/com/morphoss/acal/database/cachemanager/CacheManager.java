@@ -16,7 +16,6 @@ import android.os.ConditionVariable;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.morphoss.acal.AcalApplication;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.acaltime.AcalDateRange;
@@ -236,6 +235,10 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 			return;
 		}
 
+		AcalDateRange currentRange = null;
+		try { currentRange = instance.window.getCurrentWindow(); } catch( Exception e ) { };
+		if (currentRange == null) currentRange = new AcalDateRange(new AcalDateTime(), new AcalDateTime());
+		
 		acquireMetaLock();
 		
 		//get current values
@@ -248,14 +251,25 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 				mCursor.close();
 				data.put(FIELD_CLOSED, !dirty);
 				if (!dirty && instance != null) {
-					AcalDateRange currentRange = instance.window.getCurrentWindow();
-					if (currentRange == null) currentRange = new AcalDateRange(new AcalDateTime(), new AcalDateTime());
 					data.put(FIELD_START, currentRange.start.getMillis());
 					data.put(FIELD_END, currentRange.end.getMillis());
 				}
-//				db.beginTransaction();
 				db.update(META_TABLE, data, FIELD_ID+" = ?", new String[]{data.getAsLong(FIELD_ID)+""});
-//				db.setTransactionSuccessful();
+			}
+			else {
+				data = new ContentValues();
+				data.put(FIELD_CLOSED, !dirty);
+				data.put(FIELD_COUNT, 0);
+				if (!dirty && instance != null) {
+					data.put(FIELD_START, currentRange.start.getMillis());
+					data.put(FIELD_END, currentRange.end.getMillis());
+				}
+				else {
+					long now = System.currentTimeMillis();
+					data.put(FIELD_START, now);
+					data.put(FIELD_END, now);
+				}
+				db.insert(META_TABLE, null, data);
 			}
 			
 		}
@@ -282,6 +296,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 			}
 			releaseMetaLock();
 
+			// This closes the actual database and makes sure it is, much the same as the above to with transaction
 			dbHelper.close(db);
 		}
 	}
@@ -351,18 +366,18 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 			mCursor = db.query(META_TABLE, null, null, null, null, null, null);
 		}
 		catch( SQLiteException e ) {
-			AcalDBHelper.recoverDatabase(db);
+			Log.i(TAG,Log.getStackTraceString(e));
+//			AcalDBHelper.recoverDatabase(db,true);
 			db.close();
 			dbHelper.close();
 			releaseMetaLock();
-			AcalApplication.scheduleFullResync();
 			return;
 		}
 		int closedState = 0;
 		try {
 			if (mCursor.getCount() < 1) {
 				if ( CacheManager.DEBUG && Constants.LOG_DEBUG ) Log.println(Constants.LOGD,TAG, "Initializing cache for first use.");
-				data.put(FIELD_CLOSED, 1);
+				data.put(FIELD_CLOSED, 0);
 				data.put(FIELD_COUNT, 0);
 				data.put(FIELD_START,  defaultWindow.getMillis());
 				data.put(FIELD_END,  defaultWindow.getMillis());

@@ -2,12 +2,8 @@ package com.morphoss.acal;
 
 import android.app.Application;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import android.util.Log;
-
-import com.morphoss.acal.service.aCalService;
 
 public class AcalApplication extends Application {
 	
@@ -21,16 +17,6 @@ public class AcalApplication extends Application {
 
     	s_instance = this;
 
-    	try {
-	        // make sure aCalService is running
-			Intent serviceIntent = new Intent(this, aCalService.class);
-			serviceIntent.putExtra("UISTARTED", System.currentTimeMillis());
-			this.startService(serviceIntent);
-    	}
-    	catch( Exception e) {
-    		Log.w(TAG,"Drat!", e);
-    	}
-		
     }
 
     private static Context getContext(){
@@ -57,14 +43,6 @@ public class AcalApplication extends Application {
     	if ( prefs == null ) 
     		prefs = PreferenceManager.getDefaultSharedPreferences(s_instance);
     	return prefs.getBoolean(key, defValue);
-	}
-
-	public static void scheduleFullResync() {
-		try {
-			new ServiceManager(s_instance).getServiceRequest().fullResync();
-		} catch (Exception e) {
-			Log.e(TAG, "Unable to send Full System Sync request to server: "+e.getMessage());
-		}
 	}
 
 }
