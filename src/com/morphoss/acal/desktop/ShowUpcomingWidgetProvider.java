@@ -102,55 +102,58 @@ public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 			long timeOfNextEventEnd = Long.MAX_VALUE;
 			long timeOfNextEventStart = Long.MAX_VALUE;
 
+			//set up on click intent
+			Intent startApp = new Intent(context, aCal.class);
+			PendingIntent onClickIntent = PendingIntent.getActivity(context, 0, startApp, PendingIntent.FLAG_UPDATE_CURRENT);
+				
 			//Get Data
 			ArrayList<CacheObject> data = getCurrentData(context);
 			for (CacheObject object : data) {
 				if (Constants.LOG_VERBOSE) Log.println(Constants.LOGV, TAG, "Processing event "+object.getSummary());
+
 				try {
 					AcalDateTime dtstart = object.getStartDateTime();
 					AcalDateTime dtend = object.getEndDateTime();
 
-					//set up on click intent
-					Intent startApp = new Intent(context, aCal.class);
-					PendingIntent onClickIntent = PendingIntent.getActivity(context, 0, startApp, PendingIntent.FLAG_UPDATE_CURRENT);
-						
 					//inflate row
 					RemoteViews row = new RemoteViews(context.getPackageName(), R.layout.show_upcoming_widget_base_row);
-	
 					LayoutInflater lf = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 					ShowUpcomingRowLayout rowLayout = (ShowUpcomingRowLayout)lf.inflate(R.layout.show_upcoming_widget_custom_row, null);
-	
+
 					row.setImageViewBitmap(R.id.upcoming_row_image, rowLayout.setData(
 								Collection.getInstance(object.getCollectionId(), context).getColour(),
 								object.getSummary(),
 								getNiceDateTime(context,dtstart,dtend,prefer24Hour) ));
 
-						row.setOnClickPendingIntent(R.id.upcoming_row, onClickIntent);
-						row.setOnClickPendingIntent(R.id.upcoming_row_image, onClickIntent);
-						
-						if (timeOfNextEventEnd > dtend.getMillis()) timeOfNextEventEnd = dtend.getMillis();
-						if (timeOfNextEventStart > dtstart.getMillis()) timeOfNextEventStart = dtstart.getMillis();
-						
-						//addview
-						views.addView(R.id.upcoming_container, row);
-					}
-					catch( Exception e ) {
-						Log.e(TAG,"Error getting widget datetime",e);
-					}
+					row.setOnClickPendingIntent(R.id.upcoming_row, onClickIntent);
+					row.setOnClickPendingIntent(R.id.upcoming_row_image, onClickIntent);
 					
-				}
-				if ( data.isEmpty()) {
-					RemoteViews row = new RemoteViews(context.getPackageName(), R.layout.show_upcoming_widget_base_row);
-					
-					LayoutInflater lf = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-					ShowUpcomingRowLayout rowLayout = (ShowUpcomingRowLayout)lf.inflate(R.layout.show_upcoming_widget_custom_row, null);
-
-					row.setImageViewBitmap(R.id.upcoming_row_image,
-							rowLayout.setData(Color.BLACK,context.getString(R.string.noScheduledEvents), "" ));
+					if (timeOfNextEventEnd > dtend.getMillis()) timeOfNextEventEnd = dtend.getMillis();
+					if (timeOfNextEventStart > dtstart.getMillis()) timeOfNextEventStart = dtstart.getMillis();
 					
 					//addview
 					views.addView(R.id.upcoming_container, row);
 				}
+				catch( Exception e ) {
+					Log.e(TAG,"Error getting widget datetime",e);
+				}
+				
+			}
+			if ( data.isEmpty()) {
+				//inflate row
+				RemoteViews row = new RemoteViews(context.getPackageName(), R.layout.show_upcoming_widget_base_row);
+				LayoutInflater lf = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+				ShowUpcomingRowLayout rowLayout = (ShowUpcomingRowLayout)lf.inflate(R.layout.show_upcoming_widget_custom_row, null);
+
+				row.setImageViewBitmap(R.id.upcoming_row_image,
+						rowLayout.setData(Color.BLACK,context.getString(R.string.noScheduledEvents), "" ));
+
+				row.setOnClickPendingIntent(R.id.upcoming_row, onClickIntent);
+				row.setOnClickPendingIntent(R.id.upcoming_row_image, onClickIntent);
+				
+				//addview
+				views.addView(R.id.upcoming_container, row);
+			}
 			
 			
 			//views.setOnClickPendingIntent(R.id.upcoming_container, pendingIntent);
