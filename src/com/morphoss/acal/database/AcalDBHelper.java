@@ -52,7 +52,7 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 	/**
 	 * The version of this database. Used to determine if an upgrade is required.
 	 */
-	public static final int DB_VERSION = 19;
+	public static final int DB_VERSION = 20;
 	
 
 	
@@ -132,6 +132,7 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 				+",is_writable BOOLEAN"
 				+",is_visible BOOLEAN"
 				+",sync_metadata BOOLEAN"
+				+",manually_added BOOLEAN"
 				+",UNIQUE(server_id,collection_path)"
 			+");";
 	
@@ -257,6 +258,31 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 	public static final String SET_ALARM_TABLE_DIRTY_SQL = 
 			"INSERT INTO alarm_meta (closed) VALUES(0)";
 
+	public static final String TIMEZONE_TABLE_SQL = 
+			"CREATE TABLE timezone ("
+		        +"_id INTEGER PRIMARY KEY AUTOINCREMENT"
+				+",tzid TEXT"
+				+",default_name TEXT"
+		        +",last_modified NUMERIC"
+		        +",zone_data BLOB"
+		        +", UNIQUE(tzid)"
+			+");";
+
+	public static final String TIMEZONE_NAME_TABLE_SQL = 
+			"CREATE TABLE timezone_name ("
+				+"_id INTEGER PRIMARY KEY AUTOINCREMENT"
+				+",tzid TEXT REFERENCES timezone(tzid)"
+				+",tzname TEXT"
+				+",locale TEXT"
+				+",UNIQUE(tzid,locale)"
+			+");";
+	
+	public static final String TIMEZONE_ALIAS_TABLE_SQL = 
+			"CREATE TABLE timezone_alias ("
+				+"alias TEXT PRIMARY KEY "
+				+",tzid TEXT REFERENCES timezone(tzid)"
+			+");";
+	
 	private Context	context;
 
 	/**
@@ -380,6 +406,14 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 				db.execSQL(ALARM_META_TABLE_SQL);
 				db.execSQL(SET_ALARM_TABLE_DIRTY_SQL);
 			}
+			if (oldVersion == 19) {
+				Log.i(TAG,"Updating database from version " + oldVersion);
+				oldVersion++;
+				db.execSQL(TIMEZONE_TABLE_SQL);
+				db.execSQL(TIMEZONE_NAME_TABLE_SQL);
+				db.execSQL(TIMEZONE_ALIAS_TABLE_SQL);
+				db.execSQL("ALTER TABLE dav_collection ADD COLUMN manually_added BOOLEAN");
+			}
 			
 		}
 		catch( Exception e ) {
@@ -493,6 +527,10 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 			db.execSQL(ALARM_TABLE_SQL);
 			db.execSQL(ALARM_META_TABLE_SQL);
 			db.execSQL(SET_ALARM_TABLE_DIRTY_SQL);
+
+			db.execSQL(TIMEZONE_TABLE_SQL);
+			db.execSQL(TIMEZONE_NAME_TABLE_SQL);
+			db.execSQL(TIMEZONE_ALIAS_TABLE_SQL);
 		}
 		catch( Exception e ) {
 			Log.e(TAG, "Database error creating database tables", e);
@@ -503,11 +541,18 @@ public class AcalDBHelper extends SQLiteOpenHelper {
 		Log.i(TAG,"Recovering database to version " + DB_VERSION);
 		try {
 			// Drop all the tables except the dav_server one.
+			try { db.execSQL("DROP TABLE timezone_alias"); } catch( Exception e ) {}
+			try { db.execSQL("DROP TABLE timezone_name"); } catch( Exception e ) {}
+			try { db.execSQL("DROP TABLE timezone"); } catch( Exception e ) {}
+			
 			try { db.execSQL("DROP TABLE alarm_meta"); } catch( Exception e ) {}
 			try { db.execSQL("DROP TABLE alarms"); } catch( Exception e ) {}
+			
 			try { db.execSQL("DROP TABLE event_cache_meta"); } catch( Exception e ) {}
 			try { db.execSQL("DROP TABLE event_cache"); } catch( Exception e ) {}
+			
 			try { db.execSQL("DROP TABLE show_upcoming_widget_data"); } catch( Exception e ) {}
+			
 			try { db.execSQL("DROP TABLE pending_change"); } catch( Exception e ) {}
 			try { db.execSQL("DROP TABLE dav_resource"); } catch( Exception e ) {}
 			if ( !keepCollections ) {
