@@ -330,4 +330,5 @@
 	<string name="prefAllowSelfSignedCerts_OnSummary">Allowed</string>
 	<string name="prefAllowSelfSignedCerts_OffSummary">Rejected</string>
 	<string name="SslCertificateError">There was a problem validating the SSL certificate.</string>
+	<string name="prefTzServerBaseUrl_Title">Timezone Server URL</string>
 </resources>

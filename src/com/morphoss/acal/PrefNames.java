@@ -9,5 +9,6 @@ public class PrefNames {
 	public static final String	approvedCertificates	= AcalApplication.getResourceString(R.string.prefApprovedCertificates);
 	public static final String	unapprovedCertificates	= AcalApplication.getResourceString(R.string.prefUnapprovedCertificates); 
 	public static final String	allowSelfSignedCerts	= AcalApplication.getResourceString(R.string.prefAllowSelfSignedCerts);
+	public static final String	tzServerBaseUrl			= AcalApplication.getResourceString(R.string.prefTzServerBaseUrl);
 
 }

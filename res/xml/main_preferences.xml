@@ -34,16 +34,13 @@
 			android:summary="@string/theDayEachWeekStartsWith"
 			android:title="@string/firstDayOfWeek" >
 		</ListPreference>
-		<ListPreference
-			android:defaultValue="6"
+		<EditTextPreference
+			android:defaultValue="@string/davicalOrgTzUrl"
 			android:enabled="true"
-			android:entries="@array/YearViewSize_PrefEntries"
-			android:entryValues="@array/YearViewSize_PrefEntries"
-			android:key="@string/YearViewSize_PrefKey"
+			android:key="@string/prefTzServerBaseUrl"
 			android:selectable="true"
-			android:summary="@string/YearViewSize_PrefSummary"
-			android:title="@string/YearViewSize_PrefTitle" >
-		</ListPreference>
+			android:summary="@string/davicalOrgTzUrl"
+			android:title="@string/prefTzServerBaseUrl_Title" />
 	</PreferenceScreen>
 	<PreferenceScreen android:title="@string/AlarmPreferences" >
 		<EditTextPreference
@@ -104,6 +101,15 @@
 			android:title="@string/prefWeekViewDayWidth_Title" />
 	</PreferenceScreen>
 	<PreferenceScreen android:title="@string/AppearancePreferences" >
+		<ListPreference
+			android:defaultValue="6"
+			android:enabled="true"
+			android:entries="@array/YearViewSize_PrefEntries"
+			android:entryValues="@array/YearViewSize_PrefEntries"
+			android:key="@string/YearViewSize_PrefKey"
+			android:selectable="true"
+			android:summary="@string/YearViewSize_PrefSummary"
+			android:title="@string/YearViewSize_PrefTitle" />
 		<com.morphoss.acal.activity.ColourPickerPreference
 			android:defaultValue="-53216"
 			android:enabled="true"
