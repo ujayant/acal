@@ -23,10 +23,12 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.IBinder;
 import android.os.Process;
 import android.os.RemoteException;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.morphoss.acal.Constants;
@@ -48,6 +50,8 @@ public class aCalService extends Service {
 	private ResourceManager rm;
 	private CacheManager cm;
 	private AlarmQueueManager am;
+	
+	private static SharedPreferences prefs = null;
 
 	//TODO remove this line
 	public static Context context;
@@ -82,8 +86,10 @@ public class aCalService extends Service {
 		worker.addJobAndWake(new SyncChangesToServer());
 
 		// Start sync running for all active collections
-		SynchronisationJobs.startCollectionSync(worker, this, 5000L);
+		SynchronisationJobs.startCollectionSync(worker, this, 35000L);
 
+		// Start periodic syncing of timezone data
+		worker.addJobAndWake(new UpdateTimezones(15000L));
 	}
 
 	
@@ -122,8 +128,7 @@ public class aCalService extends Service {
 			worker.addJobAndWake(job);
 
 			// Start sync running for all active collections
-			SynchronisationJobs.startCollectionSync(worker, this, 30000L);
-			
+			SynchronisationJobs.startCollectionSync(worker, this, 25000L);
 		}
 	}
 
@@ -176,6 +181,13 @@ public class aCalService extends Service {
 		}
 	}
 
+	public String getPreferenceString(String key, String defValue) {
+    	if ( prefs == null ) 
+    		prefs = PreferenceManager.getDefaultSharedPreferences(this);
+    	return prefs.getString(key, defValue);
+	}
+
+	
 	private class ServiceRequestHandler extends ServiceRequest.Stub {
 
 		@Override
