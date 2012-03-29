@@ -19,33 +19,48 @@
 package com.morphoss.acal.activity;
 
 import android.content.ContentValues;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.database.Cursor;
 import android.media.RingtoneManager;
 import android.os.Bundle;
+import android.preference.EditTextPreference;
 import android.preference.ListPreference;
+import android.preference.Preference;
 import android.preference.PreferenceActivity;
+import android.preference.PreferenceCategory;
+import android.preference.PreferenceScreen;
 import android.provider.MediaStore;
 import android.util.Log;
 
+import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.providers.DavCollections;
 
-public class AcalPreferences extends PreferenceActivity {
+public class AcalPreferences extends PreferenceActivity implements OnSharedPreferenceChangeListener {
 
 	public static final String TAG = "AcalPreferences";
 
 	@Override 
-	public void onCreate(Bundle savedInstanceState) { 
-	     try {
-		     super.onCreate(savedInstanceState); 
-		     addPreferencesFromResource(R.xml.main_preferences);
-		     this.addDefaultCollectionPreference();
-		     this.addDefaultAlarmTonePreference();
-	     }
-	     catch( Exception e ) {
-	    	 Log.d(TAG,Log.getStackTraceString(e));
-	     }
-	 }
+	public void onCreate(Bundle savedInstanceState) {
+		try {
+			super.onCreate(savedInstanceState);
+			addPreferencesFromResource(R.xml.main_preferences);
+
+			Log.println(Constants.LOGD, TAG, "Showing preference activity with "
+					+ getPreferenceScreen().getPreferenceCount() + " preferences.");
+
+			this.addDefaultCollectionPreference();
+			this.addDefaultAlarmTonePreference();
+
+			for (int i = 0; i < getPreferenceScreen().getPreferenceCount(); i++) {
+				initSummary(getPreferenceScreen().getPreference(i));
+			}
+		}
+		catch ( Exception e ) {
+			Log.d(TAG, Log.getStackTraceString(e));
+		}
+	}
 
 	/**
 	 * This is a good example of how to programatically alter a preference.
@@ -113,6 +128,52 @@ public class AcalPreferences extends PreferenceActivity {
 	@Override
 	public void onResume() {
 		super.onResume();
+
+		// Set up a listener whenever a key changes
+		getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
+	}
+
+	@Override
+	public void onPause() {
+		getPreferenceScreen().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
+		super.onPause();
+	}
+
+	@Override
+	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+		updatePrefSummary(findPreference(key));
+	}
+
+	private void initSummary(Preference p) {
+		if ( p instanceof PreferenceCategory ) {
+			PreferenceCategory pCat = (PreferenceCategory) p;
+			for (int i = 0; i < pCat.getPreferenceCount(); i++) {
+				initSummary(pCat.getPreference(i));
+			}
+		}
+		else if ( p instanceof PreferenceScreen ) {
+			PreferenceScreen pScreen = (PreferenceScreen) p;
+			for (int i = 0; i < pScreen.getPreferenceCount(); i++) {
+				initSummary(pScreen.getPreference(i));
+			}
+		}
+		else {
+			updatePrefSummary(p);
+		}
+	}
+
+	private void updatePrefSummary(Preference p) {
+		if ( p instanceof ListPreference ) {
+			ListPreference listPref = (ListPreference) p;
+			p.setSummary(listPref.getEntry());
+			Log.println(Constants.LOGD, TAG, "Setting summary for list preference to '" + listPref.getEntry() + "'");
+		}
+		else if ( p instanceof EditTextPreference ) {
+			EditTextPreference editTextPref = (EditTextPreference) p;
+			p.setSummary(editTextPref.getText());
+			Log.println(Constants.LOGD, TAG, "Setting summary for list preference to '" + editTextPref.getText() + "'");
+		}
+
 	}
 	
 }
