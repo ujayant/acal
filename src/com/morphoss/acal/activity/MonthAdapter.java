@@ -273,8 +273,6 @@ public class MonthAdapter extends BaseAdapter implements CacheChangedListener, C
 			}
 			else {
 				mDayBox = (MonthDayBox) v.findViewById(R.id.DayBoxInMonth);
-				List<CacheObject> events = eventsByDay.get(mDay);
-				mDayBox.setEvents(events);
 				textScaleFactor = 0.55f;
 			}
 			if ( Constants.LOG_VERBOSE && Constants.debugMonthView ) {
