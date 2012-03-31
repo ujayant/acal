@@ -156,10 +156,9 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 
 	/* Fields Relating to Gesture Detection */
 	private GestureDetector gestureDetector;
-	private double consumedX;
-	private double consumedY;
+	private long consumedTime;
 	private static final int maxAngleDev = 30;
-	private static final int minDistance = 60;
+	private static final int minDistanceSquared = 3600;
 
 	/* Fields relating to Intent Results */
 	public static final int PICK_MONTH_FROM_YEAR_VIEW = 0;
@@ -889,8 +888,7 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 			double startY = start.getRawY();
 			double distX = current.getRawX() - startX;
 			double distY = current.getRawY() - startY;
-			double totalDist = Math.sqrt(Math.pow(distX, 2)
-					+ Math.pow(distY, 2));
+			double totalDistSq = distX*distX+distY*distY; // Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2));
 			double angle = 180 + ((Math.atan2(distY, distX)) * (180.0 / Math.PI));
 			Object scrolledOn = getTouchedObject(startX, startY);
 			boolean isHorizontal = false;
@@ -909,14 +907,10 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 						+ distY + "), " + "angle is" + angle);
 
 			// Some conditions that work out if we are interested in this event.
-			if ((consumedX == startX && consumedY == startY) || // We've already
-																// consumed the
-																// event
-					(totalDist < minDistance) || // Not a long enough swipe
-					(scrolledOn == null) || // Nothing underneath touch of
-											// interest
-					(!isHorizontal && !isVertical) // Direction is not of
-													// intrest
+			if (    (consumedTime == start.getDownTime()) || // We've already consumed the event
+					(totalDistSq < minDistanceSquared) || // Not a long enough swipe
+					(scrolledOn == null) || // Nothing underneath touch of interest
+					(!isHorizontal && !isVertical) // Direction is not of intrest
 			) {
 				if (Constants.debugMonthView && Constants.LOG_DEBUG)Log.d(TAG, "onScroll ignored.");
 				return false;
@@ -932,8 +926,7 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 						swipe(monthGrid, false);
 					else
 						swipe(monthGrid, true);
-					consumedX = startX;
-					consumedY = startY;
+					consumedTime = start.getDownTime();
 					return true;
 				} else if (isVertical) {
 					return false;
@@ -945,8 +938,7 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 						swipe(eventList, false);
 					else
 						swipe(eventList, true);
-					consumedX = startX;
-					consumedY = startY;
+					consumedTime = start.getDownTime();;
 					if (Constants.debugMonthView && Constants.LOG_DEBUG) Log.d(TAG,
 								"Scroll took ."
 										+ (System.currentTimeMillis() - startFlip)
