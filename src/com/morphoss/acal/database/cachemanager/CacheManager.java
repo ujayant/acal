@@ -683,9 +683,9 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 			
 			String whereClause = 				
 			"( " + 
-				"( "+CacheTableManager.FIELD_DTEND+" >= "+dtStart+" AND NOT "+CacheTableManager.FIELD_DTEND_FLOAT+" )"+
+				"( "+CacheTableManager.FIELD_DTEND+" > "+dtStart+" AND NOT "+CacheTableManager.FIELD_DTEND_FLOAT+" )"+
 					" OR "+
-				"( "+CacheTableManager.FIELD_DTEND+" - "+offsetS+" >= "+dtStart+" AND "+CacheTableManager.FIELD_DTEND_FLOAT+" )"+
+				"( "+CacheTableManager.FIELD_DTEND+" - "+offsetS+" > "+dtStart+" AND "+CacheTableManager.FIELD_DTEND_FLOAT+" )"+
 					" OR "+
 				"( "+CacheTableManager.FIELD_DTEND+" ISNULL )"+
 			" ) AND ( "+
