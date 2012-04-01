@@ -11,4 +11,5 @@ public class PrefNames {
 	public static final String	allowSelfSignedCerts	= AcalApplication.getResourceString(R.string.prefAllowSelfSignedCerts);
 	public static final String	tzServerBaseUrl			= AcalApplication.getResourceString(R.string.prefTzServerBaseUrl);
 
+	public static final String	ignoreValarmDescription = AcalApplication.getResourceString(R.string.prefIgnoreValarmDescription);
 }

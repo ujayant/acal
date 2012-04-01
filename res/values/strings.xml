@@ -331,4 +331,7 @@
 	<string name="prefAllowSelfSignedCerts_OffSummary">Rejected</string>
 	<string name="SslCertificateError">There was a problem validating the SSL certificate.</string>
 	<string name="prefTzServerBaseUrl_Title">Timezone Server URL</string>
+	<string name="prefIgnoreValarmDescription_PrefTitle">Ignore VALARM Description</string>
+	<string name="prefIgnoreValarmDescription_OnSummary">Use the VEVENT/VTODO summary in alarms</string>
+	<string name="prefIgnoreValarmDescription_OffSummary">Use the VALARM description in alarms</string>
 </resources>

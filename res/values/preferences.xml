@@ -22,4 +22,5 @@
 	<string name="prefUnapprovedCertificates">UnapprovedCertificates</string>
 	<string name="prefAllowSelfSignedCerts">AllowSelfSignedCerts</string>
 	<string name="prefTzServerBaseUrl">TzServerBaseUrl</string>
+	<string name="prefIgnoreValarmDescription">IgnoreValarmDescription</string>
 </resources>

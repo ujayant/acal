@@ -24,7 +24,9 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
 
+import com.morphoss.acal.AcalApplication;
 import com.morphoss.acal.Constants;
+import com.morphoss.acal.PrefNames;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDuration;
 import com.morphoss.acal.dataservice.EventInstance;
@@ -172,7 +174,8 @@ public class AcalAlarm implements Serializable, Parcelable, Comparable<AcalAlarm
 				timeToFire = AcalDateTime.addDuration(end, relativeTime);
 		}
 
-		aProperty = component.getProperty("DESCRIPTION");
+		if ( AcalApplication.getPreferenceBoolean(PrefNames.ignoreValarmDescription, false) )
+			aProperty = component.getProperty("DESCRIPTION");
 		if ( aProperty == null || aProperty.getValue().equals("") || aProperty.getValue().equalsIgnoreCase("Default Mozilla Description") ) {
 			aProperty = parent.getProperty("SUMMARY");
 		}

@@ -43,6 +43,11 @@
 			android:title="@string/prefTzServerBaseUrl_Title" />
 	</PreferenceScreen>
 	<PreferenceScreen android:title="@string/AlarmPreferences" >
+		<CheckBoxPreference
+			android:key="@string/prefIgnoreValarmDescription"
+			android:summaryOff="@string/prefIgnoreValarmDescription_OffSummary"
+			android:summaryOn="@string/prefIgnoreValarmDescription_OnSummary"
+			android:title="@string/prefIgnoreValarmDescription_PrefTitle" />
 		<EditTextPreference
 			android:defaultValue="10"
 			android:enabled="true"
