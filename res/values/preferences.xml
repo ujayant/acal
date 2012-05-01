@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<string name="prefDefaultCalendar">prefDefaultCalendar</string>
 	<string name="prefDefaultView">prefDefaultView</string>
 	<string name="prefTwelveTwentyfour">prefTwelveTwentyfour</string>
 	<string name="YearViewSize_PrefKey">YearViewNumMonths</string>
 	<string name="prefSnoozeDuration">SnoozeTime</string>
-	<string name="DefaultCollection_PrefKey">DefaultCollection</string>
 	<string name="DefaultAlarmTone_PrefKey">DefaultAlarmTone</string>
 	<string name="AlarmVolumeType_PrefKey">AlarmVolumeType</string>
 	<string name="prefWorkdayStart">prefWorkdayStart</string>
@@ -23,4 +21,7 @@
 	<string name="prefAllowSelfSignedCerts">AllowSelfSignedCerts</string>
 	<string name="prefTzServerBaseUrl">TzServerBaseUrl</string>
 	<string name="prefIgnoreValarmDescription">IgnoreValarmDescription</string>
+	<string name="prefDefaultEventsCollection">DefaultEventsCollection</string>
+	<string name="prefDefaultTasksCollection">DefaultTasksCollection</string>
+	<string name="prefDefaultNotesCollection">DefaultNotesCollection</string>
 </resources>

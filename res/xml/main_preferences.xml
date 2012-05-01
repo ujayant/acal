@@ -19,11 +19,22 @@
 		<!-- This Preference is dynamically populated in AcalPreferences.java -->
 		<ListPreference
 			android:enabled="false"
-			android:key="@string/DefaultCollection_PrefKey"
+			android:key="@string/prefDefaultEventsCollection"
 			android:selectable="false"
-			android:summary="@string/DefaultCollection_PrefSummary"
-			android:title="@string/DefaultCollection_PrefTitle" >
-		</ListPreference>
+			android:summary="@string/prefDefaultEventsCollection_Summary"
+			android:title="@string/prefDefaultEventsCollection_Title" />
+		<ListPreference
+			android:enabled="false"
+			android:key="@string/prefDefaultTasksCollection"
+			android:selectable="false"
+			android:summary="@string/prefDefaultTasksCollection_Summary"
+			android:title="@string/prefDefaultTasksCollection_Title" />
+		<ListPreference
+			android:enabled="false"
+			android:key="@string/prefDefaultNotesCollection"
+			android:selectable="false"
+			android:summary="@string/prefDefaultNotesCollection_Summary"
+			android:title="@string/prefDefaultNotesCollection_Title" />
 		<ListPreference
 			android:defaultValue="@string/Monday"
 			android:enabled="true"

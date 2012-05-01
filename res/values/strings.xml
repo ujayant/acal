@@ -125,8 +125,12 @@
 	<string name="YearViewSize_PrefSummary">The number of months that are visible in the year view</string>
 	<string name="Snooze_PrefTitle">Snooze Time</string>
 	<string name="Snooze_PrefSummary">How many minutes to snooze alarms when the snooze button is pressed</string>
-	<string name="DefaultCollection_PrefTitle">Default Collection</string>
-	<string name="DefaultCollection_PrefSummary">The default collection to use for new events</string>
+	<string name="prefDefaultEventsCollection_Title">Default Event Calendar</string>
+	<string name="prefDefaultEventsCollection_Summary">The default collection for new events</string>
+	<string name="prefDefaultTasksCollection_Title">Default Task Calendar</string>
+	<string name="prefDefaultTasksCollection_Summary">The default collection for new tasks</string>
+	<string name="prefDefaultNotesCollection_Title">Default Note Calendar</string>
+	<string name="prefDefaultNotesCollection_Summary">The default collection for new journal notes</string>
 	<string name="DefaultAlarmTone_PrefTitle">Default Alarm Tone</string>
 	<string name="DefaultAlarmTone_PrefSummary">The default sound to use for alarms.</string>
 	<string name="AlarmVolumeType_PrefTitle">Setting for Alarm Volume</string>

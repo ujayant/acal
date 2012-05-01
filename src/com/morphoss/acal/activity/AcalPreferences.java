@@ -29,11 +29,13 @@ import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceCategory;
+import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
 import android.provider.MediaStore;
 import android.util.Log;
 
 import com.morphoss.acal.Constants;
+import com.morphoss.acal.PrefNames;
 import com.morphoss.acal.R;
 import com.morphoss.acal.providers.DavCollections;
 
@@ -50,8 +52,11 @@ public class AcalPreferences extends PreferenceActivity implements OnSharedPrefe
 			Log.println(Constants.LOGD, TAG, "Showing preference activity with "
 					+ getPreferenceScreen().getPreferenceCount() + " preferences.");
 
-			this.addDefaultCollectionPreference();
-			this.addDefaultAlarmTonePreference();
+		    PreferenceManager pm = this.getPreferenceScreen().getPreferenceManager();
+			this.addDefaultCollectionPreference((ListPreference)pm.findPreference(PrefNames.defaultEventsCollection), DavCollections.INCLUDE_EVENTS );
+			this.addDefaultCollectionPreference((ListPreference)pm.findPreference(PrefNames.defaultTasksCollection), DavCollections.INCLUDE_TASKS );
+			this.addDefaultCollectionPreference((ListPreference)pm.findPreference(PrefNames.defaultNotesCollection), DavCollections.INCLUDE_JOURNAL );
+			this.addDefaultAlarmTonePreference(pm);
 
 			for (int i = 0; i < getPreferenceScreen().getPreferenceCount(); i++) {
 				initSummary(getPreferenceScreen().getPreference(i));
@@ -66,11 +71,9 @@ public class AcalPreferences extends PreferenceActivity implements OnSharedPrefe
 	 * This is a good example of how to programatically alter a preference.
 	 * All preferences should be at least partly defined in the XML.
 	 */
-	private void addDefaultCollectionPreference() {
-		ContentValues[] collections = DavCollections.getCollections(getContentResolver(),
-																DavCollections.INCLUDE_EVENTS);
+	private void addDefaultCollectionPreference( ListPreference defaultCollection, short includeWhich ) {
+		ContentValues[] collections = DavCollections.getCollections(getContentResolver(), includeWhich );
 		if ( collections.length == 0 ) return;
-	    ListPreference defaultCollection = (ListPreference)this.getPreferenceScreen().getPreferenceManager().findPreference(getString(R.string.DefaultCollection_PrefKey));
 	     
     	//auth
 		String names[] = new String[collections.length];
@@ -89,10 +92,10 @@ public class AcalPreferences extends PreferenceActivity implements OnSharedPrefe
 
 	
 	//Alarm Tones
-	private void addDefaultAlarmTonePreference() {
+	private void addDefaultAlarmTonePreference(PreferenceManager pm) {
 		//List<ContentValues> alarmTones = getSelectableAlarmTones();
 		//if (alarmTones == null || alarmTones.isEmpty()) return;
-	    ListPreference defaultAlarm = (ListPreference)this.getPreferenceScreen().getPreferenceManager().findPreference(getString(R.string.DefaultAlarmTone_PrefKey));
+	    ListPreference defaultAlarm = (ListPreference)pm.findPreference(getString(R.string.DefaultAlarmTone_PrefKey));
 	    RingtoneManager rm = new RingtoneManager(this);
 		Cursor cursor = rm.getCursor();
 		int count = cursor.getCount();

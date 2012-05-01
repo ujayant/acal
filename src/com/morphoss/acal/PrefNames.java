@@ -12,4 +12,8 @@ public class PrefNames {
 	public static final String	tzServerBaseUrl			= AcalApplication.getResourceString(R.string.prefTzServerBaseUrl);
 
 	public static final String	ignoreValarmDescription = AcalApplication.getResourceString(R.string.prefIgnoreValarmDescription);
+
+	public static final String	defaultEventsCollection	= AcalApplication.getResourceString(R.string.prefDefaultEventsCollection);
+	public static final String	defaultTasksCollection	= AcalApplication.getResourceString(R.string.prefDefaultTasksCollection);
+	public static final String	defaultNotesCollection	= AcalApplication.getResourceString(R.string.prefDefaultNotesCollection);
 }
