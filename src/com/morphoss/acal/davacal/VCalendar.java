@@ -117,7 +117,10 @@ public class VCalendar extends VComponent implements Cloneable {
 
 		vEvent.addProperty(AcalProperty.fromString(lastModified.toPropertyString(PropertyName.DTSTAMP)));
 		vEvent.addProperty(AcalProperty.fromString(lastModified.toPropertyString(PropertyName.LAST_MODIFIED)));
-			
+
+		if ( collectionId != event.getCollectionId() )
+			throw new InvalidCalendarActionException("Cannot modify event collection on edit (from: "+event.getCollectionId()+" to: "+collectionId+")");
+
 		switch (action) {
 			case EventEdit.ACTION_EDIT:	  return doEdit(event, instances);
 			case EventEdit.ACTION_DELETE: return doDelete(event, instances);
