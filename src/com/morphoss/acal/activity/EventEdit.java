@@ -50,6 +50,7 @@ import android.widget.Toast;
 
 import com.morphoss.acal.AcalTheme;
 import com.morphoss.acal.Constants;
+import com.morphoss.acal.PrefNames;
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDateTimeFormatter;
@@ -185,6 +186,30 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 					loadingDialog.dismiss();
 					loadingDialog = null;
 				}
+				if ( action == ACTION_COPY ) {
+					action = ACTION_CREATE;
+					try {
+						String location = event.getLocation();
+						String description = event.getDescription();
+						ArrayList<AcalAlarm> alarms = event.getAlarms();
+						// build default event
+						event = new EVENT_BUILDER()
+								.setStart(event.getStart())
+								.setDuration(event.getDuration())
+								.setSummary(event.getSummary())
+								.setCollection(event.getCollectionId())
+								.build();
+						event.setAlarms(alarms);
+						event.setLocation(location);
+						event.setDescription(description);
+
+					}
+					catch ( BadlyConstructedEventException e ) {
+						Log.e(TAG, "Error creating a new event: " + e + Log.getStackTraceString(e));
+						finish();
+						return;
+					}
+				}
 				updateLayout();
 				break;
 
@@ -311,78 +336,74 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 			action = ACTION_CREATE;
 		}
 
-		switch (action) {
-		case ACTION_EDIT:
+		switch ( action ) {
+			case ACTION_COPY:
+			case ACTION_EDIT:
 
-			//show loading screen.
-			mHandler.sendMessageDelayed(mHandler.obtainMessage(SHOW_LOADING), 50);
+				// show loading screen.
+				mHandler.sendMessageDelayed(mHandler.obtainMessage(SHOW_LOADING), 50);
 
-			//We need to load the event - we must be given rid about the event to be edited.
-			if (!b.containsKey(RESOURCE_ID_KEY)) {
-				//invalid data supplied
-				this.finish();
-				return;
-			}
-			long rid = b.getLong(RESOURCE_ID_KEY);
-			String rrid = null;
-			//get the recurrenceId if there is one
-			if (b.containsKey(RECCURENCE_ID_KEY)) {
-				//get master
-				rrid = b.getString(RECCURENCE_ID_KEY);
-			}	
-
-			//request data
-			resourceManager.sendRequest(new RRRequestInstance(this, rid, rrid));
-			mHandler.sendMessageDelayed(mHandler.obtainMessage(GIVE_UP), 10000);
-
-			break;
-
-		case ACTION_CREATE:
-			AcalDateTime start;
-			if (b.containsKey(NEW_EVENT_DATE_TIME_KEY))
-				start = b.getParcelable(NEW_EVENT_DATE_TIME_KEY);
-			else {
-				//start at beggining of next hour
-				start = new AcalDateTime()
-				.setTimeZone(TimeZone.getDefault().getID())
-				.setHour(new AcalDateTime().getHour())
-				.setSecond(0)
-				.setMinute(0)
-				.addSeconds(AcalDateTime.SECONDS_IN_HOUR);
-			}
-
-			AcalDuration eventDuration = ( start.isDate() ) ?  new AcalDuration("PT1D") : new AcalDuration("PT1H");
-			AcalDuration alarmDuration = ( start.isDate() ) ?  new AcalDuration("-PT12H") : new AcalDuration("-PT15M"); 
-
-			AcalAlarm defaultAlarm = new AcalAlarm( AcalAlarm.RelateWith.START, "", alarmDuration,
-					ActionType.AUDIO, start, AcalDateTime.addDuration(start, eventDuration));
-
-			long collectionId = activeCollections.get(0).getCollectionId();
-			Integer preferredCollectionId = Integer.parseInt(prefs.getString(getString(R.string.DefaultCollection_PrefKey), "-1"));
-			if ( preferredCollectionId != -1 ) {
-				for( Collection aCollection : activeCollections ) {
-					if ( preferredCollectionId == aCollection.getCollectionId()) {
-						collectionId = preferredCollectionId;
-						break;
-					}
+				// We need to load the event - we must be given rid about the
+				// event to be edited.
+				if ( !b.containsKey(RESOURCE_ID_KEY) ) {
+					// invalid data supplied
+					this.finish();
+					return;
 				}
-			}
+				long rid = b.getLong(RESOURCE_ID_KEY);
+				String rrid = null;
+				// get the recurrenceId if there is one
+				if ( b.containsKey(RECCURENCE_ID_KEY) ) {
+					// get master
+					rrid = b.getString(RECCURENCE_ID_KEY);
+				}
 
-			try {
-				//build default event
-				this.event = new EVENT_BUILDER()
-				.setStart(start)
-				.setDuration(eventDuration)
-				.setSummary(getString(R.string.NewEventTitle))
-				.setCollection(collectionId)
-				.addAlarm(defaultAlarm)
-				.build();
-			} catch (BadlyConstructedEventException e) {
-				Log.e(TAG, "Error creating a new event: "+e+Log.getStackTraceString(e));
-				this.finish();
-				return;
-			}
-			break;
+				// request data
+				resourceManager.sendRequest(new RRRequestInstance(this, rid, rrid));
+				mHandler.sendMessageDelayed(mHandler.obtainMessage(GIVE_UP), 10000);
+
+				break;
+
+			case ACTION_CREATE:
+				AcalDateTime start;
+				if ( b.containsKey(NEW_EVENT_DATE_TIME_KEY) ) start = b.getParcelable(NEW_EVENT_DATE_TIME_KEY);
+				else {
+					// start at beggining of next hour
+					start = new AcalDateTime().setTimeZone(TimeZone.getDefault().getID())
+							.setHour(new AcalDateTime().getHour()).setSecond(0).setMinute(0)
+							.addSeconds(AcalDateTime.SECONDS_IN_HOUR);
+				}
+
+				AcalDuration eventDuration = (start.isDate()) ? new AcalDuration("PT1D") : new AcalDuration("PT1H");
+				AcalDuration alarmDuration = (start.isDate()) ? new AcalDuration("-PT12H") : new AcalDuration("-PT15M");
+
+				AcalAlarm defaultAlarm = new AcalAlarm(AcalAlarm.RelateWith.START, "", alarmDuration, ActionType.AUDIO,
+						start, AcalDateTime.addDuration(start, eventDuration));
+
+				long collectionId = activeCollections.get(0).getCollectionId();
+				long preferredCollectionId = activeCollections.get(0).getCollectionId();
+				try {
+					preferredCollectionId = Long.parseLong(prefs.getString(PrefNames.defaultEventsCollection, "-1"));
+				}
+				catch ( Exception e ) {}
+				if ( preferredCollectionId != -1 && Collection.getInstance(preferredCollectionId, this) != null ) collectionId = preferredCollectionId;
+
+				try {
+					// build default event
+					this.event = new EVENT_BUILDER()
+							.setStart(start)
+							.setDuration(eventDuration)
+							.setSummary(getString(R.string.NewEventTitle))
+							.setCollection(collectionId)
+							.addAlarm(defaultAlarm)
+							.build();
+				}
+				catch ( BadlyConstructedEventException e ) {
+					Log.e(TAG, "Error creating a new event: " + e + Log.getStackTraceString(e));
+					this.finish();
+					return;
+				}
+				break;
 		}
 	}
 
@@ -476,6 +497,7 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 			btnSelectCollection.setText(collection.getDisplayName());
 			AcalTheme.setContainerColour(btnSelectCollection, colour);
 			btnSelectCollection.setTextColor(AcalTheme.pickForegroundForBackground(colour));
+			btnSelectCollection.setEnabled(action != ACTION_EDIT);
 		}
 		//Log.d(TAG,"Start date is "+(start.isFloating()?"":"not ")+"floating in updateLayout...");
 
