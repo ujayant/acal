@@ -4,11 +4,12 @@
 	android:layout_width="fill_parent"
 	android:layout_height="fill_parent"
 	android:background="@drawable/morphossbg"
+	android:baselineAligned="false"
 	android:orientation="vertical" >
 	<LinearLayout
 		android:id="@+id/EventEditBelowTitleLayout"
 		android:layout_width="fill_parent"
-		android:layout_height="fill_parent"
+		android:layout_height="0dip"
 		android:layout_weight="1"
 		android:orientation="horizontal" >
 		<!-- Colour bar -->
@@ -19,14 +20,12 @@
 			android:background="#704080f0" />
 		<ScrollView
 			android:layout_width="fill_parent"
-			android:layout_height="wrap_content"
-			android:layout_weight="1"
+			android:layout_height="fill_parent"
 			android:fillViewport="true" >
 			<RelativeLayout
 				android:id="@+id/EventEditDataLayout"
 				android:layout_width="fill_parent"
-				android:layout_height="fill_parent"
-				android:layout_weight="1"
+				android:layout_height="wrap_content"
 				android:orientation="vertical" >
 				<!-- Event Name -->
 				<EditText
@@ -59,7 +58,7 @@
 							android:gravity="center_vertical"
 							android:text="@string/FromPrompt" />
 						<LinearLayout
-							android:layout_width="fill_parent"
+							android:layout_width="0dip"
 							android:layout_height="wrap_content"
 							android:layout_marginRight="5sp"
 							android:layout_weight="3"
@@ -70,7 +69,7 @@
 								android:layout_width="fill_parent"
 								android:layout_height="wrap_content"
 								android:minHeight="30sp"
-								android:text="7:00pm, 29 October 2011" />
+								android:text="@string/placeholderDateAndTime" />
 						</LinearLayout>
 					</LinearLayout>
 					<!-- Until Content -->
@@ -88,7 +87,7 @@
 							android:layout_height="wrap_content"
 							android:text="@string/UntilPrompt" />
 						<LinearLayout
-							android:layout_width="fill_parent"
+							android:layout_width="0dip"
 							android:layout_height="wrap_content"
 							android:layout_marginRight="5sp"
 							android:layout_weight="3"
@@ -98,9 +97,8 @@
 								style="@style/themed_button_big"
 								android:layout_width="fill_parent"
 								android:layout_height="wrap_content"
-								android:layout_below="@+id/EventFromContent"
 								android:minHeight="30sp"
-								android:text="2009-12-23" />
+								android:text="@string/placeholderDateAndTime" />
 						</LinearLayout>
 					</LinearLayout>
 				</RelativeLayout>
@@ -133,7 +131,6 @@
 					android:layout_width="fill_parent"
 					android:layout_height="wrap_content"
 					android:layout_below="@+id/EventFromToLayout"
-					android:layout_weight="1"
 					android:paddingBottom="2sp"
 					android:paddingTop="40sp" >
 					<!-- Notes label and content -->
@@ -149,7 +146,6 @@
 						android:layout_width="fill_parent"
 						android:layout_height="wrap_content"
 						android:layout_below="@+id/EventNotesLabel"
-						android:layout_weight="1"
 						android:gravity="top"
 						android:inputType="textCapSentences|textAutoCorrect|textMultiLine"
 						android:minLines="4" />
@@ -180,17 +176,18 @@
 					<TableLayout
 						android:id="@+id/alarms_list_table"
 						android:layout_width="fill_parent"
-						android:layout_height="fill_parent"
+						android:layout_height="wrap_content"
 						android:layout_below="@+id/EventAlarmsTopLayout" >
 					</TableLayout>
 				</RelativeLayout>
-				<LinearLayout
+				<!-- Repetition Setting Button -->
+				<RelativeLayout
 					android:id="@+id/EventRepeatsLayout"
 					android:layout_width="fill_parent"
 					android:layout_height="wrap_content"
 					android:layout_below="@+id/EventAlarmsLayout"
 					android:paddingBottom="10sp" >
-					<!-- Repeats label and content -->
+					<!-- Contained LinearLayout is needed to separate from paddingBottom -->
 					<LinearLayout
 						android:layout_width="fill_parent"
 						android:layout_height="wrap_content"
@@ -206,7 +203,7 @@
 							android:minHeight="24sp"
 							android:text="@string/setRepeatRule" />
 					</LinearLayout>
-				</LinearLayout>
+				</RelativeLayout>
 				<!-- Collection Selection Button -->
 				<LinearLayout
 					android:id="@+id/EventEditCollectionLayout"
@@ -223,7 +220,7 @@
 						style="@style/themed_button_big"
 						android:layout_width="fill_parent"
 						android:layout_height="wrap_content"
-						android:text="Select Calendar" />
+						android:text="@string/A_name_for_this_collection" />
 				</LinearLayout>
 			</RelativeLayout>
 		</ScrollView>
@@ -233,7 +230,8 @@
 		android:layout_width="fill_parent"
 		android:layout_height="36sp"
 		android:layout_gravity="bottom"
-		android:background="@color/bottom_bg" >
+		android:background="@color/bottom_bg"
+		android:baselineAligned="false" >
 		<!-- Colour bar -->
 		<LinearLayout
 			android:id="@+id/EventEditColourBarBottom"
