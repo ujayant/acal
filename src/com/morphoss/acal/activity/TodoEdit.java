@@ -55,6 +55,7 @@ import android.widget.Toast;
 
 import com.morphoss.acal.AcalTheme;
 import com.morphoss.acal.Constants;
+import com.morphoss.acal.PrefNames;
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDateTimeFormatter;
@@ -346,8 +347,12 @@ public class TodoEdit extends AcalActivity
 		}
 
 		if ( currentOperation == ACTION_CREATE ) {
-			long preferredCollectionId = prefs.getLong(getString(R.string.DefaultCollection_PrefKey), -1);
-			if ( Collection.getInstance(preferredCollectionId, this) == null )
+			long preferredCollectionId = -1;
+			try {
+				preferredCollectionId = Long.parseLong(prefs.getString(PrefNames.defaultTasksCollection, "-1"));
+			}
+			catch( Exception e ) {}
+			if ( preferredCollectionId == -1 || Collection.getInstance(preferredCollectionId, this) == null )
 				preferredCollectionId = collectionsArray[0].getCollectionId();
 
 			currentCollection = Collection.getInstance(preferredCollectionId, this);
