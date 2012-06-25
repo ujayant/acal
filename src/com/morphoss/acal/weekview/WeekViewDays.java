@@ -324,7 +324,13 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 		int workBot = (context.WORK_FINISH_SECONDS- topSec) / WeekViewActivity.SECONDS_PER_PIXEL;
 		if ( workTop < PxH ) workTop = PxH;
 
-		dayGrid = Bitmap.createBitmap(dayGrid, 0, offset, dayGrid.getWidth(), PxD);
+		try {
+			dayGrid = Bitmap.createBitmap(dayGrid, 0, offset, dayGrid.getWidth(), PxD);
+		}
+		catch( Exception e ) {
+			Log.e(TAG,"Failed to createBitmap for dayGrid: offset="+offset+", width="+dayGrid.getWidth()+", PxH="+PxH+", PxD="+PxD);
+			return;
+		}
 		Rect src = new Rect(0,offset,dayGrid.getWidth(),offset+PxD);
 		while ( dayX <= viewWidth) {
 			if (!(currentDay.getWeekDay() == AcalDateTime.SATURDAY || currentDay.getWeekDay() == AcalDateTime.SUNDAY)) {
