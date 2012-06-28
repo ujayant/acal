@@ -317,7 +317,7 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 		//get the grid for each day
 		Bitmap dayGrid = context.getImageCache().getDayBox(TpX+(3600/WeekViewActivity.SECONDS_PER_PIXEL));
 		int y = PxH;
-		int offset = PxH + ((topSec%3600)/WeekViewActivity.SECONDS_PER_PIXEL);
+		int offset = PxH + (((topSec+3600)%3600)/WeekViewActivity.SECONDS_PER_PIXEL);
 
 		// The location of the work part of the day
 		int workTop = (context.WORK_START_SECONDS - topSec) / WeekViewActivity.SECONDS_PER_PIXEL;
