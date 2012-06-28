@@ -27,6 +27,8 @@ public abstract class ServiceJob implements Comparable<ServiceJob> {
 	
 	@Override
 	public int compareTo(ServiceJob arg0) {
+		if ( this.TIME_TO_EXECUTE < 864000000 ) this.TIME_TO_EXECUTE += System.currentTimeMillis();
+		if ( arg0.TIME_TO_EXECUTE < 864000000 ) arg0.TIME_TO_EXECUTE += System.currentTimeMillis();
 		return (int)(this.TIME_TO_EXECUTE - arg0.TIME_TO_EXECUTE);
 	}
 	
