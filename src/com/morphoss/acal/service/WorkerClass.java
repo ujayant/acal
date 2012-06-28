@@ -27,6 +27,7 @@ import android.os.ConditionVariable;
 import android.util.Log;
 
 import com.morphoss.acal.Constants;
+import com.morphoss.acal.acaltime.AcalDateTime;
 
 /**
  * This class is designed to have a single worker thread perform jobs supplied
@@ -107,9 +108,7 @@ public class WorkerClass implements Runnable {
 		if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG, "Request to add new job " + s);
 
 		// If it's less than ten days assume offset from now.
-		if ( s.TIME_TO_EXECUTE < 864000000 ) {
-			s.TIME_TO_EXECUTE += System.currentTimeMillis();
-		}
+		if ( s.TIME_TO_EXECUTE < 864000000 ) s.TIME_TO_EXECUTE += System.currentTimeMillis();
 
 		if ( jobQueue.contains(s) ) {
 			ServiceJob existing = null;
@@ -287,8 +286,11 @@ public class WorkerClass implements Runnable {
 			}
 		}
 
-		if ( Constants.LOG_VERBOSE ) Log.println(Constants.LOGV, TAG,
-				"Next checking jobQueue in " + (timeTillNext / 1000) + " seconds.");
+		if ( Constants.LOG_VERBOSE ) {
+			AcalDateTime when = AcalDateTime.getUTCInstance();
+			Log.println(Constants.LOGV, TAG,
+					"Next checking jobQueue in " + (timeTillNext / 1000) + " seconds at "+when.setMillis(timeOfNextAction).fmtIcal());
+		}
 
 		runWorker.close();
 
