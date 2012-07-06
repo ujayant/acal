@@ -119,8 +119,6 @@ public class CollectionConfigList extends PreferenceActivity
 		
 		// Create configuration screen
 		createPreferenceHierarchy();
-		setPreferenceScreen(this.preferenceRoot);
-		this.preferenceRoot.setOnPreferenceClickListener(this);
 
 		registerForContextMenu(this.getListView());
 	}
@@ -230,6 +228,9 @@ public class CollectionConfigList extends PreferenceActivity
 			thisPreference.setEnabled(true);
 			Log.println(Constants.LOGD, TAG, "Created preference for "+thisPreference.getTitle());
 	    }
+
+		setPreferenceScreen(this.preferenceRoot);
+		this.preferenceRoot.setOnPreferenceClickListener(this);
    	}
 
 
@@ -413,6 +414,7 @@ public class CollectionConfigList extends PreferenceActivity
 		
 		//we must have a connection to continue
 		if (updateRequested) {
+			Log.println(Constants.LOGI, TAG, "Collection updated: " + updateId);
 			updateRequested = false;
 			if (updateId > 0) {
 				try {
@@ -433,7 +435,8 @@ public class CollectionConfigList extends PreferenceActivity
 					}
 					
 				});
-
+				getCollectionListItems();
+				createPreferenceHierarchy();
 			}
 			updateId = -1;
 		}

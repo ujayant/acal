@@ -8,6 +8,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.util.Log;
 
+import com.morphoss.acal.Constants;
 import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.providers.DavCollections;
 
@@ -29,7 +30,7 @@ public class Collection {
 	public synchronized  static Collection getInstance(long id, Context context) {
 		if (collections.containsKey(id)) 
 			return collections.get(id);
-		//TODO get from DB
+
 		Collection instance = fromDatabase(id,context);
 		collections.put(id, instance);
 		return instance;
@@ -66,6 +67,10 @@ public class Collection {
 		useForTasks = StaticHelpers.toBoolean(cv.getAsInteger(DavCollections.ACTIVE_TASKS), true);
 		useForJournal = StaticHelpers.toBoolean(cv.getAsInteger(DavCollections.ACTIVE_JOURNAL), true);
 		useForAddressbook = StaticHelpers.toBoolean(cv.getAsInteger(DavCollections.ACTIVE_ADDRESSBOOK), false);
+		Log.println(Constants.LOGD, TAG, "Collection "+collectionId+" - "
+					+ cv.getAsString(DavCollections.COLLECTION_PATH)
+					+", alarmsEnabled:"+(alarmsEnabled?"yes":"no")+"-"+cv.getAsInteger(DavCollections.USE_ALARMS)
+							);
 	}
 
 	private static Collection fromDatabase(long collectionId, Context context) {

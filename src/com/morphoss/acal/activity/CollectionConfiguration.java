@@ -40,6 +40,7 @@ import android.widget.Button;
 
 import com.morphoss.acal.R;
 import com.morphoss.acal.ServiceManager;
+import com.morphoss.acal.dataservice.Collection;
 import com.morphoss.acal.providers.DavCollections;
 import com.morphoss.acal.service.ServiceJob;
 import com.morphoss.acal.service.SyncChangesToServer;
@@ -223,6 +224,7 @@ public class CollectionConfiguration extends PreferenceActivity implements OnPre
 	public void saveData() {
 		Uri provider = ContentUris.withAppendedId(DavCollections.CONTENT_URI, collectionData.getAsInteger(DavCollections._ID));
 		getContentResolver().update(provider, collectionData, null, null);
+		Collection.flush();
 
 		//notify caller of change
 		Intent res = new Intent();
