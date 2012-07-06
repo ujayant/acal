@@ -9,10 +9,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: aCal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-01-08 17:17+1300\n"
-"PO-Revision-Date: 2012-03-08 09:48+0000\n"
+"POT-Creation-Date: 2012-03-12 00:29+1300\n"
+"PO-Revision-Date: 2012-04-08 15:04+0000\n"
 "Last-Translator: Samuel Vale <srcvale@minaslivre.org>\n"
-"Language-Team: Portuguese (Brazil) (http://www.transifex.net/projects/p/acal/language/pt_BR/)\n"
+"Language-Team: Portuguese (Brazil) (http://www.transifex.com/projects/p/acal/language/pt_BR/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -42,6 +42,9 @@ msgstr "Uma agenda para Android que armazena seus compromissos, tarefas, anotaç
 msgid "appDescriptionTasks"
 msgstr "Uma lista de tarefas para Android que irá utilizar um servidor remoto CalDAV para armazenar seus dados, como o DAViCal (veja http://davical.org)"
 
+msgid "appDescriptionNotes"
+msgstr "Uma lista de tarefas para Android com armazenamento em um servidor remoto CalDAV/CardDav, como o DAViCal (http://davical.org/)"
+
 msgid "Active"
 msgstr "Ativo"
 
@@ -59,6 +62,9 @@ msgstr "Caminho simples"
 
 msgid "Simple_User_URL"
 msgstr "URL do Usuário"
+
+msgid "Server_URL"
+msgstr "URL do servidor:"
 
 msgid "Enter_a_brief_summary_of_the_event"
 msgstr "Entre uma breve descrição do compromisso"
@@ -146,6 +152,9 @@ msgstr "Novo compromisso"
 
 msgid "appActivityServerConfigList"
 msgstr "Servidores"
+
+msgid "appActivityServerConfiguration"
+msgstr "Configuração do Servidor"
 
 msgid "appActivityAddServerList"
 msgstr "Modelos de servidor"
@@ -790,6 +799,9 @@ msgstr "Compromissos"
 msgid "Tasks"
 msgstr "Tarefas"
 
+msgid "Journals"
+msgstr "Notas"
+
 msgid "Unscheduled"
 msgstr "Não agendado"
 
@@ -816,6 +828,9 @@ msgstr "Todas as Tarefas"
 
 msgid "NewTaskTitle"
 msgstr "Nova Tarefa"
+
+msgid "NewJournalTitle"
+msgstr "Nova Nota"
 
 msgid "TaskSaved"
 msgstr "Tarefa Gravada."
@@ -852,6 +867,9 @@ msgstr "URL:"
 
 msgid "todoName"
 msgstr "Nome da Tarefa:"
+
+msgid "journalName"
+msgstr "Nome do Diário:"
 
 msgid "IsADate"
 msgstr "O dia todo"
@@ -924,6 +942,57 @@ msgstr "Nome do Compromisso"
 
 msgid "Task"
 msgstr "Tarefa"
+
+msgid "weekends"
+msgstr "fins de semana"
+
+msgid "weekdays"
+msgstr "dias de semana"
+
+msgid "JournalDatePrompt"
+msgstr "Data:"
+
+msgid "AppearancePreferences"
+msgstr "Configurações de apresentação"
+
+msgid "prefThemeButtonColour_Summary"
+msgstr "A cor dos botões da aplicação"
+
+msgid "prefThemeButtonColour_Title"
+msgstr "Cor dos Botões"
+
+msgid "Saving"
+msgstr "Salvando..."
+
+msgid "Loading"
+msgstr "Carregando..."
+
+msgid "Deleting"
+msgstr "Apagando..."
+
+msgid "NamePrompt"
+msgstr "Nome:"
+
+msgid "ConfigureServer"
+msgstr "Configurar Servidor"
+
+msgid "errorConfigMustHaveName"
+msgstr "A configuração precisa de um nome."
+
+msgid "errorConfigMustHaveUserName"
+msgstr "A configuração precisa ter um nome de usuário."
+
+msgid "errorConfigMustHavePassword"
+msgstr "A configuração precisa ter uma senha."
+
+msgid "errorConfigMustHaveURL"
+msgstr "A configuração precisa ter um nome de domínio ou URL para o servidor."
+
+msgid "Skip"
+msgstr "Pular"
+
+msgid "Configure"
+msgstr "Configurar"
 
 # SourceFileEnd:../res/values/strings.xml
 # SourceFileStart:../res/values/timezonenames.xml

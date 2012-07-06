@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-03-12 00:29+1300\n"
+"POT-Creation-Date: 2012-06-30 14:43+1200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -394,11 +394,23 @@ msgstr "Snooze Time"
 msgid "Snooze_PrefSummary"
 msgstr "How many minutes to snooze alarms when the snooze button is pressed"
 
-msgid "DefaultCollection_PrefTitle"
-msgstr "Default Collection"
+msgid "prefDefaultEventsCollection_Title"
+msgstr "Default Event Calendar"
 
-msgid "DefaultCollection_PrefSummary"
-msgstr "The default collection to use for new events"
+msgid "prefDefaultEventsCollection_Summary"
+msgstr "The default collection for new events"
+
+msgid "prefDefaultTasksCollection_Title"
+msgstr "Default Task Calendar"
+
+msgid "prefDefaultTasksCollection_Summary"
+msgstr "The default collection for new tasks"
+
+msgid "prefDefaultNotesCollection_Title"
+msgstr "Default Note Calendar"
+
+msgid "prefDefaultNotesCollection_Summary"
+msgstr "The default collection for new journal notes"
 
 msgid "DefaultAlarmTone_PrefTitle"
 msgstr "Default Alarm Tone"
@@ -1008,6 +1020,30 @@ msgstr "Skip"
 
 msgid "Configure"
 msgstr "Configure"
+
+msgid "prefAllowSelfSignedCerts_PrefTitle"
+msgstr "Allow self-signed certificates"
+
+msgid "prefAllowSelfSignedCerts_OnSummary"
+msgstr "Allowed"
+
+msgid "prefAllowSelfSignedCerts_OffSummary"
+msgstr "Rejected"
+
+msgid "SslCertificateError"
+msgstr "There was a problem validating the SSL certificate."
+
+msgid "prefTzServerBaseUrl_Title"
+msgstr "Timezone Server URL"
+
+msgid "prefIgnoreValarmDescription_PrefTitle"
+msgstr "Ignore VALARM Description"
+
+msgid "prefIgnoreValarmDescription_OnSummary"
+msgstr "Use the VEVENT/VTODO summary in alarms"
+
+msgid "prefIgnoreValarmDescription_OffSummary"
+msgstr "Use the VALARM description in alarms"
 
 # SourceFileEnd:../res/values/strings.xml
 # SourceFileStart:../res/values/timezonenames.xml
