@@ -67,3 +67,6 @@ Rewritten internal cache service.  Performance should generally be vastly improv
 Interpose server setup screen if no servers are configured.
 Various fixes to SSL Certificate validation.
 New setting to disable certificate validation.
+v54=1.54
+Fix handling of Alarm on/off state for collections.
+Fix force close on creation of Note/Todo when no default calendar is assigned.
