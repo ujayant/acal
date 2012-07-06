@@ -295,16 +295,6 @@ public class TodoEdit extends AcalActivity
 		//Ensure service is actually running
 		startService(new Intent(this, aCalService.class));
 
-		resourceManager = ResourceManager.getInstance(this,this);
-		todo = null;
-		requestTodoResource();
-
-		// Get time display preference
-		prefer24hourFormat = prefs.getBoolean(getString(R.string.prefTwelveTwentyfour), false);
-
-		alarmRelativeTimeStrings = getResources().getStringArray(R.array.RelativeAlarmTimes);
-		todoChangeRanges = getResources().getStringArray(R.array.TodoChangeAffecting);
-
 		ContentValues[] taskCollections = DavCollections.getCollections( getContentResolver(), DavCollections.INCLUDE_TASKS );
 		if ( taskCollections.length == 0 ) {
 			Toast.makeText(this, getString(R.string.errorMustHaveActiveCalendar), Toast.LENGTH_LONG);
@@ -319,6 +309,17 @@ public class TodoEdit extends AcalActivity
 			collectionId = cv.getAsLong(DavCollections._ID);
 			collectionsArray[count++] = new CollectionForArrayAdapter(this,collectionId);
 		}
+
+		
+		resourceManager = ResourceManager.getInstance(this,this);
+		todo = null;
+		requestTodoResource();
+
+		// Get time display preference
+		prefer24hourFormat = prefs.getBoolean(getString(R.string.prefTwelveTwentyfour), false);
+
+		alarmRelativeTimeStrings = getResources().getStringArray(R.array.RelativeAlarmTimes);
+		todoChangeRanges = getResources().getStringArray(R.array.TodoChangeAffecting);
 
 		this.populateLayout();
 		if ( this.todo != null ) this.updateLayout();

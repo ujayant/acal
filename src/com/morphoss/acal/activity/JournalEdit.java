@@ -238,12 +238,6 @@ public class JournalEdit extends AcalActivity
 		//Ensure service is actually running
 		startService(new Intent(this, aCalService.class));
 
-		resourceManager = ResourceManager.getInstance(this,this);
-		requestJournalResource();
-
-		// Get time display preference
-		prefer24hourFormat = prefs.getBoolean(getString(R.string.prefTwelveTwentyfour), false);
-
 		ContentValues[] journalCollections = DavCollections.getCollections( getContentResolver(), DavCollections.INCLUDE_JOURNAL );
 		if ( journalCollections.length == 0 ) {
 			Toast.makeText(this, getString(R.string.errorMustHaveActiveCalendar), Toast.LENGTH_LONG);
@@ -258,6 +252,12 @@ public class JournalEdit extends AcalActivity
 			collectionId = cv.getAsLong(DavCollections._ID);
 			collectionsArray[count++] = new CollectionForArrayAdapter(this,collectionId);
 		}
+		
+		resourceManager = ResourceManager.getInstance(this,this);
+		requestJournalResource();
+
+		// Get time display preference
+		prefer24hourFormat = prefs.getBoolean(getString(R.string.prefTwelveTwentyfour), false);
 
 		this.populateLayout();
 	}
@@ -289,6 +289,7 @@ public class JournalEdit extends AcalActivity
 				preferredCollectionId = Long.parseLong(prefs.getString(PrefNames.defaultNotesCollection, "-1"));
 			}
 			catch( Exception e ) {}
+
 			if ( preferredCollectionId == -1 || Collection.getInstance(preferredCollectionId, this) == null )
 				preferredCollectionId = collectionsArray[0].getCollectionId();
 
