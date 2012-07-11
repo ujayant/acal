@@ -70,3 +70,5 @@ New setting to disable certificate validation.
 v54=1.54
 Fix handling of Alarm on/off state for collections.
 Fix force close on creation of Note/Todo when no default calendar is assigned.
+v55=1.55
+Fix display of Alarm text where VALARM does not contain a DESCRIPTION property.
