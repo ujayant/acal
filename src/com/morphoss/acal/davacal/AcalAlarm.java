@@ -174,6 +174,7 @@ public class AcalAlarm implements Serializable, Parcelable, Comparable<AcalAlarm
 				timeToFire = AcalDateTime.addDuration(end, relativeTime);
 		}
 
+		aProperty = null;
 		if ( AcalApplication.getPreferenceBoolean(PrefNames.ignoreValarmDescription, false) )
 			aProperty = component.getProperty("DESCRIPTION");
 		if ( aProperty == null || aProperty.getValue().equals("") || aProperty.getValue().equalsIgnoreCase("Default Mozilla Description") ) {
