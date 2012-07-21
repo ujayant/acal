@@ -72,3 +72,7 @@ Fix handling of Alarm on/off state for collections.
 Fix force close on creation of Note/Todo when no default calendar is assigned.
 v55=1.55
 Fix display of Alarm text where VALARM does not contain a DESCRIPTION property.
+v56=1.56
+Set worker priority to THREAD_MIN per recommendation from Matthieu Cargnelli.
+Correct calculation of week in month, thanks to Richard Hector.
+Fix for events crossing month end boundaries from Manuel Vögele.
