@@ -97,6 +97,8 @@ public class CRObjectsInMonthByDay extends CacheRequestWithResponse<HashMap<Shor
 				if ( start == null ) start = end;
 				if ( start == null ) continue;
 				if ( end == null ) end = start;
+				if (start.getMonth() < month) start.setMonthDay(1);
+				if (end.getMonth() > month) end.setMonthDay(-1);
 				for( short dayOfMonth = start.getMonthDay()
 						; dayOfMonth <= (end.getMonthDay() < start.getMonthDay() ? daysInMonth : end.getMonthDay())
 						; dayOfMonth++ ) {
