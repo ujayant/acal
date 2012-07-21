@@ -85,6 +85,7 @@ public class WorkerClass implements Runnable {
 		if ( instance == null ) instance = new WorkerClass(context);
 		if ( instance.worker == null ) {
 			instance.worker = new Thread(instance);
+			instance.worker.setPriority(Thread.MIN_PRIORITY);
 			instance.worker.start();
 		}
 		return instance;
