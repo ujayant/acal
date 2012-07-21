@@ -500,10 +500,11 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	 * Get the week of the month.  Much simpler than the calculation of the week of the year,
 	 * since we want to use this for things like 1st tuesday, 3rd thursday, etc.
 	 * </p>
+	 * <p>For example, the 1st-7th are the first week, the 8th-14th are the second, etc.</p>
 	 * @return
 	 */
 	public short getMonthWeek() {
-		return (short) (1 + (getMonthDay() / 7));
+		return (short) (1 + ((getMonthDay() - 1) / 7));
 	}
 
 
