@@ -33,8 +33,9 @@ public class VTodo extends Masterable {
 			switch(this) {
 				case NEEDS_ACTION: 	return "NEEDS-ACTION";
 				case IN_PROCESS:	return "IN-PROCESS";
+				default:
+					return super.toString();
 			}
-			return super.toString();
 		}
 
 	}

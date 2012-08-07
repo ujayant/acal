@@ -44,6 +44,8 @@ import com.morphoss.acal.service.WorkerClass;
 public class ResourceManager implements Runnable {
 	// The current instance
 	private static ResourceManager instance = null;
+
+	@SuppressWarnings("unused")
 	public static boolean DEBUG = false && Constants.DEBUG_MODE;
 
 	private volatile int numReadsProcessing = 0;
@@ -288,7 +290,6 @@ public class ResourceManager implements Runnable {
 		public ArrayList<ContentValues> query(String[] columns, String selection, String[] selectionArgs,
 				String groupBy, String having, String orderBy);
 
-		@Deprecated
 		public Map<String, ContentValues> contentQueryMap(String selection, String[] selectionArgs);
 		
 		public ContentValues getResource(long rid);

@@ -261,7 +261,7 @@ public class Timezones extends ContentProvider {
 				try {
 					AcalDB.insert(TZ_ALIAS_TABLE, null, aliasValues);
 				}
-				catch( SQLException sqe ) {
+				catch( Exception sqe ) {
 					Log.println(Constants.LOGW, TAG, "Unable to insert alias '"+alias+"' for '"+values.getAsString(TZID));
 				}
 			}
@@ -273,7 +273,7 @@ public class Timezones extends ContentProvider {
 				try {
 					AcalDB.insert(TZ_NAME_TABLE, null, nameValues);
 				}
-				catch( SQLException sqe ) {
+				catch( Exception sqe ) {
 					Log.println(Constants.LOGW, TAG, "Unable to insert name '"+e.getValue()+"'for locale '"+locale+"' for TZID '"+values.getAsString(TZID));
 				}
 			}

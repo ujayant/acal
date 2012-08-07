@@ -76,15 +76,17 @@ public class DebugDatabase extends ServiceJob {
 		File outputFile = new File(Constants.COPY_DB_TARGET);
 
 		try {
-			FileChannel inChannel = new FileInputStream(inputFile).getChannel();
-			FileChannel outChannel = new FileOutputStream(outputFile).getChannel();
+			FileInputStream fileInputStream = new FileInputStream(inputFile);
+			FileChannel inChannel = fileInputStream.getChannel();
+			FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
+			FileChannel outChannel = fileOutputStream.getChannel();
 			inChannel.transferTo(0, inChannel.size(), outChannel);
-			if (inChannel != null)
-				inChannel.close();
-			if (outChannel != null)
-				outChannel.close();
+			inChannel.close();
+			fileInputStream.close();
+			outChannel.close();
+			fileOutputStream.close();
 		} catch (Exception e) {
-			Log.e(TAG,"Error copying file.");
+			Log.e(TAG,"Error copying '"+inputFile.getAbsolutePath()+"' to '"+outputFile.getAbsolutePath()+"'");
 		}
 		if (Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG, "File copy completed.");
 	}
