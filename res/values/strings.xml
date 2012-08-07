@@ -275,7 +275,6 @@
 	<string name="incompleteTasksDue">Incomplete tasks due within a week</string>
 	<string name="allTasksTitle">All Tasks</string>
 	<string name="NewTaskTitle">New Task</string>
-	<string name="NewJournalTitle">New Note</string>
 	<string name="TaskSaved">Task Saved.</string>
 	<string name="TaskModifiedAll">Modified all instances of this task.</string>
 	<string name="TaskModifiedOne">Modified single instance of this task.</string>
@@ -338,4 +337,6 @@
 	<string name="prefIgnoreValarmDescription_PrefTitle">Ignore VALARM Description</string>
 	<string name="prefIgnoreValarmDescription_OnSummary">Use the VEVENT/VTODO summary in alarms</string>
 	<string name="prefIgnoreValarmDescription_OffSummary">Use the VALARM description in alarms</string>
+	<string name="note_title_hint">Give your note a title</string>
+	<string name="note_text_hint">Enter note text here</string>
 </resources>
