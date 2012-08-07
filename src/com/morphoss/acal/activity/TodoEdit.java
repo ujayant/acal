@@ -191,103 +191,109 @@ public class TodoEdit extends AcalActivity
 
 	private long	rid = -1;
 
-		
-	private Handler mHandler = new Handler() {
-		private boolean saveSucceeded = false;
-		private boolean isSaving = false;
-		private boolean isLoading = false;
+	private boolean saveSucceeded = false;
+	private boolean isSaving = false;
+	private boolean isLoading = false;
 
+	private static TodoEdit handlerContext = null;
+	
+	private static Handler mHandler = new Handler() {
 		public void handleMessage(Message msg) {
-			switch( msg.what ) {
-				case REFRESH:
-					if ( loadingDialog != null ) {
-						loadingDialog.dismiss();
-						loadingDialog = null;
-					}
-					updateLayout();
-					break;
-
-				case CONFLICT:
-					Toast.makeText(
-							TodoEdit.this,
-							"The resource you are editing has been changed or deleted on the server.",
-							5).show();
-					break;
-				case SHOW_LOADING:
-					if ( todo == null ) showDialog(LOADING_DIALOG);
-					break;
-			
-				case FAIL:
-					if ( isLoading ) {
-						Toast.makeText(TodoEdit.this, "Error loading data.", 5).show();
-						isLoading = false;
-					}
-					else if ( isSaving ) {
-						isSaving = false;
-						if ( savingDialog != null ) savingDialog
-								.dismiss();
-						Toast.makeText( TodoEdit.this, "Something went wrong trying to save data.", Toast.LENGTH_LONG).show();
-						setResult(Activity.RESULT_CANCELED, null);
-					}
-					finish();
-					break;
-				case GIVE_UP:
-					if ( loadingDialog != null ) {
-						loadingDialog.dismiss();
-						Toast.makeText(
-								TodoEdit.this,
-								"Error loading event data.",
-								Toast.LENGTH_LONG).show();
-						finish();
-						return;
-					}
-					break;
-
-				case SHOW_SAVING:
-					isSaving = true;
-					showDialog(SAVING_DIALOG);
-					break;
-	
-				case SAVE_RESULT:
-					// dismiss
-					// dialog
-					mHandler.removeMessages(SAVE_FAILED);
-					isSaving = false;
-					if ( savingDialog != null ) savingDialog.dismiss();
-					long res = (Long) msg.obj;
-					if ( res >= 0 ) {
-						Intent ret = new Intent();
-						Bundle b = new Bundle();
-						ret.putExtras(b);
-						setResult(RESULT_OK, ret);
-						saveSucceeded = true;
-	
-						finish();
-	
-					}
-					else {
-						Toast.makeText(TodoEdit.this, "Error saving event data.", Toast.LENGTH_LONG).show();
-					}
-					break;
-	
-				case SAVE_FAILED:
-					isSaving = false;
-					if ( savingDialog != null ) savingDialog.dismiss();
-					if ( saveSucceeded ) {
-						// Don't know why we get here, but we do! - cancel save failed when save succeeds.
-						// we shouldn't see this anymore.
-						Log.w(TAG, "This should have been fixed now yay!", new Exception());
-					}
-					else {
-						Toast.makeText( TodoEdit.this, "Something went wrong trying to save data.", Toast.LENGTH_LONG).show();
-						setResult(Activity.RESULT_CANCELED, null);
-						finish();
-					}
-					break;
-			}			
+			if ( handlerContext != null ) handlerContext.messageHandler(msg);
 		}
 	};
 
+	
+	private void messageHandler(Message msg) {	
+		switch( msg.what ) {
+			case REFRESH:
+				if ( loadingDialog != null ) {
+					loadingDialog.dismiss();
+					loadingDialog = null;
+				}
+				updateLayout();
+				break;
+
+			case CONFLICT:
+				Toast.makeText(
+						TodoEdit.this,
+						"The resource you are editing has been changed or deleted on the server.",
+						Toast.LENGTH_LONG).show();
+				break;
+			case SHOW_LOADING:
+				if ( todo == null ) showDialog(LOADING_DIALOG);
+				break;
+		
+			case FAIL:
+				if ( isLoading ) {
+					Toast.makeText(TodoEdit.this, "Error loading data.", Toast.LENGTH_LONG).show();
+					isLoading = false;
+				}
+				else if ( isSaving ) {
+					isSaving = false;
+					if ( savingDialog != null ) savingDialog
+							.dismiss();
+					Toast.makeText( TodoEdit.this, "Something went wrong trying to save data.", Toast.LENGTH_LONG).show();
+					setResult(Activity.RESULT_CANCELED, null);
+				}
+				finish();
+				break;
+			case GIVE_UP:
+				if ( loadingDialog != null ) {
+					loadingDialog.dismiss();
+					Toast.makeText(
+							TodoEdit.this,
+							"Error loading event data.",
+							Toast.LENGTH_LONG).show();
+					finish();
+					return;
+				}
+				break;
+
+			case SHOW_SAVING:
+				isSaving = true;
+				showDialog(SAVING_DIALOG);
+				break;
+
+			case SAVE_RESULT:
+				// dismiss
+				// dialog
+				mHandler.removeMessages(SAVE_FAILED);
+				isSaving = false;
+				if ( savingDialog != null ) savingDialog.dismiss();
+				long res = (Long) msg.obj;
+				if ( res >= 0 ) {
+					Intent ret = new Intent();
+					Bundle b = new Bundle();
+					ret.putExtras(b);
+					setResult(RESULT_OK, ret);
+					saveSucceeded = true;
+
+					finish();
+
+				}
+				else {
+					Toast.makeText(TodoEdit.this, "Error saving event data.", Toast.LENGTH_LONG).show();
+				}
+				break;
+
+			case SAVE_FAILED:
+				isSaving = false;
+				if ( savingDialog != null ) savingDialog.dismiss();
+				if ( saveSucceeded ) {
+					// Don't know why we get here, but we do! - cancel save failed when save succeeds.
+					// we shouldn't see this anymore.
+					Log.w(TAG, "This should have been fixed now yay!", new Exception());
+				}
+				else {
+					Toast.makeText( TodoEdit.this, "Something went wrong trying to save data.", Toast.LENGTH_LONG).show();
+					setResult(Activity.RESULT_CANCELED, null);
+					finish();
+				}
+				break;
+		}
+	}
+	
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		this.setContentView(R.layout.todo_edit);
@@ -297,7 +303,7 @@ public class TodoEdit extends AcalActivity
 
 		ContentValues[] taskCollections = DavCollections.getCollections( getContentResolver(), DavCollections.INCLUDE_TASKS );
 		if ( taskCollections.length == 0 ) {
-			Toast.makeText(this, getString(R.string.errorMustHaveActiveCalendar), Toast.LENGTH_LONG);
+			Toast.makeText(this, getString(R.string.errorMustHaveActiveCalendar), Toast.LENGTH_LONG).show();
 			this.finish();	// can't work if no active collections
 			return;
 		}
@@ -325,7 +331,12 @@ public class TodoEdit extends AcalActivity
 		if ( this.todo != null ) this.updateLayout();
 	}
 
-	
+	@Override
+	public void onDestroy() {
+		if ( handlerContext == this ) handlerContext = null;
+		super.onDestroy();
+	}
+
 	@SuppressWarnings("unchecked")
 	private void requestTodoResource() {
 		currentOperation = ACTION_CREATE;
@@ -338,6 +349,7 @@ public class TodoEdit extends AcalActivity
 				if ( currentOperation == ACTION_CREATE ) currentOperation = ACTION_EDIT;
 				CacheObject cacheTodo = (CacheObject) b.getParcelable(KEY_CACHE_OBJECT);
 				this.rid = cacheTodo.getResourceId();
+				handlerContext = this;
 				resourceManager.sendRequest(new RRRequestInstance(this, rid, cacheTodo.getRecurrenceId()));
 				mHandler.sendMessageDelayed(mHandler.obtainMessage(SHOW_LOADING), 50);
 				mHandler.sendMessageDelayed(mHandler.obtainMessage(GIVE_UP), 10000);
@@ -750,6 +762,8 @@ public class TodoEdit extends AcalActivity
 			ResourceManager.getInstance(this)
 						.sendRequest(new RRResourceEditedRequest(this, currentCollection.collectionId, rid, vc, sendAction));
 
+			handlerContext = this;
+
 			//set message for 10 seconds to fail.
 			mHandler.sendEmptyMessageDelayed(SAVE_FAILED, 100000);
 
@@ -979,8 +993,7 @@ public class TodoEdit extends AcalActivity
 
 
 	@Override
-	public void onProgressChanged(SeekBar seekBar, int progress,
-			boolean fromUser) {
+	public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
 		if ( fromUser ) {
 			percentComplete = progress;
 			percentCompleteText.setText(Integer.toString(percentComplete)+"%");
@@ -997,19 +1010,11 @@ public class TodoEdit extends AcalActivity
 
 	@Override
 	public void onStartTrackingTouch(SeekBar seekBar) {
-		if ( false && percentComplete != seekBar.getProgress() ) {
-			percentComplete = seekBar.getProgress();
-			percentCompleteText.setText(Integer.toString(percentComplete)+"%");
-		}
 	}
 
 
 	@Override
 	public void onStopTrackingTouch(SeekBar seekBar) {
-		if ( false && percentComplete != seekBar.getProgress() ) {
-			percentComplete = seekBar.getProgress();
-			percentCompleteText.setText(Integer.toString(percentComplete)+"%");
-		}
 	}
 
 
