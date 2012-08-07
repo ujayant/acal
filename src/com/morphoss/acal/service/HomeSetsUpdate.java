@@ -335,7 +335,7 @@ public class HomeSetsUpdate extends ServiceJob {
 		String tzVcalendar = propstat.getFirstNodeText("prop/calendar-timezone");
 		try {
 			VComponent vc = VComponent.createComponentFromBlob(tzVcalendar);
-			((VTimezone) vc.getChildren().get(0)).getTZID();
+			tzid = ((VTimezone) vc.getChildren().get(0)).getTZID();
 		} catch( Exception e) {};
 		if (tzid != null) cv.put(DavCollections.DEFAULT_TIMEZONE, tzid);
 
