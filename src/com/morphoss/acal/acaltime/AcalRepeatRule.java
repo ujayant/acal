@@ -456,7 +456,7 @@ public class AcalRepeatRule {
 	}
 	
 	@SuppressWarnings("unchecked") 
-	private void appendEventsInstancesBetween( List eventList, AcalDateRange range, boolean cacheObjects) {
+	private void appendEventsInstancesBetween( @SuppressWarnings("rawtypes") List eventList, AcalDateRange range, boolean cacheObjects) {
 	
 		if ( range.start == null || range.end == null || eventList == null ) return;
 
@@ -474,7 +474,6 @@ public class AcalRepeatRule {
 		if ( repeatRule.until != null && repeatRule.until.before(range.start) )
 			return ;
 
-		@SuppressWarnings("unused")
 		int found = 0;
 		long processingStarted = System.currentTimeMillis();
 		AcalDateTime thisDate = null;
