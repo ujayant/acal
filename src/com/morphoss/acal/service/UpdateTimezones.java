@@ -34,6 +34,7 @@ import android.util.Log;
 
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.PrefNames;
+import com.morphoss.acal.R;
 import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.davacal.VComponent;
@@ -47,7 +48,7 @@ public class UpdateTimezones extends ServiceJob {
 	private aCalService context;
 	private ContentResolver cr;
 	private AcalRequestor requestor;
-	private String tzServerBaseUrl = "http://tz.davical.org/tz.php";
+	private String tzServerBaseUrl;
 
 	/**
 	 * Constructor
@@ -64,7 +65,7 @@ public class UpdateTimezones extends ServiceJob {
 	public void run(aCalService context) {
 		this.context = context;
 		this.cr = context.getContentResolver();
-		tzServerBaseUrl = context.getPreferenceString(PrefNames.tzServerBaseUrl, tzServerBaseUrl);
+		tzServerBaseUrl = context.getPreferenceString(PrefNames.tzServerBaseUrl, context.getString(R.string.davicalOrgTzUrl) );
 		this.requestor = new AcalRequestor();
 
 		if (Constants.LOG_DEBUG) Log.d(TAG, "Refreshing Timezone data from "+tzServerBaseUrl);
@@ -98,8 +99,11 @@ public class UpdateTimezones extends ServiceJob {
 
 			HashMap<String,Long> currentZones = new HashMap<String,Long>();
 			Cursor allZones = cr.query(Timezones.CONTENT_URI, new String[] { Timezones.TZID, Timezones.LAST_MODIFIED }, null, null, null);
-			for( allZones.moveToFirst(); !allZones.isAfterLast(); allZones.moveToNext())
+			Log.println(Constants.LOGD, TAG, "Found "+allZones.getCount()+" existing timezones.");
+			for( allZones.moveToFirst(); !allZones.isAfterLast(); allZones.moveToNext()) {
+				Log.println(Constants.LOGV, TAG, "Found existing zone of '"+allZones.getString(0)+"' modified: "+AcalDateTime.fromMillis(allZones.getLong(1)*1000L).toString());
 				currentZones.put(allZones.getString(0), allZones.getLong(1));
+			}
 
 			
 			String tzid;
@@ -109,7 +113,7 @@ public class UpdateTimezones extends ServiceJob {
 			StringBuilder aliases;
 			ContentValues zoneValues = new ContentValues();
 			
-			int i = 3;
+			int i = 10;
 			
 			for( DavNode zoneNode : root.getNodesFromPath("timezone-list/summary") ) {
 				
@@ -146,11 +150,14 @@ public class UpdateTimezones extends ServiceJob {
 
 				Uri tzUri = Uri.withAppendedPath(Timezones.CONTENT_URI, "tzid/"+StaticHelpers.urlescape(tzid,false));
 				if ( currentZones.containsKey(tzid) ) {
-					cr.update(tzUri, zoneValues, null, null);
+					if ( cr.update(tzUri, zoneValues, null, null) != 1 ) {
+						Log.e(TAG,"Failed update for TZID '"+tzid+"'");
+					}
 					currentZones.remove(tzid);
 				}
 				else {
-					cr.insert(tzUri, zoneValues);
+					if ( cr.insert(tzUri, zoneValues) == null )
+						Log.e(TAG,"Failed insert for TZID '"+tzid+"'");
 				}
 
 				// Let other stuff have a chance 

@@ -88,8 +88,10 @@ public class aCalService extends Service {
 		// Start sync running for all active collections
 		SynchronisationJobs.startCollectionSync(worker, this, 35000L);
 
-		// Start periodic syncing of timezone data
-		worker.addJobAndWake(new UpdateTimezones(15000L));
+		if ( ! Constants.DISABLE_FEATURE_TZSERVER_SUPPORT ) {
+			// Start periodic syncing of timezone data
+			worker.addJobAndWake(new UpdateTimezones(15000L));
+		}
 	}
 
 	
