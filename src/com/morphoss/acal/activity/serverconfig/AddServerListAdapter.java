@@ -198,7 +198,7 @@ public class AddServerListAdapter extends BaseAdapter {
 		else {
 			if ( item.getAsInteger(ServerConfiguration.KEY_IMAGE) != null ) {
 				Log.w(TAG, "Special lastSavedConfig image for '"+item.getAsString(Servers.FRIENDLY_NAME)+"'");
-				thisRow.setBackgroundColor(android.R.color.white);
+				thisRow.setBackgroundColor(context.getResources().getColor(android.R.color.white));
 				thisRow.setBackgroundResource(item.getAsInteger(ServerConfiguration.KEY_IMAGE));
 				icon.setBackgroundColor(0);
 				title.setText(item.getAsString(""));

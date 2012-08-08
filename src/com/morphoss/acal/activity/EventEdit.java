@@ -214,7 +214,7 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 				break;
 
 			case  CONFLICT: 
-				Toast.makeText(EventEdit.this, "The resource you are editing has been changed or deleted on the server.", 5).show();
+				Toast.makeText(EventEdit.this, "The resource you are editing has been changed or deleted on the server.", Toast.LENGTH_LONG).show();
 				break;
 
 			case SHOW_LOADING: 
@@ -224,7 +224,7 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 
 			case FAIL:
 				if (isLoading) {
-					Toast.makeText(EventEdit.this, "Error loading data.", 5).show();
+					Toast.makeText(EventEdit.this, "Error loading data.", Toast.LENGTH_LONG).show();
 					isLoading = false;
 				} else if (isSaving) {
 					isSaving = false;
@@ -313,7 +313,7 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 			activeCollections.add(Collection.getInstance(cv.getAsLong(DavCollections._ID),this));
 
 		if (activeCollections.isEmpty()) {
-			Toast.makeText(this, getString(R.string.errorMustHaveActiveCalendar), Toast.LENGTH_LONG);
+			Toast.makeText(this, getString(R.string.errorMustHaveActiveCalendar), Toast.LENGTH_LONG).show();
 			this.finish();	// can't work if no active collections
 			return;
 		}

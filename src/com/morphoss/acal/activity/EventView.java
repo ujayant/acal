@@ -113,7 +113,7 @@ public class EventView extends AcalActivity implements  OnClickListener, Resourc
 			if (msg.what == REFRESH) {
 				populateLayout();
 			} else if(msg.what == FAIL) {
-				Toast.makeText(EventView.this, "The resource you are looking at has changed or been deleted.", 5).show();
+				Toast.makeText(EventView.this, "The resource you are looking at has changed or been deleted.", Toast.LENGTH_LONG).show();
 				finish();
 			}
 			

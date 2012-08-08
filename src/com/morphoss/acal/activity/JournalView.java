@@ -81,7 +81,7 @@ public class JournalView extends AcalActivity
 			if (msg.what == REFRESH) {
 				populateLayout();
 			} else if(msg.what == FAIL) {
-				Toast.makeText(JournalView.this, "The resource you are looking at has changed or been deleted.", 5).show();
+				Toast.makeText(JournalView.this, "The resource you are looking at has changed or been deleted.", Toast.LENGTH_LONG).show();
 				finish();
 			}
 			

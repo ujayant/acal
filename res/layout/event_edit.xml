@@ -32,7 +32,7 @@
 					android:id="@+id/EventName"
 					android:layout_width="fill_parent"
 					android:layout_height="wrap_content"
-					android:layout_below="@+id/EventEditTitle"
+					android:hint="@string/event_name_hint"
 					android:inputType="textCapSentences|textAutoCorrect|textEmailSubject"
 					android:paddingBottom="10sp"
 					android:paddingLeft="3sp"

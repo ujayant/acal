@@ -40,7 +40,6 @@
 						android:id="@+id/TodoName"
 						android:layout_width="fill_parent"
 						android:layout_height="wrap_content"
-						android:layout_below="@+id/TodoViewTitle"
 						android:paddingBottom="10sp"
 						android:paddingLeft="10sp"
 						android:text="@string/todoName"

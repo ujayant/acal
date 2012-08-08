@@ -209,7 +209,7 @@ public class NewServerConfiguration extends AcalActivity implements OnClickListe
 			
 		} catch (Exception e) {
 			//error updating
-			Toast.makeText(this, getString(R.string.errorSavingServerConfig), Toast.LENGTH_LONG);
+			Toast.makeText(this, getString(R.string.errorSavingServerConfig), Toast.LENGTH_LONG).show();
 		}
 	}
 	

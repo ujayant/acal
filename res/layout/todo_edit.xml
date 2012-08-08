@@ -7,9 +7,8 @@
 	android:orientation="vertical" >
 	<LinearLayout
 		android:id="@+id/TodoEditBelowTitleLayout"
-		android:layout_width="fill_parent"
-		android:layout_height="fill_parent"
-		android:layout_weight="1"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
 		android:orientation="horizontal" >
 		<!-- Colour bar -->
 		<LinearLayout
@@ -19,22 +18,21 @@
 			android:background="#704080f0" >
 		</LinearLayout>
 		<ScrollView
-			android:layout_width="fill_parent"
+			android:layout_width="0dp"
 			android:layout_height="wrap_content"
 			android:layout_weight="1" >
 			<RelativeLayout
 				xmlns:android="http://schemas.android.com/apk/res/android"
 				android:id="@+id/TodoEditDataLayout"
 				android:layout_width="fill_parent"
-				android:layout_height="fill_parent"
-				android:layout_weight="1"
+				android:layout_height="wrap_content"
 				android:orientation="vertical" >
 				<!-- Todo Name -->
 				<EditText
 					android:id="@+id/TodoName"
 					android:layout_width="fill_parent"
 					android:layout_height="wrap_content"
-					android:layout_below="@+id/TodoEditTitle"
+					android:hint="@string/todo_name_hint"
 					android:inputType="textCapSentences|textAutoCorrect|textEmailSubject"
 					android:paddingBottom="10sp"
 					android:paddingLeft="3sp"
@@ -52,7 +50,6 @@
 						android:id="@+id/TodoUntilLayout"
 						android:layout_width="fill_parent"
 						android:layout_height="wrap_content"
-						android:layout_below="@+id/TodoCheckBoxes"
 						android:paddingBottom="3sp" >
 						<!-- Until Label -->
 						<TextView
@@ -63,7 +60,7 @@
 							android:gravity="center_vertical"
 							android:text="@string/DuePrompt" />
 						<LinearLayout
-							android:layout_width="fill_parent"
+							android:layout_width="0dp"
 							android:layout_height="wrap_content"
 							android:layout_marginRight="10sp"
 							android:layout_weight="3"
@@ -74,7 +71,7 @@
 								android:layout_width="fill_parent"
 								android:layout_height="wrap_content"
 								android:minHeight="30sp"
-								android:text="7:00pm, 29 October 2011" />
+								android:text="@string/placeholderDateAndTime" />
 						</LinearLayout>
 					</LinearLayout>
 					<!-- From content -->

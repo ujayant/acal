@@ -287,7 +287,6 @@
 	<string name="plus">+</string>
 	<string name="url">URL:</string>
 	<string name="todoName">Todo Name:</string>
-	<string name="journalName">Journal Name:</string>
 	<string name="IsADate">Is a Date</string>
 	<string name="NotSet">Not Set</string>
 	<string name="Exactly">Exactly</string>
@@ -321,7 +320,6 @@
 	<string name="Saving">Saving…</string>
 	<string name="Loading">Loading…</string>
 	<string name="Deleting">Deleting…</string>
-	<string name="NamePrompt">Name:</string>
 	<string name="ConfigureServer">Configure Server</string>
 	<string name="errorConfigMustHaveName">The configuration must have a name.</string>
 	<string name="errorConfigMustHaveUserName">The configuration must have a username.</string>
@@ -339,4 +337,6 @@
 	<string name="prefIgnoreValarmDescription_OffSummary">Use the VALARM description in alarms</string>
 	<string name="note_title_hint">Give your note a title</string>
 	<string name="note_text_hint">Enter note text here</string>
+	<string name="event_name_hint">Enter a name for your event</string>
+	<string name="todo_name_hint">Enter a name for your task</string>
 </resources>

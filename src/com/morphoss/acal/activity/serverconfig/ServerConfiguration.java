@@ -323,7 +323,7 @@ public class ServerConfiguration extends PreferenceActivity implements OnPrefere
 		} catch (Exception e) {
 			//error updating
 			serverData.put(KEY_MODE, MODE_CREATE);
-			Toast.makeText(this, getString(R.string.errorSavingServerConfig), Toast.LENGTH_LONG);
+			Toast.makeText(this, getString(R.string.errorSavingServerConfig), Toast.LENGTH_LONG).show();
 		}
 	}
 	

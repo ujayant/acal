@@ -32,6 +32,7 @@ import com.morphoss.acal.xml.DavParserFactory.PARSEMETHOD;
  * @author Morphoss Ltd
  *
  */
+@SuppressWarnings("unused")
 public class Constants {
 
 	public static final String PUBLIC_DATA_DIR = Environment.getExternalStorageDirectory()+"/acal/";
@@ -47,7 +48,7 @@ public class Constants {
 	public final static Pattern matchProtocolServerPort = Pattern.compile("^https?://[^/]*");
 
 	/** Set this to false and all debug logging is turned off, everywhere */
-	public static final boolean DEBUG_MODE = false;
+	public static boolean DEBUG_MODE = false;
 
 	/** How much stuff to spit out into the logs */
 	public static boolean LOG_VERBOSE = false && DEBUG_MODE;		//Very verbose play by play execution information
@@ -85,8 +86,9 @@ public class Constants {
 	public static final boolean		debugWidget						= false && DEBUG_MODE;
 	public static final boolean		debugSaxParser					= false && DEBUG_MODE;
 	
-	public static final boolean DISABLE_FEATURE_WEBDAV_SYNC			= false && DEBUG_MODE;
-	public static final boolean DISABLE_FEATURE_CURRENT_PRINCIPAL	= false && DEBUG_MODE;
+	public static boolean DISABLE_FEATURE_WEBDAV_SYNC				= false && DEBUG_MODE;
+	public static boolean DISABLE_FEATURE_CURRENT_PRINCIPAL			= false && DEBUG_MODE;
+	public static boolean DISABLE_FEATURE_TZSERVER_SUPPORT			= true && DEBUG_MODE;
 
 	public static final long DEFAULT_MAX_AGE_WIFI = 1000*60*30;		// The default to use when initialising a new collection
 	public static final long DEFAULT_MAX_AGE_3G = 1000*60*60*2;		// The default to use when initialising a new collection
