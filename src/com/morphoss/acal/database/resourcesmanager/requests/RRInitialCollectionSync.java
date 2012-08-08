@@ -406,21 +406,22 @@ public class RRInitialCollectionSync implements ResourceRequest {
 			DavNode prop = propstat.getNodesFromPath("prop").get(0);
 
 			String etag = prop.getFirstNodeText("getetag");
-			String data = prop.getFirstNodeText("calendar-data");
-			String last_modified = prop.getFirstNodeText("getlastmodified");
-			String content_type = prop.getFirstNodeText("getcontenttype");
-			if ( etag == null || data == null ) return false;
+			if ( etag == null ) return false;
 
 			String oldEtag = cv.getAsString(ResourceTableManager.ETAG);
-
 			if ( oldEtag != null && oldEtag.equals(etag) ) {
 				if ( Constants.LOG_VERBOSE ) Log.v(TAG,"ETag matches existing record, so no need to sync.");
 				cv.put(ResourceTableManager.NEEDS_SYNC, 0 );
 				return false;
 			}
 
+			String last_modified = prop.getFirstNodeText("getlastmodified");
 			if ( last_modified != null ) cv.put(ResourceTableManager.LAST_MODIFIED, last_modified);
+
+			String content_type = prop.getFirstNodeText("getcontenttype");
 			if ( content_type != null ) cv.put(ResourceTableManager.CONTENT_TYPE, content_type);
+
+			String data = prop.getFirstNodeText("calendar-data");
 			if ( data != null ) {
 				cv.put(ResourceTableManager.RESOURCE_DATA, data); 
 				cv.put(ResourceTableManager.ETAG, etag);
