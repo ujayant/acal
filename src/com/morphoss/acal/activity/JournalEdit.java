@@ -18,6 +18,8 @@
 
 package com.morphoss.acal.activity;
 
+import java.util.ArrayList;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -126,108 +128,14 @@ public class JournalEdit extends AcalActivity
 
 	private long	rid = -1;
 	
+	private boolean saveSucceeded = false;
+	private boolean isSaving = false;
+	private boolean isLoading = false;
+	private static JournalEdit handlerContext = null;
 	
-	private Handler mHandler = new Handler() {
-		private boolean saveSucceeded = false;
-		private boolean isSaving = false;
-		private boolean isLoading = false;
-
-		public void handleMessage(Message msg) {
-			
-			switch ( msg.what ) {
-				case REFRESH:
-					if ( loadingDialog != null ) {
-						loadingDialog.dismiss();
-						loadingDialog = null;
-					}
-					updateLayout();
-					break;
-				case CONFLICT:
-					Toast.makeText(
-							JournalEdit.this,
-							"The resource you are editing has been changed or deleted on the server.",
-							5).show();
-
-				case SHOW_LOADING:
-					if ( journal == null ) showDialog(LOADING_DIALOG);
-					break;
-				case FAIL:
-					if ( isLoading ) {
-						Toast.makeText(JournalEdit.this,
-								"Error loading data.", 5)
-								.show();
-						isLoading = false;
-					}
-					else if ( isSaving ) {
-						isSaving = false;
-						if ( savingDialog != null ) savingDialog
-								.dismiss();
-						Toast.makeText(
-								JournalEdit.this,
-								"Something went wrong trying to save data.",
-								Toast.LENGTH_LONG).show();
-						setResult(Activity.RESULT_CANCELED,
-								null);
-					}
-					finish();
-					break;
-				case GIVE_UP:
-					if ( loadingDialog != null ) {
-						loadingDialog.dismiss();
-						Toast.makeText(JournalEdit.this,
-								"Error loading event data.",
-								Toast.LENGTH_LONG).show();
-						finish();
-						return;
-					}
-					break;
-
-				case SHOW_SAVING:
-					isSaving = true;
-					showDialog(SAVING_DIALOG);
-					break;
-
-				case SAVE_RESULT:
-					// dismiss
-					// dialog
-					mHandler.removeMessages(SAVE_FAILED);
-					isSaving = false;
-					if ( savingDialog != null ) savingDialog.dismiss();
-					long res = (Long) msg.obj;
-					if ( res >= 0 ) {
-						Intent ret = new Intent();
-						Bundle b = new Bundle();
-//						b.putParcelable(JournalView.KEY_CACHE_OBJECT, (Long) msg.obj);
-//						b.putString( JournalView.RECURRENCE_ID_KEY, journal.getStart().toPropertyString(
-//												PropertyName.RECURRENCE_ID));
-						ret.putExtras(b);
-						setResult(RESULT_OK, ret);
-						saveSucceeded = true;
-
-						finish();
-
-					}
-					else {
-						Toast.makeText(JournalEdit.this, "Error saving event data.", Toast.LENGTH_LONG).show();
-					}
-					break;
-
-				case SAVE_FAILED:
-					isSaving = false;
-					if ( savingDialog != null ) savingDialog.dismiss();
-					if ( saveSucceeded ) {
-						// Don't know why we get here, but we do! - cancel save failed when save succeeds.
-						// we shouldn't see this anymore.
-						Log.w(TAG, "This should have been fixed now yay!", new Exception());
-					}
-					else {
-						Toast.makeText( JournalEdit.this, "Something went wrong trying to save data.", Toast.LENGTH_LONG).show();
-						setResult(Activity.RESULT_CANCELED, null);
-						finish();
-					}
-					break;
-			}
-			
+	private static Handler mHandler = new Handler() {
+		public void handleMessage(Message m) {
+			if ( handlerContext != null ) handlerContext.handleMessage(m);
 		}
 	};
 
@@ -240,7 +148,7 @@ public class JournalEdit extends AcalActivity
 
 		ContentValues[] journalCollections = DavCollections.getCollections( getContentResolver(), DavCollections.INCLUDE_JOURNAL );
 		if ( journalCollections.length == 0 ) {
-			Toast.makeText(this, getString(R.string.errorMustHaveActiveCalendar), Toast.LENGTH_LONG);
+			Toast.makeText(this, getString(R.string.errorMustHaveActiveCalendar), Toast.LENGTH_LONG).show();
 			this.finish();	// can't work if no active collections
 			return;
 		}
@@ -262,6 +170,100 @@ public class JournalEdit extends AcalActivity
 		this.populateLayout();
 	}
 
+	@Override
+	public void onDestroy() {
+		if ( handlerContext == this ) handlerContext = null;
+		super.onDestroy();
+	}
+
+	
+	private void handleMessage(Message msg) {
+		
+		switch ( msg.what ) {
+			case REFRESH:
+				if ( loadingDialog != null ) {
+					loadingDialog.dismiss();
+					loadingDialog = null;
+				}
+				updateLayout();
+				break;
+			case CONFLICT:
+				Toast.makeText(JournalEdit.this,"The resource you are editing has been changed or deleted on the server.", Toast.LENGTH_LONG).show();
+
+			case SHOW_LOADING:
+				if ( journal == null ) showDialog(LOADING_DIALOG);
+				break;
+			case FAIL:
+				if ( isLoading ) {
+					Toast.makeText(JournalEdit.this,"Error loading data.", Toast.LENGTH_LONG).show();
+					isLoading = false;
+				}
+				else if ( isSaving ) {
+					isSaving = false;
+					if ( savingDialog != null ) savingDialog
+							.dismiss();
+					Toast.makeText(JournalEdit.this, "Something went wrong trying to save data.", Toast.LENGTH_LONG).show();
+					setResult(Activity.RESULT_CANCELED, null);
+				}
+				finish();
+				break;
+			case GIVE_UP:
+				if ( loadingDialog != null ) {
+					loadingDialog.dismiss();
+					Toast.makeText(JournalEdit.this, "Error loading event data.", Toast.LENGTH_LONG).show();
+					finish();
+					return;
+				}
+				break;
+
+			case SHOW_SAVING:
+				isSaving = true;
+				showDialog(SAVING_DIALOG);
+				break;
+
+			case SAVE_RESULT:
+				// dismiss
+				// dialog
+				handlerContext = this;
+				mHandler.removeMessages(SAVE_FAILED);
+				isSaving = false;
+				if ( savingDialog != null ) savingDialog.dismiss();
+				long res = (Long) msg.obj;
+				if ( res >= 0 ) {
+					Intent ret = new Intent();
+					Bundle b = new Bundle();
+//					b.putParcelable(JournalView.KEY_CACHE_OBJECT, (Long) msg.obj);
+//					b.putString( JournalView.RECURRENCE_ID_KEY, journal.getStart().toPropertyString(
+//											PropertyName.RECURRENCE_ID));
+					ret.putExtras(b);
+					setResult(RESULT_OK, ret);
+					saveSucceeded = true;
+
+					finish();
+
+				}
+				else {
+					Toast.makeText(JournalEdit.this, "Error saving event data.", Toast.LENGTH_LONG).show();
+				}
+				break;
+
+			case SAVE_FAILED:
+				isSaving = false;
+				if ( savingDialog != null ) savingDialog.dismiss();
+				if ( saveSucceeded ) {
+					// Don't know why we get here, but we do! - cancel save failed when save succeeds.
+					// we shouldn't see this anymore.
+					Log.w(TAG, "This should have been fixed now yay!", new Exception());
+				}
+				else {
+					Toast.makeText( JournalEdit.this, "Something went wrong trying to save data.", Toast.LENGTH_LONG).show();
+					setResult(Activity.RESULT_CANCELED, null);
+					finish();
+				}
+				break;
+		}
+		
+	}
 	
 	@SuppressWarnings("unchecked")
 	private void requestJournalResource() {
@@ -274,6 +276,7 @@ public class JournalEdit extends AcalActivity
 			if ( b != null && b.containsKey(KEY_CACHE_OBJECT) ) {
 				CacheObject cacheJournal = (CacheObject) b.getParcelable(KEY_CACHE_OBJECT);
 				this.rid = cacheJournal.getResourceId();
+				handlerContext = this;
 				resourceManager.sendRequest(new RRRequestInstance(this, this.rid, cacheJournal.getRecurrenceId()));
 				mHandler.sendMessageDelayed(mHandler.obtainMessage(SHOW_LOADING), 50);
 				mHandler.sendMessageDelayed(mHandler.obtainMessage(GIVE_UP), 10000);
@@ -297,7 +300,6 @@ public class JournalEdit extends AcalActivity
 
 			this.action = ACTION_CREATE;
 			setJournal(new VJournal());
-			this.journal.setSummary(getString(R.string.NewJournalTitle));
 			this.journal.setStart(new AcalDateTime());
 		}
 	}
@@ -364,7 +366,7 @@ public class JournalEdit extends AcalActivity
 		}
 		else {
 			spinnerCollection.setOnItemSelectedListener( new OnItemSelectedListener() {
-
+				
 				@Override
 				public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
 					setSelectedCollection(collectionsArray[arg2].getCollectionId());
@@ -406,13 +408,31 @@ public class JournalEdit extends AcalActivity
 		if ( journal != null ) updateLayout();
 	}
 
+	
+	/**
+	 * Get all of the views inside this which are of a particular type.
+	 * @param v
+	 * @param likeThis
+	 * @return
+	 */
+	ArrayList<View> getViewsInside( View v, Class<?> likeThis ) {
+		ArrayList<View> res = new ArrayList<View>();
+		for( View sv : v.getFocusables(0)) {
+			if ( sv.getClass() == likeThis ) {
+				res.add(sv);
+			}
+			else {
+				res.addAll(getViewsInside(sv,likeThis));
+			}
+		}
+		return res;
+	}
 
 	/**
 	 * Update the screen whenever something has changed.
 	 */
 	private void updateLayout() {
 		AcalDateTime start = journal.getStart();
-
 
 		String title = journal.getSummary();
 		journalName.setText(title);
@@ -425,20 +445,10 @@ public class JournalEdit extends AcalActivity
 		sidebar.setBackgroundColor(colour);
 		AcalTheme.setContainerColour(spinnerCollection,colour);
 
-		try {
-			// Attempt to set text colour that works with (hopefully) background colour. 
-			((TextView) spinnerCollection
-						.getSelectedView())
-						.setTextColor(AcalTheme.pickForegroundForBackground(colour));
-		}
-		catch( Exception e ) {
-			// Oh well.  Some other way then... @journal.
-			Log.i(TAG,"Think of another solution...",e);
-		}
 		journalName.setTextColor(colour);
 
-		ArrayAdapter<CollectionForArrayAdapter> collectionAdapter
-					= new ArrayAdapter<CollectionForArrayAdapter>(this,android.R.layout.select_dialog_item, collectionsArray);
+		ArrayAdapter<CollectionForArrayAdapter> collectionAdapter = 
+				new ArrayAdapter<CollectionForArrayAdapter>(this,android. R.layout.select_dialog_item, collectionsArray);
 		int spinnerPosition = 0;
 		while( spinnerPosition < collectionsArray.length &&
 				collectionsArray[spinnerPosition].getCollectionId() != currentCollection.getCollectionId())
@@ -448,12 +458,21 @@ public class JournalEdit extends AcalActivity
 		if ( spinnerPosition < collectionsArray.length )
 			//set the default according to value
 			spinnerCollection.setSelection(spinnerPosition);
-		
+
+		try {
+			// Attempt to set text colour that works with (hopefully) background colour. 
+			for( View v : getViewsInside(spinnerCollection, TextView.class) ) {
+				((TextView) v).setTextColor(AcalTheme.pickForegroundForBackground(colour));
+				((TextView) v).setMaxLines(1);
+			}
+		}
+		catch( Exception e ) {
+			// Oh well.  Some other way then... @journal.
+			Log.i(TAG,"Think of another solution...",e);
+		}
+
 		btnStartDate.setText( AcalDateTimeFormatter.fmtFull( start, prefer24hourFormat) );
 
-				
-		
-		
 	}
 	
 	public boolean isModifyAction() {
@@ -463,10 +482,12 @@ public class JournalEdit extends AcalActivity
 
 	private void setSelectedCollection(long collectionId) {
 
-		if ( Collection.getInstance(collectionId,this) != null )
-			currentCollection = Collection.getInstance(collectionId,this);
+		Collection newCollection = Collection.getInstance(collectionId,this); 
+		if ( newCollection != null && newCollection != currentCollection ) {
+			currentCollection = newCollection;
+			this.updateLayout();
+		}
 
-		this.updateLayout();
 	}
 
 	
@@ -627,6 +648,7 @@ public class JournalEdit extends AcalActivity
 
 	@Override
 	public void onFocusChange(View v, boolean hasFocus) {
+		Log.i(TAG,"Current view is a " + v.toString() + " " + (hasFocus?"has" : "not") + " focused");
 		if ( !hasFocus ) checkpointCurrentValues();
 	}
 }
