@@ -339,4 +339,46 @@
 	<string name="note_text_hint">Enter note text here</string>
 	<string name="event_name_hint">Enter a name for your event</string>
 	<string name="todo_name_hint">Enter a name for your task</string>
+	<string name="event_location_hint">The location of the event</string>
+	<string name="event_notes_hint">Detailed event description</string>
+	<string name="first_name_hint">First name</string>
+	<string name="surname_hint">Surname</string>
+	<string name="phone_prompt">Phone</string>
+	<string name="phone_hint">Phone</string>
+	<string name="email_prompt">Email</string>
+	<string name="email_hint">Email</string>
+	<string name="postal_address_prompt">Postal address</string>
+	<string name="street_hint">Street</string>
+	<string name="city_hint">City</string>
+	<string name="country_hint">Country</string>
+	<string name="postcode_hint">Postcode</string>
+	<string name="organisation_prompt">Organisation</string>
+	<string name="company_hint">Company</string>
+	<string name="job_title_hint">Title</string>
+	<string name="contact_picture_description">Contact Picture</string>
+	<string name="icon_add_description">Add</string>
+	<string name="icon_delete_description">Delete</string>
+	<string name="Home">Home</string>
+	<string name="Work">Work</string>
+	<string name="Mobile">Mobile</string>
+	<string name="Other">Other</string>
+	<string name="WorkFax">Work Fax</string>
+	<string name="HomeFax">Home Fax</string>
+	<string name="Pager">Pager</string>
+	<string-array name="phone_types">
+		<item>@string/Home</item>
+		<item>@string/Mobile</item>
+		<item>@string/Work</item>
+		<item>@string/WorkFax</item>
+		<item>@string/HomeFax</item>
+		<item>@string/Pager</item>
+		<item>@string/Other</item>
+		<item>@string/Custom</item>
+	</string-array>
+	<string-array name="email_types">
+		<item>@string/Home</item>
+		<item>@string/Work</item>
+		<item>@string/Other</item>
+		<item>@string/Custom</item>
+	</string-array>
 </resources>
