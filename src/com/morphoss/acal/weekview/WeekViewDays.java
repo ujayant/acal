@@ -47,7 +47,7 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 	public static final String TAG = "aCal - WeekViewDays";
 
 	private WeekViewActivity context; 
-	private WeekViewCache dataCache;
+	private WeekViewCache dataCache = null;
 	private WVCacheObject[][] headerTimeTable;
 
 
@@ -117,7 +117,7 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 		}
 		if (!(context instanceof WeekViewActivity))
 			throw new IllegalStateException("Week View Started with invalid context.");
-		dataCache = new WeekViewCache(context,this);
+
 		this.context = (WeekViewActivity) context;
 	}
 
@@ -197,6 +197,7 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 		
 		//Get the current timetable
 		try {
+			open();
 			WeekViewTimeTable timeTable = dataCache.getMultiDayTimeTable(range, HDepth);
 			headerTimeTable = timeTable.getTimetable();
 			HDepth = timeTable.HDepth;	//TODO yucky side affect stuff
@@ -371,6 +372,7 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 						" epoch="+currentDay.getEpoch()+" dayX="+dayX);
 
 			//Get the timetable for the current day.
+			open();
 			WeekViewTimeTable timeTable = dataCache.getInDayTimeTable(currentDay);
 			if (timeTable == null) {
 				currentDay.addDays(1);
@@ -622,10 +624,9 @@ public class WeekViewDays extends ImageView implements OnTouchListener {
 	/**
 	 * Should be called if we wish to reuse this class after a close
 	 */
-	public void open() {
-		if (dataCache == null) {
+	public synchronized void open() {
+		if (dataCache == null)
 			dataCache = new WeekViewCache(context,this);
-		}
 	}
 
 	/**
