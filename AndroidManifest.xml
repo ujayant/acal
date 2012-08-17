@@ -4,7 +4,7 @@
 	android:versionCode="56"
 	android:versionName="1.56" >
 	<uses-sdk
-		android:minSdkVersion="5"
+		android:minSdkVersion="4"
 		android:targetSdkVersion="10" />
 	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -42,7 +42,6 @@
 		android:smallScreens="true" />
 	<application
 		android:name="com.morphoss.acal.AcalApplication"
-		android:debuggable="false"
 		android:description="@string/appDescription"
 		android:icon="@drawable/ic_launcher_events"
 		android:label="@string/appName"
@@ -77,6 +76,7 @@
 		</activity>
 		<activity
 			android:name=".activity.MonthView"
+			android:exported="false"
 			android:label="@string/appActivityMonthView" >
 			<intent-filter>
 				<action android:name="com.morphoss.acal.activity.MonthView" />
@@ -85,6 +85,7 @@
 		</activity>
 		<activity
 			android:name=".activity.YearView"
+			android:exported="false"
 			android:label="@string/appActivityYearView"
 			android:launchMode="standard" >
 			<intent-filter>
@@ -94,6 +95,7 @@
 		</activity>
 		<activity
 			android:name=".weekview.WeekViewActivity"
+			android:exported="false"
 			android:label="@string/appActivityWeekView"
 			android:launchMode="standard" >
 			<intent-filter>
@@ -103,6 +105,7 @@
 		</activity>
 		<activity
 			android:name=".activity.serverconfig.ServerConfigList"
+			android:exported="false"
 			android:label="@string/appActivityServerConfigList"
 			android:launchMode="standard" >
 			<intent-filter>
@@ -112,6 +115,7 @@
 		</activity>
 		<activity
 			android:name=".activity.serverconfig.AddServerList"
+			android:exported="false"
 			android:label="@string/appActivityAddServerList"
 			android:launchMode="standard" >
 			<intent-filter>
@@ -121,6 +125,7 @@
 		</activity>
 		<activity
 			android:name=".activity.CollectionConfigList"
+			android:exported="false"
 			android:label="@string/appActivityCollectionConfigList"
 			android:launchMode="standard" >
 			<intent-filter>
@@ -130,6 +135,7 @@
 		</activity>
 		<activity
 			android:name=".activity.Settings"
+			android:exported="false"
 			android:label="@string/appActivitySettings"
 			android:launchMode="standard" >
 			<intent-filter>
@@ -139,6 +145,7 @@
 		</activity>
 		<activity
 			android:name=".activity.DebugSettings"
+			android:exported="false"
 			android:label="@string/appActivityDebugSettings"
 			android:launchMode="standard" >
 			<intent-filter>
@@ -148,6 +155,7 @@
 		</activity>
 		<activity
 			android:name=".activity.serverconfig.ServerConfiguration"
+			android:exported="false"
 			android:launchMode="standard" >
 			<intent-filter>
 				<action android:name="com.morphoss.acal.activity.serverconfig.ServerConfiguration" />
@@ -156,6 +164,7 @@
 		</activity>
 		<activity
 			android:name=".activity.serverconfig.NewServerConfiguration"
+			android:exported="false"
 			android:launchMode="standard" >
 			<intent-filter>
 				<action android:name="com.morphoss.acal.activity.serverconfig.NewServerConfiguration" />
@@ -164,6 +173,7 @@
 		</activity>
 		<activity
 			android:name=".activity.CollectionConfiguration"
+			android:exported="false"
 			android:launchMode="standard" >
 			<intent-filter>
 				<action android:name="com.morphoss.acal.activity.CollectionConfiguration" />
@@ -172,6 +182,7 @@
 		</activity>
 		<activity
 			android:name=".activity.EventView"
+			android:exported="false"
 			android:launchMode="standard" >
 			<intent-filter>
 				<action android:name="com.morphoss.acal.activity.EventView" />
@@ -180,6 +191,7 @@
 		</activity>
 		<activity
 			android:name=".activity.EventEdit"
+			android:exported="false"
 			android:icon="@drawable/ic_launcher_events"
 			android:launchMode="standard" >
 			<intent-filter>
@@ -189,6 +201,7 @@
 		</activity>
 		<activity
 			android:name=".activity.TodoListView"
+			android:exported="false"
 			android:launchMode="standard" >
 			<intent-filter>
 				<action android:name="com.morphoss.acal.activity.TodoListView" />
@@ -197,6 +210,7 @@
 		</activity>
 		<activity
 			android:name=".activity.JournalListView"
+			android:exported="false"
 			android:launchMode="standard" >
 			<intent-filter>
 				<action android:name="com.morphoss.acal.activity.JournalListView" />
@@ -205,6 +219,7 @@
 		</activity>
 		<activity
 			android:name=".activity.TodoView"
+			android:exported="false"
 			android:launchMode="standard" >
 			<intent-filter>
 				<action android:name="com.morphoss.acal.activity.TodoView" />
@@ -213,6 +228,7 @@
 		</activity>
 		<activity
 			android:name=".activity.JournalView"
+			android:exported="false"
 			android:launchMode="standard" >
 			<intent-filter>
 				<action android:name="com.morphoss.acal.activity.JournalView" />
@@ -221,6 +237,7 @@
 		</activity>
 		<activity
 			android:name=".activity.TodoEdit"
+			android:exported="false"
 			android:launchMode="standard" >
 			<intent-filter>
 				<action android:name="com.morphoss.acal.activity.TodoEdit" />
@@ -229,6 +246,7 @@
 		</activity>
 		<activity
 			android:name=".activity.JournalEdit"
+			android:exported="false"
 			android:launchMode="standard" >
 			<intent-filter>
 				<action android:name="com.morphoss.acal.activity.JournalEdit" />
@@ -237,6 +255,7 @@
 		</activity>
 		<activity
 			android:name=".activity.ShowUpgradeChanges"
+			android:exported="false"
 			android:launchMode="standard" >
 			<intent-filter>
 				<action android:name="com.morphoss.acal.activity.ShowUpgradeChanges" />
@@ -245,6 +264,7 @@
 		</activity>
 		<activity
 			android:name=".activity.AlarmActivity"
+			android:exported="false"
 			android:launchMode="singleTask" >
 			<intent-filter>
 				<action android:name="com.morphoss.acal.activity.AlarmActivity" />
@@ -253,6 +273,7 @@
 		</activity>
 		<activity
 			android:name=".activity.AcalPreferences"
+			android:exported="false"
 			android:label="@string/appActivityPreference"
 			android:launchMode="standard" >
 			<intent-filter>
@@ -262,6 +283,7 @@
 		</activity>
 		<activity
 			android:name=".widget.Picker"
+			android:exported="false"
 			android:label="Number Picker" >
 			<intent-filter>
 				<action android:name="com.morphoss.acal.widget.Picker" />
@@ -296,7 +318,9 @@
 			android:name="com.morphoss.acal.providers.DavCollections"
 			android:authorities="collections"
 			android:exported="false" />
-		<service android:name="com.morphoss.acal.service.aCalService" >
+		<service
+			android:name="com.morphoss.acal.service.aCalService"
+			android:exported="false" >
 			<intent-filter>
 				<action android:name="com.morphoss.acal.service.aCalService" />
 			</intent-filter>
@@ -319,7 +343,9 @@
 				<category android:name="android.intent.category.HOME" />
 			</intent-filter>
 		</receiver>
-		<receiver android:name="com.morphoss.acal.desktop.ShowUpcomingWidgetProvider" >
+		<receiver
+			android:name="com.morphoss.acal.desktop.ShowUpcomingWidgetProvider"
+			android:exported="false" >
 			<intent-filter>
 				<action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
 			</intent-filter>

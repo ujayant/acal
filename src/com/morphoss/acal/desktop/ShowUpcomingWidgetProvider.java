@@ -65,7 +65,7 @@ public class ShowUpcomingWidgetProvider extends AppWidgetProvider {
 	}
 
 	
-	@TargetApi(7)
+	@TargetApi(10)
 	public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
 
 		if (Constants.LOG_DEBUG && Constants.debugWidget) Log.println(Constants.LOGD, TAG,
