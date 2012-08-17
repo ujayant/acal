@@ -295,7 +295,7 @@ public class TodoListAdapter extends BaseAdapter
 					return true;
 				
 				case CONTEXT_DELETE:
-					this.context.deleteTodo(id,TodoEdit.ACTION_DELETE_ALL);
+					this.context.deleteTodo(todo.getResourceId(),TodoEdit.ACTION_DELETE_ALL);
 					return true;
 
 				case CONTEXT_COMPLETE:

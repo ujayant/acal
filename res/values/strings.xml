@@ -381,4 +381,8 @@
 		<item>@string/Other</item>
 		<item>@string/Custom</item>
 	</string-array>
+	<string name="newJournalFromThis">Copy to New Note</string>
+	<string name="ErrorDeletingJournal">Error deleting note data - please try again.</string>
+	<string name="ErrorDeletingTask">Error deleting task data - please try again.</string>
+	<string name="ErrorCompletingTask">Error setting task as completed - please try again.</string>
 </resources>

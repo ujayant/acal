@@ -29,7 +29,15 @@ public class RRResourceEditedRequest extends ResourceRequestWithResponse<Long> {
 	public static final int ACTION_CREATE = 1;
 	public static final int ACTION_UPDATE = 2;
 	public static final int ACTION_DELETE = 3;
-	
+
+	/**
+	 * Apply a resource edit to the database.
+	 * @param callBack
+	 * @param cid collection ID
+	 * @param rid resource ID
+	 * @param vc 
+	 * @param action 
+	 */
 	public RRResourceEditedRequest(ResourceResponseListener<Long> callBack, long cid, long rid, VComponent vc, int action ) {
 		super(callBack);
 		this.collectionId = cid;
@@ -59,6 +67,7 @@ public class RRResourceEditedRequest extends ResourceRequestWithResponse<Long> {
 				newBlob = null;
 			else
 				newBlob = resourceComponent.getCurrentBlob();
+
 			try {
 				if ( resourceComponent instanceof VCalendar )
 					uid = ((VCalendar) resourceComponent).getMasterChild().getUID();

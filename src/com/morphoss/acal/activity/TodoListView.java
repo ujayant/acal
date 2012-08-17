@@ -29,10 +29,19 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.morphoss.acal.AcalTheme;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
+import com.morphoss.acal.acaltime.AcalDateTime;
+import com.morphoss.acal.database.resourcesmanager.ResourceManager;
+import com.morphoss.acal.database.resourcesmanager.ResourceResponse;
+import com.morphoss.acal.database.resourcesmanager.ResourceResponseListener;
+import com.morphoss.acal.dataservice.Resource;
+import com.morphoss.acal.davacal.VCalendar;
+import com.morphoss.acal.davacal.VComponent;
+import com.morphoss.acal.davacal.VTodo;
 import com.morphoss.acal.service.aCalService;
 
 /**
@@ -275,28 +284,59 @@ public class TodoListView extends AcalActivity implements OnClickListener {
 	 * Public Methods *
 	 ****************************************************/
 
-	public void deleteTodo( int n, int action ) {
-		//TODO
-		/**
-		SimpleAcalTodo sat = dataRequest.getNthTodo(n);
+	public void deleteTodo( long resourceId, int action ) {
 		try {
-			this.dataRequest.todoChanged((VCalendar) VComponent.fromDatabase(this, sat.resource.getResourceId()), action);
-		} catch (VComponentCreationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}*/
+			Resource r = Resource.fromDatabase(this, resourceId);
+
+			ResourceManager.getInstance(this).sendRequest(
+					new RRResourceEditedRequest(
+							new ResourceResponseListener<Long>() {
+								@Override
+								public void resourceResponse(
+										ResourceResponse<Long> response) {
+								}
+
+							},
+							r.getCollectionId(), resourceId, 
+							VComponent.createComponentFromResource(r),
+							RRResourceEditedRequest.ACTION_DELETE)
+					);
+		}
+		catch (Exception e) {
+			if ( e.getMessage() != null ) Log.d(TAG,e.getMessage());
+			if (Constants.LOG_DEBUG) Log.println(Constants.LOGD, TAG, Log.getStackTraceString(e));
+			Toast.makeText(this, getString(R.string.ErrorDeletingTask), Toast.LENGTH_LONG).show();
+		}
 	}
 
-	public void completeTodo( int n, int action ) {
-		//TODO
-		/** 
+	public void completeTodo( long resourceId, int action ) {
 		try {
-			SimpleAcalTodo sat = dataRequest.getNthTodo(n);
-			this.dataRequest.todoChanged((VCalendar) VComponent.fromDatabase(this, sat.resource.getResourceId()), action);
+			Resource r = Resource.fromDatabase(this, resourceId);
+			VCalendar todoCalendarResource = (VCalendar) VComponent.createComponentFromResource(r);
+			todoCalendarResource.setEditable();
+			VTodo task = (VTodo) todoCalendarResource.getMasterChild();
+			task.setCompleted(AcalDateTime.getInstance());
+
+			ResourceManager.getInstance(this).sendRequest(
+					new RRResourceEditedRequest(
+							new ResourceResponseListener<Long>() {
+								@Override
+								public void resourceResponse(
+										ResourceResponse<Long> response) {
+								}
+
+							},
+							r.getCollectionId(), resourceId, 
+							todoCalendarResource,
+							RRResourceEditedRequest.ACTION_UPDATE)
+					);
+			
 		}
-		catch (VComponentCreationException e) {
-			Log.e(TAG,"Error reading task from database: "+e);
-		} */
+		catch (Exception e) {
+			if ( e.getMessage() != null ) Log.d(TAG,e.getMessage());
+			if (Constants.LOG_DEBUG) Log.println(Constants.LOGD, TAG, Log.getStackTraceString(e));
+			Toast.makeText(this, getString(R.string.ErrorCompletingTask), Toast.LENGTH_LONG).show();
+		}
 	}
 
 

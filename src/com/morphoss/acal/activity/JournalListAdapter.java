@@ -242,9 +242,8 @@ public class JournalListAdapter extends BaseAdapter
 			public void onCreateContextMenu(ContextMenu menu, View view, ContextMenuInfo info) {
 				menu.setHeaderTitle(context.getString(R.string.ChooseAction));
 				menu.add(0, position, 0, context.getString(R.string.Edit));
-				menu.add(0, CONTEXT_COPY + position,  0, context.getString(R.string.newEventFromThis));
+				menu.add(0, CONTEXT_COPY + position,  0, context.getString(R.string.newJournalFromThis));
 				menu.add(0, CONTEXT_DELETE+ position, 0, context.getString(R.string.Delete));
-				menu.add(0, CONTEXT_COMPLETE+ position, 0, context.getString(R.string.SetCompleted));
 			}
 		});
 
@@ -291,7 +290,7 @@ public class JournalListAdapter extends BaseAdapter
 					return true;
 				
 				case CONTEXT_DELETE:
-					this.context.deleteJournal(id,JournalEdit.ACTION_DELETE_ALL);
+					this.context.deleteJournal(journal.getResourceId(),JournalEdit.ACTION_DELETE_ALL);
 					return true;
 
 			}

@@ -28,10 +28,16 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.morphoss.acal.AcalTheme;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
+import com.morphoss.acal.database.resourcesmanager.ResourceManager;
+import com.morphoss.acal.database.resourcesmanager.ResourceResponse;
+import com.morphoss.acal.database.resourcesmanager.ResourceResponseListener;
+import com.morphoss.acal.dataservice.Resource;
+import com.morphoss.acal.davacal.VComponent;
 import com.morphoss.acal.service.aCalService;
 
 /**
@@ -222,7 +228,7 @@ public class JournalListView extends AcalActivity implements OnClickListener {
 	private void startSettings() {
 		Intent settingsIntent = new Intent();
 		settingsIntent.setClassName("com.morphoss.acal",
-		"com.morphoss.acal.activity.Settings");
+				"com.morphoss.acal.activity.Settings");
 		this.startActivity(settingsIntent);
 	}
 
@@ -252,30 +258,31 @@ public class JournalListView extends AcalActivity implements OnClickListener {
 	 * Public Methods *
 	 ****************************************************/
 
-	public void deleteJournal( int n, int action ) {
-		//TODO
-		/**
-		SimpleAcalJournal sat = dataRequest.getNthTodo(n);
+	public void deleteJournal( long resourceId, int action ) {
 		try {
-			this.dataRequest.journalChanged((VCalendar) VComponent.fromDatabase(this, sat.resource.getResourceId()), action);
-		} catch (VComponentCreationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}*/
-	}
+			Resource r = Resource.fromDatabase(this, resourceId);
 
-	public void completeJournal( int n, int action ) {
-		//TODO
-		/** 
-		try {
-			SimpleAcalTodo sat = dataRequest.getNthTodo(n);
-			this.dataRequest.todoChanged((VCalendar) VComponent.fromDatabase(this, sat.resource.getResourceId()), action);
+			ResourceManager.getInstance(this).sendRequest(
+					new RRResourceEditedRequest(
+							new ResourceResponseListener<Long>() {
+								@Override
+								public void resourceResponse(
+										ResourceResponse<Long> response) {
+								}
+
+							},
+							r.getCollectionId(), resourceId, 
+							VComponent.createComponentFromResource(r),
+							RRResourceEditedRequest.ACTION_DELETE)
+					);
+
 		}
-		catch (VComponentCreationException e) {
-			Log.e(TAG,"Error reading task from database: "+e);
-		} */
+		catch (Exception e) {
+			if ( e.getMessage() != null ) Log.println(Constants.LOGD, TAG,e.getMessage());
+			if (Constants.LOG_DEBUG) Log.println(Constants.LOGD, TAG, Log.getStackTraceString(e));
+			Toast.makeText(this, getString(R.string.ErrorDeletingJournal), Toast.LENGTH_LONG).show();
+		}
 	}
-
 
 
 	/********************************************************************
