@@ -520,13 +520,21 @@ public class WeekViewActivity extends Activity implements OnGestureListener, OnT
         			 * TODO
         			 */
         		}
-        		else {
-	        		if ( action == CONTEXT_ACTION_COPY ) {
-	        			//TODO
-	           		}
-	        		else if ( action == CONTEXT_ACTION_EDIT ) {
-	        			//TODO
-	        		}
+        		else if ( action == CONTEXT_ACTION_COPY || action == CONTEXT_ACTION_EDIT ) {
+
+        			int editAction = EventEdit.ACTION_EDIT;
+	        		if ( action == CONTEXT_ACTION_COPY )
+	        			editAction = EventEdit.ACTION_COPY;
+
+					//start EventEdit activity
+					Bundle bundle = new Bundle();
+					bundle.putInt(EventEdit.ACTION_KEY,editAction);
+					bundle.putLong(EventEdit.RESOURCE_ID_KEY, co.getResourceId());
+					bundle.putString(EventEdit.RECCURENCE_ID_KEY, co.getRecurrenceId());
+					Intent eventViewIntent = new Intent(this, EventEdit.class);
+					eventViewIntent.putExtras(bundle);
+					this.startActivity(eventViewIntent);
+					return true;
         		}
         		break;
         	}
