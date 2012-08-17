@@ -121,9 +121,8 @@ public class WeekViewCache implements CacheChangedListener, CacheResponseListene
 		 * it's earliestStart/latestEnd almost certainly crosses this period, even though no instances
 		 * occur within the visible range. 
 		 */
-		if ( event.getChanges().size() < 0 ) return; // always return
+		if ( event.getChanges().size() > 10000 ) return; // always return
 
-		Log.d("WeekViewCache","CacheChanged...", new Exception("Unexceptional"));
 		// 1 Check if any of the changes affect the current range
 		AcalDateTime earliestStart = null;
 		AcalDateTime latestEnd = null;
@@ -139,8 +138,6 @@ public class WeekViewCache implements CacheChangedListener, CacheResponseListene
 
 		// 2 if so, wipe existing data
 		if (new AcalDateRange(earliestStart,latestEnd).overlaps(window.getCurrentWindow())) {
-			Log.d("WeekViewCache","Would be resetting cache since ("+earliestStart+","+latestEnd+") overlaps "+window.getCurrentWindow(), new Exception("Unexceptional"));
-			
 			// resetCache();
 		}
 	}
