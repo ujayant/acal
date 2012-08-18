@@ -1514,6 +1514,7 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 	 * Adds an integer number of days to this AcalDateTime.  And like all integers 'days'
 	 * could be negative, and that's OK too.
 	 * @param days
+	 * @return this, for chaining
 	 */
 	public synchronized AcalDateTime addDays(int days) {
 		if ( days == 0 ) return this;
@@ -1748,7 +1749,7 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 
 	/**
 	 * Gets an instance of AcalDateTime at the current time in the UTC timezone. 
-	 * @return
+	 * @return the new instance
 	 */
 	public static AcalDateTime getUTCInstance() {
 		AcalDateTime answer = new AcalDateTime();
@@ -1762,7 +1763,7 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 
 	/**
 	 * Gets an instance of AcalDateTime at the current clock time in the current timezone. 
-	 * @return
+	 * @return the new instance
 	 */
 	public static AcalDateTime getInstance() {
 		return AcalDateTime.getUTCInstance().applyLocalTimeZone();
@@ -1771,7 +1772,7 @@ public class AcalDateTime implements Parcelable, Serializable, Cloneable, Compar
 
 	/**
 	 * Set this AcalDateTime to the start of the month
-	 * @return
+	 * @return this, for chaining
 	 */
 	public AcalDateTime setMonthStart() {
 		setMonthDay(1);
