@@ -18,6 +18,7 @@
 
 package com.morphoss.acal;
 
+import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -28,6 +29,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Parcel;
+import android.view.View;
 
 import com.morphoss.acal.desktop.ShowUpcomingWidgetProvider;
 
@@ -242,5 +244,24 @@ public final class StaticHelpers {
 	public static String pathOnServer( String stripFromUrl ) {
 		Matcher m = Constants.matchProtocolServerPort.matcher(stripFromUrl);
 		return m.replaceAll("");
+	}
+
+	/**
+	 * Get all of the views inside this which are of a particular type.
+	 * @param v
+	 * @param likeThis
+	 * @return
+	 */
+	public static ArrayList<View> getViewsInside( View v, Class<?> likeThis ) {
+		ArrayList<View> res = new ArrayList<View>();
+		for( View sv : v.getFocusables(0)) {
+			if ( sv.getClass() == likeThis ) {
+				res.add(sv);
+			}
+			else {
+				res.addAll(getViewsInside(sv,likeThis));
+			}
+		}
+		return res;
 	}
 }

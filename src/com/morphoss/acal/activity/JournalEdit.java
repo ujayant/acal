@@ -18,7 +18,6 @@
 
 package com.morphoss.acal.activity;
 
-import java.util.ArrayList;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -47,6 +46,7 @@ import com.morphoss.acal.AcalTheme;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.PrefNames;
 import com.morphoss.acal.R;
+import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDateTimeFormatter;
 import com.morphoss.acal.database.cachemanager.CacheObject;
@@ -383,7 +383,6 @@ public class JournalEdit extends AcalActivity
 		btnStartDate = (Button) this.findViewById(R.id.JournalDateTime);
 
 		btnSaveChanges = (Button) this.findViewById(R.id.journal_apply_button);
-		btnSaveChanges.setText((isModifyAction() ? getString(R.string.Apply) : getString(R.string.Add)));
 		btnCancelChanges = (Button) this.findViewById(R.id.journal_cancel_button);
 		
 	
@@ -409,25 +408,6 @@ public class JournalEdit extends AcalActivity
 	}
 
 	
-	/**
-	 * Get all of the views inside this which are of a particular type.
-	 * @param v
-	 * @param likeThis
-	 * @return
-	 */
-	ArrayList<View> getViewsInside( View v, Class<?> likeThis ) {
-		ArrayList<View> res = new ArrayList<View>();
-		for( View sv : v.getFocusables(0)) {
-			if ( sv.getClass() == likeThis ) {
-				res.add(sv);
-			}
-			else {
-				res.addAll(getViewsInside(sv,likeThis));
-			}
-		}
-		return res;
-	}
-
 	/**
 	 * Update the screen whenever something has changed.
 	 */
@@ -461,7 +441,7 @@ public class JournalEdit extends AcalActivity
 
 		try {
 			// Attempt to set text colour that works with (hopefully) background colour. 
-			for( View v : getViewsInside(spinnerCollection, TextView.class) ) {
+			for( View v : StaticHelpers.getViewsInside(spinnerCollection, TextView.class) ) {
 				((TextView) v).setTextColor(AcalTheme.pickForegroundForBackground(colour));
 				((TextView) v).setMaxLines(1);
 			}
@@ -471,12 +451,14 @@ public class JournalEdit extends AcalActivity
 			Log.i(TAG,"Think of another solution...",e);
 		}
 
+		btnSaveChanges.setText((isModifyAction() ? getString(R.string.Apply) : getString(R.string.Add)));
 		btnStartDate.setText( AcalDateTimeFormatter.fmtFull( start, prefer24hourFormat) );
 
 	}
 	
 	public boolean isModifyAction() {
-		return (action >= ACTION_CREATE && action <= ACTION_MODIFY_ALL);
+		if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG, "isModify action = " + action);
+		return (action == ACTION_MODIFY_ALL);
 	}
 
 
@@ -520,10 +502,9 @@ public class JournalEdit extends AcalActivity
 				Toast.makeText(this, "Save failed: retrying!", Toast.LENGTH_LONG).show();
 				this.saveChanges();
 			}
-			return; 
 		}
 		
-
+		this.finish();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -536,7 +517,6 @@ public class JournalEdit extends AcalActivity
 			if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,
 					"saveChanges: "+journal.getSummary()+
 					", starts "+(dtStart == null ? "not set" : dtStart.toPropertyString(PropertyName.DTSTART)));
-			//display savingdialog
 
 			int sendAction = RRResourceEditedRequest.ACTION_UPDATE;
 			if (action == ACTION_CREATE ) sendAction = RRResourceEditedRequest.ACTION_CREATE;
@@ -544,17 +524,10 @@ public class JournalEdit extends AcalActivity
 			ResourceManager.getInstance(this)
 						.sendRequest(new RRResourceEditedRequest(this, currentCollection.collectionId, rid, vc, sendAction));
 
-			//set message for 10 seconds to fail.
-			mHandler.sendEmptyMessageDelayed(SAVE_FAILED, 100000);
-
-			//showDialog(SAVING_DIALOG);
-			mHandler.sendEmptyMessageDelayed(SHOW_SAVING,50);
-
-
 		}
 		catch (Exception e) {
 			if ( e.getMessage() != null ) Log.println(Constants.LOGD,TAG,e.getMessage());
-			if (Constants.LOG_DEBUG)Log.println(Constants.LOGD,TAG,Log.getStackTraceString(e));
+			if (Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG,Log.getStackTraceString(e));
 			Toast.makeText(this, getString(R.string.ErrorSavingEvent), Toast.LENGTH_LONG).show();
 			return false;
 		}
