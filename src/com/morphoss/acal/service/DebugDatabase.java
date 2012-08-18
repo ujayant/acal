@@ -71,7 +71,7 @@ public class DebugDatabase extends ServiceJob {
 	}
 
 	private void saveDatabase() {
-		if (Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG, "Database copy requested. Beginning file xfer to "+Constants.COPY_DB_TARGET);
+		Log.println(Constants.LOGI,TAG, "Database copy requested. Beginning file xfer to "+Constants.COPY_DB_TARGET);
 		File inputFile = new File("/data/data/com.morphoss.acal/databases/acal.db");
 		File outputFile = new File(Constants.COPY_DB_TARGET);
 
@@ -88,7 +88,7 @@ public class DebugDatabase extends ServiceJob {
 		} catch (Exception e) {
 			Log.e(TAG,"Error copying '"+inputFile.getAbsolutePath()+"' to '"+outputFile.getAbsolutePath()+"'");
 		}
-		if (Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG, "File copy completed.");
+		Log.println(Constants.LOGI,TAG, "Database copy completed.");
 	}
 
 	@Override
