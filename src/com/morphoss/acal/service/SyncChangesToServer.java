@@ -292,6 +292,7 @@ public class SyncChangesToServer extends ServiceJob implements BlockingResourceR
 
 			case 412: // Server won't accept it
 			case 403: // Server won't accept it
+			case 404: // DELETE on something that's not there.
 			case 405: // Server won't accept it - Method not allowed
 				Log.w(TAG, builder.getAction().toString()+": Status " + status + " for " +method+" "+ path + " - giving up on change.");
 				processor.deletePendingChange(pendingId);
