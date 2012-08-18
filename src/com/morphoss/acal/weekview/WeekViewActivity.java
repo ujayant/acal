@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Morphoss Ltd
+ * Copyright (C) 2012 Morphoss Ltd
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,6 @@ package com.morphoss.acal.weekview;
 
 import java.util.List;
 
-import android.app.Activity;
 import android.app.Dialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -47,6 +46,7 @@ import com.morphoss.acal.AcalTheme;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.R;
 import com.morphoss.acal.acaltime.AcalDateTime;
+import com.morphoss.acal.activity.AcalActivity;
 import com.morphoss.acal.activity.EventEdit;
 import com.morphoss.acal.activity.EventView;
 import com.morphoss.acal.activity.MonthView;
@@ -64,7 +64,7 @@ import com.morphoss.acal.widget.NumberSelectedListener;
  * @author Morphoss Ltd
  * @license GPL v3 or later
  */
-public class WeekViewActivity extends Activity implements OnGestureListener, OnTouchListener, OnClickListener, NumberSelectedListener {
+public class WeekViewActivity extends AcalActivity implements OnGestureListener, OnTouchListener, OnClickListener, NumberSelectedListener {
 	/* Fields relating to buttons */
 	public static final int TODAY = 0;
 	public static final int YEAR = 1;
