@@ -453,7 +453,7 @@ public class VCalendar extends VComponent implements Cloneable {
 	public Masterable getMasterChild() {
 		if (childrenSet) {
 			for (VComponent vc : this.getChildren()) {
-				if ( vc instanceof VEvent)   	return (VEvent)vc;
+				if ( vc instanceof VEvent)   	return (VEvent) vc;
 				if ( vc instanceof VTodo )		return (VTodo) vc;
 				if ( vc instanceof VJournal )	return (VJournal) vc;
 			}
