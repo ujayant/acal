@@ -86,6 +86,23 @@ public class UpdateTimezones extends ServiceJob {
 
 	private void refreshTimezoneData() {
 		try {
+			HashMap<String,Long> currentZones = new HashMap<String,Long>();
+			HashMap<String,Long> updatedZones = new HashMap<String,Long>();
+			HashMap<String,Long> insertedZones = new HashMap<String,Long>();
+			Cursor allZones = cr.query(Timezones.CONTENT_URI, new String[] { Timezones.TZID, Timezones.LAST_MODIFIED }, null, null, null);
+			Long maxModified = 0L;
+			for( allZones.moveToFirst(); !allZones.isAfterLast(); allZones.moveToNext()) {
+				if ( Constants.LOG_VERBOSE ) Log.println(Constants.LOGV, TAG, "Found existing zone of '"+allZones.getString(0)+"' modified: "+AcalDateTime.fromMillis(allZones.getLong(1)*1000L).toString());
+				currentZones.put(allZones.getString(0), allZones.getLong(1));
+				if ( allZones.getLong(1) > maxModified ) maxModified = allZones.getLong(1); 
+			}
+			AcalDateTime mostRecentChange = AcalDateTime.getUTCInstance().setEpoch(maxModified);
+			Log.println(Constants.LOGI, TAG, "Found "+allZones.getCount()+" existing timezones, most recent change on "+mostRecentChange.toString());
+			if ( allZones.getCount() > 350 && mostRecentChange.after(AcalDateTime.getUTCInstance().addDays(-30)) ) {
+				Log.println(Constants.LOGI, TAG, "Skipping update - our database is pretty recent" );
+				return;
+			}
+
 			requestor.interpretUriString(tzUrl("list",null));
 			DavNode root = requestor.doXmlRequest("GET", null, null, null);
 			if ( requestor.getStatusCode() != 200 ) {
@@ -97,14 +114,6 @@ public class UpdateTimezones extends ServiceJob {
 				return;
 			}
 
-			HashMap<String,Long> currentZones = new HashMap<String,Long>();
-			Cursor allZones = cr.query(Timezones.CONTENT_URI, new String[] { Timezones.TZID, Timezones.LAST_MODIFIED }, null, null, null);
-			Log.println(Constants.LOGD, TAG, "Found "+allZones.getCount()+" existing timezones.");
-			for( allZones.moveToFirst(); !allZones.isAfterLast(); allZones.moveToNext()) {
-				Log.println(Constants.LOGV, TAG, "Found existing zone of '"+allZones.getString(0)+"' modified: "+AcalDateTime.fromMillis(allZones.getLong(1)*1000L).toString());
-				currentZones.put(allZones.getString(0), allZones.getLong(1));
-			}
-
 			
 			String tzid;
 			String tzData;
@@ -113,19 +122,20 @@ public class UpdateTimezones extends ServiceJob {
 			StringBuilder aliases;
 			ContentValues zoneValues = new ContentValues();
 			
-			int i = 10;
-			
 			for( DavNode zoneNode : root.getNodesFromPath("timezone-list/summary") ) {
 				
 				tzid = zoneNode.getFirstNodeText("tzid");
+				if ( updatedZones.containsKey(tzid) || insertedZones.containsKey(tzid) ) continue;
+
 				lastModified = AcalDateTime.fromString(zoneNode.getFirstNodeText("last-modified")).getEpoch();
-				if ( currentZones.containsKey(tzid) && currentZones.get(tzid) <= lastModified ) continue;
+				if ( currentZones.containsKey(tzid) && currentZones.get(tzid) <= lastModified ) {
+					currentZones.remove(tzid);
+					continue;
+				}
 
 				tzData = getTimeZone(tzid);
 				if ( tzData == null ) continue;
 
-				if ( i-- < 0 ) break;
-				
 				List<DavNode> localisedNameNodes = zoneNode.getNodesFromPath("local-name");
 				localNames = new StringBuilder();
 				for( DavNode localNameNode : localisedNameNodes ) {
@@ -149,15 +159,18 @@ public class UpdateTimezones extends ServiceJob {
 				zoneValues.put(Timezones.TZID_ALIASES, aliases.toString());
 
 				Uri tzUri = Uri.withAppendedPath(Timezones.CONTENT_URI, "tzid/"+StaticHelpers.urlescape(tzid,false));
+
 				if ( currentZones.containsKey(tzid) ) {
 					if ( cr.update(tzUri, zoneValues, null, null) != 1 ) {
 						Log.e(TAG,"Failed update for TZID '"+tzid+"'");
 					}
+					updatedZones.put(tzid, currentZones.get(tzid));
 					currentZones.remove(tzid);
 				}
 				else {
 					if ( cr.insert(tzUri, zoneValues) == null )
 						Log.e(TAG,"Failed insert for TZID '"+tzid+"'");
+					insertedZones.put(tzid, currentZones.get(tzid));
 				}
 
 				// Let other stuff have a chance 
@@ -172,6 +185,8 @@ public class UpdateTimezones extends ServiceJob {
 				}
 				cr.delete(Timezones.CONTENT_URI, Timezones.TZID+" IN ("+s+")", null);
 			}
+
+			Log.println(Constants.LOGI, TAG, "Updated data for "+updatedZones.size()+" zones, added data for "+insertedZones.size()+" new zones." );
 		}
 		catch( Exception e ) {
 			Log.e(TAG,Log.getStackTraceString(e));
