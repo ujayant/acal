@@ -299,7 +299,7 @@ public class TodoListAdapter extends BaseAdapter
 					return true;
 
 				case CONTEXT_COMPLETE:
-					this.context.completeTodo(id,TodoEdit.ACTION_COMPLETE);
+					this.context.completeTodo(todo.getResourceId(),TodoEdit.ACTION_COMPLETE);
 					return true;
 
 			}

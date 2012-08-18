@@ -8,7 +8,8 @@
 	<LinearLayout
 		android:id="@+id/TodoEditBelowTitleLayout"
 		android:layout_width="match_parent"
-		android:layout_height="match_parent"
+		android:layout_height="0dp"
+		android:layout_weight="1"
 		android:orientation="horizontal" >
 		<!-- Colour bar -->
 		<LinearLayout
@@ -22,7 +23,6 @@
 			android:layout_height="wrap_content"
 			android:layout_weight="1" >
 			<RelativeLayout
-				xmlns:android="http://schemas.android.com/apk/res/android"
 				android:id="@+id/TodoEditDataLayout"
 				android:layout_width="fill_parent"
 				android:layout_height="wrap_content"
@@ -32,17 +32,30 @@
 					android:id="@+id/TodoName"
 					android:layout_width="fill_parent"
 					android:layout_height="wrap_content"
+					android:layout_marginBottom="1dp"
 					android:hint="@string/todo_name_hint"
 					android:inputType="textCapSentences|textAutoCorrect|textEmailSubject"
-					android:paddingBottom="10sp"
-					android:paddingLeft="3sp"
-					android:textSize="26sp" />
-				<!-- Outer Layout for from/to -->
+					android:textSize="24sp" >
+					<requestFocus />
+				</EditText>
+				<EditText
+					android:id="@+id/TodoNotesContent"
+					style="@style/todo_view_content"
+					android:layout_width="fill_parent"
+					android:layout_height="wrap_content"
+					android:layout_below="@+id/TodoName"
+					android:layout_marginBottom="1dp"
+					android:gravity="top"
+					android:hint="@string/todo_description_hint"
+					android:inputType="textMultiLine|textCapSentences|textLongMessage|textAutoCorrect"
+					android:minLines="3"
+					android:minWidth="100sp" >
+				</EditText>
 				<RelativeLayout
 					android:id="@+id/TodoDatesLayout"
 					android:layout_width="fill_parent"
 					android:layout_height="wrap_content"
-					android:layout_below="@+id/TodoName"
+					android:layout_below="@+id/TodoNotesContent"
 					android:orientation="vertical"
 					android:paddingBottom="0sp" >
 					<!-- Until Content -->
@@ -89,7 +102,7 @@
 							android:gravity="center_vertical"
 							android:text="@string/TodoFromPrompt" />
 						<LinearLayout
-							android:layout_width="fill_parent"
+							android:layout_width="0dp"
 							android:layout_height="wrap_content"
 							android:layout_marginRight="10sp"
 							android:layout_weight="3"
@@ -100,7 +113,7 @@
 								android:layout_width="fill_parent"
 								android:layout_height="wrap_content"
 								android:minHeight="30sp"
-								android:text="7:00pm, 29 October 2011" />
+								android:text="@string/placeholderDateAndTime" />
 						</LinearLayout>
 					</LinearLayout>
 					<!-- Completed content -->
@@ -119,12 +132,11 @@
 								style="@style/todo_view_label"
 								android:layout_width="70dp"
 								android:layout_height="fill_parent"
-								android:layout_centerVertical="true"
 								android:layout_gravity="center_vertical"
 								android:gravity="center_vertical"
 								android:text="@string/CompletedPrompt" />
 							<LinearLayout
-								android:layout_width="fill_parent"
+								android:layout_width="0dp"
 								android:layout_height="wrap_content"
 								android:layout_marginRight="10sp"
 								android:layout_weight="3"
@@ -135,7 +147,7 @@
 									android:layout_width="fill_parent"
 									android:layout_height="wrap_content"
 									android:minHeight="30sp"
-									android:text="7:00pm, 29 October 2011" />
+									android:text="@string/placeholderDateAndTime" />
 							</LinearLayout>
 						</LinearLayout>
 						<LinearLayout
@@ -156,67 +168,26 @@
 								android:id="@+id/TodoPercentCompleteBar"
 								android:layout_width="fill_parent"
 								android:layout_height="wrap_content"
-								android:layout_centerVertical="true"
+								android:layout_gravity="center_vertical"
 								android:layout_marginRight="10sp"
 								android:indeterminate="false"
 								android:max="100" />
 						</LinearLayout>
 					</RelativeLayout>
 				</RelativeLayout>
-				<RelativeLayout
-					android:id="@+id/TodoNotesLayout"
+				<EditText
+					android:id="@+id/TodoLocationContent"
+					style="@style/todo_view_content"
 					android:layout_width="fill_parent"
 					android:layout_height="wrap_content"
-					android:layout_below="@+id/TodoDatesLayout"
-					android:paddingBottom="5sp" >
-					<!-- Notes label and content -->
-					<TextView
-						android:id="@+id/TodoNotesLabel"
-						style="@style/todo_view_label"
-						android:layout_width="fill_parent"
-						android:layout_height="wrap_content"
-						android:layout_below="@+id/TodoLocationLayout"
-						android:text="@string/NotesPrompt" />
-					<EditText
-						android:id="@+id/TodoNotesContent"
-						style="@style/todo_view_content"
-						android:layout_width="fill_parent"
-						android:layout_height="wrap_content"
-						android:layout_below="@+id/TodoNotesLabel"
-						android:gravity="top"
-						android:inputType="textMultiLine|textCapSentences|textLongMessage|textAutoCorrect"
-						android:minHeight="100sp"
-						android:minWidth="100sp" />
-				</RelativeLayout>
-				<!-- Location Label and Button -->
-				<RelativeLayout
-					android:id="@+id/TodoLocationLayout"
-					android:layout_width="fill_parent"
-					android:layout_height="wrap_content"
-					android:layout_below="@+id/TodoNotesLayout"
-					android:paddingBottom="5sp" >
-					<!-- Location Label -->
-					<TextView
-						android:id="@+id/TodoLocationLabel"
-						style="@style/todo_view_label"
-						android:layout_width="fill_parent"
-						android:layout_height="wrap_content"
-						android:paddingBottom="2sp"
-						android:text="@string/LocationPrompt" />
-					<EditText
-						android:id="@+id/TodoLocationContent"
-						style="@style/todo_view_content"
-						android:layout_width="fill_parent"
-						android:layout_height="wrap_content"
-						android:layout_below="@+id/TodoLocationLabel"
-						android:inputType="textCapSentences|textPostalAddress|textAutoCorrect" />
-				</RelativeLayout>
-				<!-- End location label and button -->
+					android:layout_below="@id/TodoDatesLayout"
+					android:hint="@string/todo_location_hint"
+					android:inputType="textCapSentences|textPostalAddress|textAutoCorrect" />
 				<RelativeLayout
 					android:id="@+id/TodoAlarmsLayout"
 					android:layout_width="fill_parent"
 					android:layout_height="wrap_content"
-					android:layout_below="@+id/TodoLocationLayout"
+					android:layout_below="@id/TodoLocationContent"
 					android:paddingBottom="5sp" >
 					<LinearLayout
 						android:id="@+id/TodoAlarmsTopLayout"
@@ -262,34 +233,40 @@
 							android:text="@string/setRepeatRule" />
 					</LinearLayout>
 				</LinearLayout>
+				<!-- calandar select thingy -->
 				<LinearLayout
 					android:id="@+id/TodoCollectionLayout"
 					android:layout_width="fill_parent"
 					android:layout_height="wrap_content"
-					android:layout_below="@+id/TodoRepeatsLayout"
-					android:paddingBottom="20sp" >
-					<!-- Repeats label and content -->
+					android:layout_below="@id/TodoRepeatsLayout"
+					android:paddingBottom="3sp" >
 					<TextView
 						android:id="@+id/TodoCollectionLabel"
-						style="@style/todo_view_label"
-						android:layout_width="100sp"
+						style="@style/gen_label"
+						android:layout_width="wrap_content"
 						android:layout_height="wrap_content"
 						android:layout_gravity="left|center_vertical"
+						android:maxLines="1"
+						android:paddingRight="3sp"
 						android:text="@string/CollectionPrompt" />
-					<!-- Collection Selection Button -->
 					<LinearLayout
 						android:id="@+id/TodoEditCollectionLayout"
 						android:layout_width="fill_parent"
 						android:layout_height="wrap_content"
-						android:layout_marginRight="15sp"
+						android:layout_marginRight="5sp"
 						android:background="@color/themed_button_colour" >
 						<Spinner
 							android:id="@+id/TodoEditCollectionSelect"
 							style="@style/themed_button_big"
-							android:layout_width="fill_parent"
-							android:layout_height="wrap_content" />
+							android:layout_width="0dp"
+							android:layout_height="30sp"
+							android:layout_gravity="left|center_vertical"
+							android:layout_weight="1"
+							android:ellipsize="end"
+							android:maxLines="1" />
 					</LinearLayout>
 				</LinearLayout>
+				<!-- calandar select thingy end -->
 			</RelativeLayout>
 		</ScrollView>
 	</LinearLayout>
@@ -299,6 +276,7 @@
 		android:layout_height="36dp"
 		android:layout_gravity="bottom"
 		android:background="@color/bottom_bg"
+		android:baselineAligned="true"
 		android:gravity="bottom" >
 		<!-- Colour bar -->
 		<LinearLayout

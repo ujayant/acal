@@ -35,7 +35,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.view.ViewParent;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
@@ -57,6 +56,7 @@ import com.morphoss.acal.AcalTheme;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.PrefNames;
 import com.morphoss.acal.R;
+import com.morphoss.acal.StaticHelpers;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.acaltime.AcalDateTimeFormatter;
 import com.morphoss.acal.acaltime.AcalDuration;
@@ -371,7 +371,6 @@ public class TodoEdit extends AcalActivity
 			currentCollection = Collection.getInstance(preferredCollectionId, this);
 
 			this.todo = new VTodo();
-			this.todo.setSummary(getString(R.string.NewTaskTitle));
 			this.action = ACTION_CREATE;
 			this.todo.setPercentComplete(0);
 		}
@@ -470,7 +469,6 @@ public class TodoEdit extends AcalActivity
 		btnCompleteDate = (Button) this.findViewById(R.id.TodoCompletedDateTime);
 
 		btnSaveChanges = (Button) this.findViewById(R.id.todo_apply_button);
-		btnSaveChanges.setText((isModifyAction() ? getString(R.string.Apply) : getString(R.string.Add)));
 		btnCancelChanges = (Button) this.findViewById(R.id.todo_cancel_button);
 		
 
@@ -543,38 +541,33 @@ public class TodoEdit extends AcalActivity
 		sidebar.setBackgroundColor(colour);
 		sidebarBottom.setBackgroundColor(colour);
 		todoName.setTextColor(colour);
+		AcalTheme.setContainerColour(spinnerCollection,colour);
 
-		if ( spinnerCollection != null ) {
-			AcalTheme.setContainerColour(spinnerCollection,colour);
-			try {
-				// Attempt to set text colour that works with (hopefully) background colour. 
-				((TextView) spinnerCollection
-							.getSelectedView())
-							.setTextColor(AcalTheme.pickForegroundForBackground(colour));
+		ArrayAdapter<CollectionForArrayAdapter> collectionAdapter = 
+				new ArrayAdapter<CollectionForArrayAdapter>(this,android. R.layout.select_dialog_item, collectionsArray);
+		int spinnerPosition = 0;
+		while( spinnerPosition < collectionsArray.length &&
+				collectionsArray[spinnerPosition].getCollectionId() != currentCollection.getCollectionId())
+			spinnerPosition++;
+
+		spinnerCollection.setAdapter(collectionAdapter);
+		if ( spinnerPosition < collectionsArray.length )
+			//set the default according to value
+			spinnerCollection.setSelection(spinnerPosition);
+
+		try {
+			// Attempt to set text colour that works with (hopefully) background colour. 
+			for( View v : StaticHelpers.getViewsInside(spinnerCollection, TextView.class) ) {
+				((TextView) v).setTextColor(AcalTheme.pickForegroundForBackground(colour));
+				((TextView) v).setMaxLines(1);
 			}
-			catch( Exception e ) {
-				// Oh well.  Some other way then... @todo.
-				Log.i(TAG,"Think of another solution...",e);
-				if ( spinnerCollection != null ) {
-					View v = spinnerCollection.getSelectedView();
-					ViewParent vp = (v==null ? null : v.getParent());
-					Log.i(TAG,"SelectedView is "+(v==null ? "null" : v.getClass().toString())+
-							", Parent is "+(vp==null ? "null" : vp.getClass().toString()));
-				}
-			}
-
-			ArrayAdapter<CollectionForArrayAdapter> collectionAdapter = new ArrayAdapter<CollectionForArrayAdapter>(this,android.R.layout.select_dialog_item, collectionsArray);
-			int spinnerPosition = 0;
-			while( spinnerPosition < collectionsArray.length && collectionsArray[spinnerPosition].getCollectionId() != currentCollection.getCollectionId())
-				spinnerPosition++;
-
-			spinnerCollection.setAdapter(collectionAdapter);
-			if ( spinnerPosition < collectionsArray.length )
-				//set the default according to value
-				spinnerCollection.setSelection(spinnerPosition);
-			
+		}
+		catch( Exception e ) {
+			// Oh well.  Some other way then... @journal.
+			Log.i(TAG,"Think of another solution...",e);
 		}
 
+		btnSaveChanges.setText((isModifyAction() ? getString(R.string.Apply) : getString(R.string.Add)));
 		
 		btnStartDate.setText( AcalDateTimeFormatter.fmtFull( start, prefer24hourFormat) );
 		btnDueDate.setText( AcalDateTimeFormatter.fmtFull( due, prefer24hourFormat) );
@@ -737,12 +730,8 @@ public class TodoEdit extends AcalActivity
 				Toast.makeText(this, "Save failed: retrying!", Toast.LENGTH_LONG).show();
 				this.saveChanges();
 			}
-			return; 
 		}
-		
-		//ask the user which instance(s) to apply to
-		this.showDialog(INSTANCES_TO_CHANGE_DIALOG);
-
+		finish();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -988,7 +977,7 @@ public class TodoEdit extends AcalActivity
 	
 
 	public boolean isModifyAction() {
-		return (action >= ACTION_CREATE && action <= ACTION_MODIFY_ALL_FUTURE);
+		return (action == ACTION_EDIT || (action > ACTION_CREATE && action <= ACTION_MODIFY_ALL));
 	}
 
 
