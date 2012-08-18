@@ -215,8 +215,13 @@ public class SyncChangesToServer extends ServiceJob implements BlockingResourceR
 			String eTag = pending.getAsString(ResourceTableManager.ETAG);
 			if ( eTag != null ) eTagHeader = new BasicHeader("If-Match", eTag );
 			if ( DEBUG && Constants.LOG_DEBUG ) {	
-				Log.println(Constants.LOGD, TAG,"Writing existing resource to "+resourcePath+", isNull: "+(resourcePath == null)+", etag: "+eTag+"\n"+
-						"\tResource: "+(oldData == null)+", latestDbData:\n=============================\n"+latestDbData+"<<<<<\n============\n" );
+				Log.println(Constants.LOGD, TAG,
+						"Writing existing resource to "+resourcePath+", isNull: "+(resourcePath == null)+", etag: "+eTag+"\n"+
+						"\tResource: "+(oldData == null)+", latestDbData:\n" +
+						"=============================\n"+
+						latestDbData+
+						"============\n"
+						);
 			}
 
 			if ( newData == null ) {
@@ -225,6 +230,14 @@ public class SyncChangesToServer extends ServiceJob implements BlockingResourceR
 			else {
 				if ( oldData != null && latestDbData != null && oldData.equals(latestDbData) ) {
 					newData = mergeAsyncChanges( oldData, latestDbData, newData );
+				}
+				if ( DEBUG && Constants.LOG_DEBUG ) {	
+					Log.println(Constants.LOGD, TAG,
+							"newData:\n" +
+							"=============================\n"+
+							newData+
+							"============\n"
+							);
 				}
 			}
 		}
