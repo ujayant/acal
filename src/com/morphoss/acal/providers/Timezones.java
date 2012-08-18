@@ -240,6 +240,7 @@ public class Timezones extends ContentProvider {
 	 */
 	@Override
 	public Uri insert(Uri uri, ContentValues values) {
+		String tzid = values.getAsString(TZID);
 		String[] aliases = buildAliasList( (String) values.getAsString(TZID_ALIASES)); 
 		values.remove(TZID_ALIASES);
 
@@ -247,16 +248,21 @@ public class Timezones extends ContentProvider {
 		values.remove(TZ_NAMES);
 
 		ContentValues aliasValues = new ContentValues();
-		aliasValues.put(TZID, values.getAsString(TZID));
+		aliasValues.put(TZID, tzid);
 		ContentValues nameValues = new ContentValues();
-		nameValues.put(TZID, values.getAsString(TZID));
+		nameValues.put(TZID, tzid);
 		boolean success = false;
 		long rowID = -1;
 		AcalDB.beginTransaction();
 		try {
 			rowID = AcalDB.insert( TIMEZONE_TABLE, null, values);
+			HashSet<String> existing = getAliasesFor(tzid);
 			for( String alias : aliases ) {
 				if ( alias.equals("") ) continue;
+				if ( existing.contains(alias) ) {
+					existing.remove(alias);
+					continue;
+				}
 				aliasValues.put(TZID_ALIAS,alias);
 				try {
 					AcalDB.insert(TZ_ALIAS_TABLE, null, aliasValues);
@@ -265,13 +271,23 @@ public class Timezones extends ContentProvider {
 					Log.println(Constants.LOGW, TAG, "Unable to insert alias '"+alias+"' for '"+values.getAsString(TZID));
 				}
 			}
+			for( String alias : existing ) {  // It seems these no longer apply
+				AcalDB.delete( TZ_ALIAS_TABLE, TZID+"=? AND "+TZID_ALIAS+"=?", new String[] {tzid, alias} );
+			}
+
+			existing = getNamesFor(tzid);
 			for( Entry<String,String> e : names.entrySet() ) {
 				String locale = e.getKey();
 				if ( locale == null || locale.equals("") ) continue;
 				nameValues.put(TZ_NAME_LOCALE, locale);
 				nameValues.put(TZ_NAME, e.getValue());
 				try {
-					AcalDB.insert(TZ_NAME_TABLE, null, nameValues);
+					if ( existing.contains(locale) ) {
+						AcalDB.update(TZ_NAME_TABLE, nameValues, TZID+"=? AND " + TZ_NAME_LOCALE+"=?", new String[] { tzid, locale } );
+					}
+					else {
+						AcalDB.insert(TZ_NAME_TABLE, null, nameValues);
+					}
 				}
 				catch( Exception sqe ) {
 					Log.println(Constants.LOGW, TAG, "Unable to insert name '"+e.getValue()+"'for locale '"+locale+"' for TZID '"+values.getAsString(TZID));
@@ -289,12 +305,52 @@ public class Timezones extends ContentProvider {
 
 		//---if added successfully---
 		if (success) {
+			Log.println(Constants.LOGI, TAG, "Added timezone details for '"+tzid+"' with aliases "+aliases.toString());
 			//TODO rowid does NOT translate correctly here!!!
 			Uri _uri = ContentUris.withAppendedId(CONTENT_URI, rowID);
 			getContext().getContentResolver().notifyChange(_uri, null);
 			return _uri;
 		}
 		throw new SQLException("Failed to insert row into " + uri);
+	}
+
+
+	/**
+	 * 
+	 * @param tzid
+	 * @return
+	 */
+	private HashSet<String> getAliasesFor(String tzid) {
+		Cursor c = AcalDB.query(TZ_ALIAS_TABLE, new String[] { TZID_ALIAS }, TZID+"=?", new String[] { tzid }, null, null, null);
+		HashSet<String> existingAliases = new HashSet<String>(c.getCount());
+		try {
+			for( c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
+				existingAliases.add(c.getString(0));
+			}
+		}
+		finally {
+			c.close();
+		}
+		return existingAliases;
+	}
+
+	/**
+	 * 
+	 * @param tzid
+	 * @return
+	 */
+	private HashSet<String> getNamesFor(String tzid) {
+		Cursor c = AcalDB.query(TZ_NAME_TABLE, new String[] { TZ_NAME_LOCALE }, TZID+"=?", new String[] { tzid }, null, null, null);
+		HashSet<String> existingNames = new HashSet<String>(c.getCount());
+		try {
+			for( c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
+				existingNames.add(c.getString(0));
+			}
+		}
+		finally {
+			c.close();
+		}
+		return existingNames;
 	}
 
 	private void updateAliasSet(String tzid, String[] aliases, ContentValues aliasValues ) {
