@@ -65,7 +65,7 @@ public abstract class Masterable extends VComponent {
 		if ( !instance.getSummary().equals("") ) setSummary(instance.getSummary());
 		if ( !instance.getDescription().equals("") ) setDescription(instance.getDescription());
 		if ( !instance.getLocation().equals("") ) setLocation(instance.getLocation());
-		if ( instance.getRRule() != null ) setRepetition(instance.getRRule());
+		if ( instance.getRRule() != null && instance.getRRule() != "") setRepetition(instance.getRRule());
 		if ( !instance.getAlarms().isEmpty() ) addAlarmTimes(instance.getAlarms());
 		getTopParent().updateTimeZones();
 		if ( Constants.debugVComponent )
@@ -252,6 +252,7 @@ public abstract class Masterable extends VComponent {
 	}
 
 	public void setRepetition( String newValue ) {
+		if ( "".equals(newValue) ) return;
 		setUniqueProperty(new AcalProperty(PropertyName.RRULE, newValue));
 	}
 

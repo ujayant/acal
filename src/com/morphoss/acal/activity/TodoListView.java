@@ -313,12 +313,11 @@ public class TodoListView extends AcalActivity implements OnClickListener {
 		try {
 			Resource r = Resource.fromDatabase(this, resourceId);
 			VCalendar todoCalendarResource = (VCalendar) VComponent.createComponentFromResource(r);
-			Log.i(TAG,"Before setting completed:\n"+todoCalendarResource.getCurrentBlob());
 			todoCalendarResource.setEditable();
 			VTodo task = (VTodo) todoCalendarResource.getMasterChild();
 			task.setCompleted(AcalDateTime.getInstance());
 			task.setPercentComplete(100);
-			Log.i(TAG,"After setting completed:\n"+todoCalendarResource.getCurrentBlob());
+			todoCalendarResource.updateTimeZones();
 
 			ResourceManager.getInstance(this).sendRequest(
 					new RRResourceEditedRequest(

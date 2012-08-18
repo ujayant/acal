@@ -739,6 +739,7 @@ public class TodoEdit extends AcalActivity
 		
 		try {
 			VCalendar vc = (VCalendar) todo.getTopParent();
+			vc.updateTimeZones();
 
 			AcalDateTime dtStart = todo.getStart();
 			if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD, TAG,
