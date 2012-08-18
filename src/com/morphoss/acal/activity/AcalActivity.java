@@ -14,6 +14,7 @@ public abstract class AcalActivity extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		prefs = PreferenceManager.getDefaultSharedPreferences(this);
+		AcalTheme.initializeTheme(this);
 	}	
 
 	@Override
