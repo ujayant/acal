@@ -86,8 +86,11 @@ public class EasyX509TrustManager implements X509TrustManager {
 				logCertificateException("CertificateNotYetValidException", ce, certificates );
 			}
 			catch( CertificateException e ) {
-				Log.println(Constants.LOGI, TAG, e.getClass().getSimpleName() + " checking certificate.");
-				if ( Constants.LOG_DEBUG ) Log.println(Constants.LOGD,TAG,"Checking validity as if it were a self-signed certificate..." );
+				if ( Constants.LOG_DEBUG ) {
+					Log.println(Constants.LOGI, TAG, e.getClass().getSimpleName() + " checking certificate.");
+					logCertificateException(e.getClass().getSimpleName(), e, certificates );
+					Log.println(Constants.LOGD,TAG,"Checking validity as if it were a self-signed certificate..." );
+				}
 				if ( checkLocallyApprovedCertificates(certificates) ) return;
 				
 				int i=0;
@@ -95,7 +98,11 @@ public class EasyX509TrustManager implements X509TrustManager {
 					for( ; i < certificates.length; i++ ) {
 						certificates[i].checkValidity();
 					}
-					if ( AcalApplication.getPreferenceBoolean(PrefNames.allowSelfSignedCerts, true) ) return;
+					if ( AcalApplication.getPreferenceBoolean(PrefNames.allowSelfSignedCerts, true) ) {
+						if ( Constants.LOG_DEBUG )
+							Log.println(Constants.LOGI,TAG,"Allowing self-signed certificate." );
+						return;
+					}
 				}
 				catch( CertificateExpiredException ce ) {
 					logCertificateException("CertificateExpiredException", ce, certificates );
