@@ -76,3 +76,10 @@ v56=1.56
 Set worker priority to THREAD_MIN per recommendation from Matthieu Cargnelli.
 Correct calculation of week in month, thanks to Richard Hector.
 Fix for events crossing month end boundaries from Manuel Vögele.
+v57=1.57
+Many fixes to Notes / Tasks editing and context menus.
+Fix week view context menu.
+Adjust edit layouts to use more hints and fewer prompts.
+Stop week view from blinking on/off during sync.
+Fix occasional force close problem when closing week view.
+Download timezone definitions from a timezone server.
