@@ -252,6 +252,7 @@ public class AlarmDialog extends Dialog implements OnClickListener, OnSeekBarCha
 	@Override
 	public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
 		if ( fromUser ) {
+			progress++;
 			if ( offsetBefore ) progress = seekBar.getMax() - progress;
 			int offsetMinutes = 0;
 			if ( progress < 18 ) 		offsetMinutes = progress * 5;			//    0 -   85 by  5
