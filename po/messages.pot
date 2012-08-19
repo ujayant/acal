@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-06-30 14:43+1200\n"
+"POT-Creation-Date: 2012-08-19 17:18+1200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -847,9 +847,6 @@ msgstr "All Tasks"
 msgid "NewTaskTitle"
 msgstr "New Task"
 
-msgid "NewJournalTitle"
-msgstr "New Note"
-
 msgid "TaskSaved"
 msgstr "Task Saved."
 
@@ -885,9 +882,6 @@ msgstr "URL:"
 
 msgid "todoName"
 msgstr "Todo Name:"
-
-msgid "journalName"
-msgstr "Journal Name:"
 
 msgid "IsADate"
 msgstr "Is a Date"
@@ -997,9 +991,6 @@ msgstr "Loading…"
 msgid "Deleting"
 msgstr "Deleting…"
 
-msgid "NamePrompt"
-msgstr "Name:"
-
 msgid "ConfigureServer"
 msgstr "Configure Server"
 
@@ -1044,6 +1035,114 @@ msgstr "Use the VEVENT/VTODO summary in alarms"
 
 msgid "prefIgnoreValarmDescription_OffSummary"
 msgstr "Use the VALARM description in alarms"
+
+msgid "note_title_hint"
+msgstr "Give your note a title"
+
+msgid "note_text_hint"
+msgstr "Enter note text here"
+
+msgid "event_name_hint"
+msgstr "Enter a name for your event"
+
+msgid "event_location_hint"
+msgstr "The location of the event"
+
+msgid "event_notes_hint"
+msgstr "Detailed event description"
+
+msgid "todo_name_hint"
+msgstr "Enter a name for your task"
+
+msgid "todo_description_hint"
+msgstr "Enter a description for your task"
+
+msgid "todo_location_hint"
+msgstr "Enter a location for your task"
+
+msgid "first_name_hint"
+msgstr "First name"
+
+msgid "surname_hint"
+msgstr "Surname"
+
+msgid "phone_prompt"
+msgstr "Phone"
+
+msgid "phone_hint"
+msgstr "Phone"
+
+msgid "email_prompt"
+msgstr "Email"
+
+msgid "email_hint"
+msgstr "Email"
+
+msgid "postal_address_prompt"
+msgstr "Postal address"
+
+msgid "street_hint"
+msgstr "Street"
+
+msgid "city_hint"
+msgstr "City"
+
+msgid "country_hint"
+msgstr "Country"
+
+msgid "postcode_hint"
+msgstr "Postcode"
+
+msgid "organisation_prompt"
+msgstr "Organisation"
+
+msgid "company_hint"
+msgstr "Company"
+
+msgid "job_title_hint"
+msgstr "Title"
+
+msgid "contact_picture_description"
+msgstr "Contact Picture"
+
+msgid "icon_add_description"
+msgstr "Add"
+
+msgid "icon_delete_description"
+msgstr "Delete"
+
+msgid "Home"
+msgstr "Home"
+
+msgid "Work"
+msgstr "Work"
+
+msgid "Mobile"
+msgstr "Mobile"
+
+msgid "Other"
+msgstr "Other"
+
+msgid "WorkFax"
+msgstr "Work Fax"
+
+msgid "HomeFax"
+msgstr "Home Fax"
+
+msgid "Pager"
+msgstr "Pager"
+
+msgid "newJournalFromThis"
+msgstr "Copy to New Note"
+
+msgid "ErrorDeletingJournal"
+msgstr "Error deleting note data - please try again."
+
+msgid "ErrorDeletingTask"
+msgstr "Error deleting task data - please try again."
+
+msgid "ErrorCompletingTask"
+msgstr "Error setting task as completed - please try again."
 
 # SourceFileEnd:../res/values/strings.xml
 # SourceFileStart:../res/values/timezonenames.xml

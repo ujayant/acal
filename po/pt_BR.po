@@ -9,9 +9,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: aCal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-03-12 00:29+1300\n"
-"PO-Revision-Date: 2012-04-08 15:04+0000\n"
-"Last-Translator: Samuel Vale <srcvale@minaslivre.org>\n"
+"POT-Creation-Date: 2012-08-19 17:18+1200\n"
+"PO-Revision-Date: 2012-08-19 05:19+0000\n"
+"Last-Translator: Andrew McMillan <andrew@mcmillan.net.nz>\n"
 "Language-Team: Portuguese (Brazil) (http://www.transifex.com/projects/p/acal/language/pt_BR/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -391,11 +391,23 @@ msgstr "Tempo de espera"
 msgid "Snooze_PrefSummary"
 msgstr "Quantos minutos devem ser aguardados quando utilizada a função espera (soneca)"
 
-msgid "DefaultCollection_PrefTitle"
-msgstr "Coleção padrão"
+msgid "prefDefaultEventsCollection_Title"
+msgstr "Agenda de Eventos Padrão"
 
-msgid "DefaultCollection_PrefSummary"
-msgstr "A coleção padrão para novos compromissos"
+msgid "prefDefaultEventsCollection_Summary"
+msgstr "A coleção padrão para novos eventos"
+
+msgid "prefDefaultTasksCollection_Title"
+msgstr "Agenda de Tarefas Padrão"
+
+msgid "prefDefaultTasksCollection_Summary"
+msgstr "A coleção padrão para novas tarefas"
+
+msgid "prefDefaultNotesCollection_Title"
+msgstr "Agenda de Notas Padrão"
+
+msgid "prefDefaultNotesCollection_Summary"
+msgstr "A coleção padrão para novas notas"
 
 msgid "DefaultAlarmTone_PrefTitle"
 msgstr "Toque para o alarme"
@@ -829,9 +841,6 @@ msgstr "Todas as Tarefas"
 msgid "NewTaskTitle"
 msgstr "Nova Tarefa"
 
-msgid "NewJournalTitle"
-msgstr "Nova Nota"
-
 msgid "TaskSaved"
 msgstr "Tarefa Gravada."
 
@@ -867,9 +876,6 @@ msgstr "URL:"
 
 msgid "todoName"
 msgstr "Nome da Tarefa:"
-
-msgid "journalName"
-msgstr "Nome do Diário:"
 
 msgid "IsADate"
 msgstr "O dia todo"
@@ -970,9 +976,6 @@ msgstr "Carregando..."
 msgid "Deleting"
 msgstr "Apagando..."
 
-msgid "NamePrompt"
-msgstr "Nome:"
-
 msgid "ConfigureServer"
 msgstr "Configurar Servidor"
 
@@ -993,6 +996,138 @@ msgstr "Pular"
 
 msgid "Configure"
 msgstr "Configurar"
+
+msgid "prefAllowSelfSignedCerts_PrefTitle"
+msgstr "Permitir certificados autoassinados"
+
+msgid "prefAllowSelfSignedCerts_OnSummary"
+msgstr "Permitido"
+
+msgid "prefAllowSelfSignedCerts_OffSummary"
+msgstr "Não permitido"
+
+msgid "SslCertificateError"
+msgstr "Houve um problema ao validar o certificado SSL"
+
+msgid "prefTzServerBaseUrl_Title"
+msgstr "URL do Servidor de Fuso Horário"
+
+msgid "prefIgnoreValarmDescription_PrefTitle"
+msgstr "Ignorar a Propriedade Description do VALARM"
+
+msgid "prefIgnoreValarmDescription_OnSummary"
+msgstr "Usar a propriedade summary do VEVENT/VTODO para os alarmes"
+
+msgid "prefIgnoreValarmDescription_OffSummary"
+msgstr "Usar a propriedade Description do VALARM para os alarmes"
+
+msgid "note_title_hint"
+msgstr ""
+
+msgid "note_text_hint"
+msgstr ""
+
+msgid "event_name_hint"
+msgstr ""
+
+msgid "event_location_hint"
+msgstr ""
+
+msgid "event_notes_hint"
+msgstr ""
+
+msgid "todo_name_hint"
+msgstr ""
+
+msgid "todo_description_hint"
+msgstr ""
+
+msgid "todo_location_hint"
+msgstr ""
+
+msgid "first_name_hint"
+msgstr ""
+
+msgid "surname_hint"
+msgstr ""
+
+msgid "phone_prompt"
+msgstr ""
+
+msgid "phone_hint"
+msgstr ""
+
+msgid "email_prompt"
+msgstr ""
+
+msgid "email_hint"
+msgstr ""
+
+msgid "postal_address_prompt"
+msgstr ""
+
+msgid "street_hint"
+msgstr ""
+
+msgid "city_hint"
+msgstr ""
+
+msgid "country_hint"
+msgstr ""
+
+msgid "postcode_hint"
+msgstr ""
+
+msgid "organisation_prompt"
+msgstr ""
+
+msgid "company_hint"
+msgstr ""
+
+msgid "job_title_hint"
+msgstr ""
+
+msgid "contact_picture_description"
+msgstr ""
+
+msgid "icon_add_description"
+msgstr ""
+
+msgid "icon_delete_description"
+msgstr ""
+
+msgid "Home"
+msgstr ""
+
+msgid "Work"
+msgstr ""
+
+msgid "Mobile"
+msgstr ""
+
+msgid "Other"
+msgstr ""
+
+msgid "WorkFax"
+msgstr ""
+
+msgid "HomeFax"
+msgstr ""
+
+msgid "Pager"
+msgstr ""
+
+msgid "newJournalFromThis"
+msgstr ""
+
+msgid "ErrorDeletingJournal"
+msgstr ""
+
+msgid "ErrorDeletingTask"
+msgstr ""
+
+msgid "ErrorCompletingTask"
+msgstr ""
 
 # SourceFileEnd:../res/values/strings.xml
 # SourceFileStart:../res/values/timezonenames.xml

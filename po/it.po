@@ -9,10 +9,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: aCal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-01-08 17:17+1300\n"
-"PO-Revision-Date: 2012-02-14 08:32+0000\n"
-"Last-Translator: tunibbles <mau@2nibbles.net>\n"
-"Language-Team: Italian (http://www.transifex.net/projects/p/acal/language/it/)\n"
+"POT-Creation-Date: 2012-08-19 17:18+1200\n"
+"PO-Revision-Date: 2012-08-19 05:19+0000\n"
+"Last-Translator: Andrew McMillan <andrew@mcmillan.net.nz>\n"
+"Language-Team: Italian (http://www.transifex.com/projects/p/acal/language/it/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -42,6 +42,9 @@ msgstr "Un calendario per Android per memorizzare appuntamenti, promemoria, note
 msgid "appDescriptionTasks"
 msgstr "Una lista di Promemoria per Android che memorizza i tuoi promemoria su un server remoto CalDAV / CardDAV (vedi: www.davical.org)"
 
+msgid "appDescriptionNotes"
+msgstr ""
+
 msgid "Active"
 msgstr "Attivo"
 
@@ -59,6 +62,9 @@ msgstr "Percorso"
 
 msgid "Simple_User_URL"
 msgstr "URL utente:"
+
+msgid "Server_URL"
+msgstr ""
 
 msgid "Enter_a_brief_summary_of_the_event"
 msgstr "Inserire una breve descrizione dell'evento"
@@ -146,6 +152,9 @@ msgstr "Nuovo Appuntamento"
 
 msgid "appActivityServerConfigList"
 msgstr "Server"
+
+msgid "appActivityServerConfiguration"
+msgstr ""
 
 msgid "appActivityAddServerList"
 msgstr "Modelli Server"
@@ -382,11 +391,23 @@ msgstr "Tempo di differimento"
 msgid "Snooze_PrefSummary"
 msgstr "Di quanti minuti rimandare l'allarme alla pressione del tasto 'Snooze'"
 
-msgid "DefaultCollection_PrefTitle"
-msgstr "Gruppo di default"
+msgid "prefDefaultEventsCollection_Title"
+msgstr ""
 
-msgid "DefaultCollection_PrefSummary"
-msgstr "Gruppo di default da usare per i nuovi eventi"
+msgid "prefDefaultEventsCollection_Summary"
+msgstr ""
+
+msgid "prefDefaultTasksCollection_Title"
+msgstr ""
+
+msgid "prefDefaultTasksCollection_Summary"
+msgstr ""
+
+msgid "prefDefaultNotesCollection_Title"
+msgstr ""
+
+msgid "prefDefaultNotesCollection_Summary"
+msgstr ""
 
 msgid "DefaultAlarmTone_PrefTitle"
 msgstr "Tono standard per l'allarme"
@@ -790,6 +811,9 @@ msgstr "Evento"
 msgid "Tasks"
 msgstr "Promemoria"
 
+msgid "Journals"
+msgstr ""
+
 msgid "Unscheduled"
 msgstr "Non programmato"
 
@@ -924,6 +948,186 @@ msgstr "Evento"
 
 msgid "Task"
 msgstr "Compito"
+
+msgid "weekends"
+msgstr ""
+
+msgid "weekdays"
+msgstr ""
+
+msgid "JournalDatePrompt"
+msgstr ""
+
+msgid "AppearancePreferences"
+msgstr ""
+
+msgid "prefThemeButtonColour_Summary"
+msgstr ""
+
+msgid "prefThemeButtonColour_Title"
+msgstr ""
+
+msgid "Saving"
+msgstr ""
+
+msgid "Loading"
+msgstr ""
+
+msgid "Deleting"
+msgstr ""
+
+msgid "ConfigureServer"
+msgstr ""
+
+msgid "errorConfigMustHaveName"
+msgstr ""
+
+msgid "errorConfigMustHaveUserName"
+msgstr ""
+
+msgid "errorConfigMustHavePassword"
+msgstr ""
+
+msgid "errorConfigMustHaveURL"
+msgstr ""
+
+msgid "Skip"
+msgstr ""
+
+msgid "Configure"
+msgstr ""
+
+msgid "prefAllowSelfSignedCerts_PrefTitle"
+msgstr ""
+
+msgid "prefAllowSelfSignedCerts_OnSummary"
+msgstr ""
+
+msgid "prefAllowSelfSignedCerts_OffSummary"
+msgstr ""
+
+msgid "SslCertificateError"
+msgstr ""
+
+msgid "prefTzServerBaseUrl_Title"
+msgstr ""
+
+msgid "prefIgnoreValarmDescription_PrefTitle"
+msgstr ""
+
+msgid "prefIgnoreValarmDescription_OnSummary"
+msgstr ""
+
+msgid "prefIgnoreValarmDescription_OffSummary"
+msgstr ""
+
+msgid "note_title_hint"
+msgstr ""
+
+msgid "note_text_hint"
+msgstr ""
+
+msgid "event_name_hint"
+msgstr ""
+
+msgid "event_location_hint"
+msgstr ""
+
+msgid "event_notes_hint"
+msgstr ""
+
+msgid "todo_name_hint"
+msgstr ""
+
+msgid "todo_description_hint"
+msgstr ""
+
+msgid "todo_location_hint"
+msgstr ""
+
+msgid "first_name_hint"
+msgstr ""
+
+msgid "surname_hint"
+msgstr ""
+
+msgid "phone_prompt"
+msgstr ""
+
+msgid "phone_hint"
+msgstr ""
+
+msgid "email_prompt"
+msgstr ""
+
+msgid "email_hint"
+msgstr ""
+
+msgid "postal_address_prompt"
+msgstr ""
+
+msgid "street_hint"
+msgstr ""
+
+msgid "city_hint"
+msgstr ""
+
+msgid "country_hint"
+msgstr ""
+
+msgid "postcode_hint"
+msgstr ""
+
+msgid "organisation_prompt"
+msgstr ""
+
+msgid "company_hint"
+msgstr ""
+
+msgid "job_title_hint"
+msgstr ""
+
+msgid "contact_picture_description"
+msgstr ""
+
+msgid "icon_add_description"
+msgstr ""
+
+msgid "icon_delete_description"
+msgstr ""
+
+msgid "Home"
+msgstr ""
+
+msgid "Work"
+msgstr ""
+
+msgid "Mobile"
+msgstr ""
+
+msgid "Other"
+msgstr ""
+
+msgid "WorkFax"
+msgstr ""
+
+msgid "HomeFax"
+msgstr ""
+
+msgid "Pager"
+msgstr ""
+
+msgid "newJournalFromThis"
+msgstr ""
+
+msgid "ErrorDeletingJournal"
+msgstr ""
+
+msgid "ErrorDeletingTask"
+msgstr ""
+
+msgid "ErrorCompletingTask"
+msgstr ""
 
 # SourceFileEnd:../res/values/strings.xml
 # SourceFileStart:../res/values/timezonenames.xml
