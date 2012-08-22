@@ -205,11 +205,11 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 			alarmed.setVisibility(View.VISIBLE);
 			if ( eventCollection != null && ! eventCollection.alarmsEnabled() ) alarmed.setBackgroundColor(0xb0ffffff);
 		}
-		if ( event.isRecuring() ) {
+		if ( event.isRecurring() ) {
 			ImageView repeating = (ImageView) rowLayout.findViewById(R.id.EventListItemRepeating);
 			repeating.setVisibility(View.VISIBLE);
 		}
-		
+
 		time.setText(AcalDateTimeFormatter.getDisplayTimeText(context, viewDate, viewDateEnd, event.getStartDateTime(), event.getEndDateTime(),
 				MonthView.prefs.getBoolean(context.getString(R.string.prefTwelveTwentyfour), false), event.isAllDay()) );
 
@@ -223,7 +223,7 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 		rowLayout.setOnClickListener(this);
 
 		// 'final' so we can refer to it below
-		final boolean repeats = event.isRecuring();
+		final boolean repeats = event.isRecurring();
 
 		//add context menu
 		this.context.registerForContextMenu(rowLayout);
@@ -323,7 +323,7 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 	
 	
 
-		public void cacheChanged(CacheChangedEvent change) {
+	public void cacheChanged(CacheChangedEvent change) {
 		if (change.isWindowOnly()) return;
 		AcalDateRange myRange = new AcalDateRange(viewDate,viewDateEnd);
 

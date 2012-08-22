@@ -229,7 +229,7 @@ public class CacheObject implements Parcelable, Comparable<CacheObject> {
 	 * Whether this resource has recurrences
 	 * @return
 	 */
-	public boolean isRecuring() {
+	public boolean isRecurring() {
 		return (flags&RECURS_FLAG)>0;
 	}
 
