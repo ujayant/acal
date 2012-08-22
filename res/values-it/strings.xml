@@ -110,8 +110,6 @@
 <string name="YearViewSize_PrefSummary">Numero di mesi visibili nella vista Annuale</string>
 <string name="Snooze_PrefTitle">Tempo di differimento</string>
 <string name="Snooze_PrefSummary">Di quanti minuti rimandare l\'allarme alla pressione del tasto \'Snooze\'</string>
-<string name="DefaultCollection_PrefTitle">Gruppo di default</string>
-<string name="DefaultCollection_PrefSummary">Gruppo di default da usare per i nuovi eventi</string>
 <string name="DefaultAlarmTone_PrefTitle">Tono standard per l\'allarme</string>
 <string name="DefaultAlarmTone_PrefSummary">Il suono standard per gli allarmi.</string>
 <string name="AlarmVolumeType_PrefTitle">Impostazione Volume Allarme</string>
@@ -286,4 +284,22 @@
 <string name="noScheduledEvents">Non ci sono eventi programmati</string>
 <string name="Event">Evento</string>
 <string name="Task">Compito</string>
+<string name="icon_add_description">Aggiungi</string>
+<string name="icon_delete_description">Cancella</string>
+	<string-array name="phone_types">
+		<item>@string/Home</item>
+		<item>@string/Mobile</item>
+		<item>@string/Work</item>
+		<item>@string/WorkFax</item>
+		<item>@string/HomeFax</item>
+		<item>@string/Pager</item>
+		<item>@string/Other</item>
+		<item>@string/Custom</item>
+	</string-array>
+	<string-array name="email_types">
+		<item>@string/Home</item>
+		<item>@string/Work</item>
+		<item>@string/Other</item>
+		<item>@string/Custom</item>
+	</string-array>
 </resources>

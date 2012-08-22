@@ -5,12 +5,17 @@
 <string name="firstDayOfWeek">Primer día de la semana</string>
 <string name="ok">Ok</string>
 <string name="cancel">Cancelar</string>
+<string name="setButtonLabel">Establecer</string>
 <string name="appDescription">Una aplicación de calendario para Android que guarda tus citas, tareas, notas y contactos en un servidor CalDAV/CardDAV remoto, como DAViCal (visita: www.davical.org)</string>
+<string name="appDescriptionTasks">Una Lista de Tareas para Android que almacenará tus tareas en un servidor remoto CalDAV / CardDAV, como DAViCal (Visita: www.davical.org)</string>
+<string name="appDescriptionNotes">Una Lista de Tareas para Android que almacenará tus tareas en un servidor remoto CalDAV / CardDAV, como DAViCal (Visita: www.davical.org)</string>
 <string name="Active">Activo</string>
 <string name="Add_Server">Añadir servidor</string>
 <string name="A_name_for_this_server_configuration">Un nombre para esta configuración</string>
 <string name="Authentication_Type">Tipo de autenticación</string>
 <string name="Simple_Path">Ruta simple</string>
+<string name="Simple_User_URL">URL de usuario</string>
+<string name="Server_URL">URL del Servidor:</string>
 <string name="Enter_a_brief_summary_of_the_event">Introduce un breve resumen del evento</string>
 <string name="Name">Nombre</string>
 <string name="Force_full_resync">Forzar sincronización</string>
@@ -31,6 +36,7 @@
 <string name="The_authentication_type_used">El tipo de autenticación utilizado</string>
 <string name="The_password_to_use">La contraseña a usar</string>
 <string name="The_path_on_the_server">La ruta en el servidor</string>
+<string name="A_URL_or_domain_name">La URL o dominio de tu servidor de calendario</string>
 <string name="The_servers_hostname">El nombre de host</string>
 <string name="The_username_to_use">El nombre de usuario a utilizar</string>
 <string name="Username">Nombre de usuario</string>
@@ -39,6 +45,7 @@
 <string name="Whether_to_use_encryption">Define si se debe usar cifrado</string>
 <string name="appActivityEventCreate">Nueva cita</string>
 <string name="appActivityServerConfigList">Servidores</string>
+<string name="appActivityServerConfiguration">Configuración del Servidor</string>
 <string name="appActivityAddServerList">Plantilla de servidor</string>
 <string name="appActivityCollectionConfigList">Calendarios y libretas de direcciones</string>
 <string name="appActivityDebugSettings">Ajustes de depurado</string>
@@ -105,10 +112,18 @@
 <string name="YearViewSize_PrefSummary">El número de meses visibles en la vista anual</string>
 <string name="Snooze_PrefTitle">Tiempo a dormir</string>
 <string name="Snooze_PrefSummary">Los minutos de espera de la alarma al pulsar el botón de dormir</string>
-<string name="DefaultCollection_PrefTitle">Colección predeterminada</string>
-<string name="DefaultCollection_PrefSummary">La colección a utilizar de forma predeterminada para las nuevas citas</string>
+<string name="prefDefaultEventsCollection_Title">Calendario Predeterminado de Eventos </string>
+<string name="prefDefaultEventsCollection_Summary">La colección predeterminada para nuevos eventos</string>
+<string name="prefDefaultTasksCollection_Title">Calendario Predeterminado de Tareas</string>
+<string name="prefDefaultTasksCollection_Summary">La colección predeterminada para nuevas tareas</string>
+<string name="prefDefaultNotesCollection_Title">Calendario Predeterminado de Notas</string>
+<string name="prefDefaultNotesCollection_Summary">La colección predeterminada para nuevas notas de diario</string>
 <string name="DefaultAlarmTone_PrefTitle">Tono de alarma predeterminado</string>
 <string name="DefaultAlarmTone_PrefSummary">El tono de alarma predeterminado</string>
+<string name="AlarmVolumeType_PrefTitle">Ajuste de Volumen de Alarma</string>
+<string name="AlarmVolumeType_PrefSummary">El ajuste usado para el volumen de la alarma</string>
+<string name="AlarmBellVolume">Volumen del tono de alarma</string>
+<string name="MediaPlayerVolume">Volumen de multimedia</string>
 <string name="prefWorkdayStart_Title">Inicio de la jornada laboral</string>
 <string name="prefWorkdayStart_Summary">La hora de inicio de la jornada laboral</string>
 <string name="prefWorkdayFinish_Title">Fin de la jornada laboral</string>
@@ -132,7 +147,14 @@
 <string name="RepeatsPrompt">Repeticiones:</string>
 <string name="AllDayPrompt">Cita de todo un día</string>
 <string name="FromPrompt">Desde:</string>
+<string name="TodoFromPrompt">Empieza el:</string>
 <string name="UntilPrompt">Hasta:</string>
+<string name="DuePrompt">Vence:</string>
+<string name="CompletedPrompt">Finalizado:</string>
+<string name="DaysPrompt">Días:</string>
+<string name="StartPrompt">Inicio:</string>
+<string name="CompletePrompt">Completo:</string>
+<string name="CollectionPrompt">Calendario:</string>
 <string name="defaultCalendar">Calendario predeterminado</string>
 <string name="theCalendarForNewEvents">El calendario predeterminado para las nuevas citas.</string>
 <string name="TwelveTwentyfour_PrefTitle">Usar formato 24h</string>
@@ -175,10 +197,11 @@
 <string name="NewManualServerConfiguration">Configuración manual</string>
 <string name="ManualServerConfigurationBlurb">Introducir manualmente la configuración del servidor</string>
 <string name="SavedServerConfigurationBlurb">Una configuración de servidor guardada</string>
-<string name="AllDaysInPeriod">Todo el díaa, del %1$s al %2$s</string>
+<string name="AllDaysInPeriod">Todo el día, del %1$s al %2$s</string>
 <string name="ForTheWholeDay">Todo el día</string>
 <string name="alarmAtEventTime">A la hora de la cita</string>
 <string name="alarm10MinutesPrior">10 minutos antes</string>
+<string name="alarm15MinutesPrior">15 minutos antes</string>
 <string name="alarm30MinutesPrior">30 minutos antes</string>
 <string name="alarm1HourPrior">Una hora antes</string>
 <string name="alarm2HoursPrior">Dos horas antes</string>
@@ -192,15 +215,21 @@
 <string name="couldNotDiscoverPrincipal">No se ha podido encontrar la ruta a la identidad - usando los valores propuestos</string>
 <string name="foundPrincipalPath">Se ha encontrado la ruta a la identidad en &quot;%s&quot;</string>
 <string name="serverSupportsCalDAV">El servidor soporta CalDAV</string>
+<string name="serverHasDAVNoCalDAV">El servidor soporta DAV y tu usuario/contraseña funcionaron, pero no se ha encontrado soporte CalDAV.</string>
 <string name="serverLacksCalDAV">El servidor no tiene soporte CalDAV</string>
 <string name="serverFailedValidation">Ha ocurrido un error validando el servidor:</string>
 <string name="saveSettingsAnyway">¿Quieres guardar la configuración de todas maneras?</string>
 <string name="serverValidationSuccess">La validación del serivdor ha sido satisfactoria.</string>
 <string name="authenticationFailed">Error de autenticación</string>
 <string name="WeekViewPreferences">Preferencias de vista semanal</string>
+<string name="AlarmPreferences">Ajustes de alarma</string>
+<string name="GeneralPreferences">Ajustes generales</string>
 <string name="checkServer">Validando servidor</string>
 <string name="checkServer_Connecting">Conectando a servidor, por favor espere...</string>
 <string name="checkServer_Internet">Comprobando conexión a internet</string>
+<string name="checkServer_SearchingForServer">Buscando servidor CalDAV en \\&quot;%s\\&quot;</string>
+<string name="checkServer_DiscoveryCancelled">Se ha cancelado la búsqueda de servidor</string>
+<string name="serverRecordAlreadyExists">Ya existe un servidor para ese protocolo, puerto, host, ruta &amp; usuario</string>
 <string name="newEventFromThis">Copiar a nueva cita</string>
 <string name="Delete">Borrar</string>
 <string name="deleteAllInstances">Borrar todas las instancias</string>
@@ -212,7 +241,98 @@
 <string name="copySomeEvent">Copiar: %s</string>
 <string name="deleteSomeEvent">Borrar: %s</string>
 <string name="noCollectionsFound">No se ha encontrado ningún calendario</string>
-<string name="aCalVersionChanges">Bienvenido a la nueva versión de aCal!</string>
+<string name="aCalVersionChanges">¡Bienvenido a la nueva versión de aCal!</string>
 <string name="newWithVersion">Cambios en la versión %s</string>
 <string name="newVersionSeen">Gracias, ¡muéstrame el calendario!</string>
+<string name="Due">Vence</string>
+<string name="All">Todo</string>
+<string name="Todo">Pendiente</string>
+<string name="Events">Eventos</string>
+<string name="Tasks">Tareas</string>
+<string name="Journals">Notas</string>
+<string name="Unscheduled">Sin programar</string>
+<string name="ChooseAction">Elige Acción</string>
+<string name="SetCompleted">Establecer Completado</string>
+<string name="newTaskFromThis">Copiar a Nueva Tarea</string>
+<string name="dueTasksTitle">Tareas que vencen en una semana</string>
+<string name="incompleteTasksTitle">Tareas Incompletas</string>
+<string name="incompleteTasksDue">Tareas incompletas que vencen en una semana</string>
+<string name="allTasksTitle">Todas las Tareas</string>
+<string name="NewTaskTitle">Nueva Tarea</string>
+<string name="TaskSaved">Tarea Guardada.</string>
+<string name="TaskModifiedAll">Modificadas todas las instancias de esta tarea.</string>
+<string name="TaskModifiedOne">Modificada instancia particular de esta tarea.</string>
+<string name="TaskModifiedThisAndFuture">Modificada ésta y todas las instancias futuras de esta tarea.</string>
+<string name="TaskErrorSaving">Error guardando los datos de la tarea -  por favor inténtalo de nuevo.</string>
+<string name="username">Usuario:</string>
+<string name="password">Contraseña:</string>
+<string name="setRepeatRule">Establecer Regla de Repetición</string>
+<string name="eventName">Nombre del Evento</string>
+<string name="todoName">Nombre de Pendientes:</string>
+<string name="IsADate">Es una fecha</string>
+<string name="NotSet">No Establecido</string>
+<string name="Exactly">Exactamente</string>
+<string name="Start">Comienzo</string>
+<string name="Finish">Fin</string>
+<string name="Before">Antes de</string>
+<string name="After">Después de</string>
+<string name="Custom">Personalizar</string>
+<string name="floatingTime">Sin zona horaria</string>
+<string name="SetCustomAlarm">Establecer una alarma personalizada</string>
+<string name="showUpdateInformation">Mostrar Información de Actualización</string>
+<string name="General_aCal_Information">Información General de aCal</string>
+<string name="aCal_Website">El sitio web <b>aCal</b> es %s</string>
+<string name="aCal_IRC_Channel">Puedes hablar con los autores de aCal por IRC en &lt;a href=&quot;irc://irc.oftc.net/#acal&quot;>&quot;#acal en irc.oftc.net&lt;/a></string>
+<string name="aCal_Mailing_Lists">Las listas de correo &lt;em>aCal&lt;/em> son públicas y puedes suscribirte en  &lt;a href=&quot;http://lists.acal.me/&quot;>lists.acal.me&lt;/a>. También están allí los archivos.</string>
+<string name="aCal_is_Free_Software">aCal es &quot;Software Libre&quot;, bajo la licencia General Public License v3 o posterior.  Puedes descargar &lt;a href=&quot;http://gitorious.org/acal&quot;>el código fuente de aCal desde Gitorious&lt;/a></string>
+<string name="TaskMarkedComplete">Tarea marcada como completada.</string>
+<string name="TaskDeleted">Se ha borrado la tarea.</string>
+<string name="endsAt">Finaliza el %s</string>
+<string name="Finished">Finalizado</string>
+<string name="days">Días</string>
+<string name="noScheduledEvents">No hay eventos programados</string>
+<string name="Event">Evento</string>
+<string name="Task">Tarea</string>
+<string name="weekends">fines de semana</string>
+<string name="weekdays">días entre semana</string>
+<string name="JournalDatePrompt">Fecha:</string>
+<string name="AppearancePreferences">Ajustes de apariencia</string>
+<string name="prefThemeButtonColour_Summary">El color de los botones en la aplicación</string>
+<string name="prefThemeButtonColour_Title">Color del botón</string>
+<string name="Saving">Guardando...</string>
+<string name="Loading">Cargando...</string>
+<string name="Deleting">Borrando...</string>
+<string name="ConfigureServer">Configurar Servidor</string>
+<string name="errorConfigMustHaveName">La configuración debe tener un nombre</string>
+<string name="errorConfigMustHaveUserName">La configuración debe incluir un usuario.</string>
+<string name="errorConfigMustHavePassword">La configuración debe incluir una contraseña.</string>
+<string name="errorConfigMustHaveURL">La configuración debe incluir un nombre de dominio o URL para el servidor.</string>
+<string name="Skip">Saltar</string>
+<string name="Configure">Configurar</string>
+<string name="prefAllowSelfSignedCerts_PrefTitle">Permitir certificados autofirmados</string>
+<string name="prefAllowSelfSignedCerts_OnSummary">Permitido</string>
+<string name="prefAllowSelfSignedCerts_OffSummary">Rechazado</string>
+<string name="SslCertificateError">Ha habido un problema al validar el certificado SSL.</string>
+<string name="prefTzServerBaseUrl_Title">URL del Servidor de Zona Horaria</string>
+<string name="prefIgnoreValarmDescription_PrefTitle">Ignorar Descripción VALARM</string>
+<string name="prefIgnoreValarmDescription_OnSummary">Usar el resumen VEVENT/VTODO en alarmas</string>
+<string name="prefIgnoreValarmDescription_OffSummary">Usar la descripción VALARM en alarmas</string>
+<string name="icon_add_description">Añadir</string>
+<string name="icon_delete_description">Borrar</string>
+	<string-array name="phone_types">
+		<item>@string/Home</item>
+		<item>@string/Mobile</item>
+		<item>@string/Work</item>
+		<item>@string/WorkFax</item>
+		<item>@string/HomeFax</item>
+		<item>@string/Pager</item>
+		<item>@string/Other</item>
+		<item>@string/Custom</item>
+	</string-array>
+	<string-array name="email_types">
+		<item>@string/Home</item>
+		<item>@string/Work</item>
+		<item>@string/Other</item>
+		<item>@string/Custom</item>
+	</string-array>
 </resources>

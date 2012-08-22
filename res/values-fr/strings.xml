@@ -1,18 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Strings that should not be localised belong in unlocalisable_strings.xml -->
 <resources>
-<string name="theDayEachWeekStartsWith">Ok</string>
-<string name="firstDayOfWeek">Temps flottant</string>
+<string name="theDayEachWeekStartsWith">Premier jour de chaque semaine.</string>
+<string name="firstDayOfWeek">Premier jour de la semaine</string>
 <string name="cancel">Annuler</string>
 <string name="setButtonLabel">OK</string>
 <string name="appDescription">Un calendrier pour Android qui sauvegardera vos événements, tâches, notes et contacts sur un serveur CalDAV/CardDAV, tel que DAViCal (voir: www.davical.org)</string>
 <string name="appDescriptionTasks">Une liste de tâches pour Android qui sauvegardera vos tâches sur un serveur distant CalDAV / CardDAV, comme DAViCAL (visitez : www.davical.org)</string>
+<string name="appDescriptionNotes">Une liste des tâches pour Android qui permet de stocker vos tâches sur un serveur distant CalDAV / CardDAV, tel que davical (Voir: www.davical.org)</string>
 <string name="Active">Actif</string>
 <string name="Add_Server">Ajouter un Serveur</string>
 <string name="A_name_for_this_server_configuration">Nom utilisé pour la configuration de ce serveur</string>
 <string name="Authentication_Type">Type d\'authentification</string>
 <string name="Simple_Path">Chemin simple</string>
 <string name="Simple_User_URL">URL utilisateur</string>
+<string name="Server_URL">URL du serveur :</string>
 <string name="Enter_a_brief_summary_of_the_event">Entrez un bref résumé de l\'événement</string>
 <string name="Name">Nom</string>
 <string name="Force_full_resync">Forcer la re-synchronisation</string>
@@ -42,6 +44,7 @@
 <string name="Whether_to_use_encryption">S\'il faut utiliser un connexion cryptée avec le serveur</string>
 <string name="appActivityEventCreate">Nouvel événement</string>
 <string name="appActivityServerConfigList">Serveurs</string>
+<string name="appActivityServerConfiguration">Configuration du serveur</string>
 <string name="appActivityAddServerList">Modèles de serveur</string>
 <string name="appActivityCollectionConfigList">Calendriers et carnets d\'adresses</string>
 <string name="appActivityDebugSettings">Paramètres de débogage</string>
@@ -111,8 +114,12 @@
 <string name="YearViewSize_PrefSummary">Nombre de mois visible dans la vue annuelle</string>
 <string name="Snooze_PrefTitle">Délai de répétition</string>
 <string name="Snooze_PrefSummary">Combien de minutes doit-on attendre lors de l\'appui sur la fonction répéter avant de répéter l\'alarme</string>
-<string name="DefaultCollection_PrefTitle">Collection par défaut</string>
-<string name="DefaultCollection_PrefSummary">Collection par défaut à utiliser pour les nouveaux événements</string>
+<string name="prefDefaultEventsCollection_Title">Calendrier par défaut des événements </string>
+<string name="prefDefaultEventsCollection_Summary">Collection par défaut pour les nouveaux événements</string>
+<string name="prefDefaultTasksCollection_Title">Calendrier par défaut des tâches</string>
+<string name="prefDefaultTasksCollection_Summary">Collection par défaut pour les nouvelles tâches</string>
+<string name="prefDefaultNotesCollection_Title">Calendrier par défaut des notes</string>
+<string name="prefDefaultNotesCollection_Summary">Collection par défaut pour les nouvelles notes</string>
 <string name="DefaultAlarmTone_PrefTitle">Sonnerie par défaut</string>
 <string name="DefaultAlarmTone_PrefSummary">Son par défaut utilisé pour les alarmes.</string>
 <string name="AlarmVolumeType_PrefTitle">Réglage du volume de l\'alarme</string>
@@ -284,6 +291,48 @@
 <string name="TaskMarkedComplete">Tâches terminées.</string>
 <string name="TaskDeleted">La tâche a été effacée.</string>
 <string name="endsAt">Se termine à %s</string>
+<string name="Finished">Terminé</string>
 <string name="days">Jours</string>
 <string name="noScheduledEvents">Nombre d\'événements prévus</string>
+<string name="Event">Évènement</string>
+<string name="Task">Tâche</string>
+<string name="weekends">week-end</string>
+<string name="weekdays">jours de la semaine</string>
+<string name="JournalDatePrompt">Date :</string>
+<string name="AppearancePreferences">Paramètres graphiques</string>
+<string name="prefThemeButtonColour_Summary">La couleur des boutons le long de l\'application.</string>
+<string name="prefThemeButtonColour_Title">Couleur du bouton</string>
+<string name="Saving">Enregistrement...</string>
+<string name="Loading">Chargement...</string>
+<string name="Deleting">Suppression...</string>
+<string name="ConfigureServer">Configurer le serveur</string>
+<string name="errorConfigMustHaveName">Vous devez définir un nom.</string>
+<string name="errorConfigMustHaveUserName">Vous devez définir un nom d\'utilisateur.</string>
+<string name="errorConfigMustHavePassword">Vous devez définir un mot de passe.</string>
+<string name="errorConfigMustHaveURL">Vous devez définir le nom de domaine ou l\'URL du serveur.</string>
+<string name="Skip">Passer</string>
+<string name="Configure">Configurer</string>
+<string name="prefAllowSelfSignedCerts_PrefTitle">Autoriser les certificats auto-signés</string>
+<string name="prefAllowSelfSignedCerts_OnSummary">Autoriser</string>
+<string name="prefAllowSelfSignedCerts_OffSummary">Refuser</string>
+<string name="SslCertificateError">Un problème est survenu lors de la validation du certificat SSL</string>
+<string name="prefTzServerBaseUrl_Title">URL du serveur de Timezone</string>
+<string name="icon_add_description">Ajouter</string>
+<string name="icon_delete_description">Effacer</string>
+	<string-array name="phone_types">
+		<item>@string/Home</item>
+		<item>@string/Mobile</item>
+		<item>@string/Work</item>
+		<item>@string/WorkFax</item>
+		<item>@string/HomeFax</item>
+		<item>@string/Pager</item>
+		<item>@string/Other</item>
+		<item>@string/Custom</item>
+	</string-array>
+	<string-array name="email_types">
+		<item>@string/Home</item>
+		<item>@string/Work</item>
+		<item>@string/Other</item>
+		<item>@string/Custom</item>
+	</string-array>
 </resources>

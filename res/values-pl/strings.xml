@@ -114,8 +114,6 @@
 <string name="YearViewSize_PrefSummary">Liczba miesięcy, która jest widoczna w widoku rocznym</string>
 <string name="Snooze_PrefTitle">Drzemka</string>
 <string name="Snooze_PrefSummary">Po ilu minutach ponowić alarm po naciśnięciu przycisku drzemki</string>
-<string name="DefaultCollection_PrefTitle">Domyślna kolekcja</string>
-<string name="DefaultCollection_PrefSummary">Domyślna kolekcja używana dla nowych zdarzeń</string>
 <string name="DefaultAlarmTone_PrefTitle">Domyślny dźwięk dzwonka</string>
 <string name="DefaultAlarmTone_PrefSummary">Domyślny dźwięk używany do alarmów</string>
 <string name="AlarmVolumeType_PrefTitle">Ustawienia głośności alarmu</string>
@@ -267,4 +265,20 @@
 <string name="Finish">Kończy się</string>
 <string name="Before">Przed</string>
 <string name="After">Po</string>
+	<string-array name="phone_types">
+		<item>@string/Home</item>
+		<item>@string/Mobile</item>
+		<item>@string/Work</item>
+		<item>@string/WorkFax</item>
+		<item>@string/HomeFax</item>
+		<item>@string/Pager</item>
+		<item>@string/Other</item>
+		<item>@string/Custom</item>
+	</string-array>
+	<string-array name="email_types">
+		<item>@string/Home</item>
+		<item>@string/Work</item>
+		<item>@string/Other</item>
+		<item>@string/Custom</item>
+	</string-array>
 </resources>

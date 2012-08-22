@@ -83,3 +83,7 @@ Adjust edit layouts to use more hints and fewer prompts.
 Stop week view from blinking on/off during sync.
 Fix occasional force close problem when closing week view.
 Download timezone definitions from a timezone server.
+v58=1.58
+Fix several force close issues.
+Start custom alarm at 5 minutes rather than 0 minutes, which is already covered.
+Pulled updated translations from Transifex.

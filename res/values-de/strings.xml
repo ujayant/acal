@@ -41,6 +41,7 @@
 <string name="Whether_to_use_encryption">Einstellung, ob Verschlüsselung verwendet werden soll</string>
 <string name="appActivityEventCreate">Neues Ereignis</string>
 <string name="appActivityServerConfigList">Server</string>
+<string name="appActivityServerConfiguration">Server Konfiguration</string>
 <string name="appActivityAddServerList">Servervorlagen</string>
 <string name="appActivityCollectionConfigList">Kalender und Adressbuch</string>
 <string name="appActivityDebugSettings">Debug-Einstellungen</string>
@@ -102,8 +103,6 @@
 <string name="YearViewSize_PrefSummary">Anzahl der Monate, die in der Jahresansicht sichtbar sind</string>
 <string name="Snooze_PrefTitle">Snooze-Zeitraum</string>
 <string name="Snooze_PrefSummary">Nach wievielen Minuten soll die Benachrichtigung wiederholt werden, wenn der Snooze-Knopf gedrückt wurde.</string>
-<string name="DefaultCollection_PrefTitle">Standardsammlung</string>
-<string name="DefaultCollection_PrefSummary">Die Standardsammlung für neue Elemente</string>
 <string name="DefaultAlarmTone_PrefTitle">Erinnerungsmelodie</string>
 <string name="DefaultAlarmTone_PrefSummary">Standard-Erinnerungsmelodie für Benachrichtigungen</string>
 <string name="AlarmVolumeType_PrefTitle">Alarmlautstärke</string>
@@ -168,14 +167,14 @@
 <string name="CustomRepeatRule">selbstdefinierte Wiederholung</string>
 <string name="EventSaved">Ereignis gespeichert</string>
 <string name="ModifiedAllInstances">Alle Ereignisse gespeichert.</string>
-<string name="ModifiedOneInstance">Einen einzelnes Ereignis bearbeitet.</string>
+<string name="ModifiedOneInstance">Ein einzelnes Ereignis bearbeitet.</string>
 <string name="ModifiedThisAndFuture">Dieses und alle zukünftigen Ereignisse bearbeitet.</string>
 <string name="ErrorSavingEvent">Fehler beim Speichern - bitte versuchen Sie es erneut.</string>
 <string name="NewEventTitle">Neues Ereignis</string>
 <string name="ChooseACollection">Eine Sammlung auswählen</string>
 <string name="ChooseAlarmTime">Auswahl der Benachrichtigungszeit</string>
 <string name="ChooseInstancesToChange">Welche Instanz soll bearbeitet werden?</string>
-<string name="ChooseRepeatFrequency">Wählen Sie eine Auftrittsfrequenz</string>
+<string name="ChooseRepeatFrequency">Wählen Sie eine Wiederholugsfrequenz</string>
 <string name="Add_Alarm">Alarm hinzufügen</string>
 <string name="errorMustHaveActiveCalendar">Kann Ereignis nicht ohne aktiven Kalender editieren.</string>
 <string name="errorSavingServerConfig">Fehler beim Speichern der Serverkonfiguration</string>
@@ -204,10 +203,10 @@
 <string name="serverSupportsCalDAV">Server unterstützt CalDAV.</string>
 <string name="serverHasDAVNoCalDAV">Der Server unterstützt DAV und Ihr Benutzername und Passwort funktionieren, aber CalDAV-Unterstützung ist nicht vorhanden.</string>
 <string name="serverLacksCalDAV">Server unterstützt CalDAV nicht.</string>
-<string name="serverFailedValidation">Es gab einen Fehler bei der Überprüfung des Servers.</string>
+<string name="serverFailedValidation">Es gab einen Fehler bei der Überprüfung des Servers:</string>
 <string name="saveSettingsAnyway">Möchten Sie diese Einstellungen trotzdem speichern?</string>
 <string name="serverValidationSuccess">Serverüberprüfung war erfolgreich.</string>
-<string name="authenticationFailed">Authentifizierung am Server fehlgeschlagen</string>
+<string name="authenticationFailed">Authentifizierung am Server fehlgeschlagen: Bitte Benutzername/Passwort prüfen.</string>
 <string name="WeekViewPreferences">Einstellungen Wochenansicht</string>
 <string name="AlarmPreferences">Alarmeinstellungen</string>
 <string name="GeneralPreferences">Allgemeine Einstellungen</string>
@@ -235,6 +234,7 @@
 <string name="All">Alle</string>
 <string name="Events">Termine</string>
 <string name="Tasks">Aufgaben</string>
+<string name="Journals">Notizen</string>
 <string name="Unscheduled">Ungeplant</string>
 <string name="ChooseAction">Aktion wählen</string>
 <string name="SetCompleted">Als abgeschlossen markieren</string>
@@ -273,6 +273,43 @@
 <string name="TaskMarkedComplete">Aufgabe als abgeschlossen markiert.</string>
 <string name="TaskDeleted">Aufgabe wurde gelöscht.</string>
 <string name="endsAt">Endet %s</string>
+<string name="Finished">Abgeschlossen</string>
 <string name="days">Tage</string>
 <string name="noScheduledEvents">Keine geplanten Ereignisse.</string>
+<string name="Event">Ereignis</string>
+<string name="Task">Aufgabe</string>
+<string name="weekdays">Wochentage</string>
+<string name="JournalDatePrompt">Datum:</string>
+<string name="Saving">Speichern...</string>
+<string name="Loading">Laden...</string>
+<string name="Deleting">Löschen...</string>
+<string name="ConfigureServer">Konfiguriere Server</string>
+<string name="errorConfigMustHaveName">Die Konfiguration benötigt einen Namen.</string>
+<string name="errorConfigMustHaveUserName">Die Konfiguration benötigt einen Benutzer-Namen.</string>
+<string name="errorConfigMustHavePassword">Die Konfiguration benötigt ein Kennwort.</string>
+<string name="errorConfigMustHaveURL">Die Konfiguration benötigt einen Domain-Namen oder URL für den Server.</string>
+<string name="Skip">Überspringen</string>
+<string name="Configure">Konfiguriere</string>
+<string name="prefAllowSelfSignedCerts_PrefTitle">Erlaube selbst-signierte Zertifikate</string>
+<string name="prefAllowSelfSignedCerts_OnSummary">Erlaubt</string>
+<string name="prefAllowSelfSignedCerts_OffSummary">Abgelehnt</string>
+<string name="SslCertificateError">Es gab ein Problem bei der Prüfung des SSL-Zertifikats.</string>
+<string name="icon_add_description">Hinzufügen</string>
+<string name="icon_delete_description">Löschen</string>
+	<string-array name="phone_types">
+		<item>@string/Home</item>
+		<item>@string/Mobile</item>
+		<item>@string/Work</item>
+		<item>@string/WorkFax</item>
+		<item>@string/HomeFax</item>
+		<item>@string/Pager</item>
+		<item>@string/Other</item>
+		<item>@string/Custom</item>
+	</string-array>
+	<string-array name="email_types">
+		<item>@string/Home</item>
+		<item>@string/Work</item>
+		<item>@string/Other</item>
+		<item>@string/Custom</item>
+	</string-array>
 </resources>

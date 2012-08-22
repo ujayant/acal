@@ -107,8 +107,6 @@
 <string name="YearViewSize_PrefSummary">Het aantal maanden dat wordt weergegeven in Jaar-weergave</string>
 <string name="Snooze_PrefTitle">Snooze-tijd</string>
 <string name="Snooze_PrefSummary">Hoeveel minuten worden notificaties uitgesteld wanneer de snooze-knop wordt ingedrukt?</string>
-<string name="DefaultCollection_PrefTitle">Standaard Collectie</string>
-<string name="DefaultCollection_PrefSummary">De standaard collectie om te gebruiken voor nieuwe afspraken</string>
 <string name="DefaultAlarmTone_PrefTitle">Standaard alarmgeluid</string>
 <string name="DefaultAlarmTone_PrefSummary">Het standaard geluid voor notificaties.</string>
 <string name="AlarmVolumeType_PrefTitle">Instelling voor Alarm-volume</string>
@@ -276,4 +274,22 @@
 <string name="endsAt">Eindigt %s</string>
 <string name="days">Dagen</string>
 <string name="noScheduledEvents">Geen geplande afspraken</string>
+<string name="icon_add_description">Toevoegen</string>
+<string name="icon_delete_description">Verwijderen</string>
+	<string-array name="phone_types">
+		<item>@string/Home</item>
+		<item>@string/Mobile</item>
+		<item>@string/Work</item>
+		<item>@string/WorkFax</item>
+		<item>@string/HomeFax</item>
+		<item>@string/Pager</item>
+		<item>@string/Other</item>
+		<item>@string/Custom</item>
+	</string-array>
+	<string-array name="email_types">
+		<item>@string/Home</item>
+		<item>@string/Work</item>
+		<item>@string/Other</item>
+		<item>@string/Custom</item>
+	</string-array>
 </resources>

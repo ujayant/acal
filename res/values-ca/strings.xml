@@ -110,8 +110,6 @@
 <string name="YearViewSize_PrefSummary">El nombre de mesos que són visibles a la vista mensual</string>
 <string name="Snooze_PrefTitle">Temps a postposar</string>
 <string name="Snooze_PrefSummary">Quants minuts es postposarà l\'alarma quan s\'apreti el botó de postposar</string>
-<string name="DefaultCollection_PrefTitle">Col·lecció predeterminada</string>
-<string name="DefaultCollection_PrefSummary">La col·lecció a utilitzar pels nous esdeveniments de forma predeterminada</string>
 <string name="DefaultAlarmTone_PrefTitle">So d\'alarma predeterminat</string>
 <string name="DefaultAlarmTone_PrefSummary">El so a utilitzar per les alarmes de forma predeterminada</string>
 <string name="prefWorkdayStart_Title">Inici de la jornada laboral</string>
@@ -219,4 +217,22 @@
 <string name="aCalVersionChanges">Benvingut a la nova versió d\'aCal!</string>
 <string name="newWithVersion">Canvis a la versió %s</string>
 <string name="newVersionSeen">Gràcies, ensenya\'m el calendari!</string>
+<string name="icon_add_description">Afegir</string>
+<string name="icon_delete_description">Esborrar</string>
+	<string-array name="phone_types">
+		<item>@string/Home</item>
+		<item>@string/Mobile</item>
+		<item>@string/Work</item>
+		<item>@string/WorkFax</item>
+		<item>@string/HomeFax</item>
+		<item>@string/Pager</item>
+		<item>@string/Other</item>
+		<item>@string/Custom</item>
+	</string-array>
+	<string-array name="email_types">
+		<item>@string/Home</item>
+		<item>@string/Work</item>
+		<item>@string/Other</item>
+		<item>@string/Custom</item>
+	</string-array>
 </resources>

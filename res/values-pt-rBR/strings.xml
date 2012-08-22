@@ -7,12 +7,14 @@
 <string name="setButtonLabel">Configurar</string>
 <string name="appDescription">Uma agenda para Android que armazena seus compromissos, tarefas, anotações e contatos em um servidor CalDAV / CardDAV remoto, como o DAViCal (Veja: http://davical.org)</string>
 <string name="appDescriptionTasks">Uma lista de tarefas para Android que irá utilizar um servidor remoto CalDAV para armazenar seus dados, como o DAViCal (veja http://davical.org)</string>
+<string name="appDescriptionNotes">Uma lista de tarefas para Android com armazenamento em um servidor remoto CalDAV/CardDav, como o DAViCal (http://davical.org/)</string>
 <string name="Active">Ativo</string>
 <string name="Add_Server">Adicionar Servidor</string>
 <string name="A_name_for_this_server_configuration">Um nome para esta configuração de servidor</string>
 <string name="Authentication_Type">Tipo de autenticação</string>
 <string name="Simple_Path">Caminho simples</string>
 <string name="Simple_User_URL">URL do Usuário</string>
+<string name="Server_URL">URL do servidor:</string>
 <string name="Enter_a_brief_summary_of_the_event">Entre uma breve descrição do compromisso</string>
 <string name="Name">Nome</string>
 <string name="Force_full_resync">Forçar sincronização completa</string>
@@ -42,6 +44,7 @@
 <string name="Whether_to_use_encryption">Define se a conexão com o servidor será segura (criptografada)</string>
 <string name="appActivityEventCreate">Novo compromisso</string>
 <string name="appActivityServerConfigList">Servidores</string>
+<string name="appActivityServerConfiguration">Configuração do Servidor</string>
 <string name="appActivityAddServerList">Modelos de servidor</string>
 <string name="appActivityCollectionConfigList">Agendas e listas de contatos</string>
 <string name="appActivityDebugSettings">Preferências de depuração</string>
@@ -110,8 +113,12 @@
 <string name="YearViewSize_PrefSummary">O número de meses exibidos na visualização de compromissos no ano</string>
 <string name="Snooze_PrefTitle">Tempo de espera</string>
 <string name="Snooze_PrefSummary">Quantos minutos devem ser aguardados quando utilizada a função espera (soneca)</string>
-<string name="DefaultCollection_PrefTitle">Coleção padrão</string>
-<string name="DefaultCollection_PrefSummary">A coleção padrão para novos compromissos</string>
+<string name="prefDefaultEventsCollection_Title">Agenda de Eventos Padrão</string>
+<string name="prefDefaultEventsCollection_Summary">A coleção padrão para novos eventos</string>
+<string name="prefDefaultTasksCollection_Title">Agenda de Tarefas Padrão</string>
+<string name="prefDefaultTasksCollection_Summary">A coleção padrão para novas tarefas</string>
+<string name="prefDefaultNotesCollection_Title">Agenda de Notas Padrão</string>
+<string name="prefDefaultNotesCollection_Summary">A coleção padrão para novas notas</string>
 <string name="DefaultAlarmTone_PrefTitle">Toque para o alarme</string>
 <string name="DefaultAlarmTone_PrefSummary">O arquivo de áudio que será usado nos alarmes de compromissos.</string>
 <string name="AlarmVolumeType_PrefTitle">Controle de Volume para o Alarme</string>
@@ -244,6 +251,7 @@
 <string name="Todo">A fazer</string>
 <string name="Events">Compromissos</string>
 <string name="Tasks">Tarefas</string>
+<string name="Journals">Notas</string>
 <string name="Unscheduled">Não agendado</string>
 <string name="ChooseAction">Escolher Ação</string>
 <string name="SetCompleted">Marcar como Completo</string>
@@ -287,4 +295,46 @@
 <string name="noScheduledEvents">Sem compromissos agendados</string>
 <string name="Event">Nome do Compromisso</string>
 <string name="Task">Tarefa</string>
+<string name="weekends">fins de semana</string>
+<string name="weekdays">dias de semana</string>
+<string name="JournalDatePrompt">Data:</string>
+<string name="AppearancePreferences">Configurações de apresentação</string>
+<string name="prefThemeButtonColour_Summary">A cor dos botões da aplicação</string>
+<string name="prefThemeButtonColour_Title">Cor dos Botões</string>
+<string name="Saving">Salvando...</string>
+<string name="Loading">Carregando...</string>
+<string name="Deleting">Apagando...</string>
+<string name="ConfigureServer">Configurar Servidor</string>
+<string name="errorConfigMustHaveName">A configuração precisa de um nome.</string>
+<string name="errorConfigMustHaveUserName">A configuração precisa ter um nome de usuário.</string>
+<string name="errorConfigMustHavePassword">A configuração precisa ter uma senha.</string>
+<string name="errorConfigMustHaveURL">A configuração precisa ter um nome de domínio ou URL para o servidor.</string>
+<string name="Skip">Pular</string>
+<string name="Configure">Configurar</string>
+<string name="prefAllowSelfSignedCerts_PrefTitle">Permitir certificados autoassinados</string>
+<string name="prefAllowSelfSignedCerts_OnSummary">Permitido</string>
+<string name="prefAllowSelfSignedCerts_OffSummary">Não permitido</string>
+<string name="SslCertificateError">Houve um problema ao validar o certificado SSL</string>
+<string name="prefTzServerBaseUrl_Title">URL do Servidor de Fuso Horário</string>
+<string name="prefIgnoreValarmDescription_PrefTitle">Ignorar a Propriedade Description do VALARM</string>
+<string name="prefIgnoreValarmDescription_OnSummary">Usar a propriedade summary do VEVENT/VTODO para os alarmes</string>
+<string name="prefIgnoreValarmDescription_OffSummary">Usar a propriedade Description do VALARM para os alarmes</string>
+<string name="icon_add_description">Adicionar</string>
+<string name="icon_delete_description">Apagar</string>
+	<string-array name="phone_types">
+		<item>@string/Home</item>
+		<item>@string/Mobile</item>
+		<item>@string/Work</item>
+		<item>@string/WorkFax</item>
+		<item>@string/HomeFax</item>
+		<item>@string/Pager</item>
+		<item>@string/Other</item>
+		<item>@string/Custom</item>
+	</string-array>
+	<string-array name="email_types">
+		<item>@string/Home</item>
+		<item>@string/Work</item>
+		<item>@string/Other</item>
+		<item>@string/Custom</item>
+	</string-array>
 </resources>
