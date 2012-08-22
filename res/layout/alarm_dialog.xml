@@ -7,13 +7,13 @@
 	<TextView
 		android:id="@+id/alarmRelativeDuration"
 		android:layout_width="290sp"
-		android:layout_height="fill_parent"
+		android:layout_height="0dp"
 		android:layout_gravity="center_horizontal"
 		android:layout_marginLeft="15sp"
 		android:layout_marginRight="5sp"
 		android:layout_marginTop="3sp"
 		android:layout_weight="1"
-		android:gravity="left"
+		android:gravity="left|center_vertical"
 		android:minLines="3"
 		android:text="3 days 12 hours and 30 minutes before start"
 		android:textAppearance="?android:attr/textAppearanceMedium"
@@ -27,7 +27,7 @@
 		android:layout_marginRight="5sp"
 		android:layout_marginTop="3sp"
 		android:gravity="left"
-		android:text="7:00pm, 29 September 2012"
+		android:text="@string/placeholderDateAndTime"
 		android:textAppearance="?android:attr/textAppearanceLarge"
 		android:textColor="#ff000000" />
 	<LinearLayout
@@ -53,7 +53,7 @@
 					android:layout_height="40sp"
 					android:layout_gravity="center_horizontal"
 					android:minHeight="36sp"
-					android:text="7:00pm, 29 November 2011" />
+					android:text="@string/placeholderDateAndTime" />
 			</LinearLayout>
 		</LinearLayout>
 		<LinearLayout
@@ -77,11 +77,13 @@
 		android:layout_width="fill_parent"
 		android:layout_height="wrap_content"
 		android:layout_gravity="center_horizontal"
+		android:baselineAligned="false"
 		android:gravity="center_horizontal"
 		android:weightSum="40" >
 		<LinearLayout
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
+			android:layout_marginRight="4dp"
 			android:padding="0sp" >
 			<LinearLayout
 				android:layout_width="wrap_content"
@@ -93,18 +95,14 @@
 					style="@style/themed_bottom_button"
 					android:layout_width="100sp"
 					android:layout_height="wrap_content"
-					android:text="Before"
+					android:text="@string/Before"
 					android:textSize="24sp" />
 			</LinearLayout>
 		</LinearLayout>
 		<LinearLayout
-			android:layout_width="0dp"
-			android:layout_height="wrap_content"
-			android:layout_weight="2" >
-		</LinearLayout>
-		<LinearLayout
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
+			android:layout_marginLeft="4dp"
 			android:background="@color/themed_button_colour"
 			android:padding="0sp" >
 			<Button
@@ -112,7 +110,7 @@
 				style="@style/themed_bottom_button"
 				android:layout_width="100sp"
 				android:layout_height="wrap_content"
-				android:text="Start"
+				android:text="@string/Start"
 				android:textSize="24sp" />
 		</LinearLayout>
 	</LinearLayout>
@@ -124,32 +122,22 @@
 		android:layout_gravity="center_horizontal"
 		android:gravity="center_horizontal"
 		android:paddingTop="30sp" >
-		<LinearLayout
-			android:layout_width="0dp"
-			android:layout_height="wrap_content"
-			android:layout_weight="2" >
-		</LinearLayout>
 		<Button
 			android:id="@+id/AlarmOkButton"
 			android:layout_width="100sp"
 			android:layout_height="wrap_content"
+			android:layout_gravity="right"
 			android:text="@string/ok" />
 		<Button
 			android:id="@+id/AlarmCancelButton"
 			android:layout_width="100sp"
 			android:layout_height="wrap_content"
+			android:layout_gravity="left"
 			android:text="@string/cancel" />
-		<LinearLayout
-			android:layout_width="0dp"
-			android:layout_height="wrap_content"
-			android:layout_weight="2" >
-		</LinearLayout>
-	</LinearLayout>
-	<!-- Blank text field to set width -->
+	</LinearLayout> <!-- Blank text field to set width -->
 	<TextView
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
 		android:text="                                                                                   " >
-	</TextView>
-	<!-- Blank text field to set width ends -->
+	</TextView> <!-- Blank text field to set width ends -->
 </LinearLayout>
