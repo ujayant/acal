@@ -7,7 +7,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
 import android.util.SparseArray;
 
 import com.morphoss.acal.acaltime.AcalDateRange;
@@ -50,6 +49,7 @@ public class WeekViewCache implements CacheChangedListener, CacheResponseListene
 
 	private static final int HANDLE_SAVE_NEW_DATA = 1;
 	private static final int HANDLE_RESET = 2;
+	private static final String TAG = "aCal WeekViewCache";
 	
 	//Cache Window settings
 	private final long lookForward = 86400000L*7L*10L;	//4 weeks
@@ -130,10 +130,10 @@ public class WeekViewCache implements CacheChangedListener, CacheResponseListene
 			ContentValues cv = e.getData();
 			CacheObject co = CacheObject.fromContentValues(cv);
 			if (earliestStart == null) earliestStart = co.getStartDateTime();
-			else if (co.getStartDateTime().before(earliestStart)) earliestStart = co.getStartDateTime();
+			else if (co.getStartDateTime() != null && co.getStartDateTime().before(earliestStart)) earliestStart = co.getStartDateTime();
 		
 			if (latestEnd == null) latestEnd = co.getStartDateTime();
-			else if (co.getEndDateTime().after(latestEnd)) latestEnd = co.getEndDateTime();
+			else if (co.getEndDateTime() != null && co.getEndDateTime().after(latestEnd)) latestEnd = co.getEndDateTime();
 		}
 
 		// 2 if so, wipe existing data
@@ -153,18 +153,24 @@ public class WeekViewCache implements CacheChangedListener, CacheResponseListene
 		SparseArray<ArrayList<WVCacheObject>> dayMap = new SparseArray<ArrayList<WVCacheObject>>();
 		
 		for (CacheObject co: response.result()) {
-			if (co.isAllDay()) fullDay.add(new WVCacheObject(co));
-			else {
-				int day = (int)(co.getStartDateTime().getYearDay());
-				ArrayList<WVCacheObject> dayList = null;
-				if (dayMap.get(day) == null ) {
-					dayList = new ArrayList<WVCacheObject>();
-				}
+			try {
+				if ( co.getStartDateTime() == null ) continue;  // TODO / JOURNAL may not have a start.
+				if (co.isAllDay()) fullDay.add(new WVCacheObject(co));
 				else {
-					dayList = dayMap.get(day);
+					int day = (int)(co.getStartDateTime().getYearDay());
+					ArrayList<WVCacheObject> dayList = null;
+					if (dayMap.get(day) == null ) {
+						dayList = new ArrayList<WVCacheObject>();
+					}
+					else {
+						dayList = dayMap.get(day);
+					}
+					dayList.add(new WVCacheObject(co));
+					dayMap.put(day, dayList);
 				}
-				dayList.add(new WVCacheObject(co));
-				dayMap.put(day, dayList);
+			}
+			catch( Exception e ) {
+				co.logInvalidObject(callback.getContext(), TAG, e);
 			}
 		}
 		Object[] obj = new Object[]{dayMap,fullDay,resobject.rangeRetreived()};

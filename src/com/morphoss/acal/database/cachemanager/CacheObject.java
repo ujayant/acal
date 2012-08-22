@@ -3,12 +3,16 @@ package com.morphoss.acal.database.cachemanager;
 import java.util.TimeZone;
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
+import com.morphoss.acal.Constants;
 import com.morphoss.acal.acaltime.AcalDateRange;
 import com.morphoss.acal.acaltime.AcalDateTime;
 import com.morphoss.acal.database.cachemanager.CacheManager.CacheTableManager;
+import com.morphoss.acal.dataservice.Resource;
 import com.morphoss.acal.davacal.Masterable;
 import com.morphoss.acal.davacal.PropertyName;
 
@@ -368,5 +372,17 @@ public class CacheObject implements Parcelable, Comparable<CacheObject> {
 		if (this == other) return true;
 		if (! (other instanceof CacheObject)) return false;
 		return (this.cid == ((CacheObject)other).cid);
+	}
+
+	public void logInvalidObject( Context c, String TAG, Exception e) {
+		Log.println(Constants.LOGI, TAG, Log.getStackTraceString(e) );
+		try {
+			Resource resource = Resource.fromDatabase(c, rid);
+			Log.println(Constants.LOGI, TAG, "Dumping blob for resource ID "+rid);
+			Log.println(Constants.LOGI, TAG, resource.getBlob());
+		}
+		catch( Exception e1 ) {
+			Log.w(TAG,"Exception trying to log invalid object!", e1);
+		}
 	}
 }
