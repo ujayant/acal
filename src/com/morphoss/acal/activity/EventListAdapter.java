@@ -210,8 +210,14 @@ public class EventListAdapter extends BaseAdapter implements OnClickListener, Li
 			repeating.setVisibility(View.VISIBLE);
 		}
 
-		time.setText(AcalDateTimeFormatter.getDisplayTimeText(context, viewDate, viewDateEnd, event.getStartDateTime(), event.getEndDateTime(),
-				MonthView.prefs.getBoolean(context.getString(R.string.prefTwelveTwentyfour), false), event.isAllDay()) );
+        if ( event.getStartDateTime() != null ) {
+            time.setText(
+                    AcalDateTimeFormatter.getDisplayTimeText(context, viewDate, viewDateEnd,
+                            event.getStartDateTime(), event.getEndDateTime(),
+                            MonthView.prefs.getBoolean(context.getString(R.string.prefTwelveTwentyfour), false),
+                            event.isAllDay())
+                        );
+        }
 
 		if (event.getLocation() != null && event.getLocation().length() > 0 )
 			location.setText(event.getLocation());
