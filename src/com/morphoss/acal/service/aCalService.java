@@ -19,6 +19,7 @@
 package com.morphoss.acal.service;
 
 import android.app.AlarmManager;
+import android.app.IntentService;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
@@ -37,9 +38,9 @@ import com.morphoss.acal.database.alarmmanager.AlarmQueueManager;
 import com.morphoss.acal.database.cachemanager.CacheManager;
 import com.morphoss.acal.database.resourcesmanager.ResourceManager;
 
-public class aCalService extends Service {
+public class aCalService extends IntentService {
 
-	
+
 	private ServiceRequest.Stub serviceRequest = new ServiceRequestHandler();
 	private WorkerClass worker;
 	public static final String TAG = "aCalService";
@@ -53,12 +54,13 @@ public class aCalService extends Service {
 	
 	private static SharedPreferences prefs = null;
 
-	//TODO remove this line
-	public static Context context;
+	public aCalService() {
+		super(TAG);
+	}
+
 	
 	public void onCreate() {
 		super.onCreate();
-		aCalService.context = this;
 
 		aCalVersion = getString(R.string.appName) + "/";
 		try {
@@ -241,6 +243,13 @@ public class aCalService extends Service {
 			InitialCollectionSync job = new InitialCollectionSync(collectionId);
 			worker.addJobAndWake(job);
 		}
+	}
+
+
+	@Override
+	protected void onHandleIntent(Intent intent) {
+        if (Constants.LOG_DEBUG) Log.println(Constants.LOGD, TAG, "Service starting via onHandleIntent()");
+        startService();
 	}
 	
 	
