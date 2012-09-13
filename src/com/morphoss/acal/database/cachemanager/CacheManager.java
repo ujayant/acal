@@ -574,7 +574,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 		
 		public static final String TAG = "acal EventCacheProcessor";
 		
-		private static final String TABLE = "event_cache";
+		public static final String TABLE = "event_cache";
 		public static final String	FIELD_ID				= "_id";
 		public static final String	FIELD_RESOURCE_ID		= "resource_id";
 		public static final String	FIELD_RESOURCE_TYPE		= "resource_type";

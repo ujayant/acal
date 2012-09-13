@@ -308,7 +308,7 @@ public class ResourceManager implements Runnable {
 	public class ResourceTableManager extends DatabaseTableManager implements WriteableResourceTableManager, ReadOnlyResourceTableManager {
 
 		// Resources Table Constants
-		private static final String RESOURCE_DATABASE_TABLE = "dav_resource";
+		public static final String RESOURCE_DATABASE_TABLE = "dav_resource";
 		public static final String RESOURCE_ID = "_id";
 		public static final String COLLECTION_ID = "collection_id";
 		public static final String RESOURCE_NAME = "name";
@@ -469,7 +469,8 @@ public class ResourceManager implements Runnable {
 		 * @return A ContentValues which is the dav_resource row, or null
 		 */
 		public ContentValues getResourceInCollection(long collectionId,	String name) {
-			ArrayList<ContentValues> res = this.query(  null, RESOURCE_NAME + "=?",	new String[] { name }, null, null, null);
+			ArrayList<ContentValues> res = this.query(  null, RESOURCE_NAME + "=? AND "+COLLECTION_ID+"=?",
+					new String[] { name, Long.toString(collectionId) }, null, null, null);
 			if (res == null || res.isEmpty()) return null;
 			return res.get(0);
 		}

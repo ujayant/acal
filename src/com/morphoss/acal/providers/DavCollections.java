@@ -35,6 +35,8 @@ import android.util.Log;
 
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.database.AcalDBHelper;
+import com.morphoss.acal.database.cachemanager.CacheManager;
+import com.morphoss.acal.database.resourcesmanager.ResourceManager;
 
 /**
  * <p>This ContentProvider interfaces with the dav_collection table in the database.</p>
@@ -184,7 +186,19 @@ CREATE TABLE dav_collection (
 			break;
 		default: throw new IllegalArgumentException(
 				"Unknown URI " + uri);    
-		}       
+		}
+		
+		/**
+		 * Delete rows related to any collections that don't exist now.
+		 */
+		String[] riTables = {
+				ResourceManager.ResourceTableManager.PENDING_DATABASE_TABLE,
+				ResourceManager.ResourceTableManager.RESOURCE_DATABASE_TABLE,
+				CacheManager.CacheTableManager.TABLE,
+		};
+		for( String table : riTables ) {
+			AcalDB.delete(table, "NOT EXISTS(SELECT 1 FROM "+DATABASE_TABLE+" WHERE "+_ID+"="+table+".collection_id)", null);
+		}
 		getContext().getContentResolver().notifyChange(uri, null);
 		return count;      
 	}
