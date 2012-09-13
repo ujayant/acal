@@ -5,19 +5,20 @@
 # Translators:
 #   <formalist@email.it>, 2012.
 #   <mau@2nibbles.net>, 2012.
+#   <sun_lion@live.com>, 2012.
 msgid ""
 msgstr ""
 "Project-Id-Version: aCal\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2012-08-19 17:18+1200\n"
-"PO-Revision-Date: 2012-08-19 05:21+0000\n"
-"Last-Translator: Andrew McMillan <andrew@mcmillan.net.nz>\n"
+"PO-Revision-Date: 2012-09-11 23:52+0000\n"
+"Last-Translator: formalist <formalist@email.it>\n"
 "Language-Team: Italian (http://www.transifex.com/projects/p/acal/language/it/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Language: it\n"
-"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 # SourceFileStart:../res/values/strings.xml
 # Strings that should not be localised belong in unlocalisable_strings.xml
@@ -37,13 +38,13 @@ msgid "setButtonLabel"
 msgstr "Set"
 
 msgid "appDescription"
-msgstr "Un calendario per Android per memorizzare appuntamenti, promemoria, note, contatti su un server CalDAV / CardDAV, come ad esempio DAViCal (www.davical.org)"
+msgstr "Un calendario per Android per memorizzare appuntamenti, attività, note, contatti su un server CalDAV / CardDAV, come ad esempio DAViCal (www.davical.org)"
 
 msgid "appDescriptionTasks"
-msgstr "Una lista di Promemoria per Android che memorizza i tuoi promemoria su un server remoto CalDAV / CardDAV (vedi: www.davical.org)"
+msgstr "Una lista di Attività per Android che memorizza i tuoi promemoria su un server remoto CalDAV / CardDAV (vedi: www.davical.org)"
 
 msgid "appDescriptionNotes"
-msgstr ""
+msgstr "Una Lista di Attività per Android che memorizza le tue Attività su di un server remoto CalDAV/CardDAV, tipo DAViCal (vedi: www.davical.org)"
 
 msgid "Active"
 msgstr "Attivo"
@@ -64,7 +65,7 @@ msgid "Simple_User_URL"
 msgstr "URL utente:"
 
 msgid "Server_URL"
-msgstr ""
+msgstr "URL del server:"
 
 msgid "Enter_a_brief_summary_of_the_event"
 msgstr "Inserire una breve descrizione dell'evento"
@@ -154,7 +155,7 @@ msgid "appActivityServerConfigList"
 msgstr "Server"
 
 msgid "appActivityServerConfiguration"
-msgstr ""
+msgstr "Configurazione del server"
 
 msgid "appActivityAddServerList"
 msgstr "Modelli Server"
@@ -187,7 +188,7 @@ msgid "pActive_for_journal"
 msgstr "Note attive"
 
 msgid "pActive_for_tasks"
-msgstr "Promemoria attivi"
+msgstr "Attività aperte"
 
 msgid "pUse_Alarms"
 msgstr "Usa l'allarme per questo gruppo"
@@ -205,7 +206,7 @@ msgid "Active_for_journal"
 msgstr "Questo gruppo è usato per memorizzare note?"
 
 msgid "Active_for_tasks"
-msgstr "Questo gruppo è usato per memorizzare promemoria?"
+msgstr "Questo gruppo è usato per memorizzare Attività?"
 
 msgid "The_colour_associated_with_this_collection"
 msgstr "Il colore associato ai dati di questo gruppo"
@@ -392,22 +393,22 @@ msgid "Snooze_PrefSummary"
 msgstr "Di quanti minuti rimandare l'allarme alla pressione del tasto 'Snooze'"
 
 msgid "prefDefaultEventsCollection_Title"
-msgstr ""
+msgstr "Calendario di default per gli eventi"
 
 msgid "prefDefaultEventsCollection_Summary"
-msgstr ""
+msgstr "Collezione di default per i nuovi eventi"
 
 msgid "prefDefaultTasksCollection_Title"
-msgstr ""
+msgstr "Calendario di default per le Attività"
 
 msgid "prefDefaultTasksCollection_Summary"
-msgstr ""
+msgstr "Collezione di default per le nuove attività"
 
 msgid "prefDefaultNotesCollection_Title"
-msgstr ""
+msgstr "Calendario di default per le Note"
 
 msgid "prefDefaultNotesCollection_Summary"
-msgstr ""
+msgstr "Collezione di default per le nuove note"
 
 msgid "DefaultAlarmTone_PrefTitle"
 msgstr "Tono standard per l'allarme"
@@ -809,10 +810,10 @@ msgid "Events"
 msgstr "Evento"
 
 msgid "Tasks"
-msgstr "Promemoria"
+msgstr "Attività"
 
 msgid "Journals"
-msgstr ""
+msgstr "Note"
 
 msgid "Unscheduled"
 msgstr "Non programmato"
@@ -824,37 +825,37 @@ msgid "SetCompleted"
 msgstr "Set completato"
 
 msgid "newTaskFromThis"
-msgstr "Copia in un nuovo Promemoria"
+msgstr "Copia in una nuova Attività"
 
 msgid "dueTasksTitle"
-msgstr "Promemoria in scadenza entro un settimana"
+msgstr "Attività in scadenza entro un settimana"
 
 msgid "incompleteTasksTitle"
-msgstr "Promemoria incompleto"
+msgstr "Attività incompleta"
 
 msgid "incompleteTasksDue"
-msgstr "Promemoria non completati in scadenza entro una settimana"
+msgstr "Attività non completate in scadenza entro una settimana"
 
 msgid "allTasksTitle"
-msgstr "Tutti i promemoria"
+msgstr "Tutte le Attività "
 
 msgid "NewTaskTitle"
-msgstr "Nuovo Promemoria"
+msgstr "Nuova Attività"
 
 msgid "TaskSaved"
-msgstr "Promemoria Salvato"
+msgstr "Attività Salvata"
 
 msgid "TaskModifiedAll"
-msgstr "Tutte le istanze di questo promemoria sono state modificate."
+msgstr "Tutte le istanze di questa attività sono state modificate."
 
 msgid "TaskModifiedOne"
-msgstr "La singola istanza di questo promemoria è state modificata."
+msgstr "La singola istanza di questo attività è stata modificata."
 
 msgid "TaskModifiedThisAndFuture"
-msgstr "Questa e le future istanze di questo promemoria sono state modificate."
+msgstr "Questa e le future istanze di questa attività sono state modificate."
 
 msgid "TaskErrorSaving"
-msgstr "Errore nel salvataggio del promemoria - riprovare più tardi."
+msgstr "Errore nel salvataggio dell'attività - riprovare più tardi."
 
 msgid "username"
 msgstr "Nome utente:"
@@ -926,10 +927,10 @@ msgid "aCal_is_Free_Software"
 msgstr "aCal è \"Free Software\" (Software Libero) (\"free\" come \"freedom\" = \"libertà\") che è licenziato sotto la General Public License v3 o successiva.  Puoi scaricare presso &lt;a href=\"http://gitorious.org/acal\"> il codice sorgente di aCal da Gitorious&lt;/a>"
 
 msgid "TaskMarkedComplete"
-msgstr "Promemoria contrassegnati come completi."
+msgstr "Attività contrassegnata come completa."
 
 msgid "TaskDeleted"
-msgstr "Il promemoria è stato cancellato."
+msgstr "L'Attività è stata cancellata."
 
 msgid "endsAt"
 msgstr "Finisce %s%"
@@ -947,148 +948,148 @@ msgid "Event"
 msgstr "Evento"
 
 msgid "Task"
-msgstr "Compito"
+msgstr "Attività"
 
 msgid "weekends"
-msgstr ""
+msgstr "fine settimana"
 
 msgid "weekdays"
-msgstr ""
+msgstr "giorni feriali"
 
 msgid "JournalDatePrompt"
-msgstr ""
+msgstr "Data:"
 
 msgid "AppearancePreferences"
-msgstr ""
+msgstr "Impostazione apparenza"
 
 msgid "prefThemeButtonColour_Summary"
-msgstr ""
+msgstr "Colore dei pulsanti in tutta l'applicazione."
 
 msgid "prefThemeButtonColour_Title"
-msgstr ""
+msgstr "Colore dei pulsanti"
 
 msgid "Saving"
-msgstr ""
+msgstr "Salvataggio..."
 
 msgid "Loading"
-msgstr ""
+msgstr "Caricamento..."
 
 msgid "Deleting"
-msgstr ""
+msgstr "Cancellazione..."
 
 msgid "ConfigureServer"
-msgstr ""
+msgstr "Configura il Server"
 
 msgid "errorConfigMustHaveName"
-msgstr ""
+msgstr "La configurazione deve avere un nome."
 
 msgid "errorConfigMustHaveUserName"
-msgstr ""
+msgstr "La configurazione deve avere un nome utente."
 
 msgid "errorConfigMustHavePassword"
-msgstr ""
+msgstr "La configurazione deve avere una password."
 
 msgid "errorConfigMustHaveURL"
-msgstr ""
+msgstr "La configurazione deve avere un dominio o un indirizzo per il server."
 
 msgid "Skip"
-msgstr ""
+msgstr "Salta"
 
 msgid "Configure"
-msgstr ""
+msgstr "Configura"
 
 msgid "prefAllowSelfSignedCerts_PrefTitle"
-msgstr ""
+msgstr "Permetti i certificati auto-firmati"
 
 msgid "prefAllowSelfSignedCerts_OnSummary"
-msgstr ""
+msgstr "Permesso"
 
 msgid "prefAllowSelfSignedCerts_OffSummary"
-msgstr ""
+msgstr "Rifiutato"
 
 msgid "SslCertificateError"
-msgstr ""
+msgstr "Si è verificato un problema con il certificato SSL."
 
 msgid "prefTzServerBaseUrl_Title"
-msgstr ""
+msgstr "URL Server Fuso Orario "
 
 msgid "prefIgnoreValarmDescription_PrefTitle"
-msgstr ""
+msgstr "Ignora la descrizione VALARM"
 
 msgid "prefIgnoreValarmDescription_OnSummary"
-msgstr ""
+msgstr "Usa la descrizione VEVENT/VTODO negli allarmi"
 
 msgid "prefIgnoreValarmDescription_OffSummary"
-msgstr ""
+msgstr "Usa la descrizione VALARM negli allarmi"
 
 msgid "note_title_hint"
-msgstr ""
+msgstr "Dai un titolo alla nota"
 
 msgid "note_text_hint"
-msgstr ""
+msgstr "Immetti qui il testo della nota"
 
 msgid "event_name_hint"
-msgstr ""
+msgstr "Inserisci un nome per il tuo evento"
 
 msgid "event_location_hint"
-msgstr ""
+msgstr "Luogo dell'evento"
 
 msgid "event_notes_hint"
-msgstr ""
+msgstr "Descrizione dettagliata dell'evento"
 
 msgid "todo_name_hint"
-msgstr ""
+msgstr "Immetti un nome per l'attività"
 
 msgid "todo_description_hint"
-msgstr ""
+msgstr "Immetti una descrizione per l'attività "
 
 msgid "todo_location_hint"
-msgstr ""
+msgstr "Immetti una località per l'attività"
 
 msgid "first_name_hint"
-msgstr ""
+msgstr "Nome"
 
 msgid "surname_hint"
-msgstr ""
+msgstr "Cognome"
 
 msgid "phone_prompt"
-msgstr ""
+msgstr "Telefono"
 
 msgid "phone_hint"
-msgstr ""
+msgstr "Telefono"
 
 msgid "email_prompt"
-msgstr ""
+msgstr "Email"
 
 msgid "email_hint"
-msgstr ""
+msgstr "Email"
 
 msgid "postal_address_prompt"
-msgstr ""
+msgstr "Indirizzo postale"
 
 msgid "street_hint"
-msgstr ""
+msgstr "Via"
 
 msgid "city_hint"
-msgstr ""
+msgstr "Città"
 
 msgid "country_hint"
-msgstr ""
+msgstr "Nazione"
 
 msgid "postcode_hint"
-msgstr ""
+msgstr "CAP"
 
 msgid "organisation_prompt"
-msgstr ""
+msgstr "Organizzazione"
 
 msgid "company_hint"
-msgstr ""
+msgstr "Azienda"
 
 msgid "job_title_hint"
-msgstr ""
+msgstr "Titolo"
 
 msgid "contact_picture_description"
-msgstr ""
+msgstr "Foto"
 
 msgid "icon_add_description"
 msgstr "Aggiungi"
@@ -1097,37 +1098,37 @@ msgid "icon_delete_description"
 msgstr "Cancella"
 
 msgid "Home"
-msgstr ""
+msgstr "Casa"
 
 msgid "Work"
-msgstr ""
+msgstr "Lavoro"
 
 msgid "Mobile"
-msgstr ""
+msgstr "Cellulare"
 
 msgid "Other"
-msgstr ""
+msgstr "Altro"
 
 msgid "WorkFax"
-msgstr ""
+msgstr "Fax ufficio"
 
 msgid "HomeFax"
-msgstr ""
+msgstr "Fax casa"
 
 msgid "Pager"
-msgstr ""
+msgstr "Cercapersone"
 
 msgid "newJournalFromThis"
-msgstr ""
+msgstr "Copia in una nuova Nota"
 
 msgid "ErrorDeletingJournal"
-msgstr ""
+msgstr "Si è verificato un errore nel cancellare la nota - per favore riprova."
 
 msgid "ErrorDeletingTask"
-msgstr ""
+msgstr "Si è verificato un errore nel cancellare l'attività - per favore riprova."
 
 msgid "ErrorCompletingTask"
-msgstr ""
+msgstr "Si è verificato un errore nell'impostare l'attività come completata - per favore riprova."
 
 # SourceFileEnd:../res/values/strings.xml
 # SourceFileStart:../res/values/timezonenames.xml

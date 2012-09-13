@@ -16,7 +16,7 @@
 <string name="Simple_Path">Ruta simple</string>
 <string name="Simple_User_URL">URL de usuario</string>
 <string name="Server_URL">URL del Servidor:</string>
-<string name="Enter_a_brief_summary_of_the_event">Introduce un breve resumen del evento</string>
+<string name="Enter_a_brief_summary_of_the_event">Introduce un breve resumen de la cita</string>
 <string name="Name">Nombre</string>
 <string name="Force_full_resync">Forzar sincronización</string>
 <string name="Password">Contraseña</string>
@@ -26,7 +26,7 @@
 <string name="Server_Options">Opciones del servidor</string>
 <string name="Collection_Options">Opciones de la colección</string>
 <string name="Colour">Color</string>
-<string name="Default_timezone">Zona horaria por defecto</string>
+<string name="Default_timezone">Zona horaria predeterminada</string>
 <string name="DefaultAlarmTone">Tono de alarma predeterminado</string>
 <string name="Server_Path">Ruta del servidor</string>
 <string name="Server_Port">Puerto del servidor</string>
@@ -112,8 +112,8 @@
 <string name="YearViewSize_PrefSummary">El número de meses visibles en la vista anual</string>
 <string name="Snooze_PrefTitle">Tiempo a dormir</string>
 <string name="Snooze_PrefSummary">Los minutos de espera de la alarma al pulsar el botón de dormir</string>
-<string name="prefDefaultEventsCollection_Title">Calendario Predeterminado de Eventos </string>
-<string name="prefDefaultEventsCollection_Summary">La colección predeterminada para nuevos eventos</string>
+<string name="prefDefaultEventsCollection_Title">Calendario Predeterminado de Citas </string>
+<string name="prefDefaultEventsCollection_Summary">La colección predeterminada para nuevas citas</string>
 <string name="prefDefaultTasksCollection_Title">Calendario Predeterminado de Tareas</string>
 <string name="prefDefaultTasksCollection_Summary">La colección predeterminada para nuevas tareas</string>
 <string name="prefDefaultNotesCollection_Title">Calendario Predeterminado de Notas</string>
@@ -145,7 +145,7 @@
 <string name="NotesPrompt">Notas:</string>
 <string name="AlarmsPrompt">Alarmas:</string>
 <string name="RepeatsPrompt">Repeticiones:</string>
-<string name="AllDayPrompt">Cita de todo un día</string>
+<string name="AllDayPrompt">Cita de todo un día:</string>
 <string name="FromPrompt">Desde:</string>
 <string name="TodoFromPrompt">Empieza el:</string>
 <string name="UntilPrompt">Hasta:</string>
@@ -165,10 +165,10 @@
 <string name="EveryWeek">Cada semana</string>
 <string name="EveryMonth">Cada mes</string>
 <string name="EveryYear">Cada año</string>
-<string name="EveryNDays">Cada N días</string>
-<string name="EveryNWeeks">Cada N semanas</string>
-<string name="EveryNMonths">Cada N meses</string>
-<string name="EveryNYears">Cada N años</string>
+<string name="EveryNDays">Cada %s días</string>
+<string name="EveryNWeeks">Cada %s semanas</string>
+<string name="EveryNMonths">Cada %s meses</string>
+<string name="EveryNYears">Cada %s años</string>
 <string name="EveryMonday">Cada lunes</string>
 <string name="EveryTuesday">Cada martes</string>
 <string name="EveryWednesday">Cada miércoles</string>
@@ -183,7 +183,7 @@
 <string name="ModifiedAllInstances">Modificadas todas las instancias de esta cita.</string>
 <string name="ModifiedOneInstance">Modificada una instancia de esta cita.</string>
 <string name="ModifiedThisAndFuture">Modificada ésta y todas las instancias futuras de esta cita.</string>
-<string name="ErrorSavingEvent">Error guardando cita - porfavor prueba de nuevo.</string>
+<string name="ErrorSavingEvent">Error guardando cita - por favor prueba de nuevo.</string>
 <string name="NewEventTitle">Nueva cita</string>
 <string name="ChooseACollection">Elige una colección</string>
 <string name="ChooseAlarmTime">Elige la hora de la alarma</string>
@@ -192,8 +192,8 @@
 <string name="Add_Alarm">Añadir alarma</string>
 <string name="errorMustHaveActiveCalendar">No se puede editar la cita sin un calendario activo.</string>
 <string name="errorSavingServerConfig">Error guardando configuración de servidor</string>
-<string name="errorSavingFile">Error guardando fichero.</string>
-<string name="ServerDataSaved">Datos del servidor guardados. Nombre del fichero:</string>
+<string name="errorSavingFile">Error guardando archivo.</string>
+<string name="ServerDataSaved">Datos del servidor guardados. Nombre del archivo:</string>
 <string name="NewManualServerConfiguration">Configuración manual</string>
 <string name="ManualServerConfigurationBlurb">Introducir manualmente la configuración del servidor</string>
 <string name="SavedServerConfigurationBlurb">Una configuración de servidor guardada</string>
@@ -227,7 +227,7 @@
 <string name="checkServer">Validando servidor</string>
 <string name="checkServer_Connecting">Conectando a servidor, por favor espere...</string>
 <string name="checkServer_Internet">Comprobando conexión a internet</string>
-<string name="checkServer_SearchingForServer">Buscando servidor CalDAV en \\&quot;%s\\&quot;</string>
+<string name="checkServer_SearchingForServer">Buscando servidor CalDAV en &quot;%s&quot;</string>
 <string name="checkServer_DiscoveryCancelled">Se ha cancelado la búsqueda de servidor</string>
 <string name="serverRecordAlreadyExists">Ya existe un servidor para ese protocolo, puerto, host, ruta &amp; usuario</string>
 <string name="newEventFromThis">Copiar a nueva cita</string>
@@ -247,7 +247,7 @@
 <string name="Due">Vence</string>
 <string name="All">Todo</string>
 <string name="Todo">Pendiente</string>
-<string name="Events">Eventos</string>
+<string name="Events">Citas</string>
 <string name="Tasks">Tareas</string>
 <string name="Journals">Notas</string>
 <string name="Unscheduled">Sin programar</string>
@@ -267,7 +267,7 @@
 <string name="username">Usuario:</string>
 <string name="password">Contraseña:</string>
 <string name="setRepeatRule">Establecer Regla de Repetición</string>
-<string name="eventName">Nombre del Evento</string>
+<string name="eventName">Nombre de la Cita</string>
 <string name="todoName">Nombre de Pendientes:</string>
 <string name="IsADate">Es una fecha</string>
 <string name="NotSet">No Establecido</string>
@@ -290,8 +290,8 @@
 <string name="endsAt">Finaliza el %s</string>
 <string name="Finished">Finalizado</string>
 <string name="days">Días</string>
-<string name="noScheduledEvents">No hay eventos programados</string>
-<string name="Event">Evento</string>
+<string name="noScheduledEvents">No hay citas programadas</string>
+<string name="Event">Cita</string>
 <string name="Task">Tarea</string>
 <string name="weekends">fines de semana</string>
 <string name="weekdays">días entre semana</string>
@@ -317,8 +317,38 @@
 <string name="prefIgnoreValarmDescription_PrefTitle">Ignorar Descripción VALARM</string>
 <string name="prefIgnoreValarmDescription_OnSummary">Usar el resumen VEVENT/VTODO en alarmas</string>
 <string name="prefIgnoreValarmDescription_OffSummary">Usar la descripción VALARM en alarmas</string>
+<string name="note_title_hint">Poner un título a la nota</string>
+<string name="note_text_hint">Introducir texto de la nota aquí</string>
+<string name="event_name_hint">Introducir un nombre para la cita</string>
+<string name="event_location_hint">La localización de la cita</string>
+<string name="event_notes_hint">Descripción detallada de la cita</string>
+<string name="todo_name_hint">Introducir un nombre para la tarea</string>
+<string name="todo_description_hint">Introducir una descripción para la tarea</string>
+<string name="todo_location_hint">Introducir una localización para la tarea</string>
+<string name="first_name_hint">Nombre</string>
+<string name="surname_hint">Apellido</string>
+<string name="phone_prompt">Teléfono</string>
+<string name="phone_hint">Teléfono</string>
+<string name="email_prompt">Correo electrónico</string>
+<string name="email_hint">Correo electrónico</string>
+<string name="postal_address_prompt">Dirección postal</string>
+<string name="street_hint">Calle</string>
+<string name="city_hint">Ciudad</string>
+<string name="country_hint">País</string>
+<string name="postcode_hint">Código postal</string>
+<string name="organisation_prompt">Organización</string>
+<string name="company_hint">Empresa</string>
+<string name="job_title_hint">Título</string>
+<string name="contact_picture_description">Imagen del Contacto</string>
 <string name="icon_add_description">Añadir</string>
 <string name="icon_delete_description">Borrar</string>
+<string name="Home">Casa</string>
+<string name="Work">Trabajo</string>
+<string name="Mobile">Móvil</string>
+<string name="Other">Otro</string>
+<string name="WorkFax">Fax del trabajo</string>
+<string name="HomeFax">Fax de casa</string>
+<string name="Pager">Paginador</string>
 	<string-array name="phone_types">
 		<item>@string/Home</item>
 		<item>@string/Mobile</item>
@@ -335,4 +365,8 @@
 		<item>@string/Other</item>
 		<item>@string/Custom</item>
 	</string-array>
+<string name="newJournalFromThis">Copiar a Nota Nueva</string>
+<string name="ErrorDeletingJournal">Error borrando los datos de la nota - por favor inténtalo de nuevo.</string>
+<string name="ErrorDeletingTask">Error borrando los datos de la tarea - por favor inténtalo de nuevo.</string>
+<string name="ErrorCompletingTask">Error estableciendo la tarea como completada - por favor inténtalo de nuevo.</string>
 </resources>

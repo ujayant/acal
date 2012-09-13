@@ -12,14 +12,14 @@ msgstr ""
 "Project-Id-Version: aCal\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2012-08-19 17:18+1200\n"
-"PO-Revision-Date: 2012-08-19 05:21+0000\n"
-"Last-Translator: Andrew McMillan <andrew@mcmillan.net.nz>\n"
+"PO-Revision-Date: 2012-08-26 16:54+0000\n"
+"Last-Translator: larjona <larjona99@gmail.com>\n"
 "Language-Team: Spanish (Spain) (http://www.transifex.com/projects/p/acal/language/es_ES/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Language: es_ES\n"
-"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 # SourceFileStart:../res/values/strings.xml
 # Strings that should not be localised belong in unlocalisable_strings.xml
@@ -69,7 +69,7 @@ msgid "Server_URL"
 msgstr "URL del Servidor:"
 
 msgid "Enter_a_brief_summary_of_the_event"
-msgstr "Introduce un breve resumen del evento"
+msgstr "Introduce un breve resumen de la cita"
 
 msgid "Name"
 msgstr "Nombre"
@@ -99,7 +99,7 @@ msgid "Colour"
 msgstr "Color"
 
 msgid "Default_timezone"
-msgstr "Zona horaria por defecto"
+msgstr "Zona horaria predeterminada"
 
 msgid "DefaultAlarmTone"
 msgstr "Tono de alarma predeterminado"
@@ -394,10 +394,10 @@ msgid "Snooze_PrefSummary"
 msgstr "Los minutos de espera de la alarma al pulsar el botón de dormir"
 
 msgid "prefDefaultEventsCollection_Title"
-msgstr "Calendario Predeterminado de Eventos "
+msgstr "Calendario Predeterminado de Citas "
 
 msgid "prefDefaultEventsCollection_Summary"
-msgstr "La colección predeterminada para nuevos eventos"
+msgstr "La colección predeterminada para nuevas citas"
 
 msgid "prefDefaultTasksCollection_Title"
 msgstr "Calendario Predeterminado de Tareas"
@@ -496,7 +496,7 @@ msgid "RepeatsPrompt"
 msgstr "Repeticiones:"
 
 msgid "AllDayPrompt"
-msgstr "Cita de todo un día"
+msgstr "Cita de todo un día:"
 
 msgid "FromPrompt"
 msgstr "Desde:"
@@ -562,16 +562,16 @@ msgid "EveryYear"
 msgstr "Cada año"
 
 msgid "EveryNDays"
-msgstr "Cada N días"
+msgstr "Cada %s días"
 
 msgid "EveryNWeeks"
-msgstr "Cada N semanas"
+msgstr "Cada %s semanas"
 
 msgid "EveryNMonths"
-msgstr "Cada N meses"
+msgstr "Cada %s meses"
 
 msgid "EveryNYears"
-msgstr "Cada N años"
+msgstr "Cada %s años"
 
 msgid "EveryMonday"
 msgstr "Cada lunes"
@@ -616,7 +616,7 @@ msgid "ModifiedThisAndFuture"
 msgstr "Modificada ésta y todas las instancias futuras de esta cita."
 
 msgid "ErrorSavingEvent"
-msgstr "Error guardando cita - porfavor prueba de nuevo."
+msgstr "Error guardando cita - por favor prueba de nuevo."
 
 msgid "NewEventTitle"
 msgstr "Nueva cita"
@@ -643,10 +643,10 @@ msgid "errorSavingServerConfig"
 msgstr "Error guardando configuración de servidor"
 
 msgid "errorSavingFile"
-msgstr "Error guardando fichero."
+msgstr "Error guardando archivo."
 
 msgid "ServerDataSaved"
-msgstr "Datos del servidor guardados. Nombre del fichero:"
+msgstr "Datos del servidor guardados. Nombre del archivo:"
 
 msgid "NewManualServerConfiguration"
 msgstr "Configuración manual"
@@ -748,7 +748,7 @@ msgid "checkServer_Internet"
 msgstr "Comprobando conexión a internet"
 
 msgid "checkServer_SearchingForServer"
-msgstr "Buscando servidor CalDAV en \"%s\""
+msgstr "Buscando servidor CalDAV en &quot;%s&quot;"
 
 msgid "checkServer_DiscoveryCancelled"
 msgstr "Se ha cancelado la búsqueda de servidor"
@@ -808,7 +808,7 @@ msgid "Todo"
 msgstr "Pendiente"
 
 msgid "Events"
-msgstr "Eventos"
+msgstr "Citas"
 
 msgid "Tasks"
 msgstr "Tareas"
@@ -868,7 +868,7 @@ msgid "setRepeatRule"
 msgstr "Establecer Regla de Repetición"
 
 msgid "eventName"
-msgstr "Nombre del Evento"
+msgstr "Nombre de la Cita"
 
 msgid "plus"
 msgstr "+"
@@ -943,10 +943,10 @@ msgid "days"
 msgstr "Días"
 
 msgid "noScheduledEvents"
-msgstr "No hay eventos programados"
+msgstr "No hay citas programadas"
 
 msgid "Event"
-msgstr "Evento"
+msgstr "Cita"
 
 msgid "Task"
 msgstr "Tarea"
@@ -1024,73 +1024,73 @@ msgid "prefIgnoreValarmDescription_OffSummary"
 msgstr "Usar la descripción VALARM en alarmas"
 
 msgid "note_title_hint"
-msgstr ""
+msgstr "Poner un título a la nota"
 
 msgid "note_text_hint"
-msgstr ""
+msgstr "Introducir texto de la nota aquí"
 
 msgid "event_name_hint"
-msgstr ""
+msgstr "Introducir un nombre para la cita"
 
 msgid "event_location_hint"
-msgstr ""
+msgstr "La localización de la cita"
 
 msgid "event_notes_hint"
-msgstr ""
+msgstr "Descripción detallada de la cita"
 
 msgid "todo_name_hint"
-msgstr ""
+msgstr "Introducir un nombre para la tarea"
 
 msgid "todo_description_hint"
-msgstr ""
+msgstr "Introducir una descripción para la tarea"
 
 msgid "todo_location_hint"
-msgstr ""
+msgstr "Introducir una localización para la tarea"
 
 msgid "first_name_hint"
-msgstr ""
+msgstr "Nombre"
 
 msgid "surname_hint"
-msgstr ""
+msgstr "Apellido"
 
 msgid "phone_prompt"
-msgstr ""
+msgstr "Teléfono"
 
 msgid "phone_hint"
-msgstr ""
+msgstr "Teléfono"
 
 msgid "email_prompt"
-msgstr ""
+msgstr "Correo electrónico"
 
 msgid "email_hint"
-msgstr ""
+msgstr "Correo electrónico"
 
 msgid "postal_address_prompt"
-msgstr ""
+msgstr "Dirección postal"
 
 msgid "street_hint"
-msgstr ""
+msgstr "Calle"
 
 msgid "city_hint"
-msgstr ""
+msgstr "Ciudad"
 
 msgid "country_hint"
-msgstr ""
+msgstr "País"
 
 msgid "postcode_hint"
-msgstr ""
+msgstr "Código postal"
 
 msgid "organisation_prompt"
-msgstr ""
+msgstr "Organización"
 
 msgid "company_hint"
-msgstr ""
+msgstr "Empresa"
 
 msgid "job_title_hint"
-msgstr ""
+msgstr "Título"
 
 msgid "contact_picture_description"
-msgstr ""
+msgstr "Imagen del Contacto"
 
 msgid "icon_add_description"
 msgstr "Añadir"
@@ -1099,37 +1099,37 @@ msgid "icon_delete_description"
 msgstr "Borrar"
 
 msgid "Home"
-msgstr ""
+msgstr "Casa"
 
 msgid "Work"
-msgstr ""
+msgstr "Trabajo"
 
 msgid "Mobile"
-msgstr ""
+msgstr "Móvil"
 
 msgid "Other"
-msgstr ""
+msgstr "Otro"
 
 msgid "WorkFax"
-msgstr ""
+msgstr "Fax del trabajo"
 
 msgid "HomeFax"
-msgstr ""
+msgstr "Fax de casa"
 
 msgid "Pager"
-msgstr ""
+msgstr "Paginador"
 
 msgid "newJournalFromThis"
-msgstr ""
+msgstr "Copiar a Nota Nueva"
 
 msgid "ErrorDeletingJournal"
-msgstr ""
+msgstr "Error borrando los datos de la nota - por favor inténtalo de nuevo."
 
 msgid "ErrorDeletingTask"
-msgstr ""
+msgstr "Error borrando los datos de la tarea - por favor inténtalo de nuevo."
 
 msgid "ErrorCompletingTask"
-msgstr ""
+msgstr "Error estableciendo la tarea como completada - por favor inténtalo de nuevo."
 
 # SourceFileEnd:../res/values/strings.xml
 # SourceFileStart:../res/values/timezonenames.xml
