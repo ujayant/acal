@@ -114,6 +114,10 @@ public class AcalDateRange implements Parcelable, Cloneable {
 		else if ( otherStart == null ) {
 			answer = otherEnd.after(start);
 		}
+		else if ( otherEnd.equals(start) || otherStart.equals(end) ) {
+			// end -to- start abutted events do not overlap
+			return false;
+		}
 		else {
 			answer = ( !otherEnd.before(start) && !otherStart.after(end) );
 		}
