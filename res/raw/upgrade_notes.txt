@@ -87,3 +87,8 @@ v58=1.58
 Fix several force close issues.
 Start custom alarm at 5 minutes rather than 0 minutes, which is already covered.
 Pulled updated translations from Transifex.
+v59=1.59
+Fix some more obscure issues with invalid events.
+Properly handle deletion of related records on collection deletion.
+Fixed display of end-to-start events in Week View.
+Updated translations for Spanish & Italian.
