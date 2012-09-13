@@ -242,7 +242,7 @@ public abstract class DatabaseTableManager {
 		ArrayList<ContentValues> result = new ArrayList<ContentValues>();
 		int count = 0;
 		if (Constants.debugDatabaseManager && Constants.LOG_DEBUG) Log.println(Constants.LOGD,TAG,"DB: "+this.getTableName()+" query:");
-		if (Constants.debugDatabaseManager && Constants.LOG_VERBOSE) printStackTraceInfo(Log.VERBOSE);
+		if (Constants.debugDatabaseManager && Constants.LOG_VERBOSE) printStackTraceInfo(Constants.LOGV);
 	
 		boolean openedInternally = doWeNeedADatabase(OPEN_READ);
 
