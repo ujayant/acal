@@ -216,7 +216,6 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 		leftOut = AnimationUtils.loadAnimation(this, R.anim.push_left_out);
 		rightIn = AnimationUtils.loadAnimation(this, R.anim.push_right_in);
 		rightOut = AnimationUtils.loadAnimation(this, R.anim.push_right_out);
-		
 	}
 
 	/**
@@ -481,10 +480,7 @@ public class MonthView extends AcalActivity implements OnGestureListener,
 	 * </p>
 	 */
 	private void startSettings() {
-		Intent settingsIntent = new Intent();
-		settingsIntent.setClassName("com.morphoss.acal",
-				"com.morphoss.acal.activity.Settings");
-		this.startActivity(settingsIntent);
+		this.startActivity(new Intent(this, Settings.class));
 	}
 
 
