@@ -92,3 +92,7 @@ Fix some more obscure issues with invalid events.
 Properly handle deletion of related records on collection deletion.
 Fixed display of end-to-start events in Week View.
 Updated translations for Spanish & Italian.
+v60=1.60
+Fix two Null Pointer Exceptions in handling certain events with no end date, including one force close.
+Tweaked layout for event title in event edit. 
+Add translations in Japanese and Russian.
