@@ -31,11 +31,12 @@
 				<EditText
 					android:id="@+id/EventName"
 					android:layout_width="fill_parent"
-					android:layout_height="wrap_content"
+					android:layout_height="48sp"
+					android:layout_margin="0dp"
 					android:hint="@string/event_name_hint"
 					android:inputType="textCapSentences|textAutoCorrect|textEmailSubject"
-					android:paddingBottom="10sp"
-					android:paddingLeft="3sp"
+					android:paddingLeft="2dp"
+					android:singleLine="true"
 					android:textSize="26sp" />
 				<!-- Outer Layout for from/to -->
 				<RelativeLayout

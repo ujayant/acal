@@ -393,7 +393,7 @@ public class EventEdit extends AcalActivity implements  OnClickListener, OnCheck
 					this.event = new EVENT_BUILDER()
 							.setStart(start)
 							.setDuration(eventDuration)
-							.setSummary(getString(R.string.NewEventTitle))
+							.setSummary("")
 							.setCollection(collectionId)
 							.addAlarm(defaultAlarm)
 							.build();
