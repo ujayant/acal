@@ -152,12 +152,11 @@ public class AcalDateTimeFormatter {
 				if (start.before(viewDateStart))
 					startFormatter = new SimpleDateFormat("MMM d, "
 							+ timeFormatString);
-				if (end.after(viewDateEnd))
+				if (end != null && end.after(viewDateEnd))
 					finishFormatter = new SimpleDateFormat("MMM d, "
 							+ timeFormatString);
 
-				timeText = startFormatter.format(st) + " - "
-						+ finishFormatter.format(en);
+				timeText = startFormatter.format(st) + (end == null ? "" : " - " + finishFormatter.format(en));
 			}
 		} else if (isAllDay) {
 			timeText = c.getString(R.string.ForTheWholeDay);
