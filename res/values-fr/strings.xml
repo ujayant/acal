@@ -224,9 +224,7 @@
 <string name="saveSettingsAnyway">Souhaitez-vous quand même enregistrer ces paramètres ?</string>
 <string name="serverValidationSuccess">Validation du Serveur réussi.</string>
 <string name="authenticationFailed">Impossible de s\'authentifier auprès du serveur.</string>
-<string name="WeekViewPreferences">Paramêtres de la vue hebdomadaire</string>
-<string name="AlarmPreferences">Europe/Moscou</string>
-<string name="GeneralPreferences">Europe/Paris</string>
+<string name="WeekViewPreferences">Paramètres de la vue hebdomadaire</string>
 <string name="checkServer">Validation du serveur</string>
 <string name="checkServer_Connecting">Connexion au serveur. Merci de patienter...</string>
 <string name="checkServer_Internet">Vérification de la connexion internet</string>

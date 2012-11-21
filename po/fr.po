@@ -733,13 +733,7 @@ msgid "authenticationFailed"
 msgstr "Impossible de s'authentifier auprès du serveur."
 
 msgid "WeekViewPreferences"
-msgstr "Paramêtres de la vue hebdomadaire"
-
-msgid "AlarmPreferences"
-msgstr "Europe/Moscou"
-
-msgid "GeneralPreferences"
-msgstr "Europe/Paris"
+msgstr "Paramètres de la vue hebdomadaire"
 
 msgid "checkServer"
 msgstr "Validation du serveur"
