@@ -352,7 +352,10 @@ public class CheckServerDialog {
 			);
 		builder.setPositiveButton(context.getString(android.R.string.yes), dialogClickListener);
 		builder.setNegativeButton(context.getString(android.R.string.no), dialogClickListener);
-		builder.show();
+		try {
+			builder.show();
+		}
+		catch( Exception e ) {}
 	}
 
 	private void showSuccessDialog(String msg) {
