@@ -99,6 +99,18 @@ public class Servers extends ContentProvider {
 	public static final int			AUTH_BASIC		= 1;
 	public static final int			AUTH_DIGEST		= 2;
 	
+    /*
+     * (non-Javadoc)
+     * @see android.content.ContentProvider#onCreate()
+     */
+    @Override
+    public boolean onCreate() {
+        Context context = getContext();
+        AcalDBHelper dbHelper = new AcalDBHelper(context);
+        AcalDB = dbHelper.getWritableDatabase();
+        return (AcalDB == null)?false:true;
+    }
+
 	/*
 	 * 	(non-Javadoc)
 	 * @see android.content.ContentProvider#delete(android.net.Uri, java.lang.String, java.lang.String[])
@@ -163,18 +175,6 @@ public class Servers extends ContentProvider {
 			return _uri;                
 		}        
 		throw new SQLException("Failed to insert row into " + uri);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see android.content.ContentProvider#onCreate()
-	 */
-	@Override
-	public boolean onCreate() {
-		Context context = getContext();
-		AcalDBHelper dbHelper = new AcalDBHelper(context);
-		AcalDB = dbHelper.getWritableDatabase();
-		return (AcalDB == null)?false:true;
 	}
 
 	/*

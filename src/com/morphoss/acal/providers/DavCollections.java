@@ -140,6 +140,19 @@ CREATE TABLE dav_collection (
 	public static final String IS_VISIBLE="is_visible";
 	public static final String SYNC_METADATA="sync_metadata";
 
+    /*
+     * (non-Javadoc)
+     * @see android.content.ContentProvider#onCreate()
+     */
+    @Override
+    public boolean onCreate() {
+        Context context = getContext();
+        AcalDBHelper dbHelper = new AcalDBHelper(context);
+        AcalDB = dbHelper.getWritableDatabase();
+        return (AcalDB == null)?false:true;
+    }
+
+    
 	/*
 	 * 	(non-Javadoc)
 	 * @see android.content.ContentProvider#delete(android.net.Uri, java.lang.String, java.lang.String[])
@@ -210,17 +223,17 @@ CREATE TABLE dav_collection (
 	@Override
 	public String getType(Uri uri) {
 		// TODO Auto-generated method stub
-		switch (uriMatcher.match(uri)) {
-		//Get all Servers
-		case ALL_COLLECTIONS:
-		case BY_SERVER_ID:
-			return "vnd.android.cursor.dir/vnd.morphoss.collection";
-		case BY_COLLECTION_ID:
-		case BY_PATH_AND_SERVER_ID:
-			return "vnd.android.cursor.item/vnd.morphoss.collection";
-		default:
-			throw new IllegalArgumentException("Unsupported URI: "+uri);
-		}
+        switch ( uriMatcher.match(uri) ) {
+        // Get all Servers
+            case ALL_COLLECTIONS:
+            case BY_SERVER_ID:
+                return "vnd.android.cursor.dir/vnd.morphoss.collection";
+            case BY_COLLECTION_ID:
+            case BY_PATH_AND_SERVER_ID:
+                return "vnd.android.cursor.item/vnd.morphoss.collection";
+            default:
+                throw new IllegalArgumentException("Unsupported URI: " + uri);
+        }
 
 	}
 
@@ -250,19 +263,6 @@ CREATE TABLE dav_collection (
 
 	/*
 	 * (non-Javadoc)
-	 * @see android.content.ContentProvider#onCreate()
-	 */
-	@Override
-	public boolean onCreate() {
-		Context context = getContext();
-		AcalDBHelper dbHelper = new AcalDBHelper(context);
-		AcalDB = dbHelper.getWritableDatabase();
-		return (AcalDB == null)?false:true;
-	}
-
-	
-	/*
-	 * (non-Javadoc)
 	 * @see android.content.ContentProvider#query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String)
 	 */
 	@Override
@@ -286,14 +286,7 @@ CREATE TABLE dav_collection (
 		if (sortOrder==null || sortOrder.equals("") )
 			sortOrder = _ID;
 
-		Cursor c = sqlBuilder.query(
-				AcalDB, 
-				projection, 
-				selection, 
-				selectionArgs, 
-				null, 
-				null, 
-				sortOrder);
+		Cursor c = sqlBuilder.query( AcalDB, projection, selection, selectionArgs, null,  null, sortOrder);
 
 		//---register to watch a content URI for changes---
 		c.setNotificationUri(getContext().getContentResolver(), uri);
@@ -310,42 +303,28 @@ CREATE TABLE dav_collection (
 	
 		switch (uriMatcher.match(uri)){
 		case ALL_COLLECTIONS:
-			count = AcalDB.update(
-					DATABASE_TABLE, 
-					values,
-					selection, 
-					selectionArgs);
+			count = AcalDB.update( DATABASE_TABLE, values, selection, selectionArgs);
 			break;
 		case BY_COLLECTION_ID:                
-			count = AcalDB.update(
-					DATABASE_TABLE, 
-					values,
+			count = AcalDB.update( DATABASE_TABLE, values,
 					_ID + " = " + uri.getPathSegments().get(0) + 
-					(!TextUtils.isEmpty(selection) ? " AND (" + 
-							selection + ')' : ""), 
-							selectionArgs);
+					        (!TextUtils.isEmpty(selection) ? " AND (" + selection + ')' : ""), 
+					selectionArgs);
 			break;
 		case BY_SERVER_ID:                
-			count = AcalDB.update(
-					DATABASE_TABLE, 
-					values,
+			count = AcalDB.update( DATABASE_TABLE, values,
 					SERVER_ID + " = " + uri.getPathSegments().get(1) + 
-					(!TextUtils.isEmpty(selection) ? " AND (" + 
-							selection + ')' : ""), 
-							selectionArgs);
+					        (!TextUtils.isEmpty(selection) ? " AND (" + selection + ')' : ""), 
+					selectionArgs);
 			break;
 		case BY_PATH_AND_SERVER_ID:                
-			count = AcalDB.update(
-					DATABASE_TABLE, 
-					values,
+			count = AcalDB.update( DATABASE_TABLE, values,
 					SERVER_ID + " = " + uri.getPathSegments().get(1) + 
-					COLLECTION_PATH + " = " + uri.getPathSegments().get(3) +
-					(!TextUtils.isEmpty(selection) ? " AND (" + 
-							selection + ')' : ""), 
-							selectionArgs);
+        					COLLECTION_PATH + " = " + uri.getPathSegments().get(3) +
+        					(!TextUtils.isEmpty(selection) ? " AND (" + selection + ')' : ""), 
+					selectionArgs);
 			break;
-		default: throw new IllegalArgumentException(
-				"Unknown URI " + uri);    
+	    default: throw new IllegalArgumentException( "Unknown URI " + uri);    
 		}       
 		getContext().getContentResolver().notifyChange(uri, null);
 		return count;

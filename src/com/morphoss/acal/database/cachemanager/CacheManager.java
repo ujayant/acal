@@ -138,7 +138,7 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 	
 	/**
 	 * CacheManager needs a context to manage the DB. Should run under AcalService.
-	 * Loadstate ensures that our DB is consistant and should be run before any resource
+	 * Loadstate ensures that our DB is consistent and should be run before any resource
 	 * modifications can be made by any other part of the system.
 	 */
 	private CacheManager(Context context) {
