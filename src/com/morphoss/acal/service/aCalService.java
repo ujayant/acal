@@ -116,7 +116,12 @@ public class aCalService extends IntentService {
 	// The actual start command, regardless of whether we're running under
 	// 1.x or 2.x
 	private void handleCommand( Intent inRequest ) {
-		if ( inRequest == null ) return;
+
+        // Always schedule a service Restart in two hours time.  This will only
+        // happen if we don't get called before that time and defer it further.
+        scheduleServiceRestart(7200);
+
+        if ( inRequest == null ) return;
 		if ( inRequest.hasExtra("UISTARTED") ) {
 			// The UI is currently starting, so we might schedule some stuff
 			// to happen soon.
@@ -155,17 +160,17 @@ public class aCalService extends IntentService {
 	
 
 
-	private synchronized void scheduleServiceRestart() {
-		long restartTime = System.currentTimeMillis() + 60000;
+	private synchronized void scheduleServiceRestart(long secsInFuture) {
+		long restartTime = System.currentTimeMillis() + (secsInFuture * 1000);
 		 
 		Intent serviceIntent = new Intent(this, aCalService.class);
 		serviceIntent.putExtra("RESTARTED", System.currentTimeMillis());
 
 		PendingIntent ourFutureSelf = PendingIntent.getService(getApplicationContext(), 0, serviceIntent, 0);
 		AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        alarmManager.cancel(ourFutureSelf);
 		alarmManager.set(AlarmManager.RTC_WAKEUP, restartTime, ourFutureSelf);
-		Log.e(TAG, "Scheduling aCalService restart in 60 seconds.");
-		this.stopSelf();
+		Log.i(TAG, "Scheduling aCalService restart in "+secsInFuture+" seconds.");
 	}
 
 	
@@ -177,7 +182,8 @@ public class aCalService extends IntentService {
 	public void addWorkerJob(ServiceJob s) {
 		Runtime r = Runtime.getRuntime();
 		if ( ((r.totalMemory() * 100) / r.maxMemory()) > 115 ) {
-			scheduleServiceRestart();
+			scheduleServiceRestart(30);
+	        this.stopSelf();
 		}
 		else {
 			if ( worker == null ) startService();
