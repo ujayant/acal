@@ -329,7 +329,9 @@ public class Timezones extends ContentProvider {
 			}
 		}
 		finally {
-			c.close();
+	        if ( c != null && !c.isClosed() ) {
+	            c.close();
+	        }
 		}
 		return existingAliases;
 	}
@@ -348,7 +350,9 @@ public class Timezones extends ContentProvider {
 			}
 		}
 		finally {
-			c.close();
+	        if ( c != null && !c.isClosed() ) {
+	            c.close();
+	        }
 		}
 		return existingNames;
 	}
@@ -359,6 +363,9 @@ public class Timezones extends ContentProvider {
 				null, null, null, null, null);
 		for( c.moveToFirst(); c.isAfterLast(); c.moveToNext() )
 			deleteAliases.add(c.getString(0));
+        if ( c != null && !c.isClosed() ) {
+            c.close();
+        }
 
 		for( Object alias : aliases ) {
 			if ( alias instanceof String ) {
@@ -386,6 +393,9 @@ public class Timezones extends ContentProvider {
 				null, null, null, null, null);
 		for( c.moveToFirst(); c.isAfterLast(); c.moveToNext() )
 			deleteLocales.add(c.getString(0));
+        if ( c != null && !c.isClosed() ) {
+            c.close();
+        }
 
 		for( Entry<?,?> alias : names.entrySet() ) {
 			String key = (String) alias.getKey();
@@ -469,6 +479,9 @@ public class Timezones extends ContentProvider {
 					updateAliasSet(tzid, aliases, aliasValues);
 					nameValues.put(TZID, tzid);
 					updateNameSet(tzid, names, nameValues);
+				}
+				if ( updatedRows != null && !updatedRows.isClosed() ) {
+				    updatedRows.close();
 				}
 			}
 			else if ( aliases != null || names != null ) {
