@@ -114,7 +114,7 @@ public class TestPort {
 			if ( Constants.debugCheckServerDialog ) Log.println(Constants.LOGD,TAG, "Checking port open "+requestor.protocolHostPort());
 			this.isOpen = false;
 			try {
-				requestor.doRequest("HEAD", null, null, null);
+				requestor.doRequest("OPTIONS", null, null, null);
 				if ( Constants.debugCheckServerDialog ) Log.println(Constants.LOGD,TAG, "Probe "+requestor.fullUrl()+" success: status " + requestor.getStatusCode());
 
 				// No exception, so it worked!
@@ -122,6 +122,12 @@ public class TestPort {
 				if ( requestor.getStatusCode() == 401 ) {
 					this.authOK = false;
 					setAchievement(AUTH_FAILED);
+				}
+				// If we were redirected we should reset that. 
+				if ( requestor.wasRedirected() ) {
+		            requestor.setPath(path);
+		            requestor.setHostName(hostName);
+		            requestor.setPortProtocol( port, (useSSL?1:0) );
 				}
 				checkCalendarAccess(requestor.getResponseHeaders());
 
