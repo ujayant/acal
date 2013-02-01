@@ -23,6 +23,9 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.net.InetAddress;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
@@ -48,6 +51,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.params.HttpParams;
+import org.json.JSONObject;
 
 import android.content.ContentValues;
 import android.net.Uri;
@@ -883,53 +887,57 @@ public class AcalRequestor {
 			Log.println(Constants.LOGD,TAG, String.format("%s request on %s", method, fullUrl()) );
 		
 		InputStream result = null;
-		this.method = method;
 		interpretUriString(pathOrUrl);
-		try {
-			result = sendRequest( headers, entity );
-		}
-		catch (SSLHandshakeException e) 		{ throw e; }
-		catch (SSLException e) 					{ throw e; }
-		catch (SendRequestFailedException e)	{ throw e; }
-		catch (ConnectionFailedException e)		{ throw e; }
-		catch (AuthenticationFailure e1) 		{ statusCode = 401; }
-		catch (Exception e) {
-			Log.e(TAG,Log.getStackTraceString(e));
-		}
-
-		if ( statusCode == 401 ) {
-			// In this case we didn't send auth credentials the first time, so
-			// we need to try again after we interpret the auth request.
-			try {
-				interpretRequestedAuth(getAuthHeader());
-				return sendRequest( headers, entity );
-			}
-			catch (AuthenticationFailure e1) {
-				throw new SendRequestFailedException("Authentication Failed: "+e1.getMessage());
-			}
-			catch (Exception e) {
-				Log.e(TAG,Log.getStackTraceString(e));
-			}
-		}
-
-		if ( (statusCode >= 300 && statusCode <= 303) || statusCode == 307 ) {
-/**
- * Other than 301/302 these are all pretty unlikely
- *		300:  Multiple choices, but we take the one in the Location header anyway
- *		301:  Moved permanently
- *		302:  Found (was 'temporary redirect' once in prehistory)
- *		303:  See other
- *		307:  Temporary redirect. Meh.
- */
-			String oldUrl = fullUrl();
-			interpretUriString(getLocationHeader());
-			if (debugThisRequest)
-				Log.println(Constants.LOGD,TAG, method + " " +oldUrl+" redirected to: "+fullUrl());
-			if ( redirectCount++ < redirectLimit ) {
-				// Follow redirect
-				return doRequest( method, null, headers, entity ); 
-			}
-		}
+        this.method = method;
+        do {
+    		try {
+    			result = sendRequest( headers, entity );
+    		}
+    		catch (SSLHandshakeException e) 		{ throw e; }
+    		catch (SSLException e) 					{ throw e; }
+    		catch (SendRequestFailedException e)	{ throw e; }
+    		catch (ConnectionFailedException e)		{ throw e; }
+    		catch (AuthenticationFailure e1) 		{ statusCode = 401; }
+    		catch (Exception e) {
+    			Log.e(TAG,Log.getStackTraceString(e));
+    		}
+    
+    		if ( statusCode == 401 ) {
+    			// In this case we didn't send auth credentials the first time, so
+    			// we need to try again after we interpret the auth request.
+    			try {
+    				interpretRequestedAuth(getAuthHeader());
+    				return sendRequest( headers, entity );
+    			}
+    			catch (AuthenticationFailure e1) {
+    				throw new SendRequestFailedException("Authentication Failed: "+e1.getMessage());
+    			}
+    			catch (Exception e) {
+    				Log.e(TAG,Log.getStackTraceString(e));
+    			}
+    		}
+    
+    		if ( (statusCode >= 300 && statusCode <= 303) || statusCode == 307 ) {
+                /**
+                 * Other than 301/302 these are all pretty unlikely
+                 *		300:  Multiple choices, but we take the one in the Location header anyway
+                 *		301:  Moved permanently
+                 *		302:  Found (was 'temporary redirect' once in prehistory)
+                 *		303:  See other
+                 *		307:  Temporary redirect. Meh.
+                 */
+                if ( redirectCount++ < redirectLimit ) {
+        			String oldUrl = fullUrl();
+        			interpretUriString(getLocationHeader());
+        			if (debugThisRequest)
+        				Log.println(Constants.LOGD,TAG, method + " " +oldUrl+" redirected to: "+fullUrl());
+        			
+        			continue;
+                }
+    		}
+    		else
+    		    break;
+        } while ( redirectCount < redirectLimit );
 
 		return result;
 	}
@@ -1020,5 +1028,52 @@ public class AcalRequestor {
 
 		return protocol.equals(otherProtocol);
 	}
+
+    public JSONObject doJsonRequest(String method, String requestPath, Header[] headers, String xml) throws SSLHandshakeException {
+        InputStream responseStream = null;
+        try {
+            responseStream = doRequest(method, requestPath, headers, xml);
+            if ( statusCode == 404 || statusCode == 401 ) {
+                if ( Constants.LOG_DEBUG ) Log.e(TAG, "Status '"+statusCode+"' for "+fullUrl());
+                return new JSONObject();
+            }
+            try {
+                return new JSONObject(convertStreamToString(responseStream));
+            }
+            catch ( IllegalStateException e ) {
+                if ( Constants.LOG_DEBUG ) Log.e(TAG, "Error Sending Request: ", e);
+                return new JSONObject();
+            }
+            catch ( IOException e ) {
+                if ( Constants.LOG_DEBUG ) Log.e(TAG, "IOException in request to '"+fullUrl()+"'",e);
+                return new JSONObject();
+            }
+        }
+        catch (SSLHandshakeException e)         { throw e; }
+        catch (Exception e) {
+            Log.i(TAG, e.getMessage(), e);
+            return new JSONObject();
+        }
+        finally {
+            if ( responseStream != null )
+                try { responseStream.close(); } catch ( IOException e ) {}
+        }
+    }
+
+    public static String convertStreamToString(InputStream in) throws IOException {
+        Writer writer = new StringWriter();
+        char[] buffer = new char[1024];
+        Reader reader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
+        int n;
+        while ( (n = reader.read(buffer)) != -1 ) {
+            writer.write(buffer, 0, n);
+        }
+        in.close();
+        return writer.toString();
+    }
+
+    public boolean wasRedirected() {
+        return redirectCount > 0;
+    }
 	
 }

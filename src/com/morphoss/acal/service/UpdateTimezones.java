@@ -26,12 +26,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
 import android.util.Log;
 
+import com.morphoss.acal.AcalApplication;
 import com.morphoss.acal.Constants;
 import com.morphoss.acal.PrefNames;
 import com.morphoss.acal.R;
@@ -41,7 +46,6 @@ import com.morphoss.acal.davacal.VComponent;
 import com.morphoss.acal.providers.Timezones;
 import com.morphoss.acal.service.connector.AcalConnectionPool;
 import com.morphoss.acal.service.connector.AcalRequestor;
-import com.morphoss.acal.xml.DavNode;
 
 public class UpdateTimezones extends ServiceJob {
 	private static final String TAG = "aCal UpdateTimezones";
@@ -49,6 +53,8 @@ public class UpdateTimezones extends ServiceJob {
 	private ContentResolver cr;
 	private AcalRequestor requestor;
 	private String tzServerBaseUrl;
+	
+	private boolean deferMe = false;
 
 	/**
 	 * Constructor
@@ -65,7 +71,7 @@ public class UpdateTimezones extends ServiceJob {
 	public void run(aCalService context) {
 		this.context = context;
 		this.cr = context.getContentResolver();
-		tzServerBaseUrl = context.getPreferenceString(PrefNames.tzServerBaseUrl, context.getString(R.string.davicalOrgTzUrl) );
+		tzServerBaseUrl = context.getPreferenceString(PrefNames.tzServerBaseUrl, context.getString(R.string.bedeworkOrgTzUrl) );
 		this.requestor = new AcalRequestor();
 
 		if (Constants.LOG_DEBUG) Log.d(TAG, "Refreshing Timezone data from "+tzServerBaseUrl);
@@ -104,13 +110,20 @@ public class UpdateTimezones extends ServiceJob {
 			}
 
 			requestor.interpretUriString(tzUrl("list",null));
-			DavNode root = requestor.doXmlRequest("GET", null, null, null);
-			if ( requestor.getStatusCode() != 200 ) {
-				Log.println(Constants.LOGI, TAG, "Bad response from Timezone Server at " + tzUrl("list",null));
-				return;
+			JSONObject root = requestor.doJsonRequest("GET", null, null, null);
+			if ( requestor.wasRedirected() ) {
+			    Uri tzUri = Uri.parse(requestor.fullUrl());
+			    String redirectedUrl = tzUri.getScheme() + "://" + tzUri.getAuthority() + tzUri.getPath();
+                Log.println(Constants.LOGI, TAG, "Redirected to Timezone Server at " + redirectedUrl);
+                tzServerBaseUrl = redirectedUrl;
+                AcalApplication.setPreferenceString(PrefNames.tzServerBaseUrl, redirectedUrl);
+			}
+			if ( requestor.getStatusCode() >= 399 ) {
+				Log.println(Constants.LOGI, TAG, "Bad response "+requestor.getStatusCode()+
+				        " from Timezone Server at " + tzUrl("list",null));
 			}
 			if ( root == null ) {
-				Log.println(Constants.LOGI, TAG, "No XML from GET " + tzUrl("list",null));
+				Log.println(Constants.LOGI, TAG, "No JSON from GET " + tzUrl("list",null));
 				return;
 			}
 
@@ -122,12 +135,16 @@ public class UpdateTimezones extends ServiceJob {
 			StringBuilder aliases;
 			ContentValues zoneValues = new ContentValues();
 			
-			for( DavNode zoneNode : root.getNodesFromPath("timezone-list/summary") ) {
-				
-				tzid = zoneNode.getFirstNodeText("tzid");
+			String tzDateStamp = root.getString("dtstamp");
+			JSONArray tzArray = root.getJSONArray("timezones");
+			for( int i=0; i< tzArray.length(); i++ ) {
+				JSONObject zoneNode = tzArray.getJSONObject(i);
+				tzid = zoneNode.getString("tzid");
 				if ( updatedZones.containsKey(tzid) || insertedZones.containsKey(tzid) ) continue;
 
-				lastModified = AcalDateTime.fromString(zoneNode.getFirstNodeText("last-modified")).getEpoch();
+				Log.println(Constants.LOGI, TAG, "Working on "+tzid );
+
+				lastModified = AcalDateTime.fromString(zoneNode.getString("last-modified")).getEpoch();
 				if ( currentZones.containsKey(tzid) && currentZones.get(tzid) <= lastModified ) {
 					currentZones.remove(tzid);
 					continue;
@@ -136,21 +153,28 @@ public class UpdateTimezones extends ServiceJob {
 				tzData = getTimeZone(tzid);
 				if ( tzData == null ) continue;
 
-				List<DavNode> localisedNameNodes = zoneNode.getNodesFromPath("local-name");
-				localNames = new StringBuilder();
-				for( DavNode localNameNode : localisedNameNodes ) {
-					if ( localNames.length() > 0 ) localNames.append("\n");
-					localNames.append(localNameNode.getAttribute("lang"))
-							.append('~')
-							.append(localNameNode.getText());
-				}
+                localNames = new StringBuilder();
+                try {
+                    JSONArray nameNodes = zoneNode.getJSONArray("local_names");
+                    for( int j=0; j< nameNodes.length(); j++ ) {
+                        if ( localNames.length() > 0 ) localNames.append("\n");
+                        localNames
+                                .append(nameNodes.getJSONObject(j).getString("lang"))
+                                .append('~')
+                                .append(nameNodes.getJSONObject(j).getString("lname"));
+                    }
+                }
+                catch( JSONException je ) {}
 
-				List<DavNode> aliasNodes = zoneNode.getNodesFromPath("alias");
-				aliases = new StringBuilder();
-				for( DavNode aliasNode : aliasNodes ) {
-					if ( aliases.length() > 0 ) aliases.append("\n");
-					aliases.append(aliasNode.getText());
+                aliases = new StringBuilder();
+				try {
+    				JSONArray aliasNodes = zoneNode.getJSONArray("aliases");
+    				for( int j=0; j< aliasNodes.length(); j++ ) {
+    					if ( aliases.length() > 0 ) aliases.append("\n");
+    					aliases.append(aliasNodes.getString(j));
+    				}
 				}
+				catch( JSONException je ) {}
 
 				zoneValues.put(Timezones.TZID, tzid);
 				zoneValues.put(Timezones.ZONE_DATA, tzData);
@@ -173,9 +197,15 @@ public class UpdateTimezones extends ServiceJob {
 					insertedZones.put(tzid, currentZones.get(tzid));
 				}
 
+				if ( context.workWaiting() ) {
+		            Log.println(Constants.LOGI, TAG, "Something is waiting - deferring timezone sync until later." );
+				    deferMe = true;
+				    break;
+				}
 				// Let other stuff have a chance 
-				Thread.sleep(50);
+				Thread.sleep(350);
 			}
+			int removed = 0;
 			
 			if ( currentZones.size() > 0 ) {
 				StringBuilder s = new StringBuilder();
@@ -183,10 +213,10 @@ public class UpdateTimezones extends ServiceJob {
 					if ( s.length() > 0 ) s.append(',');
 					s.append("'").append(tz).append("'");
 				}
-				cr.delete(Timezones.CONTENT_URI, Timezones.TZID+" IN ("+s+")", null);
+				removed = cr.delete(Timezones.CONTENT_URI, Timezones.TZID+" IN ("+s+")", null);
 			}
 
-			Log.println(Constants.LOGI, TAG, "Updated data for "+updatedZones.size()+" zones, added data for "+insertedZones.size()+" new zones." );
+			Log.println(Constants.LOGI, TAG, "Updated data for "+updatedZones.size()+" zones, added data for "+insertedZones.size()+" new zones, removed data for "+removed );
 		}
 		catch( Exception e ) {
 			Log.e(TAG,Log.getStackTraceString(e));
@@ -231,7 +261,7 @@ public class UpdateTimezones extends ServiceJob {
 	}
 
 	private void scheduleNextUpdate() {
-		this.TIME_TO_EXECUTE = System.currentTimeMillis() + (86400000 * 7);
+		this.TIME_TO_EXECUTE = System.currentTimeMillis() + (deferMe ? 90000 : 86400000 * 7);
 //		this.TIME_TO_EXECUTE = System.currentTimeMillis() + 90000;
 		Log.println(Constants.LOGV,TAG,
 					"Scheduling next instance at " + AcalDateTime.fromMillis(this.TIME_TO_EXECUTE).fmtIcal() );

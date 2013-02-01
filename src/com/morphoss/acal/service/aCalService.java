@@ -191,6 +191,10 @@ public class aCalService extends IntentService {
 		}
 	}
 
+	public boolean workWaiting() {
+	    return worker.workWaiting();
+	}
+
 	public String getPreferenceString(String key, String defValue) {
     	if ( prefs == null ) 
     		prefs = PreferenceManager.getDefaultSharedPreferences(this);

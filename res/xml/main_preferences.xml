@@ -46,11 +46,11 @@
 			android:title="@string/firstDayOfWeek" >
 		</ListPreference>
 		<EditTextPreference
-			android:defaultValue="@string/davicalOrgTzUrl"
+			android:defaultValue="@string/bedeworkOrgTzUrl"
 			android:enabled="true"
 			android:key="@string/prefTzServerBaseUrl"
 			android:selectable="true"
-			android:summary="@string/davicalOrgTzUrl"
+			android:summary="@string/bedeworkOrgTzUrl"
 			android:title="@string/prefTzServerBaseUrl_Title" />
 	</PreferenceScreen>
 	<PreferenceScreen android:title="@string/AlarmPreferences" >

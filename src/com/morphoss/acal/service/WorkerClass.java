@@ -302,6 +302,17 @@ public class WorkerClass implements Runnable {
 
 	}
 
+	/**
+	 * Return whether there is a job in the queue which is currently waiting to execute. 
+	 * @return
+	 */
+	public boolean workWaiting() {  
+        synchronized( jobQueue ) {
+            if ( jobQueue.isEmpty() ) return false;
+            return ( 0 >= jobQueue.peek().TIME_TO_EXECUTE - System.currentTimeMillis() );
+        }
+	}
+
 	private class WakeUpTimer extends TimerTask {
 		public void run() {
 			runWorker.open();
