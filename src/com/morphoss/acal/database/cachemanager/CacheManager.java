@@ -838,9 +838,11 @@ public class CacheManager implements Runnable, ResourceChangedListener,  Resourc
 							queries.addAction(new DMDeleteQuery(CacheTableManager.FIELD_RESOURCE_ID+"="+r.getResourceId(), null));
 
 							// Then add all instances
-							for (CacheObject co : newData)
+							for (CacheObject co : newData) {
+							    if ( co.getCollectionId() < 1 ) throw new RuntimeException("Attempt to insert into cache with invalid collection ID");
 								queries.addAction(new DMQueryBuilder().setAction(QUERY_ACTION.INSERT)
 										.setValues(co.getCacheCVs()).build());
+							}
 						}
 
 					}
