@@ -96,3 +96,8 @@ v60=1.60
 Fix two Null Pointer Exceptions in handling certain events with no end date, including one force close.
 Tweaked layout for event title in event edit. 
 Add translations in Japanese and Russian.
+v61=1.61
+Change initial connection test to use OPTIONS rather than HEAD.  Yahoo redirects HEAD and then setup gets lost...
+Timezone loading now uses the JSON interface (not yet enabled by default though, as it is not properly used through the code).
+Log an exception when we attempt to store an event in cache with an invalid collection id.
+Default collection colour to something which cannot cause an exception.

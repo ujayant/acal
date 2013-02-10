@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
 	package="com.morphoss.acal"
-	android:versionCode="60"
-	android:versionName="1.60" >
+	android:versionCode="61"
+	android:versionName="1.61" >
 	<uses-sdk
 		android:minSdkVersion="4"
 		android:targetSdkVersion="10" />
@@ -42,9 +42,11 @@
 		android:smallScreens="true" />
 	<application
 		android:name="com.morphoss.acal.AcalApplication"
+		android:allowBackup="false"
 		android:description="@string/appDescription"
 		android:icon="@drawable/ic_launcher_events"
 		android:label="@string/appName"
+		android:largeHeap="true"
 		android:theme="@android:style/Theme.NoTitleBar" >
 		<activity
 			android:name="aCal"
