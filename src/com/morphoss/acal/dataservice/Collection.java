@@ -107,7 +107,7 @@ public class Collection {
 		try {
 			collectionColour = Color.parseColor(colourString);
 		} catch (IllegalArgumentException iae) {
-			collectionColour = Color.parseColor("#00f");	//Default blue
+			collectionColour = Color.BLUE;
 		}
 		return collectionColour;
 	}
