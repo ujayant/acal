@@ -44,7 +44,7 @@ public class HomeSetDiscovery extends ServiceJob {
 
 	final private static Header[] pHomeHeaders = new Header[] {
 			new BasicHeader("Depth","0"),
-			new BasicHeader("Content-Type","text/xml; encoding=UTF-8")
+			new BasicHeader("Content-Type","text/xml; charset=utf-8")
 	};
 
 	final private static String pHomeData = 

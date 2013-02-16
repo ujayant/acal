@@ -54,7 +54,7 @@ public class HomeSetsUpdate extends ServiceJob {
 
 	private final static Header[] pCalendarHeaders = new Header[] {
 		new BasicHeader("Depth","1"),
-		new BasicHeader("Content-Type","text/xml; encoding=UTF-8")
+		new BasicHeader("Content-Type","text/xml; charset=utf-8")
 	};
 
 	private final static String pCalendarRequest =

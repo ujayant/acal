@@ -160,7 +160,7 @@ public class SynchronisationJobs extends ServiceJob {
 	 */
 	public static Header[] getReportHeaders( int depth ) {
 		return new Header[] {
-					new BasicHeader("Content-Type", "text/xml; encoding=UTF-8"),
+					new BasicHeader("Content-Type", "text/xml; charset=utf-8"),
 					new BasicHeader("Brief","T"),
 					new BasicHeader("Depth", Integer.toString(depth))
 				};

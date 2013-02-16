@@ -367,7 +367,7 @@ public class SyncChangesToServer extends ServiceJob implements BlockingResourceR
 
 /*	
 	final private static Header[] proppatchHeaders = new Header[] {
-		new BasicHeader("Content-Type","text/xml; encoding=UTF-8")
+		new BasicHeader("Content-Type","text/xml; charset=utf-8")
 	};
 
 	final static String baseProppatch = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>"+
