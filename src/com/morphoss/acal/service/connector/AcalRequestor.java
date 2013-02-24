@@ -324,77 +324,78 @@ public class AcalRequestor {
 	}
 
 
-	/**
-	 * When a request fails with a 401 Unauthorized you can call this with the content
-	 * of the WWW-Authenticate header in the response and it will modify the URI so that
-	 * if you repeat the request the correct authentication should be used.
-	 * 
-	 * If you then get a 401, and this gets called again on that same Uri, it will throw
-	 * an AuthenticationFailure exception rather than continue futilely.
-	 * 
-	 * @param authRequestHeader
-	 * @throws AuthenticationFailure
-	 */
-	public void interpretRequestedAuth( Header authRequestHeader ) throws AuthenticationFailure {
-		// Adjust our authentication setup so the next request will be able
-		// to send the correct authentication headers...
+    /**
+     * When a request fails with a 401 Unauthorized you can call this with the content
+     * of the WWW-Authenticate header in the response and it will modify the URI so that
+     * if you repeat the request the correct authentication should be used.
+     *
+     * If you then get a 401, and this gets called again on that same Uri, it will throw
+     * an AuthenticationFailure exception rather than continue futilely.
+     *
+     * @param authRequestHeader
+     * @throws AuthenticationFailure
+     */
+    public void interpretRequestedAuth( Header authRequestHeader ) throws AuthenticationFailure {
+        // Adjust our authentication setup so the next request will be able
+        // to send the correct authentication headers...
 
-		// WWW-Authenticate: Digest realm="DAViCal CalDAV Server", qop="auth", nonce="55a1a0c53c0f337e4675befabeff6a122b5b78de", opaque="52295deb26cc99c2dcc6614e70ed471f7a163e7a", algorithm="MD5"
-		// WWW-Authenticate: Digest realm="SabreDAV",qop="auth",nonce="4f08e719a85d0",opaque="df58bdff8cf60599c939187d0b5c54de"
-		// WWW-Authenticate:digest nonce="130183646896936966342199963268042751958404602087869166446", realm="Test Realm", algorithm="md5"
+        // WWW-Authenticate: Digest realm="DAViCal CalDAV Server", qop="auth", nonce="55a1a0c53c0f337e4675befabeff6a122b5b78de", opaque="52295deb26cc99c2dcc6614e70ed471f7a163e7a", algorithm="MD5"
+        // WWW-Authenticate: Digest realm="SabreDAV",qop="auth",nonce="4f08e719a85d0",opaque="df58bdff8cf60599c939187d0b5c54de"
+        // WWW-Authenticate:digest nonce="130183646896936966342199963268042751958404602087869166446", realm="Test Realm", algorithm="md5"
 
-				
-		if ( debugThisRequest )
-			Log.println(Constants.LOGV,TAG,"Interpreting '"+authRequestHeader+"'");
 
-		String name;
-		for( HeaderElement he : authRequestHeader.getElements() ) {
-			if ( debugThisRequest )
-				Log.println(Constants.LOGV,TAG,"Interpreting Element: '"+he.toString()+"' ("+he.getName()+":"+he.getValue()+")");
-			name = he.getName();
+        if ( debugThisRequest )
+            Log.println(Constants.LOGV,TAG,"Interpreting '"+authRequestHeader+"'");
 
-			if ( name.length() > 7 && name.substring(0, 7).equalsIgnoreCase("Digest ") ) { 
-				authType = Servers.AUTH_DIGEST;
-				qop = null;
-				algorithm = "md5";
-				name = name.substring(7);
-				if ( debugThisRequest )
-					Log.println(Constants.LOGV,TAG,"Found '"+getAuthTypeName(authType)+"' auth, realm: "+authRealm);
-			}
-			else if ( name.length() > 6 && name.substring(0, 6).equalsIgnoreCase("Basic ") ) { 
-				authType = Servers.AUTH_BASIC;
-				name = name.substring(6);
-			}
+        String name;
+        for( HeaderElement he : authRequestHeader.getElements() ) {
+            if ( debugThisRequest )
+                Log.println(Constants.LOGV,TAG,"Interpreting Element: '"+he.toString()+"' ("+he.getName()+":"+he.getValue()+")");
+            name = he.getName();
 
-			if ( name.equalsIgnoreCase("realm") ) {
-				authRealm = he.getValue();
-			}
-			else if ( name.equalsIgnoreCase("nonce") ) {
-				nonce = he.getValue();
-			}
-			else if ( name.equalsIgnoreCase("opaque") ) {
-				opaque = he.getValue();
-			}
-			else if ( name.equalsIgnoreCase("qop") ) {
+            if ( name.length() > 7 && name.substring(0, 7).equalsIgnoreCase("Digest ") ) {
+                authType = Servers.AUTH_DIGEST;
+                qop = null;
+                algorithm = "md5";
+                name = name.substring(7);
+                if ( debugThisRequest )
+                    Log.println(Constants.LOGV,TAG,"Found '"+getAuthTypeName(authType)+"' auth, realm: "+authRealm);
+            }
+            else if ( name.length() > 6 && name.substring(0, 6).equalsIgnoreCase("Basic ") ) {
+                authType = Servers.AUTH_BASIC;
+                name = name.substring(6);
+            }
+
+            if ( name.equalsIgnoreCase("realm") ) {
+                authRealm = he.getValue();
+            }
+            else if ( name.equalsIgnoreCase("nonce") ) {
+                nonce = he.getValue();
+            }
+            else if ( name.equalsIgnoreCase("opaque") ) {
+                opaque = he.getValue();
+            }
+            else if ( name.equalsIgnoreCase("qop") ) {
                 qop = "auth";
-				if ( !he.getValue().equalsIgnoreCase("auth") ) {
-					Log.w(TAG, "Digest Auth requested qop of '"+he.getValue()+"' but we only support 'auth'");
-				}
-			}
-			else if ( name.equalsIgnoreCase("algorithm") ) {
-				if ( !he.getValue().equalsIgnoreCase(algorithm) ) {
-					Log.w(TAG, "Digest Auth requested algorithm of '"+he.getValue()+"' but we only support '"+algorithm+"'");
-				}
-			}
-			else {
-				Log.w(TAG, "Digest Auth requested algorithm of '"+he.getValue()+"' but we only support '"+algorithm+"'");
-			}
-		}
+                if ( !he.getValue().equalsIgnoreCase("auth") ) {
+                    // Really we should split it out to see whether 'auth' is one of their options.
+                    Log.w(TAG, "Digest Auth requested qop of '"+he.getValue()+"' but we only support 'auth'");
+                }
+            }
+            else if ( name.equalsIgnoreCase("algorithm") ) {
+                if ( !he.getValue().equalsIgnoreCase(algorithm) ) {
+                    Log.w(TAG, "Digest Auth requested algorithm of '"+he.getValue()+"' but we only support '"+algorithm+"'");
+                }
+            }
+            else {
+                Log.w(TAG, "Digest parameter of '"+name+"=\""+he.getValue()+"\"' is being ignored.");
+            }
+        }
 
-		authRequired = true;
-	}
+        authRequired = true;
+    }
 
-	
+
 	private String md5( String in ) {
 		// Create MD5 Hash
 		MessageDigest digest;
