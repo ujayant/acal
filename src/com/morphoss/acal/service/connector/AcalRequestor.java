@@ -376,6 +376,7 @@ public class AcalRequestor {
 				opaque = he.getValue();
 			}
 			else if ( name.equalsIgnoreCase("qop") ) {
+                qop = "auth";
 				if ( !he.getValue().equalsIgnoreCase("auth") ) {
 					Log.w(TAG, "Digest Auth requested qop of '"+he.getValue()+"' but we only support 'auth'");
 				}
