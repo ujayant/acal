@@ -101,3 +101,7 @@ Change initial connection test to use OPTIONS rather than HEAD.  Yahoo redirects
 Timezone loading now uses the JSON interface (not yet enabled by default though, as it is not properly used through the code).
 Log an exception when we attempt to store an event in cache with an invalid collection id.
 Default collection colour to something which cannot cause an exception.
+v62=1.62
+Fix content-type headers to use 'charset="UTF-8"'
+Change the way that the qop parameter is set on Digest authentication to allow for implementations that require it to be present.
+
