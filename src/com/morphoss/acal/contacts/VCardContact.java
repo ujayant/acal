@@ -142,8 +142,15 @@ public class VCardContact {
 	public void writeToContact(Context context, Account account, Integer androidContactId) {
 		this.cr = context.getContentResolver();
 		this.ops = new ArrayList<ContentProviderOperation>();
+		String fullName;
+		try {
+		    fullName = sourceCard.getProperty(PropertyName.FN).getValue();
+		}
+		catch( Exception e) {
+		    fullName = "Invalid VCARD missing FN property:\n"+sourceCard.getOriginalBlob();
+		}
 		if ( androidContactId < 0 ) {
-			Log.println(Constants.LOGD,TAG,"Inserting data for '"+sourceCard.getProperty(PropertyName.FN).getValue()+"'");
+			Log.println(Constants.LOGD,TAG,"Inserting data for '"+fullName+"'");
 			ops.add(ContentProviderOperation.newInsert(RawContacts.CONTENT_URI)
 						.withValue(RawContacts.ACCOUNT_TYPE, account.type)
 						.withValue(RawContacts.ACCOUNT_NAME, account.name)
@@ -155,7 +162,7 @@ public class VCardContact {
 		}
 		else {
 			Uri rawContactUri = ContentUris.withAppendedId(RawContacts.CONTENT_URI, androidContactId);
-			Log.println(Constants.LOGD,TAG,"Updating data for '"+sourceCard.getProperty(PropertyName.FN).getValue()+"'");
+			Log.println(Constants.LOGD,TAG,"Updating data for '"+fullName+"'");
 
 			ops.add(ContentProviderOperation.newUpdate(rawContactUri)
 					.withYieldAllowed(true)
