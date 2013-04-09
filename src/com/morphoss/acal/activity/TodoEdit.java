@@ -777,6 +777,13 @@ public class TodoEdit extends AcalActivity
 		this.updateLayout();
 	}
 
+	private void checkpointCurrentValues() {
+		// Make sure the text fields are all preserved before we start any dialogs.
+		todo.setSummary(todoName.getText().toString());
+		todo.setLocation(locationView.getText().toString());
+		todo.setDescription(notesView.getText().toString());
+	}
+
 	//Dialogs
 	protected Dialog onCreateDialog(int id) {
 		switch ( id ) {
@@ -788,6 +795,7 @@ public class TodoEdit extends AcalActivity
 				return loadingDialog;
 		}
 		if ( todo == null ) return null;
+		checkpointCurrentValues();
 
 		// Any dialogs after this point depend on todo having been initialised
 		AcalDateTime start = todo.getStart();
