@@ -11,6 +11,7 @@ public class CacheWindow {
 	private AcalDateTime windowStart = null;
 	private AcalDateTime windowEnd = null;
 	private AcalDateRange requestedWindow = null;
+	private AcalDateRange minimumRange = calculateMinimumRange();
 
 	//The midpoint of the last requested time. NB this is calculated from the range
 	//asked for via addToRequestedRange, not the actual value of requestedWindow.
@@ -40,6 +41,19 @@ public class CacheWindow {
 	}
 
 	/**
+	 * Calculate a minimum range that we can't shrink past.
+	 * @return
+	 */
+	private AcalDateRange calculateMinimumRange() {
+        AcalDateTime from = new AcalDateTime();
+        from.setMonthDay(1);
+        from.addDays(-7);
+        AcalDateTime until = from.clone().addMonths(2);
+        
+        return new AcalDateRange(from,until);
+    }
+
+    /**
 	 * Create a window with specified sizing options
 	 * All duration vars are in milliseconds
 	 */
@@ -62,9 +76,10 @@ public class CacheWindow {
 		this.lastRequestedMidPoint = startPoint;
 		//calculate initial window request size
 		AcalDateTime start = startPoint.clone().addSeconds((lookBack/1000));
+		if ( start.after(minimumRange.start) )  start = minimumRange.start.clone();
 		AcalDateTime end = startPoint.clone().addSeconds((lookForward/1000));
+        if ( end.before(minimumRange.end) )     end = minimumRange.end.clone();
 		this.addToRequestedRange(new AcalDateRange(start,end));
-
 	}
 
 	/**
@@ -153,17 +168,23 @@ public class CacheWindow {
 
 	/**
 	 * Arbitrarily set the window size. Will reset requested range if new window covers the current requested range
-	 * 
-	 * Warning - this method will not check the set size against the window size vars.
+	 *
+	 * Warning - this method will not check the set size against the window size vars, however it *will* enforce 
+	 * coverage of a two month window starting 7 days prior to the beginning of the current month.
+	 *
 	 * @param range
 	 */
 	public void setWindowSize(AcalDateRange range) {
-		if (range == null) { windowStart = null; return; }
-		windowStart = range.start.clone();
-		windowEnd = range.end.clone();
+		if (range == null) {
+		    windowStart = minimumRange.start;
+		    windowEnd = minimumRange.end;
+		    return;
+	    }
 
-		//check requested ranges validity
-		if (requestedWindow != null && isWithinWindow(requestedWindow)) requestedWindow = null;
+	    windowStart = (minimumRange.start.before(range.start)? minimumRange.start : range.start).clone();
+		windowEnd = (minimumRange.end.after(range.end)? minimumRange.end : range.end).clone();
+
+		addToRequestedRange(new AcalDateRange(windowStart,windowEnd));
 		if (Constants.LOG_DEBUG) {
 			Log.d(TAG, "Set Window to "+this.windowStart+"-->"+this.windowEnd);
 			Log.d(TAG, "Requested Window: "+this.requestedWindow);
@@ -193,10 +214,13 @@ public class CacheWindow {
 		//check to see if we have covered the requested range
 		if (requestedWindow != null && isWithinWindow(requestedWindow)) requestedWindow = null;
 
+		// Recalculate the minimum range.
+		minimumRange = calculateMinimumRange();
+
 		//apply shrink rules - can only be done if we have a callback
-		if (	callBack != null &&
+		if ( callBack != null &&
 				this.windowEnd.getMillis()-this.windowEnd.getMillis() > this.maxSize) {
-			//window is to big, calculate the range it should cover
+			//window is too big, calculate the range it should cover
 			//wiping is done in the oppisite direction of travel
 			//if maxSize is inappropriate and/or use is switching direction a lot
 			//this could have undesireable performance affects.
@@ -207,12 +231,18 @@ public class CacheWindow {
 			if (goingForward) {
 				//bring the window start forward.
 				AcalDateTime newStart = AcalDateTime.fromMillis(windowEnd.getMillis()-maxSize);
+				if ( newStart.after(minimumRange.start) ) newStart = minimumRange.start.clone();
 				callBack.deleteRange(new AcalDateRange(windowStart,newStart.addSeconds(-1)));
 			} else {
 				//bring the window end back.
 				AcalDateTime newEnd = AcalDateTime.fromMillis(windowStart.getMillis()+maxSize);
+                if ( newEnd.before(minimumRange.end) ) newEnd = minimumRange.end.clone();
 				callBack.deleteRange(new AcalDateRange(newEnd.addSeconds(1), windowEnd));
 			}
+		}
+		else {
+		    if ( windowStart.after(minimumRange.start) ) windowStart = minimumRange.start.clone();
+            if ( windowEnd.before(minimumRange.end) ) windowEnd = minimumRange.end.clone();
 		}
 		if (Constants.LOG_DEBUG) {
 			Log.d(TAG, "Set Window to "+this.windowStart+"-->"+this.windowEnd);
@@ -226,8 +256,8 @@ public class CacheWindow {
 	 */
 	public void reduceWindow(AcalDateRange rangeToRemove) {
 		if (windowStart == null) {
-			windowStart = rangeToRemove.start.clone();
-			windowEnd = rangeToRemove.end.clone();
+			windowStart = (minimumRange.start.before(rangeToRemove.start)? minimumRange.start : rangeToRemove.start).clone();
+			windowEnd = (minimumRange.end.after(rangeToRemove.end)? minimumRange.end : rangeToRemove.end).clone();
 			//check requested ranges validity
 			if (requestedWindow != null && isWithinWindow(requestedWindow)) requestedWindow = null;
 			if (Constants.LOG_DEBUG) {
@@ -237,8 +267,10 @@ public class CacheWindow {
 			return;
 		}
 
-		if (rangeToRemove.start.after(windowStart)) windowStart = rangeToRemove.start.clone();
-		if (rangeToRemove.end.before(windowEnd)) windowEnd = rangeToRemove.end.clone();
+		if (rangeToRemove.start.after(windowStart))
+		    windowStart = (minimumRange.start.before(rangeToRemove.start)? minimumRange.start : rangeToRemove.start).clone();
+		if (rangeToRemove.end.before(windowEnd))
+		    windowEnd = (minimumRange.end.after(rangeToRemove.end)? minimumRange.end : rangeToRemove.end).clone();
 		//check requested ranges validity
 		if (requestedWindow != null && isWithinWindow(requestedWindow)) requestedWindow = null;
 		if (Constants.LOG_DEBUG) {
