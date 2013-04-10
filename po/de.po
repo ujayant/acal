@@ -7,7 +7,7 @@
 #   <chrysn@fsfe.org>, 2011.
 # fmms <mail@felixmoeller.de>, 2011.
 # Joerg Knoche <transifex@roerch.ping.de>, 2011.
-#   <mail@felixmoeller.de>, 2011, 2012.
+#   <mail@felixmoeller.de>, 2011-2012.
 # Matthias Althaus <contact@althaus.it>, 2011.
 #   <m.fresel@sysangels.com>, 2012.
 # Philipp Hahn <pmhahn+transifex@pmhahn.de>, 2012.
@@ -18,14 +18,14 @@ msgstr ""
 "Project-Id-Version: aCal\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2012-08-19 17:18+1200\n"
-"PO-Revision-Date: 2012-08-19 05:21+0000\n"
-"Last-Translator: Andrew McMillan <andrew@mcmillan.net.nz>\n"
+"PO-Revision-Date: 2012-10-18 20:46+0000\n"
+"Last-Translator: fmms <mail@felixmoeller.de>\n"
 "Language-Team: German (http://www.transifex.com/projects/p/acal/language/de/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Language: de\n"
-"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 # SourceFileStart:../res/values/strings.xml
 # Strings that should not be localised belong in unlocalisable_strings.xml
@@ -958,7 +958,7 @@ msgid "Task"
 msgstr "Aufgabe"
 
 msgid "weekends"
-msgstr ""
+msgstr "Wochenenden"
 
 msgid "weekdays"
 msgstr "Wochentage"
@@ -1030,19 +1030,19 @@ msgid "prefIgnoreValarmDescription_OffSummary"
 msgstr ""
 
 msgid "note_title_hint"
-msgstr ""
+msgstr "Geben Sie Ihrer Notiz einen Titel"
 
 msgid "note_text_hint"
-msgstr ""
+msgstr "Geben Sie hier die Notiz ein"
 
 msgid "event_name_hint"
-msgstr ""
+msgstr "Geben Sie einen Namen für das Ereignis an"
 
 msgid "event_location_hint"
-msgstr ""
+msgstr "Der Ort des Ereignisses"
 
 msgid "event_notes_hint"
-msgstr ""
+msgstr "Detaillierte Beschreibung des Ereignisses"
 
 msgid "todo_name_hint"
 msgstr ""
